@@ -57,6 +57,11 @@ def parse_args(args_str: List[str]) -> argparse.Namespace:
     parser.add_argument('files', nargs='*')
     parser.add_argument('-E', dest='regex', action='store_true')
     parser.add_argument('-c', dest='count', action='store_true')
+    parser.add_argument('-i', dest='ignore', action='store_true')
+    parser.add_argument('-v', dest='inverse', action='store_true')
+    parser.add_argument('-x', dest='full_match', action='store_true')
+    parser.add_argument('-l', dest='has_lines', action='store_true')
+    parser.add_argument('-L', dest='no_lines', action='store_true')
 
     return parser.parse_args(args_str)
 
