@@ -144,12 +144,22 @@ def test_get_format_grep():
 
 def test_parse_args_grep():
     assert grep.parse_args(['needle', 'file']) == \
-        argparse.Namespace(count=False, files=['file'], needle='needle', regex=False)
+        argparse.Namespace(count=False, files=['file'], full_match=False, has_lines=False,
+                           ignore=False, inverse=False, needle='needle', no_lines=False,
+                           regex=False)
     assert grep.parse_args(['n', 'a', 'b']) == \
-        argparse.Namespace(count=False, files=['a', 'b'], needle='n', regex=False)
+        argparse.Namespace(count=False, files=['a', 'b'], full_match=False, has_lines=False,
+                           ignore=False, inverse=False, needle='n', no_lines=False,
+                           regex=False)
     assert grep.parse_args(['n', '-c']) == \
-        argparse.Namespace(count=True, files=[], needle='n', regex=False)
+        argparse.Namespace(count=True, files=[], full_match=False, has_lines=False,
+                           ignore=False, inverse=False, needle='n', no_lines=False,
+                           regex=False)
     assert grep.parse_args(['-E', 'n', 'a']) == \
-        argparse.Namespace(count=False, files=['a'], needle='n', regex=True)
+        argparse.Namespace(count=False, files=['a'], full_match=False, has_lines=False,
+                           ignore=False, inverse=False, needle='n', no_lines=False,
+                           regex=True)
     assert grep.parse_args(['-E', '-c', 'ned', 'a', 'b']) == \
-        argparse.Namespace(count=True, files=['a', 'b'], needle='ned', regex=True)
+        argparse.Namespace(count=True, files=['a', 'b'], full_match=False, has_lines=False,
+                           ignore=False, inverse=False, needle='ned', no_lines=False,
+                           regex=True)
