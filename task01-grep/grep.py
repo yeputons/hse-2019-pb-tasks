@@ -8,11 +8,16 @@ import re
 import argparse
 
 REGEX = 'regex'
+IGNORE_CASE = 'ignore_case'
 
 
 def match(needle: str, line: str, flags: Dict[str, bool]) -> bool:
+    ignoring_case = flags.get(
+        IGNORE_CASE) is not None and flags.get(IGNORE_CASE)
     if flags.get(REGEX) is not None and flags.get(REGEX):
-        return re.search(needle, line) is not None
+        return re.search(needle, line, flags=re.IGNORECASE if ignoring_case else 0) is not None
+    if ignoring_case:
+        return needle.lower() in line.lower()
     return needle in line
 
 
@@ -51,6 +56,10 @@ def main(arg_str: List[str]):
                         dest='regex_mode',
                         action='store_true',
                         help='perceive a needle as a regex')
+    parser.add_argument('-i',
+                        dest='ignore_case',
+                        action='store_true',
+                        help='ignoring case of a needle')
     parser.add_argument('needle',
                         type=str,
                         nargs=1,
@@ -60,7 +69,9 @@ def main(arg_str: List[str]):
                         help='a sources where to search (default: stdin)')
     args = parser.parse_args(arg_str)
     res: Dict[str, List[str]] = {}
-    search_flags: Dict[str, bool] = {REGEX: args.regex_mode}
+    search_flags: Dict[str, bool] = {
+        REGEX: args.regex_mode,
+        IGNORE_CASE: args.ignore_case}
     if args.files:
         for file in args.files:
             with open(file, 'r') as input_stream:
