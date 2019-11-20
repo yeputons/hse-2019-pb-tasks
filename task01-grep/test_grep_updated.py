@@ -30,3 +30,15 @@ def test_search_needle_in_src_inverted():
     src = ['rtt', 'pq', 'cnb']
     assert grep.search_needle_in_src(
         needle, src, {grep.REGEX: True, grep.INVERTED: True}) == src
+
+
+def test_match_full_match():
+    assert grep.match('AAA', 'AAA', {grep.FULL_MATCH: True})
+    assert grep.match(
+        'AAA', 'aaa', {grep.FULL_MATCH: True, grep.IGNORE_CASE: True})
+    assert grep.match('AA?A', 'AA', {grep.FULL_MATCH: True, grep.REGEX: True})
+    assert not grep.match('AAA', 'AAB', {grep.FULL_MATCH: True})
+    assert not grep.match(
+        'AAA', 'aaaa', {grep.FULL_MATCH: True, grep.IGNORE_CASE: True})
+    assert grep.match(
+        'Aa*t', 'aaaaaat', {grep.FULL_MATCH: True, grep.REGEX: True, grep.IGNORE_CASE: True})
