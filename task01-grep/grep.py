@@ -12,7 +12,7 @@ def parse_args(args_str: List[str]) -> ap.Namespace:
     parser.add_argument('-E', dest='regex', action='store_true',
                         help='given string is understood as regex')
     parser.add_argument('pattern', type=str, help='first string after flags')
-    parser.add_argument('files', nargs='*', type=ap.FileType('r'),
+    parser.add_argument('files', nargs='*',
                         help='arguments after pattern are files names')
     return parser.parse_args(args_str)
 
@@ -29,7 +29,7 @@ def strip_lines(file: Iterable) -> List[str]:
 def format_data(data: List[str], is_count: bool, multiple_files: bool, filename: str) -> List[str]:
     if is_count:
         data = [str(len(data))]
-    return [filename + ': ' + line for line in data] if multiple_files else data
+    return [filename + ':' + line for line in data] if multiple_files else data
 
 
 def find_in_file(file: Iterable, name: str, pattern: str, is_regex: bool,
@@ -43,8 +43,10 @@ def main(args_str: List[str]):
     result: List[str] = []
     if args.files:
         for file in args.files:
-            result += find_in_file(file, file.name, args.pattern,
-                                   args.regex, args.count, len(args.files) > 1)
+            with open(file) as f:
+                result += find_in_file(f, file, args.pattern,
+                                       args.regex, args.count, len(args.files) > 1)
+                f.close()
     else:
         result = find_in_file(sys.stdin, '', args.pattern, args.regex, args.count, False)
     print(*result, sep='\n')
