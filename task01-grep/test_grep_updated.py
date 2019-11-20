@@ -2,6 +2,47 @@
 import io
 import grep
 
+
+# UNIT #
+
+
+def test_unit_inverse_match():
+    def f(x):  # pylint: disable=unused-argument
+        return True
+
+    def g(x):  # pylint: disable=unused-argument
+        return False
+
+    def h(x):
+        return 'asd' in x
+
+    assert grep.inverse_match(f, 'a') is False
+    assert grep.inverse_match(g, 'a') is True
+    assert grep.inverse_match(h, 'a') is True
+    assert grep.inverse_match(h, 'asdf') is False
+
+
+def test_unit_file_filter_all_files():
+    assert grep.all_files(('name', [])) is True
+    assert grep.all_files(('name', ['asd'])) is True
+    assert grep.all_files(('name', ['asd', 'dsa'])) is True
+    assert grep.all_files(('name', ['asd', 'dsa', 'sda'])) is True
+
+
+def test_unit_file_filter_non_empty():
+    assert grep.non_empty(('name', [])) is False
+    assert grep.non_empty(('name', ['asd'])) is True
+    assert grep.non_empty(('name', ['asd', 'dsa'])) is True
+    assert grep.non_empty(('name', ['asd', 'dsa', 'sda'])) is True
+
+
+def test_unit_file_filter_empty_only():
+    assert grep.empty_only(('name', [])) is True
+    assert grep.empty_only(('name', ['asd'])) is False
+    assert grep.empty_only(('name', ['asd', 'dsa'])) is False
+    assert grep.empty_only(('name', ['asd', 'dsa', 'sda'])) is False
+
+
 # INTEGRATION #
 
 
