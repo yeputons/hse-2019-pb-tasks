@@ -11,7 +11,7 @@ REGEX = 'regex'
 IGNORE_CASE = 'ignore_case'
 
 
-def match(needle: str, line: str, flags: Dict[str, bool] = {}) -> bool:
+def match(needle: str, line: str, flags: Dict[str, bool]) -> bool:
     ignoring_case = flags.get(
         IGNORE_CASE) is not None and flags.get(IGNORE_CASE)
     if flags.get(REGEX) is not None and flags.get(REGEX):
@@ -26,7 +26,7 @@ def preproccesing(data: List[str]) -> List[str]:
 
 
 def search_needle_in_src(needle: str, source: List[str],
-                         flags: Dict[str, bool] = {}) -> List[str]:
+                         flags: Dict[str, bool]) -> List[str]:
 
     appearances = []
     for line in source:
