@@ -9,6 +9,7 @@ import argparse
 
 REGEX = 'regex'
 IGNORE_CASE = 'ignore_case'
+INVERTED = 'invert_result'
 
 
 def match(needle: str, line: str, flags: Dict[str, bool]) -> bool:
@@ -28,9 +29,11 @@ def preproccesing(data: List[str]) -> List[str]:
 def search_needle_in_src(needle: str, source: List[str],
                          flags: Dict[str, bool]) -> List[str]:
 
+    inverted = flags.get(INVERTED) is not None and flags.get(INVERTED)
     appearances = []
     for line in source:
-        if match(needle, line, flags):
+        matches = match(needle, line, flags)
+        if (matches and not inverted) or (not matches and inverted):
             appearances.append(line)
     return appearances
 
@@ -60,6 +63,10 @@ def main(arg_str: List[str]):
                         dest='ignore_case',
                         action='store_true',
                         help='ignoring case of a needle')
+    parser.add_argument('-v',
+                        dest='invert_result',
+                        action='store_true',
+                        help='invert a result i.e. all found lines turn out not found')
     parser.add_argument('needle',
                         type=str,
                         nargs=1,
@@ -71,7 +78,8 @@ def main(arg_str: List[str]):
     res: Dict[str, List[str]] = {}
     search_flags: Dict[str, bool] = {
         REGEX: args.regex_mode,
-        IGNORE_CASE: args.ignore_case
+        IGNORE_CASE: args.ignore_case,
+        INVERTED: args.invert_result
     }
     if args.files:
         for file in args.files:
