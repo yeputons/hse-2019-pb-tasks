@@ -10,16 +10,23 @@ import argparse
 REGEX = 'regex'
 IGNORE_CASE = 'ignore_case'
 INVERTED = 'invert_result'
+FULL_MATCH = 'full_match'
 
 
 def match(needle: str, line: str, flags: Dict[str, bool]) -> bool:
+    regex = flags.get(REGEX) is not None and flags.get(REGEX)
     ignoring_case = flags.get(
         IGNORE_CASE) is not None and flags.get(IGNORE_CASE)
-    if flags.get(REGEX) is not None and flags.get(REGEX):
-        return re.search(needle, line, flags=re.IGNORECASE if ignoring_case else 0) is not None
+    full_match = flags.get(FULL_MATCH) is not None and flags.get(FULL_MATCH)
+
     if ignoring_case:
-        return needle.lower() in line.lower()
-    return needle in line
+        needle = needle.lower()
+        line = line.lower()
+    if regex:
+        if full_match:
+            return re.fullmatch(needle, line) is not None
+        return re.search(needle, line) is not None
+    return needle in line if not full_match else needle == line
 
 
 def preproccesing(data: List[str]) -> List[str]:
@@ -67,6 +74,10 @@ def main(arg_str: List[str]):
                         dest='invert_result',
                         action='store_true',
                         help='invert a result i.e. all found lines turn out not found')
+    parser.add_argument('-x',
+                        dest='full_match',
+                        action='store_true',
+                        help='with this flag grep is trying to find only full matches')
     parser.add_argument('needle',
                         type=str,
                         nargs=1,
@@ -79,7 +90,8 @@ def main(arg_str: List[str]):
     search_flags: Dict[str, bool] = {
         REGEX: args.regex_mode,
         IGNORE_CASE: args.ignore_case,
-        INVERTED: args.invert_result
+        INVERTED: args.invert_result,
+        FULL_MATCH: args.full_match
     }
     if args.files:
         for file in args.files:
