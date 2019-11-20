@@ -12,3 +12,21 @@ def test_match_ignore_case():
     assert grep.match('aa?a', 'AA', {grep.REGEX: True, grep.IGNORE_CASE: True})
     assert not grep.match(
         'ab?a', 'aBba', {grep.REGEX: True, grep.IGNORE_CASE: True})
+
+
+def test_search_needle_in_src_inverted():
+    needle = 'abab'
+    src = []
+    assert grep.search_needle_in_src(
+        needle, src, {grep.REGEX: False, grep.INVERTED: True}) == []
+    src = ['qababr', 'qadbab', 'quabab']
+    assert grep.search_needle_in_src(
+        needle, src, {grep.REGEX: False, grep.INVERTED: True}) == ['qadbab']
+    needle = '[1]'
+    src = ['[2 ghs', ']] req', '[1e]', 'pp[1]asf']
+    assert grep.search_needle_in_src(
+        needle, src, {grep.REGEX: False, grep.INVERTED: False}) == ['pp[1]asf']
+    needle = 'a'
+    src = ['rtt', 'pq', 'cnb']
+    assert grep.search_needle_in_src(
+        needle, src, {grep.REGEX: True, grep.INVERTED: True}) == src
