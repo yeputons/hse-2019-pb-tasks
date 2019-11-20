@@ -46,7 +46,7 @@
 Если хотя бы одно из следующих требований не выполняется, вы можете получить не более 30% баллов за задание:
 
 1. Попытка является "разумной" (смотри выше).
-1. Команда `flake8 --max-line-length=100` (с установленными `pep8-naming` или `flake8-quotes`) не выдаёт ошибок ни в одном из файлов.
+1. Команда `flake8 --max-line-length=100` (с установленными `pep8-naming` и `flake8-quotes`) не выдаёт ошибок ни в одном из файлов.
 1. Команда `pylint --max-line-length=100 --disable=invalid-name,missing-docstring,global-statement,too-many-lines,R --enable=simplifiable-if-statement,redefined-variable-type` не выдаёт ошибок ни в одном из файлов.
    Это требование можно ослабить, если вы предоставите практику пример, где это команда выдаёт неразумную, на ваш взгляд, рекомендацию.
 1. Команда `mypy --ignore-missing-imports` не выдаёт ошибок ни в одном из файлов.
