@@ -11,9 +11,9 @@ import grep
 
 
 # Следующие два в своей работе print_name используют. Что с этим лучше всего делать? Замокать?
-def test_unit_print_count(capsys):
-    grep.print_count('{line}', ('NOT_PRINTED', ['a', 'b', 'c', 'd']))
-    grep.print_count('{name}:{line}', ('PRINTED', []))
+def test_unit_print_files(capsys):
+    grep.print_files('{line}', ('NOT_PRINTED', ['a', 'b', 'c', 'd']))
+    grep.print_files('{name}:{line}', ('PRINTED', []))
     out, err = capsys.readouterr()
     assert err == ''
     assert out == '4\nPRINTED:0\n'
@@ -38,7 +38,7 @@ def test_unit_regexp_mach():
         ('cyh', 'cyhm', True)
     ]
     for pattern, data, answer in tests:
-        assert grep.match_regex(pattern, data) == answer
+        assert grep.match_regex(re.compile(pattern), False, data) == answer
 
 
 def test_unit_fulltext():
@@ -52,7 +52,7 @@ def test_unit_fulltext():
         ('cyh', 'cyhm', True)
     ]
     for pattern, data, answer in tests:
-        assert grep.match_fulltext(pattern, data) == answer
+        assert grep.match_fulltext(pattern, False, False, data) == answer
 
 
 def test_unit_search():
@@ -89,23 +89,26 @@ def test_unit_search_files(tmp_path, monkeypatch):
 
 def test_get_match_func():
     needle = 'm?e'
-    args_fulltext = Namespace(regex=False, needle=needle)
+    args_fulltext = Namespace(regex=False, needle=needle, ignore_case=False, invert=False,
+                              strict=False)
     # Whitebox testing: Оно всегда будет partial.
 
     matcher_fulltext: partial = grep.get_match_func(args_fulltext)  # type: ignore
     # pylint: disable=no-member
     assert matcher_fulltext.func is grep.match_fulltext
     # pylint: disable=no-member
-    assert matcher_fulltext.args == (needle,)
+    assert matcher_fulltext.args == (needle, False, False)
     # pylint: disable=no-member
     assert matcher_fulltext.keywords == {}
 
-    args_regex = Namespace(regex=True, needle='m?e')
+    args_regex = Namespace(regex=True, needle='m?e', ignore_case=False, invert=False,
+                           strict=False)
     matcher_regex: partial = grep.get_match_func(args_regex)  # type: ignore
     # pylint: disable=no-member
     assert matcher_regex.func is grep.match_regex
     # pylint: disable=no-member
-    assert matcher_regex.args == (needle,)
+    assert matcher_regex.args[0].pattern == needle
+    assert matcher_regex.args[1] is False
     # pylint: disable=no-member
     assert matcher_regex.keywords == {}
 
@@ -127,9 +130,10 @@ def test_get_search_func():
 
 
 def test_get_format():
-    assert grep.get_format(Namespace(files=[])) == '{line}'
-    assert grep.get_format(Namespace(files=['a'])) == '{line}'
-    assert grep.get_format(Namespace(files=['a', 'b'])) == '{name}:{line}'
+    assert grep.get_format(Namespace(files=[], list_found=False, list_empty=False)) == '{line}'
+    assert grep.get_format(Namespace(files=['a'], list_found=False, list_empty=False)) == '{line}'
+    assert grep.get_format(Namespace(files=['a', 'b'],
+                                     list_found=False, list_empty=False)) == '{name}:{line}'
 
 
 # INTEGRATION #
