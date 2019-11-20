@@ -9,10 +9,9 @@ def get_max_run(flips: List[int]) -> int:
     for flip in flips:
         if flip:
             cur_run += 1
-            if cur_run > max_run:
-                max_run += 1
         else:
             cur_run = 0
+        max_run = max(max_run, cur_run)
     return max_run
 
 
@@ -32,4 +31,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
