@@ -7,9 +7,11 @@ import sys
 import re
 import argparse
 
+REGEX = 'regex'
 
-def match(needle: str, line: str, regex: bool) -> bool:
-    if regex:
+
+def match(needle: str, line: str, flags: Dict[str, bool]) -> bool:
+    if flags.get(REGEX) is not None and flags.get(REGEX):
         return re.search(needle, line) is not None
     return needle in line
 
@@ -19,11 +21,11 @@ def preproccesing(data: List[str]) -> List[str]:
 
 
 def search_needle_in_src(needle: str, source: List[str],
-                         regex: bool = False) -> List[str]:
+                         flags: Dict[str, bool]) -> List[str]:
 
     appearances = []
     for line in source:
-        if match(needle, line, regex):
+        if match(needle, line, flags):
             appearances.append(line)
     return appearances
 
@@ -58,20 +60,21 @@ def main(arg_str: List[str]):
                         help='a sources where to search (default: stdin)')
     args = parser.parse_args(arg_str)
     res: Dict[str, List[str]] = {}
+    search_flags: Dict[str, bool] = {REGEX: args.regex_mode}
     if args.files:
         for file in args.files:
             with open(file, 'r') as input_stream:
                 res[file] = search_needle_in_src(
                     args.needle[0],
                     preproccesing(input_stream.readlines()),
-                    args.regex_mode
+                    search_flags
                 )
 
     else:
         res['stdin'] = search_needle_in_src(
             args.needle[0],
             preproccesing(sys.stdin.readlines()),
-            args.regex_mode
+            search_flags
         )
     print_search_result(res, args.count_mode)
 

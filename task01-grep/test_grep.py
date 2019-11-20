@@ -7,12 +7,12 @@ import grep
 def test_matching():
     needle = 'abab'
     line = 'kkajfababafg'
-    assert grep.match(needle, line, False)
+    assert grep.match(needle, line, {grep.REGEX: False})
     needle = 'aba?a'
     line = 'abra'
-    assert not grep.match(needle, line, True)
+    assert not grep.match(needle, line, {grep.REGEX: False})
     line = 'abaaa'
-    assert grep.match(needle, line, True)
+    assert grep.match(needle, line, {grep.REGEX: True})
 
 
 def test_preproccesing():
@@ -24,15 +24,17 @@ def test_preproccesing():
 def test_search_needle_in_src():
     needle = 'abab'
     src = []
-    assert grep.search_needle_in_src(needle, src) == []
+    assert grep.search_needle_in_src(needle, src, {grep.REGEX: False}) == []
     src = ['qababr', 'qadbab', 'quabab']
-    assert grep.search_needle_in_src(needle, src) == ['qababr', 'quabab']
+    assert grep.search_needle_in_src(needle, src, {grep.REGEX: False}) == [
+        'qababr', 'quabab']
     needle = '[1]'
     src = ['[2 ghs', ']] req', '[1e]', 'pp[1]asf']
-    assert grep.search_needle_in_src(needle, src) == ['pp[1]asf']
+    assert grep.search_needle_in_src(
+        needle, src, {grep.REGEX: False}) == ['pp[1]asf']
     needle = 'a'
     src = ['rtt', 'pq', 'cnb']
-    assert grep.search_needle_in_src(needle, src) == []
+    assert grep.search_needle_in_src(needle, src, {grep.REGEX: False}) == []
 
 
 def test_print_search_result(capsys):
