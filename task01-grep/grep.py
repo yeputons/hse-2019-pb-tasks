@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
-from typing import List, Callable
+from typing import List
 import sys
 import re
 import argparse
 
 
-def get_required_lines(lines: List[str], needle: str, check: Callable[[str, str], bool]):
+def get_required_lines(lines: List[str], check: re.Pattern):
     res = []
 
     for line in lines:
-        if check(line, needle):
+        if check.search(line):
             res.append(line)
     return res
 
@@ -31,18 +31,10 @@ def print_fmt(lines: List[str], line_format: str, file_name: str, count: bool):
             print(line_format.format(file_name, line))
 
 
-def is_substring(line: str, needle: str) -> bool:
-    return needle in line
-
-
-def is_regular(line: str, needle: str) -> bool:
-    return re.search(needle, line) is not None
-
-
-def get_matching(args: argparse.Namespace) -> Callable[[str, str], bool]:
+def get_matching(args: argparse.Namespace) -> re.Pattern:
     if args.regex:
-        return is_regular
-    return is_substring
+        return re.compile(args.needle)
+    return re.compile(re.escape(args.needle))
 
 
 def get_format(args: argparse.Namespace) -> str:
@@ -81,7 +73,7 @@ def main(args_str: List[str]):
         args.files.append('')
 
     for lines, file_name in zip(all_lines, args.files):
-        print_fmt(get_required_lines(lines, args.needle, check), fmt, file_name, args.count)
+        print_fmt(get_required_lines(lines, check), fmt, file_name, args.count)
 
 
 if __name__ == '__main__':
