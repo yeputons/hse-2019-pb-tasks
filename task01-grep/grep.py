@@ -5,25 +5,70 @@ import re
 import argparse
 
 
+def in_stdin(needle: str, flag: bool, flag_e: bool):
+    global counter
+    counter = 0
+    for line in sys.stdin.readlines():
+        line = line.rstrip('\n')
+        if flag_e is False:
+            if needle in line:
+                if flag:
+                    counter += 1
+                else:
+                    print(line)
+        else:
+            if re.search(needle, line):
+                if flag:
+                    counter += 1
+                else:
+                    print(line)
+    if flag:
+        print(counter)
+
+
+def files_output(len: int, filee: str, line: str):
+    if len > 1:
+        print(f'{filee}:{line}')
+    else:
+        print(line)
+
+
+def in_files(filee: str, needle: str, flag: bool, flag_e: bool, len: int):
+    global counter
+    counter = 0
+    with open(filee, 'r') as in_file:
+        for line in in_file.readlines():
+            line = line.rstrip('\n')
+            if flag_e:
+                if re.search(needle, line):
+                    if flag:
+                        counter += 1
+                    else:
+                        files_output(len, filee, line)
+            else:
+                if needle in line:
+                    if flag:
+                        counter += 1
+                    else:
+                        files_output(len, filee, line)
+        if flag:
+            files_output(len, filee, counter)
+
+
 def main(args_str: List[str]):
     parser = argparse.ArgumentParser()
     parser.add_argument('needle', type=str)
     parser.add_argument('files', nargs='*')
     parser.add_argument('-E', dest='regex', action='store_true')
+    parser.add_argument('-c', action='store_true')
     args = parser.parse_args(args_str)
 
     # STUB BEGINS
-    for line in sys.stdin.readlines():
-        line = line.rstrip('\n')
-        if args.needle in line:
-            print('Found needle in ' + line)
-
-    with open('input.txt', 'r') as in_file:
-        for line in in_file.readlines():
-            line = line.rstrip('\n')
-            if re.search(args.needle, line):
-                print(f'Found re in {line}')
-    # STUB ENDS
+    if len(args.files) == 0:
+        in_stdin(args.needle, args.c, args.regex)
+    else:
+        for i in args.files:
+            in_files(i, args.needle, args.c, args.regex, len(args.files))
 
 
 if __name__ == '__main__':
