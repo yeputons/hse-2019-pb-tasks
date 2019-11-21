@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-from typing import List
+from typing import List, Pattern
 import sys
 import re
 import argparse
 
 
-def get_required_lines(lines: List[str], check: re.Pattern):
+def get_required_lines(lines: List[str], check: Pattern):
     res = []
 
     for line in lines:
@@ -31,7 +31,7 @@ def print_fmt(lines: List[str], line_format: str, file_name: str, count: bool):
             print(line_format.format(file_name, line))
 
 
-def get_matching(args: argparse.Namespace) -> re.Pattern:
+def get_matching(args: argparse.Namespace) -> Pattern:
     if args.regex:
         return re.compile(args.needle)
     return re.compile(re.escape(args.needle))
