@@ -1,29 +1,68 @@
 #!/usr/bin/env python3
 from typing import List
 import sys
-import re
 import argparse
+import re
 
 
-def main(args_str: List[str]):
+def parsing(args_str: List[str]):
     parser = argparse.ArgumentParser()
     parser.add_argument('needle', type=str)
     parser.add_argument('files', nargs='*')
     parser.add_argument('-E', dest='regex', action='store_true')
-    args = parser.parse_args(args_str)
+    parser.add_argument('-c', dest='count', action='store_true')
+    return parser.parse_args(args_str)
 
-    # STUB BEGINS
-    for line in sys.stdin.readlines():
-        line = line.rstrip('\n')
-        if args.needle in line:
-            print('Found needle in ' + line)
 
-    with open('input.txt', 'r') as in_file:
-        for line in in_file.readlines():
-            line = line.rstrip('\n')
-            if re.search(args.needle, line):
-                print(f'Found re in {line}')
-    # STUB ENDS
+def line_processing(args: argparse.Namespace) -> str:
+    if not args.regex:
+        return re.escape(args.needle)
+    else:
+        return args.needle
+
+
+def print_from_file(lines: List[str], filename: str, len_namespace_files: int):
+    if len_namespace_files == 1:
+        print(*lines, sep='\n')
+    else:
+        for line in lines:
+            print(f'{filename}:{line}', sep='\n')
+
+
+def file_working(filename: str, args: argparse.Namespace):
+    with open(filename, 'r') as f:
+        line_pattern = line_processing(args)
+
+        lines = [line.rstrip('\n') for line in f]
+        good_lines = [line for line in lines if re.search(line_pattern, line)]
+        output_lines = [str(len(good_lines))] if args.count else good_lines
+
+        print_from_file(output_lines, filename, len(args.files))
+
+
+def print_from_stdin(lines: List[str]):
+    print(*lines, sep='\n')
+
+
+def stdin_working(args: argparse.Namespace):
+    line_pattern = line_processing(args)
+
+    lines = [line.rstrip('\n') for line in sys.stdin]
+    good_lines = [line for line in lines if re.search(line_pattern, line)]
+    output_lines = [str(len(good_lines))] if args.count else good_lines
+
+    print_from_stdin(output_lines)
+
+
+def main(args_str: List[str]):
+    args = parsing(args_str)
+
+    if args.files:
+        for file in args.files:
+            file_working(file, args)
+
+    else:
+        stdin_working(args)
 
 
 if __name__ == '__main__':
