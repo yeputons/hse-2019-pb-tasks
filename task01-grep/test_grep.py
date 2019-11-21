@@ -62,11 +62,12 @@ def test_integrate_files_grep_count(tmp_path, monkeypatch, capsys):
 
 
 def test_get_required_lines_grep():
-    out = grep.get_required_lines(['pref needle', 'needle suf'], 'needle', lambda l, n: n in l)
+    out = grep.get_required_lines(['pref needle', 'needle suf'],
+                                  re.compile(re.escape('needle')))
     assert out == ['pref needle', 'needle suf']
-    out = grep.get_required_lines([], 'needle', lambda l, n: n in l)
+    out = grep.get_required_lines([], re.compile(re.escape('needle')))
     assert out == []
-    out = grep.get_required_lines(['Hi', 'Hello'], '(He)', lambda l, n: re.search(n, l))
+    out = grep.get_required_lines(['Hi', 'Hello'], re.compile('(He)'))
     assert out == ['Hello']
 
 
@@ -104,18 +105,6 @@ def test_print_fmt_grep(capsys):
     assert out == '1\n'
 
 
-def test_checkers_fmt():
-    assert grep.is_substring('Hello there', '')
-    assert grep.is_substring('Hello there', 'Hello')
-    assert grep.is_substring('Hello there', 'there')
-    assert not grep.is_substring('Hello there', 'General Kenobi')
-
-    assert not grep.is_regular('Hello there', 'a+')
-    assert grep.is_regular('Hello there', '(Hell)')
-    assert grep.is_regular('Hello there', '(th)')
-    assert grep.is_regular('Hello there', '(General Kenobi)*')
-
-
 def test_get_matching_grep():
     parser = argparse.ArgumentParser()
     parser.add_argument('needle', type=str)
@@ -124,9 +113,9 @@ def test_get_matching_grep():
     parser.add_argument('-c', dest='count', action='store_true')
 
     args = parser.parse_args(['-E', 'needle?'])
-    assert grep.get_matching(args) is grep.is_regular
+    assert grep.get_matching(args) == re.compile(args.needle)
     args = parser.parse_args(['needle?'])
-    assert grep.get_matching(args) is grep.is_substring
+    assert grep.get_matching(args) == re.compile(re.escape(args.needle))
 
 
 def test_get_format_grep():
