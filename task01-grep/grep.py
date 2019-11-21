@@ -54,13 +54,13 @@ def filter_matched_lines(lines: List[str], pattern: str, regex_mode: bool) -> Li
     :param pattern: pattern to be matched
     :param regex_mode: indicates whether it's a regex expression
     """
-    got_lines = []
+    matched_lines = []
     searcher = re.compile(pattern)
     for line in lines:
         matched = searcher.search(line) if regex_mode else pattern in line
         if matched:
-            got_lines.append(line)
-    return got_lines
+            matched_lines.append(line)
+    return matched_lines
 
 
 def print_matched_lines(lines: List[str], stream_name: Optional[str],
