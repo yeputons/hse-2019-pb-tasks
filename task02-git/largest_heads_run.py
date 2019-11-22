@@ -1,8 +1,23 @@
 #!/usr/bin/env python3
 import random
 
+
 ITERS = 1000
 FLIPS = 100
+
+
+def get_max_run():
+    cur_run = 0
+    max_run = 0
+    flips = [random.choice([0, 1]) for _ in range(FLIPS)]
+    for flip in flips:
+        if flip:
+            cur_run += 1
+            if cur_run > max_run:
+                max_run += 1
+        else:
+            cur_run = 0
+    return max_run
 
 
 def main():
@@ -11,17 +26,8 @@ def main():
     total = 0
     for _ in range(ITERS):
         total += 1
-        cur_run = 0
-        max_run = 0
-        flips = [random.choice([0, 1]) for _ in range(FLIPS)]
-        for flip in flips:
-            if flip:
-                cur_run += 1
-                if cur_run > max_run:
-                    max_run += 1
-            else:
-                cur_run = 0
-        s += max_run
+        s += get_max_run()
+
     print(s, total, s / total)
 
 
