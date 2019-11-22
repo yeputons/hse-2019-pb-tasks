@@ -57,3 +57,20 @@ def test_integrate_files_grep_count(tmp_path, monkeypatch, capsys):
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'b.txt:1\na.txt:2\n'
+
+
+def test_make_list_lines():
+    source = io.StringIO('needle\nneedle\nneedlme')
+    assert grep.make_list(source, 'needle', False, False) == ['needle', 'needle']
+
+
+def test_make_list_count():
+    source = io.StringIO('needle\nneedle\nneedlme')
+    assert grep.make_list(source, 'needle', False, True) == ['2']
+
+
+def test_find():
+    line = 'find something here'
+    assert grep.find(line, 'find', False)
+    assert grep.find(line, 'f*', True)
+    assert not grep.find(line, 'no', False)
