@@ -21,11 +21,9 @@ def main():
     random.seed(123456)
     s = 0
     total = 0
-    flips = [random.choice([0, 1]) for _ in range(FLIPS)]
     for _ in range(ITERS):
+        s += get_max_run(random.choice([0, 1]) for _ in range(FLIPS))
         total += 1
-
-    s += get_max_run(flips)
     print(s, total, s / total)
 
 
