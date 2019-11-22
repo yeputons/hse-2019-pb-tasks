@@ -23,9 +23,11 @@ def get_file_lines(filename: str) -> List[str]:
     return lines
 
 
-def print_fmt(lines: List[str], line_format: str, file_name: str, count: bool):
-    if count:
+def print_fmt(lines: List[str], line_format: str, file_name: str, args: argparse.Namespace):
+    if args.count:
         print(line_format.format(file_name, len(lines)))
+    elif args.no_lines and lines == []:
+        print(line_format.format(file_name, line))
     else:
         for line in lines:
             print(line_format.format(file_name, line))
@@ -83,7 +85,7 @@ def main(args_str: List[str]):
         args.files.append('')
 
     for lines, file_name in zip(all_lines, args.files):
-        print_fmt(get_required_lines(lines, check), fmt, file_name, args.count)
+        print_fmt(get_required_lines(lines, check), fmt, file_name, args)
 
 
 if __name__ == '__main__':

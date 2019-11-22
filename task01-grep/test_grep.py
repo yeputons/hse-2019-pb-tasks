@@ -83,23 +83,39 @@ def test_get_file_lines_grep(tmp_path, monkeypatch):
 
 
 def test_print_fmt_grep(capsys):
-    grep.print_fmt(['g'], '{0}:{1}', 'a.txt', False)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('needle', type=str)
+    parser.add_argument('files', nargs='*')
+    parser.add_argument('-E', dest='regex', action='store_true')
+    parser.add_argument('-c', dest='count', action='store_true')
+    parser.add_argument('-i', dest='ignore', action='store_true')
+    parser.add_argument('-v', dest='inverse', action='store_true')
+    parser.add_argument('-x', dest='full_match', action='store_true')
+    parser.add_argument('-l', dest='has_lines', action='store_true')
+    parser.add_argument('-L', dest='no_lines', action='store_true')
+
+    args = parser.parse_args(['needle?'])
+    grep.print_fmt(['g'], '{0}:{1}', 'a.txt', args)
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'a.txt:g\n'
-    grep.print_fmt(['Hello', 'there'], '{0}:{1}', 'General Kenobi', False)
+    args = parser.parse_args(['needle?'])
+    grep.print_fmt(['Hello', 'there'], '{0}:{1}', 'General Kenobi', args)
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'General Kenobi:Hello\nGeneral Kenobi:there\n'
-    grep.print_fmt(['General Kenobi'], '{0}:{1}', 'General Grievous', True)
+    args = parser.parse_args(['-c', 'needle?'])
+    grep.print_fmt(['General Kenobi'], '{0}:{1}', 'General Grievous', args)
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'General Grievous:1\n'
-    grep.print_fmt([''], '{0}:{1}', 'Nobody', False)
+    args = parser.parse_args(['needle?'])
+    grep.print_fmt([''], '{0}:{1}', 'Nobody', args)
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'Nobody:\n'
-    grep.print_fmt([''], '{1}', 'Literally noone', True)
+    args = parser.parse_args(['-c', 'needle?'])
+    grep.print_fmt([''], '{1}', 'Literally noone', args)
     out, err = capsys.readouterr()
     assert err == ''
     assert out == '1\n'
