@@ -5,7 +5,7 @@ import re
 import argparse
 
 
-def parse_args(args_str) -> argparse.Namespace:
+def parse_args(args_str: List[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument('pattern', type=str)
     parser.add_argument('files', nargs='*')
