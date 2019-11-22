@@ -11,10 +11,10 @@ def main():
     total = 0
     for _ in range(ITERS):
         total += 1
+        flips = [random.choice([0, 1]) for _ in range(FLIPS)]
         cur_run = 0
         max_run = 0
-        for _ in range(FLIPS):
-            flip = random.choice([0, 1])
+        for flip in flips:
             if flip:
                 cur_run += 1
                 if cur_run > max_run:
