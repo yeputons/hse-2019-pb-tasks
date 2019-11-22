@@ -17,8 +17,7 @@ def parsing(args_str: List[str]):
 def line_processing(args: argparse.Namespace) -> str:
     if not args.regex:
         return re.escape(args.n)
-    else:
-        return args.n
+    return args.n
 
 
 def print_from_file(lines: List[str], filename: str, len_namespace_files: int):
