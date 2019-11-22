@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
-import random
 from typing import List
-
-ITERS = 1000
-FLIPS = 100
+import random
 
 
 def get_max_run(flips: List[int]) -> int:
@@ -18,14 +15,17 @@ def get_max_run(flips: List[int]) -> int:
     return max_run
 
 
+ITERS = 1000
+FLIPS = 100
+
+
 def main():
     random.seed(123456)
     s = 0
     total = 0
     for _ in range(ITERS):
+        s += get_max_run(random.choice([0, 1]) for _ in range(FLIPS))
         total += 1
-        flips = [random.choice([0, 1]) for _ in range(FLIPS)]
-        s += get_max_run(flips)
     print(s, total, s / total)
 
 
