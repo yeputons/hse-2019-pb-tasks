@@ -5,25 +5,62 @@ import re
 import argparse
 
 
-def main(args_str: List[str]):
+def parse_args(args_str) -> argparse.Namespace:
     parser = argparse.ArgumentParser()
-    parser.add_argument('needle', type=str)
+    parser.add_argument('pattern', type=str)
     parser.add_argument('files', nargs='*')
     parser.add_argument('-E', dest='regex', action='store_true')
-    args = parser.parse_args(args_str)
+    parser.add_argument('-c', dest='count', action='store_true')
+    return parser.parse_args(args_str)
 
-    # STUB BEGINS
+
+def print_in_files(amount: bool, file_name: str, line: str) -> None:
+    if amount:
+        print(f'{file_name}:{line}')
+    else:
+        print(line)
+
+
+def working_with_stdin(pattern: str, regex: bool, count: bool) -> None:
+    counter = 0
     for line in sys.stdin.readlines():
         line = line.rstrip('\n')
-        if args.needle in line:
-            print('Found needle in ' + line)
+        if (pattern in line or re.search(pattern, line)):
+            counter += 1
+        if regex:
+            if re.search(pattern, line):
+                print(line)
+        if (not regex and not count):
+            if pattern in line:
+                print(line)
+    if count:
+        print(counter)
 
-    with open('input.txt', 'r') as in_file:
-        for line in in_file.readlines():
-            line = line.rstrip('\n')
-            if re.search(args.needle, line):
-                print(f'Found re in {line}')
-    # STUB ENDS
+
+def working_with_files(files: List[str], pattern: str, regex: bool, count: bool) -> None:
+    for file_name in files:
+        counter = 0
+        with open(file_name, 'r') as file:
+            for line in file.readlines():
+                line = line.rstrip('\n')
+                if (pattern in line or re.search(pattern, line)):
+                    counter += 1
+                if regex:
+                    if re.search(pattern, line):
+                        print_in_files(bool(len(files) > 1), file_name, line)
+                if (not regex and not count):
+                    if pattern in line:
+                        print_in_files(bool(len(files) > 1), file_name, line)
+            if count:
+                print_in_files(bool(len(files) > 1), file_name, str(counter))
+
+
+def main(args_str: List[str]) -> None:
+    args = parse_args(args_str)
+    if args.files:
+        working_with_files(args.files, args.pattern, args.regex, args.count)
+    else:
+        working_with_stdin(args.pattern, args.regex, args.count)
 
 
 if __name__ == '__main__':
