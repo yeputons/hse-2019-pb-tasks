@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
-from typing import List, Pattern
+from typing import List, Callable
 import sys
 import re
 import argparse
 
 
-def get_required_lines(lines: List[str], check: Pattern):
+def get_required_lines(lines: List[str], check: Callable):
     res = []
 
     for line in lines:
-        if check.search(line):
+        if check(line):
             res.append(line)
     return res
 
@@ -31,15 +31,25 @@ def print_fmt(lines: List[str], line_format: str, file_name: str, count: bool):
             print(line_format.format(file_name, line))
 
 
-def get_matching(args: argparse.Namespace) -> Pattern:
-    if args.regex:
-        return re.compile(args.needle)
-    return re.compile(re.escape(args.needle))
-
+def get_matching(args: argparse.Namespace) -> Callable:
+    flags = 0
+    needle = args.needle
+    if args.ignore:
+        flags |= re.I
+    if not args.regex:
+        needle = re.escape(needle)
+    if args.inverse:
+        needle = '^((?!'+ needle + ').)*$'
+    #print(needle)
+    if args.full_match:
+    	return re.compile(needle, flags=flags).fullmatch
+    return re.compile(needle, flags=flags).search
 
 def get_format(args: argparse.Namespace) -> str:
     if len(args.files) > 1:
         return '{0}:{1}'
+    elif args.has_lines or args.no_lines:
+        return '{0}'
     return '{1}'
 
 

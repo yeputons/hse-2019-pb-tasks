@@ -63,11 +63,11 @@ def test_integrate_files_grep_count(tmp_path, monkeypatch, capsys):
 
 def test_get_required_lines_grep():
     out = grep.get_required_lines(['pref needle', 'needle suf'],
-                                  re.compile(re.escape('needle')))
+                                  re.compile(re.escape('needle')).search)
     assert out == ['pref needle', 'needle suf']
-    out = grep.get_required_lines([], re.compile(re.escape('needle')))
+    out = grep.get_required_lines([], re.compile(re.escape('needle')).search)
     assert out == []
-    out = grep.get_required_lines(['Hi', 'Hello'], re.compile('(He)'))
+    out = grep.get_required_lines(['Hi', 'Hello'], re.compile('(He)').search)
     assert out == ['Hello']
 
 
@@ -111,17 +111,29 @@ def test_get_matching_grep():
     parser.add_argument('files', nargs='*')
     parser.add_argument('-E', dest='regex', action='store_true')
     parser.add_argument('-c', dest='count', action='store_true')
+    parser.add_argument('-i', dest='ignore', action='store_true')
+    parser.add_argument('-v', dest='inverse', action='store_true')
+    parser.add_argument('-x', dest='full_match', action='store_true')
+    parser.add_argument('-l', dest='has_lines', action='store_true')
+    parser.add_argument('-L', dest='no_lines', action='store_true')
 
     args = parser.parse_args(['-E', 'needle?'])
-    assert grep.get_matching(args) == re.compile(args.needle)
+    assert grep.get_matching(args) == re.compile(args.needle, flags=0).search
     args = parser.parse_args(['needle?'])
-    assert grep.get_matching(args) == re.compile(re.escape(args.needle))
+    assert grep.get_matching(args) == re.compile(re.escape(args.needle), flags=0).search
 
 
 def test_get_format_grep():
     parser = argparse.ArgumentParser()
     parser.add_argument('needle', type=str)
     parser.add_argument('files', nargs='*')
+    parser.add_argument('-E', dest='regex', action='store_true')
+    parser.add_argument('-c', dest='count', action='store_true')
+    parser.add_argument('-i', dest='ignore', action='store_true')
+    parser.add_argument('-v', dest='inverse', action='store_true')
+    parser.add_argument('-x', dest='full_match', action='store_true')
+    parser.add_argument('-l', dest='has_lines', action='store_true')
+    parser.add_argument('-L', dest='no_lines', action='store_true')
 
     args = parser.parse_args(['needle?', []])
     assert grep.get_format(args) == '{1}'
