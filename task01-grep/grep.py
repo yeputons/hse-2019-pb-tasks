@@ -5,34 +5,34 @@ import re
 import argparse
 
 
-def parse_count(args):
+def parse_count(needle, files):
 
-    if len(args.files) == 0:
+    if len(files) == 0:
         counter = 0
         for line in sys.stdin.readlines():
             line = line.rstrip('\n')
-            if args.needle in line:
+            if needle in line:
                 counter += 1
         print(counter)
     else:
-        for f in args.files:
+        for f in files:
             counter = 0
             with open(f, 'r') as in_file:
                 for line in in_file.readlines():
                     line = line.rstrip('\n')
-                    if args.needle in line:
+                    if needle in line:
                         counter += 1
-            print(f"{f}:{counter}")
+            print(f'{f}:{counter}')
 
 
-def parse_files(args):
-    for f in args.files:
+def parse_files(needle, files):
+    for f in files:
         with open(f, 'r') as in_file:
             for line in in_file.readlines():
                 line = line.rstrip('\n')
-                if args.needle in line:
-                    if len(args.files) > 1:
-                        print(f"{f}:{line}")
+                if needle in line:
+                    if len(files) > 1:
+                        print(f'{f}:{line}')
                     else:
                         print(line)
 
@@ -44,21 +44,21 @@ def parse_std(needle):
             print(line)
 
 
-def parse_e_flag(args):
+def parse_e_flag(needle, files):
 
-    if len(args.files) == 0:
+    if len(files) == 0:
         for line in sys.stdin.readlines():
             line = line.rstrip('\n')
-            if re.search(args.needle, line):
+            if re.search(needle, line):
                 print(line)
     else:
-        for f in args.files:
+        for f in files:
             with open(f, 'r') as in_file:
                 for line in in_file.readlines():
                     line = line.rstrip('\n')
-                    if re.search(args.needle, line):
-                        if len(args.files) > 1:
-                            print(f"{f}:{line}")
+                    if re.search(needle, line):
+                        if len(files) > 1:
+                            print(f'{f}:{line}')
                         else:
                             print(line)
 
@@ -66,15 +66,15 @@ def parse_e_flag(args):
 def my_grep(args):
 
     if args.count:
-        parse_count(args)
+        parse_count(args.needle, args.files)
     else:
         if args.regex:
-            parse_e_flag(args)
+            parse_e_flag(args.needle, args.files)
         else:
             if len(args.files) == 0:
                 parse_std(args.needle)
             else:
-                parse_files(args)
+                parse_files(args.needle, args.files)
 
 
 def main(args_str: List[str]):
