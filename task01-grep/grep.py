@@ -7,8 +7,12 @@ import argparse
 
 def find_in_str(pattern: str, s: str, matching_args: List[str]) -> bool:
     if 'regex' in matching_args:
-        return bool(re.search(pattern, s))
+        flags = re.IGNORECASE if 'ignore case' in matching_args else 0
+        return bool(re.search(pattern, s, flags=flags))
     else:
+        if 'ignore case' in matching_args:
+            pattern = pattern.lower()
+            s = s.lower()
         return pattern in s
 
 
@@ -16,6 +20,8 @@ def get_matching_args(args: argparse.Namespace) -> List[str]:
     matching_args = []
     if args.regex:
         matching_args.append('regex')
+    if args.ignore_case:
+        matching_args.append('ignore case')
     return matching_args
 
 
@@ -68,6 +74,7 @@ def main(args_str: List[str]):
     parser.add_argument('needle', type=str)
     parser.add_argument('files', nargs='*')
     parser.add_argument('-E', dest='regex', action='store_true')
+    parser.add_argument('-i', dest='ignore_case', action='store_true')
     parser.add_argument('-c', dest='count', action='store_true')
     args = parser.parse_args(args_str)
 
