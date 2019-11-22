@@ -7,18 +7,18 @@ import re
 
 def parsing(args_str: List[str]):
     parser = argparse.ArgumentParser()
-    parser.add_argument('needle', type=str)
-    parser.add_argument('files', nargs='*')
+    parser.add_argument('n', type=str)
+    parser.add_argument('fs', nargs='*')
     parser.add_argument('-E', dest='regex', action='store_true')
-    parser.add_argument('-c', dest='count', action='store_true')
+    parser.add_argument('-c', dest='cnt', action='store_true')
     return parser.parse_args(args_str)
 
 
 def line_processing(args: argparse.Namespace) -> str:
     if not args.regex:
-        return re.escape(args.needle)
+        return re.escape(args.n)
     else:
-        return args.needle
+        return args.n
 
 
 def print_from_file(lines: List[str], filename: str, len_namespace_files: int):
@@ -29,13 +29,13 @@ def print_from_file(lines: List[str], filename: str, len_namespace_files: int):
             print(f'{filename}:{line}', sep='\n')
 
 
-def file_working(filename: str, args: argparse.Namespace):
+def filew(filename: str, args: argparse.Namespace):
     with open(filename, 'r') as f:
         line_pattern = line_processing(args)
 
         lines = [line.rstrip('\n') for line in f]
         good_lines = [line for line in lines if re.search(line_pattern, line)]
-        output_lines = [str(len(good_lines))] if args.count else good_lines
+        output_lines = [str(len(good_lines))] if args.cnt else good_lines
 
         print_from_file(output_lines, filename, len(args.files))
 
@@ -44,12 +44,12 @@ def print_from_stdin(lines: List[str]):
     print(*lines, sep='\n')
 
 
-def stdin_working(args: argparse.Namespace):
+def stdinw(args: argparse.Namespace):
     line_pattern = line_processing(args)
 
     lines = [line.rstrip('\n') for line in sys.stdin]
     good_lines = [line for line in lines if re.search(line_pattern, line)]
-    output_lines = [str(len(good_lines))] if args.count else good_lines
+    output_lines = [str(len(good_lines))] if args.cnt else good_lines
 
     print_from_stdin(output_lines)
 
@@ -59,10 +59,10 @@ def main(args_str: List[str]):
 
     if args.files:
         for file in args.files:
-            file_working(file, args)
+            filew(file, args)
 
     else:
-        stdin_working(args)
+        stdinw(args)
 
 
 if __name__ == '__main__':
