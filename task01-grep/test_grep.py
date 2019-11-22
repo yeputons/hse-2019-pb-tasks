@@ -3,6 +3,7 @@ import io
 import argparse
 import grep
 
+
 def test_print_from_file(capsys):
     grep.print_from_file(['pref needle', 'needle suf'], 'some_file.txt', 1)
     out, err = capsys.readouterr()
@@ -13,7 +14,7 @@ def test_print_from_file(capsys):
 def test_print_from_stdin(monkeypatch, capsys):
     monkeypatch.setattr('sys.stdin', io.StringIO(
         'pref needle?\nneedle? suf\nthe needl\npref needle? suf'))
-    grep.print_from_stdin(['3'])  #amount of good strings
+    grep.print_from_stdin(['3'])  # amount of good strings
     out, err = capsys.readouterr()
     assert err == ''
     assert out == '3\n'
