@@ -3,7 +3,7 @@ import argparse
 import grep
 
 
-def atest_integrate_all_keys_print_files_grep(tmp_path, monkeypatch, capsys):
+def test_integrate_all_keys_print_files_grep(tmp_path, monkeypatch, capsys):
     (tmp_path / 'a.txt').write_text('fO\nFO\nFoO\n')
     (tmp_path / 'b.txt').write_text('hello fo?o world\nxfooyfoz\nfooo\n')
     monkeypatch.chdir(tmp_path)
