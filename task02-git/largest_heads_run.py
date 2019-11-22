@@ -19,9 +19,9 @@ def main():
                 cur_run += 1
                 if cur_run > max_run:
                     max_run += 1
-                    s += 1
-            else:
-                cur_run = 0
+                else:
+                    cur_run = 0
+                s += 1
     print(s, total, s / total)
 
 
