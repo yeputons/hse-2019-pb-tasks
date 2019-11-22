@@ -2,6 +2,7 @@
 from typing import List
 import random
 
+
 def get_max_run(flips: List[int]) -> int:
     cur_run = 0
     max_run = 0
@@ -13,6 +14,7 @@ def get_max_run(flips: List[int]) -> int:
         max_run = max(max_run, cur_run)
     return max_run
 
+
 ITERS = 1000
 FLIPS = 100
 
@@ -22,12 +24,10 @@ def main():
     s = 0
     total = 0
     for _ in range(ITERS):
-        total += 1
         s += get_max_run(random.choice([0, 1]) for _ in range(FLIPS))
+        total += 1
     print(s, total, s / total)
 
 
 if __name__ == '__main__':
     main()
-
-
