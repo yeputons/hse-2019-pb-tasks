@@ -19,7 +19,6 @@ def test_unit_find_in_str():
 
 
 def test_unit_get_matching_args():
-    assert grep.get_matching_args(Namespace(regex=False, ignore_case=True)) == ['ignore case']
     assert grep.get_matching_args(Namespace(regex=True, ignore_case=False)) == ['regex']
 
 
