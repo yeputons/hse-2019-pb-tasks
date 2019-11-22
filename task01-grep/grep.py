@@ -26,9 +26,10 @@ def get_file_lines(filename: str) -> List[str]:
 def print_fmt(lines: List[str], line_format: str, file_name: str, args: argparse.Namespace):
     if args.count:
         print(line_format.format(file_name, len(lines)))
-    elif args.no_lines and lines == []:
-        print(line_format.format(file_name, ''))
-    elif args.has_lines:
+    elif args.no_lines:
+        if len(lines) == 0:
+            print(line_format.format(file_name, ''))
+    elif args.has_lines and len(lines) > 0:
         print(line_format.format(file_name, ''))
     else:
         for line in lines:
@@ -38,16 +39,20 @@ def print_fmt(lines: List[str], line_format: str, file_name: str, args: argparse
 def get_matching(args: argparse.Namespace) -> Callable:
     flags = 0
     needle = args.needle
+
     if args.ignore:
-        flags |= re.I
+        flags = re.I
     if not args.regex:
         needle = re.escape(needle)
-    if args.inverse:
-        needle = '^((?!'+ needle + ').)*$'
-    #print(needle)
+    func = re.compile(needle, flags=flags).search
     if args.full_match:
-    	return re.compile(needle, flags=flags).fullmatch
-    return re.compile(needle, flags=flags).search
+        func = re.compile(needle, flags=flags).fullmatch
+    if args.inverse:
+        def inverse_func(line: str) -> bool:
+            return not func(line)
+        return inverse_func
+    return func
+
 
 def get_format(args: argparse.Namespace) -> str:
     if args.has_lines or args.no_lines:
@@ -78,7 +83,7 @@ def main(args_str: List[str]):
     check = get_matching(args)
     fmt = get_format(args)
     all_lines = []
-    #print(args)
+
     if args.files != []:
         for filename in args.files:
             all_lines.append(get_file_lines(filename))
@@ -88,7 +93,7 @@ def main(args_str: List[str]):
 
     for lines, file_name in zip(all_lines, args.files):
         print_fmt(get_required_lines(lines, check), fmt, file_name, args)
-    #print(fmt)
+
 
 if __name__ == '__main__':
     main(sys.argv[1:])
