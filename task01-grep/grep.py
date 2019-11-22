@@ -37,7 +37,7 @@ def filew(filename: str, args: argparse.Namespace):
         good_lines = [line for line in lines if re.search(line_pattern, line)]
         output_lines = [str(len(good_lines))] if args.cnt else good_lines
 
-        print_from_file(output_lines, filename, len(args.files))
+        print_from_file(output_lines, filename, len(args.fs))
 
 
 def print_from_stdin(lines: List[str]):
@@ -57,8 +57,8 @@ def stdinw(args: argparse.Namespace):
 def main(args_str: List[str]):
     args = parsing(args_str)
 
-    if args.files:
-        for file in args.files:
+    if args.fs:
+        for file in args.fs:
             filew(file, args)
 
     else:
