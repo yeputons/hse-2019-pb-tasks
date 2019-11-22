@@ -8,24 +8,18 @@ import argparse
 
 def check_line(line: str, pattern: str, is_regex: bool):
     if is_regex:
-        if re.search(pattern, line):
-            return True
-        else:
-            return False
+        return re.search(pattern, line)
     else:
-        if pattern in line:
-            return True
-        else:
-            return False
+        return pattern in line
 
 
 def print_lines(lines: List[str], filename: str, print_name: bool, print_number: bool):
-    for x in range(len(lines)):
+    for line in lines:
         if not print_number:
             if print_name:
-                print(f'{filename}:{lines[x]}')
+                print(f'{filename}:{line}')
             else:
-                print(lines[x])
+                print(line)
         else:
             if print_name:
                 print(f'{filename}:{len(lines)}')
@@ -58,7 +52,7 @@ def input_from_stdin(pattern: str, print_number: bool, is_regex: bool):
     if print_number:
         print(f'{len(lines)}')
     else:
-        print(*lines, sep="\n")
+        print(*lines, sep='\n')
 
 
 def main(args_str: List[str]):
