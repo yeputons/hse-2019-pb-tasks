@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 import io
-import grep
 import argparse
-
+import grep
 
 def test_print_from_file(capsys):
     grep.print_from_file(['pref needle', 'needle suf'], 'some_file.txt', 1)
@@ -14,26 +13,26 @@ def test_print_from_file(capsys):
 def test_print_from_stdin(monkeypatch, capsys):
     monkeypatch.setattr('sys.stdin', io.StringIO(
         'pref needle?\nneedle? suf\nthe needl\npref needle? suf'))
-    grep.print_from_stdin(['3']) #amount of good strings
+    grep.print_from_stdin(['3'])  #amount of good strings
     out, err = capsys.readouterr()
     assert err == ''
     assert out == '3\n'
 
 
-def test_file_working(tmp_path, capsys):
+def test_filew(tmp_path, capsys):
     (tmp_path / 'a.txt').write_text('pref needle\nneedle suf\n')
     (tmp_path / 'b.txt').write_text('the needl\npref needle suf')
-    grep.file_working('a.txt', argparse.Namespace(needle='needl.', files=['a.txt', 'b.txt'], regex=True, count=False))
-    grep.file_working('b.txt', argparse.Namespace(needle='needl.', files=['a.txt', 'b.txt'], regex=True, count=False))
+    grep.filew('a.txt', argparse.Namespace(n='.ref', fs=['a.txt', 'b.txt'], regex=True, cnt=False))
+    grep.filew('b.txt', argparse.Namespace(n='.ref', fs=['a.txt', 'b.txt'], regex=True, cnt=False))
     out, err = capsys.readouterr()
     assert err == ''
-    assert out == 'a.txt:pref needle\na.txt:needle suf\nb.txt:pref needle suf\n'
+    assert out == 'a.txt:pref needle\nb.txt:pref needle suf\n'
 
 
-def test_stdin_working(monkeypatch, capsys):
+def test_stdinw(monkeypatch, capsys):
     monkeypatch.setattr('sys.stdin', io.StringIO(
         'pref needle?\nneedle? suf\nthe needl\npref needle? suf'))
-    grep.stdin_working(argparse.Namespace(needle='needle', files=[], regex=False, count=False))
+    grep.stdinw(argparse.Namespace(n='needle', fs=[], regex=False, cnt=False))
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'pref needle?\nneedle? suf\npref needle? suf\n'
