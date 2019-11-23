@@ -21,6 +21,7 @@ def test_unit_find_in_str():
 def test_unit_get_matching_args():
     assert grep.get_matching_args(Namespace(ignore_case=True)) == ['ignore_case']
     assert grep.get_matching_args(Namespace(full_match=True)) == ['full_match']
+    assert grep.get_matching_args(Namespace(inverse=True)) == ['full_match']
 
 
 def test_integrate_all_keys_print_files_grep(tmp_path, monkeypatch, capsys):

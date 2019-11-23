@@ -19,6 +19,7 @@ def test_unit_find_in_str():
 
 
 def test_unit_get_matching_args():
+    assert grep.get_matching_args(Namespace()) == []
     assert grep.get_matching_args(Namespace(regex=True)) == ['regex']
 
 
