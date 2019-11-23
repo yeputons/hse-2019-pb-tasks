@@ -4,9 +4,10 @@ import sys
 import re
 import argparse
 
+global counter
 
-def in_stdin(needle: str, flag: bool, flag_e: bool):
-    global counter
+
+def in_stdin(needle: str, flag: bool, flag_e: bool) -> None:
     counter = 0
     for line in sys.stdin.readlines():
         line = line.rstrip('\n')
@@ -26,15 +27,14 @@ def in_stdin(needle: str, flag: bool, flag_e: bool):
         print(counter)
 
 
-def files_output(len: int, filee: str, line: str):
+def files_output(len: int, filee: str, line: object) -> None:
     if len > 1:
         print(f'{filee}:{line}')
     else:
         print(line)
 
 
-def in_files(filee: str, needle: str, flag: bool, flag_e: bool, len: int):
-    global counter
+def in_files(filee: str, needle: str, flag: bool, flag_e: bool, len: int) -> None:
     counter = 0
     with open(filee, 'r') as in_file:
         for line in in_file.readlines():
@@ -55,7 +55,7 @@ def in_files(filee: str, needle: str, flag: bool, flag_e: bool, len: int):
             files_output(len, filee, counter)
 
 
-def main(args_str: List[str]):
+def main(args_str: List[str]) -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument('needle', type=str)
     parser.add_argument('files', nargs='*')
