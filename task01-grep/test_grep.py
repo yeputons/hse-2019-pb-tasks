@@ -69,8 +69,16 @@ def test_make_list_count():
     assert grep.make_list(source, 'needle', False, True) == ['2']
 
 
-def test_find():
+def test_find_needle():
     line = 'find something here'
     assert grep.find(line, 'find', False)
+
+
+def test_regex_find():
+    line = 'find something here'
     assert grep.find(line, 'f*', True)
+
+
+def test_do_not_find():
+    line = 'find something here'
     assert not grep.find(line, 'no', False)
