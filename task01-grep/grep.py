@@ -88,7 +88,7 @@ def main(args_str: List[str]):
         for filename in args.files:
             all_lines.append(get_file_lines(filename))
     else:
-        all_lines = [list(map(str.rstrip, sys.stdin.readlines()))]
+        all_lines = [[l.rstrip('\n') for l in sys.stdin.readlines()]]
         args.files.append('')
 
     for lines, file_name in zip(all_lines, args.files):
