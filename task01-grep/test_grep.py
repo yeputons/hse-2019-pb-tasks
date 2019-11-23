@@ -102,3 +102,21 @@ def test_for_files_with_file_names_with_counter(tmp_path, monkeypatch, capsys):
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'a.txt:1\nb.txt:1\n'
+
+
+def test_for_stdin_with_counter(monkeypatch, capsys):
+    monkeypatch.setattr('sys.stdin', io.StringIO(
+        'pref needle?\nneedle? suf\nthe needl\npref needle? suf'))
+    grep.for_stdin('needle', True)
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == '3\n'
+
+
+def test_for_stdin_without_counter(monkeypatch, capsys):
+    monkeypatch.setattr('sys.stdin', io.StringIO(
+        'pref needle?\nneedle? suf\nthe needl\npref needle? suf'))
+    grep.for_stdin('needle', False)
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'pref needle?\nneedle? suf\npref needle? suf\n'
