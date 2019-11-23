@@ -6,35 +6,33 @@ import argparse
 
 
 def find(line: str, needle: str, regex: bool) -> bool:
-    if regex:
-        return bool(re.search(needle, line))
-    pattern = re.escape(needle)
+    pattern = needle if regex else re.escape(needle)
     return bool(re.search(pattern, line))
 
 
 def make_list(source: IO[str], needle: str, regex: bool, count_flag: bool) -> List[str]:
-    raw_list = [line.rstrip('\n') for line in source if find(line, needle, regex)]
-    filter_list = [str(len(raw_list))] if count_flag else raw_list
-    return filter_list
+    raw_list = [line.rstrip('\n') for line in source]
+    filter_list = [line for line in raw_list if find(line, needle, regex)]
+    return [str(len(filter_list))] if count_flag else filter_list
 
 
 def parse_std_in(needle: str, regex: bool, count_flag: bool) -> None:
-    to_print_list = make_list(sys.stdin, needle, regex, count_flag)
-    print(*to_print_list, sep='\n')
+    lines_to_print = make_list(sys.stdin, needle, regex, count_flag)
+    print(*lines_to_print, sep='\n')
 
 
 def parse_files(files: List[str], needle: str, regex: bool, count_flag: bool) -> None:
     for file in files:
         with open(file, 'r') as file_item:
-            to_print_list = make_list(file_item, needle, regex, count_flag)
+            lines_to_print = make_list(file_item, needle, regex, count_flag)
         if len(files) == 1:
-            print(*to_print_list, sep='\n')
+            print(*lines_to_print)
         else:
-            for item in to_print_list:
+            for item in lines_to_print:
                 print(f'{file}:{item}', sep='\n')
 
 
-def main(args_str: List[str]):
+def main(args_str: List[str]) -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument('-c', dest='count', action='store_true')
     parser.add_argument('-E', dest='regex', action='store_true')
