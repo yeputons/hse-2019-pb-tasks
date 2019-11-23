@@ -5,17 +5,21 @@ import grep
 
 def test_unit_find_in_str():
     assert grep.find_in_str('str', 'preFStR', ['ignore_case'])
+    assert not grep.find_in_str('str', 'preFStR', ['ignore_case', 'inverse'])
     assert grep.find_in_str('str', 'STRsUf', ['ignore_case'])
     assert grep.find_in_str('str', 'STR', ['ignore_case', 'full_match'])
     assert not grep.find_in_str('str', 'stRd', ['ignore_case', 'full_match'])
     assert not grep.find_in_str('str', 'ctr', ['ignore_case'])
     assert not grep.find_in_str('str', 'sTk', ['ignore_case'])
+    assert grep.find_in_str('str', 'sTk', ['ignore_case', 'inverse'])
+
 
     assert grep.find_in_str('str', 'STR', ['regex', 'ignore_case', 'full_match'])
     assert grep.find_in_str('a?', 'A', ['regex', 'ignore_case', 'full_match'])
     assert grep.find_in_str('aB.*ef', 'AbCdeF', ['regex', 'ignore_case'])
     assert not grep.find_in_str('aBa+', 'abcBAA', ['regex', 'ignore_case'])
     assert not grep.find_in_str('aBa+', 'aaba+', ['regex', 'ignore_case', 'full_match'])
+    assert grep.find_in_str('aBa+', 'aaba+', ['regex', 'ignore_case', 'full_match', 'inverse'])
 
 
 def test_unit_get_matching_args():
