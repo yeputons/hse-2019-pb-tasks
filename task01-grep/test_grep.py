@@ -19,7 +19,7 @@ def test_unit_find_in_str():
 
 
 def test_unit_get_matching_args():
-    assert grep.get_matching_args(Namespace(regex=True, ignore_case=False, full_match=False)) == ['regex']
+    assert grep.get_matching_args(Namespace(regex=True)) == ['regex']
 
 
 def test_unit_find_in_file(tmp_path, monkeypatch):
