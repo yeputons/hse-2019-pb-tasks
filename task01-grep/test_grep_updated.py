@@ -4,23 +4,23 @@ import grep
 
 
 def test_unit_find_in_str():
-    assert grep.find_in_str('str', 'preFStR', ['ignore case'])
-    assert grep.find_in_str('str', 'STRsUf', ['ignore case'])
-    assert grep.find_in_str('str', 'STR', ['ignore case', 'full match'])
-    assert not grep.find_in_str('str', 'stRd', ['ignore case', 'full match'])
-    assert not grep.find_in_str('str', 'ctr', ['ignore case'])
-    assert not grep.find_in_str('str', 'sTk', ['ignore case'])
+    assert grep.find_in_str('str', 'preFStR', ['ignore_case'])
+    assert grep.find_in_str('str', 'STRsUf', ['ignore_case'])
+    assert grep.find_in_str('str', 'STR', ['ignore_case', 'full_match'])
+    assert not grep.find_in_str('str', 'stRd', ['ignore_case', 'full_match'])
+    assert not grep.find_in_str('str', 'ctr', ['ignore_case'])
+    assert not grep.find_in_str('str', 'sTk', ['ignore_case'])
 
-    assert grep.find_in_str('str', 'STR', ['regex', 'ignore case', 'full_match'])
-    assert grep.find_in_str('a?', 'A', ['regex', 'ignore case', 'full match'])
-    assert grep.find_in_str('aB.*ef', 'AbCdeF', ['regex', 'ignore case'])
-    assert not grep.find_in_str('aBa+', 'abcBAA', ['regex', 'ignore case'])
-    assert not grep.find_in_str('aBa+', 'aaba+', ['regex', 'ignore case', 'full match'])
+    assert grep.find_in_str('str', 'STR', ['regex', 'ignore_case', 'full_match'])
+    assert grep.find_in_str('a?', 'A', ['regex', 'ignore_case', 'full_match'])
+    assert grep.find_in_str('aB.*ef', 'AbCdeF', ['regex', 'ignore_case'])
+    assert not grep.find_in_str('aBa+', 'abcBAA', ['regex', 'ignore_case'])
+    assert not grep.find_in_str('aBa+', 'aaba+', ['regex', 'ignore_case', 'full_match'])
 
 
 def test_unit_get_matching_args():
-    assert grep.get_matching_args(Namespace(regex=False, ignore_case=True, full_match=False)) == ['ignore case']
-    assert grep.get_matching_args(Namespace(regex=False, ignore_case=False, full_match=True)) == ['full match']
+    assert grep.get_matching_args(Namespace(ignore_case=True)) == ['ignore_case']
+    assert grep.get_matching_args(Namespace(full_match=True)) == ['full_match']
 
 
 def test_integrate_all_keys_print_files_grep(tmp_path, monkeypatch, capsys):
