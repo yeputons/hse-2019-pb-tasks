@@ -13,7 +13,6 @@ def test_unit_find_in_str():
     assert not grep.find_in_str('str', 'sTk', ['ignore_case'])
     assert grep.find_in_str('str', 'sTk', ['ignore_case', 'inverse'])
 
-
     assert grep.find_in_str('str', 'STR', ['regex', 'ignore_case', 'full_match'])
     assert grep.find_in_str('a?', 'A', ['regex', 'ignore_case', 'full_match'])
     assert grep.find_in_str('aB.*ef', 'AbCdeF', ['regex', 'ignore_case'])
