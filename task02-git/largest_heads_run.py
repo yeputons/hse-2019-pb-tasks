@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from typing import List
 import random
 
 ITERS = 1000
@@ -13,8 +14,8 @@ def main():
         total += 1
         cur_run = 0
         max_run = 0
-        for _ in range(FLIPS):
-            flip = random.choice([0, 1])
+        flips = random.choice([0, 1]) for _ in range(FLIPS):
+        for flip in flips:    
             if flip:
                 cur_run += 1
                 if cur_run > max_run:
