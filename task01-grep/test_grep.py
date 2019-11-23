@@ -14,6 +14,15 @@ def test_integrate_stdin_grep(monkeypatch, capsys):
     assert out == 'pref needle?\nneedle? suf\npref needle? suf\n'
 
 
+def test_stdin_grep(monkeypatch, capsys):
+    monkeypatch.setattr('sys.stdin', io.StringIO(
+        'pref needle?\t\t \t  \t\t\nneedle? suf \nthe needl\t\npref needle? suf\t  '))
+    grep.main(['needle?'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'pref needle?\t\t \t  \t\t\nneedle? suf \npref needle? suf\t  \n'
+
+
 def test_integrate_stdin_regex_grep(monkeypatch, capsys):
     monkeypatch.setattr('sys.stdin', io.StringIO(
         'pref needle?\nneedle? suf\nthe needl\npref needle? suf'))
