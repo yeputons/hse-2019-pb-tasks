@@ -24,7 +24,8 @@ def parse_arguments(args_str: List[str]) -> argparse.Namespace:
     return args
 
 
-def print_answer(lines: List[str], number_of_files: int, file_name: str, count_mode: bool) -> None:
+def print_answer(lines: List[str], number_of_files: int, file_name: str, count_mode: bool,
+                 file_match_mode: bool, file_no_match_mode: bool) -> None:
     """ (1) if number of files is more than 1, prints <file_name>:<line>
         (2) if -c flag, prints the number of needles in stdin or in files;
         (3) if (1) and (2), prints <file_name>:<number of needles in <file_name>>"""
@@ -34,6 +35,12 @@ def print_answer(lines: List[str], number_of_files: int, file_name: str, count_m
         prefix = file_name + ':'
     if count_mode:
         print(prefix, len(lines), sep='')
+    elif file_match_mode:
+        if lines:
+            print(file_name)
+    elif file_no_match_mode:
+        if not lines:
+            print(file_name)
     else:
         for line in lines:
             print(prefix, line, sep='')
@@ -65,7 +72,8 @@ def is_substring(needle: str, line: str, ignore_case_mode: bool, full_match_mode
         return new_needle in new_line
 
 
-def find_in_input(count_mode: bool, regex_mode: bool, ignore_case_mode: bool, invert_mode: bool,
+def find_in_input(count_mode: bool, file_match_mode: bool, file_no_match_mode: bool,
+                  regex_mode: bool, ignore_case_mode: bool, invert_mode: bool,
                   full_match_mode: bool, needle: str, file: TextIO,
                   file_name: str, number_of_input_data: int) -> None:
     """ Prints lines with needles (substring or regex) or amount of them
@@ -75,11 +83,13 @@ def find_in_input(count_mode: bool, regex_mode: bool, ignore_case_mode: bool, in
     else:
         search_mode = is_substring
     answer_lines = []
+
     for line in file.readlines():
         line = line.rstrip('\n')
         if search_mode(needle, line, ignore_case_mode, full_match_mode) != invert_mode:
             answer_lines.append(line)
-    print_answer(answer_lines, number_of_input_data, file_name, count_mode)
+    print_answer(answer_lines, number_of_input_data, file_name, count_mode, file_match_mode,
+                 file_no_match_mode)
 
 
 def find_in_files(args: argparse.Namespace) -> None:
@@ -88,7 +98,8 @@ def find_in_files(args: argparse.Namespace) -> None:
         many files: prints <file_name> before searching results """
     for current_file in args.files:
         with open(current_file, 'r') as in_file:
-            find_in_input(args.count, args.regex, args.ignore_case, args.invert_match, args.full_match,
+            find_in_input(args.count, args.files_with_matches, args.files_without_match, args.regex,
+                          args.ignore_case, args.invert_match, args.full_match,
                           args.needle, in_file, current_file, len(args.files))
 
 
@@ -99,7 +110,8 @@ def main(args_str: List[str]):
     if args.files:
         find_in_files(args)
     else:
-        find_in_input(args.count, args.regex, args.ignore_case, args.invert_match, args.full_match,
+        find_in_input(args.count, args.files_with_matches, args.files_without_match, args.regex,
+                      args.ignore_case, args.invert_match, args.full_match,
                       args.needle, sys.stdin, '', 0)
 
 
