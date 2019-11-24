@@ -11,20 +11,26 @@ def parser_init() -> argparse.ArgumentParser:
                                      epilog='When file option is not specified, '
                                             'read standard input\n'
                                             '                            Meow.')
-    parser.add_argument('needle',
-                        type=str,
-                        help='needle to search in files')
+ 
 
-    parser.add_argument('-E',
-                        dest='regexE',
-                        action='store_true',
-                        help='needle is a regular expression')
+    output_format_group = parser.add_mutually_exclusive_group()
 
-    parser.add_argument('-c',
+    output_format_group.add_argument('-c',
                         dest='do_count',
                         action='store_true',
                         help='print only the count of needle matches')
     
+    output_format_group.add_argument('-l',
+                        dest='do_only_files',
+                        action='store_true',
+                        help='print only names of files where the needle was found')
+    
+    output_format_group.add_argument('-L',
+                        dest='do_only_not_files',
+                        action='store_true',
+                        help='print only names of files where the needle was NOT found')
+
+
     parser.add_argument('-i',
                         dest='do_ignore',
                         action='store_true',
@@ -40,16 +46,15 @@ def parser_init() -> argparse.ArgumentParser:
                         action='store_true',
                         help='match only whole lines')
     
-    parser.add_argument('-l',
-                        dest='do_only_files',
+    parser.add_argument('-E',
+                        dest='regexE',
                         action='store_true',
-                        help='print only names of files where the needle was found')
-    
-    parser.add_argument('-L',
-                        dest='do_only_not_files',
-                        action='store_true',
-                        help='print only names of files where the needle was NOT found')
-    
+                        help='needle is a regular expression')
+
+    parser.add_argument('needle',
+                        type=str,
+                        help='needle to search in files')
+   
     parser.add_argument('files',
                         nargs='*',
                         help='list of files for searching needle')
