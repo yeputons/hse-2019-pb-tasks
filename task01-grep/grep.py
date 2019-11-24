@@ -13,11 +13,16 @@ INVERTED = 'invert_result'
 FULL_MATCH = 'full_match'
 
 
+def get_value(flags: Dict[str, bool], name: str) -> bool:
+    if flags.get(name) is not None:
+        return flags[name]
+    return False
+
+
 def match(needle: str, line: str, flags: Dict[str, bool]) -> bool:
-    regex = flags.get(REGEX) is not None and flags.get(REGEX)
-    ignoring_case = flags.get(
-        IGNORE_CASE) is not None and flags.get(IGNORE_CASE)
-    full_match = flags.get(FULL_MATCH) is not None and flags.get(FULL_MATCH)
+    regex = get_value(flags, REGEX)
+    ignoring_case = get_value(flags, IGNORE_CASE)
+    full_match = get_value(flags, FULL_MATCH)
 
     if ignoring_case:
         needle = needle.lower()
@@ -36,7 +41,7 @@ def preproccesing(data: List[str]) -> List[str]:
 def search_needle_in_src(needle: str, source: List[str],
                          flags: Dict[str, bool]) -> List[str]:
 
-    inverted = flags.get(INVERTED) is not None and flags.get(INVERTED)
+    inverted = get_value(flags, INVERTED)
     appearances = []
     for line in source:
         matches = match(needle, line, flags)
