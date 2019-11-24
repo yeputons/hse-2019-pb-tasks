@@ -60,10 +60,14 @@ def search_needle_in_src(needle: str, source: List[str],
 
 def print_search_result(res: Dict[str, List[str]], flags: Dict[str, bool]) -> None:
     count = get_value(flags, COUNT)
+    file_names = get_value(flags, FILES_FOUND)
     for key, value in res.items():
         source: str = key+':' if len(res) > 1 else ''
         if count:
             print(f'{source}{len(value)}')
+            continue
+        if file_names:
+            print(key)
             continue
         for line in value:
             print(f'{source}{line}')
@@ -75,6 +79,10 @@ def main(arg_str: List[str]):
                         dest='count_mode',
                         action='store_true',
                         help='count the number of appereance of needle')
+    parser.add_argument('-l',
+                        dest='files_found_mode',
+                        action='store_true',
+                        help='prints only name of the files')
     parser.add_argument('-E',
                         dest='regex_mode',
                         action='store_true',
@@ -107,7 +115,8 @@ def main(arg_str: List[str]):
         FULL_MATCH: args.full_match
     }
     output_flags: Dict[str, bool] = {
-        COUNT: args.count_mode
+        COUNT: args.count_mode,
+        FILES_FOUND: args.files_found_mode
     }
     if args.files:
         for file in args.files:
