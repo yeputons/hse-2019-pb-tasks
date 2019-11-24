@@ -1,6 +1,45 @@
 #!/usr/bin/env python3
 import io
+from typing import Any, Dict
 import grep
+
+# trusted options generator
+
+
+def tog(addition: Dict[str, Any], late: bool = True) -> Dict[str, Any]:
+
+    options: Dict[str, Any] = {}
+    options['needle'] = ''
+
+    options['do_count'] = False
+    options['do_only_files'] = False
+    options['do_only_not_files'] = False
+
+    options['do_ignore_case'] = False
+    options['do_invert'] = False
+    options['do_whole_line'] = False
+
+    options['regexE'] = False
+
+    if late:
+        options['late_output'] = False
+        options['regexE_flags'] = []
+
+        options['format_out'] = ''
+        options['io'] = None
+
+        options['files'] = []
+        options['filename'] = ''
+        options['line'] = ''
+        options['count'] = 0
+
+    for key, val in zip(addition.keys(), addition.values()):
+        options[key] = val
+    if late:
+        if options['do_count'] or options['do_only_files']:
+            options['late_output'] = True
+
+    return options
 
 # unit
 
@@ -9,27 +48,30 @@ def test_unit_parse_args():
     args = ['-E', '-c', "neeeee''eedle", 'file1', 'stdin']
     parser = grep.parser_init()
     parsed_args = parser.parse_args(args)
-    assert vars(parsed_args) == {'needle': "neeeee''eedle",
-                                 'regexE': True, 'do_count': True, 'files': ['file1', 'stdin']}
+    corr_args = tog({'needle': "neeeee''eedle",
+                     'regexE': True,
+                     'do_count': True,
+                     'files': ['file1', 'stdin']}, late=False)
+    assert vars(parsed_args) == corr_args
 
 
 def test_unit_format_builder_line():
-    options = {'files': ['file1', 'file2', 'file_#1', 'not a file'], 'filename': 'file_#1',
-               'count': 0, 'do_count': False, 'regexE': True, 'needle': 'lalka'}
+    options = tog({'files': ['file1', 'file2', 'file_#1', 'not a file'], 'filename': 'file_#1',
+                   'count': 0, 'do_count': False, 'regexE': True, 'needle': 'lalka'})
     assert grep.format_builder(options) == 'file_#1:{line}'
 
 
 def test_unit_format_builder_count():
-    options = {'files': ['file1', 'file2', 'file_#1', 'not a file'], 'filename': 'file_#1',
-               'count': 0, 'do_count': True, 'regexE': True, 'needle': 'lalka'}
+    options = tog({'files': ['file1', 'file2', 'file_#1', 'not a file'], 'filename': 'file_#1',
+                   'count': 0, 'do_count': True, 'regexE': True, 'needle': 'lalka'})
     assert grep.format_builder(options) == 'file_#1:{count}'
 
 
 def test_unit_finder_inline_regexe():
-    options = {'files': ['file1', 'file2', 'file_#1', 'not a file'],
-               'filename': 'file_#1', 'count': 0,
-               'do_count': True, 'regexE': True, 'line': 'hohoho, merry christmas @_@',
-               'needle': '(ho){1,3}'}
+    options = tog({'files': ['file1', 'file2', 'file_#1', 'not a file'],
+                   'filename': 'file_#1', 'count': 0,
+                   'do_count': True, 'regexE': True, 'line': 'hohoho, merry christmas @_@',
+                   'needle': '(ho){1,3}'})
     assert grep.finder_inline(options)
     options['line'] = 'hahahahpo'
     assert not grep.finder_inline(options)
@@ -47,10 +89,10 @@ def test_unit_finder_inline_regexe():
 
 
 def test_unit_finder_inline_no_regexe():
-    options = {'files': ['file1', 'file2', 'file_#1', 'not a file'],
-               'filename': 'file_#1', 'count': 0,
-               'do_count': True, 'regexE': False, 'line': 'hohoho, merry christmas @_@',
-               'needle': '(ho){1,3}'}
+    options = tog({'files': ['file1', 'file2', 'file_#1', 'not a file'],
+                   'filename': 'file_#1', 'count': 0,
+                   'do_count': True, 'regexE': False, 'line': 'hohoho, merry christmas @_@',
+                   'needle': '(ho){1,3}'})
     assert not grep.finder_inline(options)
     options['line'] = 'hahahahpo'
     options_old = options
@@ -71,14 +113,15 @@ def test_unit_finder_inline_no_regexe():
 
 
 def test_unit_handler(capsys):
-    options = {'files': ['file1', 'file2', 'file_#1', 'not a file'],
-               'filename': 'file_#1', 'count': 0, 'do_count': True,
-               'regexE': False, 'line': 'hohoho, merry christmas @_@',
-               'needle': '(ho){1,3}', 'format_out': 'file_#1:{count}'}
+    options = tog({'files': ['file1', 'file2', 'file_#1', 'not a file'],
+                   'filename': 'file_#1', 'count': 0, 'do_count': True,
+                   'regexE': False, 'line': 'hohoho, merry christmas @_@',
+                   'needle': '(ho){1,3}', 'format_out': 'file_#1:{count}'})
     grep.handler(options, final=False)
     assert options['count'] == 1
 
     options['do_count'] = False
+    options['late_output'] = False
     options['regexE'] = True
     options['format_out'] = 'file_#1:{line}'
     grep.handler(options, final=False)
@@ -88,10 +131,10 @@ def test_unit_handler(capsys):
 
 
 def test_unit_handler_final(capsys):
-    options = {'files': ['file1', 'file2', 'file_#1', 'not a file'],
-               'filename': 'file_#1', 'count': 0, 'do_count': True,
-               'regexE': True, 'line': 'hohoho, merry christmas @_@', 'needle':
-               '(ho){1,3}', 'format_out': 'file_#1:{count}'}
+    options = tog({'files': ['file1', 'file2', 'file_#1', 'not a file'],
+                   'filename': 'file_#1', 'count': 0, 'do_count': True,
+                   'regexE': True, 'line': 'hohoho, merry christmas @_@', 'needle':
+                   '(ho){1,3}', 'format_out': 'file_#1:{count}'})
     grep.handler(options, final=False)
     grep.handler(options, final=True)
     out, err = capsys.readouterr()
@@ -100,8 +143,8 @@ def test_unit_handler_final(capsys):
 
 
 def test_unit_searcher(tmp_path, monkeypatch, capsys):
-    options = {'files': ['mafile'], 'filename': 'mafile', 'count': 0, 'do_count': False,
-               'regexE': True, 'needle': '(ho){1,3}', 'format_out': 'file_#1:{count}'}
+    options = tog({'files': ['mafile'], 'filename': 'mafile', 'count': 0, 'do_count': False,
+                   'regexE': True, 'needle': '(ho){1,3}', 'format_out': 'file_#1:{count}'})
     (tmp_path / 'mafile').write_text('hohoho!\nohohoh(\nlololol\n\n\n123\ni1oioioioho\n\n')
     monkeypatch.chdir(tmp_path)
     with open((tmp_path / 'mafile'), 'r') as my_io:
@@ -114,6 +157,7 @@ def test_unit_searcher(tmp_path, monkeypatch, capsys):
     with open((tmp_path / 'mafile'), 'r') as my_io:
         options['io'] = my_io
         options['do_count'] = True
+        options['late_output'] = True
         grep.searcher(options)
         out, err = capsys.readouterr()
         assert err == ''
@@ -122,8 +166,8 @@ def test_unit_searcher(tmp_path, monkeypatch, capsys):
 
 
 def test_unit_search_in_files_file_io(tmp_path, monkeypatch, capsys):
-    options = {'files': ['mafile1', 'mafile2', 'mafile3'], 'do_count': False,
-               'regexE': True, 'needle': '(ho){1,3}', 'format_out': 'file_#1:{count}'}
+    options = tog({'files': ['mafile1', 'mafile2', 'mafile3'], 'do_count': False,
+                   'regexE': True, 'needle': '(ho){1,3}', 'format_out': 'file_#1:{count}'})
     (tmp_path / 'mafile1').write_text('hohoho!\nohohoh(\nlololol\n\n\n123\ni1oioioioho\n\n')
     (tmp_path / 'mafile2').write_text('hahaah\nmahaoh\nhoahan\n123\n')
     (tmp_path / 'mafile3').write_text(
@@ -144,8 +188,8 @@ mafile3:i1lolipophoioho
 
 
 def test_unit_search_in_files_standard_io(monkeypatch, capsys):
-    options = {'files': [], 'do_count': False,
-               'regexE': True, 'needle': 'needle?'}
+    options = tog({'files': [], 'do_count': False,
+                   'regexE': True, 'needle': 'needle?'})
 
     monkeypatch.setattr('sys.stdin', io.StringIO(
         'pref needle?\nneedle? suf\nthe needl\npref needle? suf'))
