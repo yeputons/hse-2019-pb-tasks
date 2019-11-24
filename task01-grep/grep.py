@@ -11,28 +11,26 @@ def parser_init() -> argparse.ArgumentParser:
                                      epilog='When file option is not specified, '
                                             'read standard input\n'
                                             '                            Meow.')
- 
 
     output_format_group = parser.add_mutually_exclusive_group()
 
     output_format_group.add_argument('-c',
-                        dest='do_count',
-                        action='store_true',
-                        help='print only the count of needle matches')
-    
-    output_format_group.add_argument('-l',
-                        dest='do_only_files',
-                        action='store_true',
-                        help='print only names of files where the needle was found')
-    
-    output_format_group.add_argument('-L',
-                        dest='do_only_not_files',
-                        action='store_true',
-                        help='print only names of files where the needle was NOT found')
+                                     dest='do_count',
+                                     action='store_true',
+                                     help='print only the count of needle matches')
 
+    output_format_group.add_argument('-l',
+                                     dest='do_only_files',
+                                     action='store_true',
+                                     help='print only names of files where the needle was found')
+
+    output_format_group.add_argument('-L',
+                                     dest='do_only_not_files',
+                                     action='store_true',
+                                     help='print only names of files where the needle was NOT found')
 
     parser.add_argument('-i',
-                        dest='do_ignore',
+                        dest='do_ignore_case',
                         action='store_true',
                         help='ingore case')
 
@@ -40,12 +38,12 @@ def parser_init() -> argparse.ArgumentParser:
                         dest='do_invert',
                         action='store_true',
                         help='select only non-matching lines')
-    
+
     parser.add_argument('-x',
                         dest='do_whole_line',
                         action='store_true',
                         help='match only whole lines')
-    
+
     parser.add_argument('-E',
                         dest='regexE',
                         action='store_true',
@@ -54,11 +52,11 @@ def parser_init() -> argparse.ArgumentParser:
     parser.add_argument('needle',
                         type=str,
                         help='needle to search in files')
-   
+
     parser.add_argument('files',
                         nargs='*',
                         help='list of files for searching needle')
-    
+
     return parser
 
 
@@ -66,12 +64,16 @@ def format_builder(options: Dict[str, Any]) -> str:
     # here format of output can be modified (in case of adding of additional flags)
     output_format = ''
 
-    if len(options['files']) > 1:
-        output_format += '{}:'.format(options['filename'])
-    if options['do_count']:
-        output_format += '{count}'
+    if options['do_only_files'] or options['do_only_not_files']:
+        output_format += options['filename']
     else:
-        output_format += '{line}'
+        if len(options['files']) > 1:
+            output_format += '{}:'.format(options['filename'])
+
+        if options['do_count']:
+            output_format += '{count}'
+        else:
+            output_format += '{line}'
     return output_format
 
 
