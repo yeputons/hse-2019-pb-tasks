@@ -2,7 +2,6 @@
 import io
 import re
 from typing import Any, Dict
-import argparse
 import grep
 
 # trusted options generator
@@ -61,14 +60,17 @@ def test_unit_new_parser():
 
 def test_unit_format_bilder_onlyfile():
     options = tog({'files': ['file1', 'file2', 'file_#1', 'not a file'], 'filename': 'file_#1',
-                   'count': 0, 'do_count': False, 'regexE': True, 'do_only_files': True, 'needle': 'lalka'})
+                   'count': 0, 'do_count': False, 'regexE': True,
+                   'do_only_files': True, 'needle': 'lalka'})
 
     assert grep.format_builder(options) == 'file_#1'
 
 
 def test_unit_options_configure_regex():
-    options = tog({'files': ['file1', 'file2', 'file_#1', 'not a file'], 'filename': 'file_#1',
-                   'count': 0, 'do_count': False, 'regexE': True, 'do_only_files': True, 'needle': 'lalka'})
+    options = tog({'files': ['file1', 'file2', 'file_#1', 'not a file'],
+                   'filename': 'file_#1',
+                   'count': 0, 'do_count': False, 'regexE': True,
+                   'do_only_files': True, 'needle': 'lalka'})
     options['do_ignore_case'] = True
     corr_opt = options.copy()
     corr_opt['regexE_flags'] = [re.IGNORECASE]
@@ -78,7 +80,8 @@ def test_unit_options_configure_regex():
 
 def test_unit_options_configure_simple():
     options = tog({'files': ['file1', 'file2', 'file_#1', 'not a file'], 'filename': 'file_#1',
-                   'count': 0, 'do_count': False, 'regexE': False, 'do_only_files': True, 'needle': 'JaVaNoChKa'})
+                   'count': 0, 'do_count': False, 'regexE': False,
+                   'do_only_files': True, 'needle': 'JaVaNoChKa'})
     options['do_ignore_case'] = True
     corr_opt = options.copy()
     corr_opt['needle'] = 'javanochka'
@@ -87,8 +90,10 @@ def test_unit_options_configure_simple():
 
 
 def test_unit_options_configure_other():
-    options = tog({'files': ['file1', 'file2', 'file_#1', 'not a file'], 'filename': 'file_#1',
-                   'count': 0, 'do_count': False, 'regexE': False, 'do_only_not_files': True, 'needle': 'JaVaNoChKa'})
+    options = tog({'files': ['file1', 'file2', 'file_#1', 'not a file'],
+                   'filename': 'file_#1', 'count': 0, 'do_count': False,
+                   'regexE': False, 'do_only_not_files': True,
+                   'needle': 'JaVaNoChKa'})
     options['do_invert'] = True
     corr_opt = options.copy()
     corr_opt['do_only_files'] = True
@@ -162,38 +167,27 @@ def test_unit_finder_inline_new():
 
     assert not grep.finder_inline(options)
 
-# integrate
+
+def test_dict_filter_nex():
+    options = tog({})
+    options['regexE'] = True
+    options['do_ignore_case'] = True
+    options['line'] = 'my precious'
+    new_dict = grep.dict_filter(
+        options, ['regexE', 'line', 'do_count', 'some_trash_option'])
+    corr_dict = {'regexE': True, 'line': 'my precious', 'do_count': False}
+    assert new_dict == corr_dict
 
 
-def test_integrate_all_keys_print_files_grep(tmp_path, monkeypatch, capsys):
-    (tmp_path / 'a.txt').write_text('fO\nFO\nFoO\n')
-    (tmp_path / 'b.txt').write_text('hello fo?o world\nxfooyfoz\nfooo\n')
-    monkeypatch.chdir(tmp_path)
-    grep.main(['-livx', '-E', 'fo?o', 'b.txt', 'a.txt'])
-    out, err = capsys.readouterr()
-    assert err == ''
-    assert out == 'b.txt\n'
-
-
-def test_integrate_all_keys_print_not_files_grep(tmp_path, monkeypatch, capsys):
-    (tmp_path / 'a.txt').write_text('fO\nFO\nFoO\n')
-    (tmp_path / 'b.txt').write_text('hello fo?o world\nxfooyfoz\nfooo\n')
-    monkeypatch.chdir(tmp_path)
-    grep.main(['-Livx', '-E', 'fo?o', 'b.txt', 'a.txt'])
-    out, err = capsys.readouterr()
-    assert err == ''
-    assert out == 'a.txt\n'
-
-
-def test_integrate_all_keys_count_files_grep(tmp_path, monkeypatch, capsys):
-    (tmp_path / 'a.txt').write_text('fO\nFO\nFoO\n')
-    (tmp_path / 'b.txt').write_text('hello fo?o world\nxfooyfoz\nfooo\n')
-    monkeypatch.chdir(tmp_path)
-    grep.main(['-civx', '-E', 'fo?o', 'b.txt', 'a.txt'])
-    out, err = capsys.readouterr()
-    assert err == ''
-    assert out == 'b.txt:3\na.txt:0\n'
-
+def test_dict_filter_ex():
+    options = {}
+    options['regexE'] = True
+    options['do_ignore_case'] = True
+    options['line'] = 'my precious'
+    new_dict = grep.dict_filter(
+        options, ['regexE', 'do_count', 'some_trash_option'], ex=True)
+    corr_dict = {'do_ignore_case': True, 'line': 'my precious'}
+    assert new_dict == corr_dict
 
 # integrate
 
@@ -231,18 +225,17 @@ def test_integrate_all_keys_count_files_grep(tmp_path, monkeypatch, capsys):
 def test_integrate_new_parser_fail():
     args = ['-L', '-civ', '-x', "neeeee''eedle", 'file1', 'stdin']
     try:
-        parsed_args = grep.main(args)
-    except SystemExit as er:
+        grep.main(args)
+    except SystemExit:
         pass
     else:
         assert 0 == 1
 
-def test_integrate_inverse(monkeypatch,capsys):
+
+def test_integrate_inverse(monkeypatch, capsys):
     monkeypatch.setattr('sys.stdin', io.StringIO(
         'pref needle\nneedle suf\nthe nEedle!\npref needle suf'))
     grep.main(['-v', 'nEedle'])
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'pref needle\nneedle suf\npref needle suf\n'
-
-

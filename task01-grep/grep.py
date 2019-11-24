@@ -5,6 +5,20 @@ import re
 import argparse
 
 
+def dict_filter(options: Dict[str, Any], allowed: List[str], ex: bool = False) -> Dict[str, Any]:
+    # take dict and list and include/exclude only elements of dict mentioned in list
+    new_options = {}
+    if ex:
+        for opt in options.keys():
+            if opt not in allowed:
+                new_options[opt] = options[opt]
+    else:
+        for opt in options.keys():
+            if opt in allowed:
+                new_options[opt] = options[opt]
+    return new_options
+
+
 def parser_init() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
                                      description='Search needle in each file.',
@@ -135,20 +149,27 @@ def handler(options: Dict[str, Any], final: bool) -> None:
 def searcher(options: Dict[str, Any]) -> None:
     # search needle
     options['count'] = 0
-    options['format_out'] = format_builder(options)
+    options_fb = dict_filter(
+        options, ['do_only_files', 'do_count', 'filename', 'files'])
+    options['format_out'] = format_builder(options_fb)
+    options_fi = dict_filter(options, ['regexE', 'do_whole_line', 'regexE_flags', 'needle',
+                                       'do_ignore_case', 'do_whole_line', 'line'])
+    options_ha = dict_filter(options, ['late_output', 'do_count', 'count',
+                                       'format_out', 'count', 'do_only_files'])
 
     for line in options['io']:
         line = line.rstrip('\n')
-        options['line'] = line
-        found = finder_inline(options)
+        options_fi['line'] = line
+        options_ha['line'] = line
+        found = finder_inline(options_fi)
 
         if options['do_invert']:
             found = not found
 
         if found:
-            handler(options, final=False)
+            handler(options_ha, final=False)
 
-    handler(options, final=True)
+    handler(options_ha, final=True)
 
 
 def search_in_files(options: Dict[str, Any]):
@@ -173,9 +194,9 @@ def main(args: List[str]):
     parsed_args = parser.parse_args(args)
 
     options: Dict[str, Any] = vars(parsed_args)
-#    print(options)
-    options_configure(options)
-#    print(options)
+    options_configure(options)  # configure options so not filtered
+
+    options = dict_filter(options, ['do_not_only_files'], ex=True)
 
     search_in_files(options)
 

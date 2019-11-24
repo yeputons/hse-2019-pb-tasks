@@ -162,7 +162,6 @@ def test_unit_searcher(tmp_path, monkeypatch, capsys):
         out, err = capsys.readouterr()
         assert err == ''
         assert out == '3\n'
-        assert options['count'] == 3
 
 
 def test_unit_search_in_files_file_io(tmp_path, monkeypatch, capsys):
