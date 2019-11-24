@@ -17,8 +17,8 @@ FULL_MATCH = 'full_match'
 # OUTPUT MODES
 
 COUNT = 'count'
-FILES_FOUND = 'files_found'
-FILES_NOT_FOUND = 'files_not_found'
+FILE_NAMES_FOUND = 'file_names_found'
+FILE_NAMES_NOT_FOUND = 'file_names_not_found'
 
 
 def get_value(flags: Dict[str, bool], name: str) -> bool:
@@ -60,13 +60,13 @@ def search_needle_in_src(needle: str, source: List[str],
 
 def print_search_result(res: Dict[str, List[str]], flags: Dict[str, bool]) -> None:
     count = get_value(flags, COUNT)
-    file_names = get_value(flags, FILES_FOUND)
+    file_names_found = get_value(flags, FILE_NAMES_FOUND)
     for key, value in res.items():
         source: str = key+':' if len(res) > 1 else ''
         if count:
             print(f'{source}{len(value)}')
             continue
-        if file_names:
+        if file_names_found:
             print(key)
             continue
         for line in value:
@@ -116,7 +116,7 @@ def main(arg_str: List[str]):
     }
     output_flags: Dict[str, bool] = {
         COUNT: args.count_mode,
-        FILES_FOUND: args.files_found_mode
+        FILE_NAMES_FOUND: args.files_found_mode
     }
     if args.files:
         for file in args.files:
