@@ -3,6 +3,13 @@
 import grep
 
 
+def test_get_value():
+    assert not grep.get_value({'aa': False}, 'aa')
+    assert grep.get_value({'aa': True}, 'aa')
+    assert not grep.get_value({'bb': True}, 'aa')
+    assert not grep.get_value({'bb': False}, 'aa')
+
+
 def test_match_ignore_case():
     assert grep.match('AAb', 'AAbtrg', {grep.IGNORE_CASE: True})
     assert grep.match('Aab', 'aABte', {grep.IGNORE_CASE: True})
