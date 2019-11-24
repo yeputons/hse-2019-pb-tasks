@@ -7,10 +7,18 @@ import sys
 import re
 import argparse
 
+# SEARCH MODES
+
 REGEX = 'regex'
 IGNORE_CASE = 'ignore_case'
 INVERTED = 'invert_result'
 FULL_MATCH = 'full_match'
+
+# OUTPUT MODES
+
+COUNT = 'count'
+FILES_FOUND = 'files_found'
+FILES_NOT_FOUND = 'files_not_found'
 
 
 def get_value(flags: Dict[str, bool], name: str) -> bool:
@@ -50,8 +58,8 @@ def search_needle_in_src(needle: str, source: List[str],
     return appearances
 
 
-def print_search_result(res: Dict[str, List[str]],
-                        count: bool = False):
+def print_search_result(res: Dict[str, List[str]], flags: Dict[str, bool]) -> None:
+    count = get_value(flags, COUNT)
     for key, value in res.items():
         source: str = key+':' if len(res) > 1 else ''
         if count:
@@ -98,6 +106,9 @@ def main(arg_str: List[str]):
         INVERTED: args.invert_result,
         FULL_MATCH: args.full_match
     }
+    output_flags: Dict[str, bool] = {
+        COUNT: args.count_mode
+    }
     if args.files:
         for file in args.files:
             with open(file, 'r') as input_stream:
@@ -113,7 +124,7 @@ def main(arg_str: List[str]):
             preproccesing(sys.stdin.readlines()),
             search_flags
         )
-    print_search_result(res, args.count_mode)
+    print_search_result(res, output_flags)
 
 
 if __name__ == '__main__':
