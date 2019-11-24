@@ -61,3 +61,11 @@ def test_file_name_found(capsys):
     out, err = capsys.readouterr()
     assert err == ''
     assert out == ''
+
+
+def test_file_name_not_found(capsys):
+    grep.print_search_result({'aa.txt': [], 'bb.txt': ['afsa']}, {
+                             grep.FILE_NAMES_NOT_FOUND: True})
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'aa.txt\n'
