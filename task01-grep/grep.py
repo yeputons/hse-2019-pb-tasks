@@ -10,6 +10,7 @@ import argparse
 
 
 def parse_arguments(args_str: List[str]) -> argparse.Namespace:
+    """ Divides string into parsers """
     parser = argparse.ArgumentParser()
     parser.add_argument('needle', type=str)
     parser.add_argument('files', nargs='*')
@@ -28,7 +29,9 @@ def print_answer(lines: List[str], number_of_files: int, file_name: str, count_m
                  file_match_mode: bool, file_no_match_mode: bool) -> None:
     """ (1) if number of files is more than 1, prints <file_name>:<line>
         (2) if -c flag, prints the number of needles in stdin or in files;
-        (3) if (1) and (2), prints <file_name>:<number of needles in <file_name>>"""
+        (3) if (1) and (2), prints <file_name>:<number of needles in <file_name>>
+        (4) if -l flag, prints all files with matching lines
+        (5) if L flag, prints the opposite of (4) """
     if number_of_files <= 1:
         prefix = ''
     else:
@@ -47,19 +50,20 @@ def print_answer(lines: List[str], number_of_files: int, file_name: str, count_m
 
 
 def is_regex(needle: str, line: str, ignore_case_mode: bool, full_match_mode: bool) -> bool:
-    """ Returns true if regex is found false otherwise """
+    """ Returns true if regex is found false otherwise
+        Supports -x and -i flags """
     if full_match_mode:
         search_mode = re.fullmatch
     else:
         search_mode = re.search
     if ignore_case_mode:
         return search_mode(needle, line, re.IGNORECASE) is not None
-    else:
-        return search_mode(needle, line) is not None
+    return search_mode(needle, line) is not None
 
 
 def is_substring(needle: str, line: str, ignore_case_mode: bool, full_match_mode: bool) -> bool:
-    """ Returns true if substring is found false otherwise """
+    """ Returns true if substring is found false otherwise
+        Supports -x and -i flags """
     if ignore_case_mode:
         new_needle = needle.lower()
         new_line = line.lower()
@@ -68,8 +72,7 @@ def is_substring(needle: str, line: str, ignore_case_mode: bool, full_match_mode
         new_line = line
     if full_match_mode:
         return new_needle == new_line
-    else:
-        return new_needle in new_line
+    return new_needle in new_line
 
 
 def find_in_input(count_mode: bool, file_match_mode: bool, file_no_match_mode: bool,
@@ -77,7 +80,7 @@ def find_in_input(count_mode: bool, file_match_mode: bool, file_no_match_mode: b
                   full_match_mode: bool, needle: str, file: TextIO,
                   file_name: str, number_of_input_data: int) -> None:
     """ Prints lines with needles (substring or regex) or amount of them
-        Works for -c and -E flags and input: stdin or file(s) """
+        Works for -c, -l, -L and -E, -x, -i, -v flags and input: stdin or file(s) """
     if regex_mode:
         search_mode = is_regex
     else:
@@ -95,7 +98,8 @@ def find_in_input(count_mode: bool, file_match_mode: bool, file_no_match_mode: b
 def find_in_files(args: argparse.Namespace) -> None:
     """ For each file, function opens it and calls find_in_input function
         one file: prints all lines with needles or amount of them (if -c)
-        many files: prints <file_name> before searching results """
+        many files: prints <file_name> before searching results
+        Also supports -l and -L flag """
     for current_file in args.files:
         with open(current_file, 'r') as in_file:
             find_in_input(args.count, args.files_with_matches, args.files_without_match, args.regex,
@@ -104,7 +108,7 @@ def find_in_files(args: argparse.Namespace) -> None:
 
 
 def main(args_str: List[str]):
-    """ Performs functionality of grep with flags -c and -E
+    """ Performs functionality of grep with flags -c, -l, -L, -E, -x, -v and -i
         Input data: stdin or file(s) """
     args = parse_arguments(args_str)
     if args.files:

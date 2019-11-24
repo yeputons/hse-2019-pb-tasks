@@ -4,7 +4,6 @@ import sys
 import grep
 
 
-
 def test_integrate_stdin_grep(monkeypatch, capsys):
     monkeypatch.setattr('sys.stdin', io.StringIO(
         'pref needle?\nneedle? suf\nthe needl\npref needle? suf'))
@@ -88,7 +87,7 @@ def test_integrate_file_grep_regex(tmp_path, monkeypatch, capsys):
     assert out == 'pref needle?\nneedle? suf\nthe needl\npref needle? suf\n'
 
 
-def test_integrate_files_grep_regex(tmp_path, monkeypatch, capsys): ####
+def test_integrate_files_grep_regex(tmp_path, monkeypatch, capsys):
     (tmp_path / 'a.txt').write_text('pref needle?\nneedle? suf\n')
     (tmp_path / 'b.txt').write_text('the needl\npref needle? suf')
     monkeypatch.chdir(tmp_path)
@@ -134,24 +133,24 @@ def test_parse_arguments_stdin():
 
 
 def test_print_answer(capsys):
-    grep.print_answer(['needle', 'no needle', 'no need'], 2, 'a.txt', False)
+    grep.print_answer(['needle', 'no needle', 'no need'], 2, 'a.txt', False, False, False)
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'a.txt:needle\na.txt:no needle\na.txt:no need\n'
 
 
 def test_is_substring():
-    assert grep.is_substring('needle', 'no needle is here')
+    assert grep.is_substring('needle', 'no needle is here', False, False)
 
 
 def test_is_regex():
-    assert grep.is_regex('h*i?', 'ahhhe')
+    assert grep.is_regex('h*i?', 'ahhhe', False, False)
 
 
 def test_find_in_input(monkeypatch, capsys):
     monkeypatch.setattr('sys.stdin', io.StringIO(
         'pref needle?\nneedle? suf\nthe needl\npref needle? suf'))
-    grep.find_in_input(False, False, 'needle', sys.stdin, '', 0)
+    grep.find_in_input(False, False, False, False, False, False, False, 'needle', sys.stdin, '', 0)
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'pref needle?\nneedle? suf\npref needle? suf\n'
