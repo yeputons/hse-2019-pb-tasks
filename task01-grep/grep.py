@@ -45,7 +45,7 @@ def print_count_files(args: argparse.Namespace, data: List[str]) -> None:
                         print(return_count(args, in_file.readlines()))
 
 
-def print_file(args: argparse.Namespace, dest: List[str], filename) -> None:
+def print_file(args: argparse.Namespace, dest: List[str], filename: str) -> None:
     for line in dest:
         line = line.rstrip('\n')
         if args.extended:
@@ -56,7 +56,7 @@ def print_file(args: argparse.Namespace, dest: List[str], filename) -> None:
                 printer(args, filename, line)
 
 
-def printer(args: argparse.Namespace, filename: str, line) -> None:
+def printer(args: argparse.Namespace, filename: str, line: str) -> None:
     if len(args.files) > 1:
         print(f'{filename}:{line}')
     else:
@@ -65,7 +65,7 @@ def printer(args: argparse.Namespace, filename: str, line) -> None:
 
 def print_files(args: argparse.Namespace, data: List[str]) -> None:
     if not args.files:
-        print_file(args, data, data)
+        print_file(args, data, args.needle)
     else:
         for line in data:
             filename = line
