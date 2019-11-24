@@ -1,21 +1,20 @@
 #!/usr/bin/env python3
-from typing import List
-from typing import TextIO
+from typing import List, TextIO
 import sys
 import re
 import argparse
 
 
-def search(needle, line: str, regex: bool) -> bool:
+def search_needle_in_line(needle, line: str, regex: bool) -> bool:
     if regex:
         return bool(re.search(needle, line))
     else:
         return needle in line
 
 
-def to_do(line_list: List[str], counter: bool, filename: str):
-    if filename != "":
-        filename += ":"
+def print_asked_string(line_list: List[str], counter: bool, filename: str):
+    if filename != '':
+        filename += ':'
 
     if counter:
         print(filename + str(len(line_list)))
@@ -29,10 +28,10 @@ def find_in_file(file: TextIO, needle: str, regex, counter: bool, filename: str 
 
     for line in file.readlines():
         line = line.rstrip('\n')
-        if search(needle, line, regex):
+        if search_needle_in_line(needle, line, regex):
             line_list.append(line)
 
-    to_do(line_list, counter, filename)
+    print_asked_string(line_list, counter, filename)
 
 
 def read(args_str: List[str]):
@@ -42,6 +41,7 @@ def read(args_str: List[str]):
     parser.add_argument('-E', dest='regex', action='store_true')
     parser.add_argument('-c', dest='counter', action='store_true')
     return parser.parse_args(args_str)
+
 
 def main(args_str: List[str]):
     args = read(args_str)
@@ -54,8 +54,6 @@ def main(args_str: List[str]):
             if len(args.files) == 1:
                 filename = ''
             find_in_file(file, args.needle, args.regex, args.counter, filename)
-
-
 
 
 if __name__ == '__main__':
