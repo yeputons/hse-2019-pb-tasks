@@ -2,6 +2,169 @@
 import io
 import grep
 
+# unit
+
+
+def test_unit_parse_args():
+    args = ['-E', '-c', "neeeee''eedle", 'file1', 'stdin']
+    parser = grep.parser_init()
+    parsed_args = parser.parse_args(args)
+    assert vars(parsed_args) == {'needle': "neeeee''eedle",
+                                 'regexE': True, 'do_count': True, 'files': ['file1', 'stdin']}
+
+
+def test_unit_format_builder_line():
+    options = {'files': ['file1', 'file2', 'file_#1', 'not a file'], 'filename': 'file_#1',
+               'count': 0, 'do_count': False, 'regexE': True, 'needle': 'lalka'}
+    assert grep.format_builder(options) == 'file_#1:{line}'
+
+
+def test_unit_format_builder_count():
+    options = {'files': ['file1', 'file2', 'file_#1', 'not a file'], 'filename': 'file_#1',
+               'count': 0, 'do_count': True, 'regexE': True, 'needle': 'lalka'}
+    assert grep.format_builder(options) == 'file_#1:{count}'
+
+
+def test_unit_finder_inline_regexe():
+    options = {'files': ['file1', 'file2', 'file_#1', 'not a file'],
+               'filename': 'file_#1', 'count': 0,
+               'do_count': True, 'regexE': True, 'line': 'hohoho, merry christmas @_@',
+               'needle': '(ho){1,3}'}
+    assert grep.finder_inline(options)
+    options['line'] = 'hahahahpo'
+    assert not grep.finder_inline(options)
+    options['line'] = ''
+    assert not grep.finder_inline(options)
+    options['line'] = 'hohohohohohoho'
+    assert grep.finder_inline(options)
+    options['line'] = '(ho){1,3}}}}}}'
+    assert grep.finder_inline(options)
+    options['needle'] = '[a-z].'
+    options['line'] = 'vvvvvv'
+    assert grep.finder_inline(options)
+    options['line'] = '1337228322'
+    assert not grep.finder_inline(options)
+
+
+def test_unit_finder_inline_no_regexe():
+    options = {'files': ['file1', 'file2', 'file_#1', 'not a file'],
+               'filename': 'file_#1', 'count': 0,
+               'do_count': True, 'regexE': False, 'line': 'hohoho, merry christmas @_@',
+               'needle': '(ho){1,3}'}
+    assert not grep.finder_inline(options)
+    options['line'] = 'hahahahpo'
+    options_old = options
+    assert not grep.finder_inline(options)
+    assert options == options_old
+
+    options['line'] = ''
+    assert not grep.finder_inline(options)
+    options['line'] = 'hohohohohohoho'
+    assert not grep.finder_inline(options)
+    options['line'] = '(ho){1,3}}}}}}'
+    assert grep.finder_inline(options)
+    options['needle'] = '[a-z].'
+    options['line'] = 'vvvvvv'
+    assert not grep.finder_inline(options)
+    options['line'] = '1337228322'
+    assert not grep.finder_inline(options)
+
+
+def test_unit_handler(capsys):
+    options = {'files': ['file1', 'file2', 'file_#1', 'not a file'],
+               'filename': 'file_#1', 'count': 0, 'do_count': True,
+               'regexE': False, 'line': 'hohoho, merry christmas @_@',
+               'needle': '(ho){1,3}', 'format_out': 'file_#1:{count}'}
+    grep.handler(options, final=False)
+    assert options['count'] == 1
+
+    options['do_count'] = False
+    options['regexE'] = True
+    options['format_out'] = 'file_#1:{line}'
+    grep.handler(options, final=False)
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'file_#1:hohoho, merry christmas @_@\n'
+
+
+def test_unit_handler_final(capsys):
+    options = {'files': ['file1', 'file2', 'file_#1', 'not a file'],
+               'filename': 'file_#1', 'count': 0, 'do_count': True,
+               'regexE': True, 'line': 'hohoho, merry christmas @_@', 'needle':
+               '(ho){1,3}', 'format_out': 'file_#1:{count}'}
+    grep.handler(options, final=False)
+    grep.handler(options, final=True)
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'file_#1:1\n'
+
+
+def test_unit_searcher(tmp_path, monkeypatch, capsys):
+    options = {'files': ['mafile'], 'filename': 'mafile', 'count': 0, 'do_count': False,
+               'regexE': True, 'needle': '(ho){1,3}', 'format_out': 'file_#1:{count}'}
+    (tmp_path / 'mafile').write_text('hohoho!\nohohoh(\nlololol\n\n\n123\ni1oioioioho\n\n')
+    monkeypatch.chdir(tmp_path)
+    with open((tmp_path / 'mafile'), 'r') as my_io:
+        options['io'] = my_io
+        grep.searcher(options)
+        out, err = capsys.readouterr()
+        assert err == ''
+        assert out == 'hohoho!\nohohoh(\ni1oioioioho\n'
+
+    with open((tmp_path / 'mafile'), 'r') as my_io:
+        options['io'] = my_io
+        options['do_count'] = True
+        grep.searcher(options)
+        out, err = capsys.readouterr()
+        assert err == ''
+        assert out == '3\n'
+        assert options['count'] == 3
+
+
+def test_unit_search_in_files_file_io(tmp_path, monkeypatch, capsys):
+    options = {'files': ['mafile1', 'mafile2', 'mafile3'], 'do_count': False,
+               'regexE': True, 'needle': '(ho){1,3}', 'format_out': 'file_#1:{count}'}
+    (tmp_path / 'mafile1').write_text('hohoho!\nohohoh(\nlololol\n\n\n123\ni1oioioioho\n\n')
+    (tmp_path / 'mafile2').write_text('hahaah\nmahaoh\nhoahan\n123\n')
+    (tmp_path / 'mafile3').write_text(
+        'hohoh\n\n\n123\ni1lolipophoioho\n\n')
+    monkeypatch.chdir(tmp_path)
+
+    grep.search_in_files(options)
+    out, err = capsys.readouterr()
+    assert err == ''
+    ans = """mafile1:hohoho!
+mafile1:ohohoh(
+mafile1:i1oioioioho
+mafile2:hoahan
+mafile3:hohoh
+mafile3:i1lolipophoioho
+"""
+    assert out == ans
+
+
+def test_unit_search_in_files_standard_io(monkeypatch, capsys):
+    options = {'files': [], 'do_count': False,
+               'regexE': True, 'needle': 'needle?'}
+
+    monkeypatch.setattr('sys.stdin', io.StringIO(
+        'pref needle?\nneedle? suf\nthe needl\npref needle? suf'))
+    grep.search_in_files(options)
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'pref needle?\nneedle? suf\nthe needl\npref needle? suf\n'
+
+
+def test_unit_main(tmp_path, monkeypatch, capsys):
+    (tmp_path / 'mafile1').write_text('nyanyanyanyanyanyaneedlenyanyanya\nnyaneedle\n')
+    monkeypatch.chdir(tmp_path)
+    grep.main(['-E', '-c', 'needle', 'mafile1'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == '2\n'
+
+# integrate
+
 
 def test_integrate_stdin_grep(monkeypatch, capsys):
     monkeypatch.setattr('sys.stdin', io.StringIO(

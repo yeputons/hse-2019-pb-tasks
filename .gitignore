@@ -1,3 +1,6 @@
 __pycache__
 .cache
 .mypy_cache
+task01-grep/*
+!task01-grep/grep.py
+!task01-grep/test-grep.py
