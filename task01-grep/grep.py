@@ -1,58 +1,37 @@
 #!/usr/bin/env python3
 from typing import List
+from typing import TextIO
 import sys
 import re
 import argparse
 
-global counter
 
-
-def in_stdin(needle: str, flag: bool, flag_e: bool) -> None:
-    counter = 0
-    for line in sys.stdin.readlines():
+def reader(fname: str, needle: str, wh: TextIO, fl: bool, length: int) -> None:
+    b = list()
+    for line in wh:
         line = line.rstrip('\n')
-        if flag_e is False:
-            if needle in line:
-                if flag:
-                    counter += 1
-                else:
-                    print(line)
-        else:
-            if re.search(needle, line):
-                if flag:
-                    counter += 1
-                else:
-                    print(line)
-    if flag:
-        print(counter)
+        if re.search(needle, line):
+            b.append(line)
+            if not fl:
+                files_output(length, fname, line)
+    if fl:
+        files_output(length, fname, len(b))
 
 
-def files_output(len: int, filee: str, line: object) -> None:
-    if len > 1:
-        print(f'{filee}:{line}')
+def in_stdin(needle: str, fl: bool) -> None:
+    reader('', needle, sys.stdin, fl, 1)
+
+
+def files_output(length: int, fname: str, line: object) -> None:
+    if length > 1:
+        print(f'{fname}:{line}')
     else:
         print(line)
 
 
-def in_files(filee: str, needle: str, flag: bool, flag_e: bool, len: int) -> None:
-    counter = 0
-    with open(filee, 'r') as in_file:
-        for line in in_file.readlines():
-            line = line.rstrip('\n')
-            if flag_e:
-                if re.search(needle, line):
-                    if flag:
-                        counter += 1
-                    else:
-                        files_output(len, filee, line)
-            else:
-                if needle in line:
-                    if flag:
-                        counter += 1
-                    else:
-                        files_output(len, filee, line)
-        if flag:
-            files_output(len, filee, counter)
+def in_files(fname: str, needle: str, fl: bool, length: int) -> None:
+    with open(fname, 'r') as in_file:
+        reader(fname, needle, in_file, fl, length)
 
 
 def main(args_str: List[str]) -> None:
@@ -64,11 +43,12 @@ def main(args_str: List[str]) -> None:
     args = parser.parse_args(args_str)
 
     # STUB BEGINS
+    needle = args.needle if args.regex else re.escape(args.needle)
     if len(args.files) == 0:
-        in_stdin(args.needle, args.c, args.regex)
+        in_stdin(needle, args.c)
     else:
         for i in args.files:
-            in_files(i, args.needle, args.c, args.regex, len(args.files))
+            in_files(i, needle, args.c, len(args.files))
 
 
 if __name__ == '__main__':
