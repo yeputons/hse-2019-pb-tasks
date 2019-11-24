@@ -61,13 +61,19 @@ def search_needle_in_src(needle: str, source: List[str],
 def print_search_result(res: Dict[str, List[str]], flags: Dict[str, bool]) -> None:
     count = get_value(flags, COUNT)
     file_names_found = get_value(flags, FILE_NAMES_FOUND)
+    file_names_not_found = get_value(flags, FILE_NAMES_NOT_FOUND)
     for key, value in res.items():
         source: str = key+':' if len(res) > 1 else ''
         if count:
             print(f'{source}{len(value)}')
             continue
+        if file_names_not_found:
+            if not value:
+                print(key)
+            continue
         if file_names_found:
-            print(key)
+            if value:
+                print(key)
             continue
         for line in value:
             print(f'{source}{line}')
@@ -82,7 +88,11 @@ def main(arg_str: List[str]):
     parser.add_argument('-l',
                         dest='files_found_mode',
                         action='store_true',
-                        help='prints only name of the files')
+                        help='prints only name of the files, where the needle was found')
+    parser.add_argument('-L',
+                        dest='files_not_found_mode',
+                        action='store_true',
+                        help='prints only names of the files, where the needle was not found')
     parser.add_argument('-E',
                         dest='regex_mode',
                         action='store_true',
@@ -116,7 +126,8 @@ def main(arg_str: List[str]):
     }
     output_flags: Dict[str, bool] = {
         COUNT: args.count_mode,
-        FILE_NAMES_FOUND: args.files_found_mode
+        FILE_NAMES_FOUND: args.files_found_mode,
+        FILE_NAMES_NOT_FOUND: args.files_not_found_mode
     }
     if args.files:
         for file in args.files:
