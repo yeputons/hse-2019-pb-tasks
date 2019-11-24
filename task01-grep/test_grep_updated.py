@@ -49,3 +49,15 @@ def test_match_full_match():
         'AAA', 'aaaa', {grep.FULL_MATCH: True, grep.IGNORE_CASE: True})
     assert grep.match(
         'Aa*t', 'aaaaaat', {grep.FULL_MATCH: True, grep.REGEX: True, grep.IGNORE_CASE: True})
+
+
+def test_file_name_found(capsys):
+    grep.print_search_result({'aa.txt': ['asf', 'af', 'qwe'], 'bb.txt': [
+        'fs', 'aff', 'qr']}, {grep.FILE_NAMES_FOUND: True})
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'aa.txt\nbb.txt\n'
+    grep.print_search_result({}, {grep.FILE_NAMES_FOUND: True})
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == ''
