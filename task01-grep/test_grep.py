@@ -105,7 +105,7 @@ def test_print_everything(capsys):
 
 
 def test_print_everything_without(capsys):
-    grep.print_everything(False, 1, '', ['the needl','pref needle suf'], 0)
+    grep.print_everything(False, 1, '', ['the needl', 'pref needle suf'], 0)
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'the needl\npref needle suf\n'
@@ -128,4 +128,5 @@ def test_cannot_open_file(capsys, tmp_path, monkeypatch):
     grep.main(['-E', 'needle?', 'b.txt', 'a.txt', 'c.txt'])
     out, err = capsys.readouterr()
     assert err == ''
-    assert out == 'I cannot open c.txt file\nb.txt:the needl\nb.txt:pref needle suf\na.txt:pref needle\na.txt:needle suf\n'
+    assert out == 'I cannot open c.txt file\nb.txt:the needl\n' \
+                  'b.txt:pref needle suf\na.txt:pref needle\na.txt:needle suf\n'

@@ -7,7 +7,8 @@ import re
 import argparse
 
 
-def print_everything(count: bool, len_list_of_files: int, in_file: str, string: List[str], counter: int):
+def print_everything(count: bool, len_list_of_files: int,
+                     in_file: str, string: List[str], counter: int):
     if count and not len_list_of_files == 1:
         print(f'{in_file}:{counter}')
     elif count and len_list_of_files == 1:
@@ -61,8 +62,8 @@ def main(args_str: List[str]):
     if args.files:
         for file in args.files:
             try:
-                fin = open(file, 'r')
-            except IOError as e:
+                open(file, 'r')
+            except IOError:
                 print(f'I cannot open {file} file')
                 args.files.remove(file)
         for file in args.files:
@@ -75,8 +76,6 @@ def main(args_str: List[str]):
             run_regex(sys.stdin, args.count, False, 1, args.needle)
         else:
             run_search(sys.stdin, args.count, False, 1, args.needle)
-
-
 
 
 if __name__ == '__main__':
