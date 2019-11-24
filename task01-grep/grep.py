@@ -24,11 +24,36 @@ def parser_init() -> argparse.ArgumentParser:
                         dest='do_count',
                         action='store_true',
                         help='print only the count of needle matches')
+    
+    parser.add_argument('-i',
+                        dest='do_ignore',
+                        action='store_true',
+                        help='ingore case')
 
+    parser.add_argument('-v',
+                        dest='do_invert',
+                        action='store_true',
+                        help='select only non-matching lines')
+    
+    parser.add_argument('-x',
+                        dest='do_whole_line',
+                        action='store_true',
+                        help='match only whole lines')
+    
+    parser.add_argument('-l',
+                        dest='do_only_files',
+                        action='store_true',
+                        help='print only names of files where the needle was found')
+    
+    parser.add_argument('-L',
+                        dest='do_only_not_files',
+                        action='store_true',
+                        help='print only names of files where the needle was NOT found')
+    
     parser.add_argument('files',
                         nargs='*',
                         help='list of files for searching needle')
-
+    
     return parser
 
 
