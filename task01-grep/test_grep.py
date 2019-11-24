@@ -38,16 +38,16 @@ def test_search_needle_in_src():
 
 
 def test_print_search_result(capsys):
-    grep.print_search_result({'stdin': ['afa', 'aqwe']})
+    grep.print_search_result({'stdin': ['afa', 'aqwe']}, {grep.COUNT: False})
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'afa\naqwe\n'
-    grep.print_search_result({'input.txt': ['aa', ' bb']}, True)
+    grep.print_search_result({'input.txt': ['aa', ' bb']}, {grep.COUNT: True})
     out, err = capsys.readouterr()
     assert err == ''
     assert out == '2\n'
     grep.print_search_result(
-        {'input.txt': ['aa', 'bbb'], 'input2.txt': ['bb', 'aaa']})
+        {'input.txt': ['aa', 'bbb'], 'input2.txt': ['bb', 'aaa']}, {grep.COUNT: False})
 
     out, err = capsys.readouterr()
     assert err == ''
