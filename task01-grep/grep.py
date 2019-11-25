@@ -41,14 +41,8 @@ def match(needle: str, line: str, flags: Dict[str, bool]) -> bool:
     ignoring_case = get_value(flags, IGNORE_CASE)
     full_match = get_value(flags, FULL_MATCH)
     inverted = get_value(flags, INVERTED)
-    ans = False
-    if ignoring_case:
-        needle = needle.lower()
-        line = line.lower()
-    if full_match:
-        ans = re.fullmatch(needle, line) is not None
-    else:
-        ans = re.search(needle, line) is not None
+    ans = case_sensitive_search(needle, line, ignoring_case,
+                                re.fullmatch if full_match else re.search)
     return not ans if inverted else ans
 
 
@@ -58,7 +52,6 @@ def preproccesing(data: List[str]) -> List[str]:
 
 def search_needle_in_src(needle: str, source: List[str],
                          flags: Dict[str, bool]) -> List[str]:
-
     appearances = []
     for line in source:
         if match(needle, line, flags):
@@ -66,12 +59,13 @@ def search_needle_in_src(needle: str, source: List[str],
     return appearances
 
 
-def print_search_result(res: Dict[str, List[str]], flags: Dict[str, bool]) -> None:
+def print_search_result(res: Dict[str, List[str]],
+                        flags: Dict[str, bool]) -> None:
     count = get_value(flags, COUNT)
     file_names_found = get_value(flags, FILE_NAMES_FOUND)
     file_names_not_found = get_value(flags, FILE_NAMES_NOT_FOUND)
     for key, value in res.items():
-        source: str = key+':' if len(res) > 1 else ''
+        source: str = key + ':' if len(res) > 1 else ''
         if count:
             print(f'{source}{len(value)}')
             continue
@@ -145,7 +139,6 @@ def main(arg_str: List[str]):
                     preproccesing(input_stream.readlines()),
                     search_flags
                 )
-
     else:
         res['stdin'] = search_needle_in_src(
             args.needle[0],
