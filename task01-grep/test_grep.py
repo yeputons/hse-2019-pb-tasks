@@ -95,13 +95,10 @@ def test_print_result(tmp_path, monkeypatch, capsys):
     assert out == 'b.txt:1\na.txt:2\n'
 
 
-def test_strip_lines(capsys):
+def test_strip_lines():
     lines = ['London\n', '\nis\n', 'the capital\n of Great Britain.\n\n']
     lines = grep.strip_lines(lines)
-    out, err = capsys.readouterr()
     assert lines == ['London', '\nis', 'the capital\n of Great Britain.']
-    assert out == ''
-    assert err == ''
 
 
 def test_filter_lines():
@@ -117,7 +114,3 @@ def test_grep_lines():
     assert grep.grep_lines(['abc'], 'file.txt', 'a', False, True) == ['file.txt:1']
     assert grep.grep_lines(['abc'], 'file.txt', 'a', True, True) == ['file.txt:1']
     assert grep.grep_lines(['abc'], 'file.txt', 'a', True, False) == ['file.txt:abc']
-
-
-def test_format_lines():
-    assert grep.format_lines('abc.txt', 'Hello world!') == 'abc.txt:Hello world!'
