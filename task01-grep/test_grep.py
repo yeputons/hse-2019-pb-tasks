@@ -38,6 +38,16 @@ def test_integrate_file_grep(tmp_path, monkeypatch, capsys):
     assert out == 'pref needle suf\n'
 
 
+def test_integrate_not_found_file_grep(tmp_path, monkeypatch, capsys):
+    (tmp_path / 'a.txt').write_text('pref needle\nneedle suf\n')
+    (tmp_path / 'b.txt').write_text('the needl\npref needle suf')
+    monkeypatch.chdir(tmp_path)
+    grep.main(['needle', 'c.txt', 'b.txt', 'a.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'c.txt:not found\nb.txt:pref needle suf\na.txt:pref needle\na.txt:needle suf\n'
+
+
 def test_integrate_files_grep(tmp_path, monkeypatch, capsys):
     (tmp_path / 'a.txt').write_text('pref needle\nneedle suf\n')
     (tmp_path / 'b.txt').write_text('the needl\npref needle suf')

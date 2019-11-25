@@ -42,11 +42,14 @@ def find_lines_from_grep_files(files: str, pattern: str, is_pattern_regex=False,
                                is_only_count=False) -> List[str]:
     all_lines: List[str] = []
     for file_name in files:
-        with open(file_name, 'r') as in_file:
-            lines = find_lines_from_grep([line.rstrip('\n') for line in in_file.readlines()],
-                                         pattern, is_pattern_regex, is_only_count)
-            all_lines += ['{}{}'.format((file_name + ':') * (len(files) > 1), line)
-                          for line in lines]
+        try:
+            with open(file_name, 'r') as in_file:
+                lines = find_lines_from_grep([line.rstrip('\n') for line in in_file.readlines()],
+                                             pattern, is_pattern_regex, is_only_count)
+                all_lines += ['{}{}'.format((file_name + ':') * (len(files) > 1), line)
+                              for line in lines]
+        except (OSError, IOError):
+            all_lines += ['{}:not found'.format(file_name)]
     return all_lines
 
 
