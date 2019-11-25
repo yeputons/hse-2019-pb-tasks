@@ -50,6 +50,8 @@ def test_match_full_match():
         'AAA', 'aaaa', {grep.FULL_MATCH: True, grep.IGNORE_CASE: True})
     assert grep.match(
         'Aa*t', 'aaaaaat', {grep.FULL_MATCH: True, grep.REGEX: True, grep.IGNORE_CASE: True})
+    assert grep.match(
+        'ArT', 'aRt', {grep.FULL_MATCH: True, grep.IGNORE_CASE: True})
 
 
 def test_file_name_found(capsys):
