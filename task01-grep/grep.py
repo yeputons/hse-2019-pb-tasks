@@ -27,6 +27,14 @@ def get_value(flags: Dict[str, bool], name: str) -> bool:
     return False
 
 
+def case_sensitive_search(needle: str, line: str, ignoring_case: bool,
+                          search) -> bool:
+    if ignoring_case:
+        return search(needle, line, flags=re.I) is not None
+    else:
+        return search(needle, line) is not None
+
+
 def match(needle: str, line: str, flags: Dict[str, bool]) -> bool:
     if not get_value(flags, REGEX):
         needle = re.escape(needle)
