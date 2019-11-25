@@ -20,6 +20,7 @@ def test_preproccesing():
     assert grep.preproccesing(['afasf\n', 'afaksf\n']) == ['afasf', 'afaksf']
     assert grep.preproccesing([]) == []
     assert grep.preproccesing(['wer', '\n']) == ['wer', '']
+    assert grep.preproccesing(['abw \n', ' ee  \n']) == ['abw ', ' ee  ']
 
 
 def test_search_needle_in_src():
