@@ -32,12 +32,16 @@ def match(needle: str, line: str, flags: Dict[str, bool]) -> bool:
         needle = re.escape(needle)
     ignoring_case = get_value(flags, IGNORE_CASE)
     full_match = get_value(flags, FULL_MATCH)
+    inverted = get_value(flags, INVERTED)
+    ans = False
     if ignoring_case:
         needle = needle.lower()
         line = line.lower()
     if full_match:
-        return re.fullmatch(needle, line) is not None
-    return re.search(needle, line) is not None
+        ans = re.fullmatch(needle, line) is not None
+    else:
+        ans = re.search(needle, line) is not None
+    return not ans if inverted else ans
 
 
 def preproccesing(data: List[str]) -> List[str]:
@@ -47,11 +51,9 @@ def preproccesing(data: List[str]) -> List[str]:
 def search_needle_in_src(needle: str, source: List[str],
                          flags: Dict[str, bool]) -> List[str]:
 
-    inverted = get_value(flags, INVERTED)
     appearances = []
     for line in source:
-        matches = match(needle, line, flags)
-        if (matches and not inverted) or (not matches and inverted):
+        if match(needle, line, flags):
             appearances.append(line)
     return appearances
 
