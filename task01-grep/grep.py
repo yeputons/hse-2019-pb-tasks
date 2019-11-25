@@ -1,40 +1,39 @@
 #!/usr/bin/env python3
+from typing import Iterable
+from typing import Optional
 from typing import List
 import sys
 import re
 import argparse
 
 
-def format_lines(filename, line):
-    return f'{filename}:{line}'
-
-
-def print_result(result):
+def print_result(result: List[str]) -> None:
     for line in result:
         print(line)
 
 
-def match_pattern(is_regex, pattern, line):
+def match_pattern(is_regex: bool, pattern: str, line: str) -> bool:
     if is_regex:
-        return re.search(pattern, line)
+        return bool(re.search(pattern, line))
     else:
         return pattern in line
 
 
-def filter_lines(is_regex, pattern, lines):
+def filter_lines(is_regex: bool, pattern: str, lines: List[str]) -> List[str]:
     return [line for line in lines if match_pattern(is_regex, pattern, line)]
 
 
-def grep_lines(lines, filename, pattern, is_regex, counting_mode):
+def grep_lines(lines: List[str], filename: Optional[str], pattern: str, is_regex: bool,
+               counting_mode: bool) -> List[str]:
     result = filter_lines(is_regex, pattern, lines)
     if counting_mode:
         result = [str(len(result))]
     if filename:
-        result = [format_lines(filename, line) for line in result]
+        result = [f'{filename}:{line}' for line in result]
     return result
 
 
-def strip_lines(file):
+def strip_lines(file: Iterable) -> List[str]:
     return [line.rstrip('\n') for line in file]
 
 
