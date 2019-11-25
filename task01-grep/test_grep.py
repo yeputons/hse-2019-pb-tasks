@@ -13,6 +13,7 @@ def test_matching():
     assert not grep.match(needle, line, {grep.REGEX: False})
     line = 'abaaa'
     assert grep.match(needle, line, {grep.REGEX: True})
+    assert grep.match('', '', {})
 
 
 def test_preproccesing():
