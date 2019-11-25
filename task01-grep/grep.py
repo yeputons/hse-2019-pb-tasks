@@ -22,7 +22,7 @@ FILE_NAMES_NOT_FOUND = 'file_names_not_found'
 
 
 def get_value(flags: Dict[str, bool], name: str) -> bool:
-    if flags.get(name) is not None:
+    if name in flags:
         return flags[name]
     return False
 
