@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import io
 import grep
 
 
@@ -64,8 +65,27 @@ def test_file_name_found(capsys):
 
 
 def test_file_name_not_found(capsys):
-    grep.print_search_result({'aa.txt': [], 'bb.txt': ['afsa']}, {
-                             grep.FILE_NAMES_NOT_FOUND: True})
+    grep.print_search_result({'aa.txt': [], 'bb.txt': ['afsa']},
+                             {grep.FILE_NAMES_NOT_FOUND: True})
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'aa.txt\n'
+
+
+def test_integrate_ignore_case_full_match_stdin(capsys, monkeypatch):
+    monkeypatch.setattr('sys.stdin', io.StringIO(
+        'pref needle\nnEEdle\nthe needl\npref needl suf'))
+    grep.main(['-c', '-x', '-i', 'needle'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == '1\n'
+
+
+def test_integrate_inverted_only_files(tmp_path, capsys, monkeypatch):
+    (tmp_path/'a.txt').write_text('abgf?e\nioqs\nklo*a\n')
+    (tmp_path/'b.txt').write_text('gf?etr\nths\nro?a\n')
+    monkeypatch.chdir(tmp_path)
+    grep.main(['-lvE', 'oq?s', 'a.txt', 'b.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'b.txt\n'
