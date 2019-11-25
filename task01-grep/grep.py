@@ -28,18 +28,16 @@ def get_value(flags: Dict[str, bool], name: str) -> bool:
 
 
 def match(needle: str, line: str, flags: Dict[str, bool]) -> bool:
-    regex = get_value(flags, REGEX)
+    if not get_value(flags, REGEX):
+        needle = re.escape(needle)
     ignoring_case = get_value(flags, IGNORE_CASE)
     full_match = get_value(flags, FULL_MATCH)
-
     if ignoring_case:
         needle = needle.lower()
         line = line.lower()
-    if regex:
-        if full_match:
-            return re.fullmatch(needle, line) is not None
-        return re.search(needle, line) is not None
-    return needle in line if not full_match else needle == line
+    if full_match:
+        return re.fullmatch(needle, line) is not None
+    return re.search(needle, line) is not None
 
 
 def preproccesing(data: List[str]) -> List[str]:
