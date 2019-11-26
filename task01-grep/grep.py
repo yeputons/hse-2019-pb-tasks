@@ -6,19 +6,11 @@ import re
 import argparse
 
 
-def to_find_reg(line: str, needle: str) -> bool:
-    return re.search(needle, line) is not None
-
-
-def to_find_substring(line: str, needle: str) -> bool:
-    return needle in line
-
-
-def to_find(line: str, needle: str, regex: bool) -> bool:
+def find(line: str, needle: str, regex: bool) -> bool:
     if regex:
-        return to_find_reg(line, needle)
+        return re.search(needle, line) is not None
     else:
-        return to_find_substring(line, needle)
+        return needle in line
 
 
 def print_result(file_name: str, number_of_file: int, output: str) -> None:
@@ -32,7 +24,7 @@ def counter(in_file: TextIO, args: argparse.Namespace, file_name: str) -> None:
     line_counter = 0
     for line in in_file.readlines():
         line = line.rstrip('\n')
-        if to_find(line, args.needle, args.regex):
+        if find(line, args.needle, args.regex):
             line_counter += 1
     print_result(file_name, len(args.files), str(line_counter))
 
@@ -40,7 +32,7 @@ def counter(in_file: TextIO, args: argparse.Namespace, file_name: str) -> None:
 def string_finder(in_file: TextIO, args: argparse.Namespace, file_name: str) -> None:
     for line in in_file.readlines():
         line = line.rstrip('\n')
-        if to_find(line, args.needle, args.regex):
+        if find(line, args.needle, args.regex):
             print_result(file_name, len(args.files), line)
 
 

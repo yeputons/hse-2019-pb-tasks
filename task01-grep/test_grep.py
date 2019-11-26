@@ -13,21 +13,13 @@ def test_integrate_stdin_grep(monkeypatch, capsys):
     assert out == 'pref needle?\nneedle? suf\npref needle? suf\n'
 
 
-def test_to_find_reg():
-    assert grep.to_find_reg('ahhhe', 'h*i?')
-    assert grep.to_find_reg('colouuuur', 'colou*r')
-    assert not grep.to_find_reg('color', 'colou+r')
-
-
-def test_to_find_substring():
-    assert grep.to_find_substring('sdfsdassdf', 'as')
-    assert not grep.to_find_substring('ahhhe', 'h*i?')
-    assert grep.to_find_substring('sd', '')
-
-
 def test_to_find():
-    assert grep.to_find('ahhhe', 'h*i?', True) == grep.to_find_reg('ahhhe', 'h*i?')
-    assert grep.to_find('ahhhe', 'h*i?', False) == grep.to_find_substring('ahhhe', 'h*i?')
+    assert grep.find('ahhhe', 'h*i?', True)
+    assert grep.find('colouuuur', 'colou*r', True)
+    assert not grep.find('color', 'colou+r', True)
+    assert not grep.find('ahhhe', 'h*i?', False)
+    assert grep.find('sd', '', False)
+    assert grep.find('sdfsdassdf', 'as', False)
 
 
 def test_print_result(capsys):
