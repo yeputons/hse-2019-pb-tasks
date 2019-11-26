@@ -16,10 +16,6 @@ def test_is_matching_1():
 
 
 def test_is_matching_2():
-    assert grep.is_matching('abcd', False, 'efg') == False
-
-
-def test_is_matching_3():
     assert grep.is_matching('abcd', True, 'a*')
 
 
