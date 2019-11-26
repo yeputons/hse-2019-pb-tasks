@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import io
+import argparse
 import grep
 
 
@@ -10,6 +11,38 @@ def test_integrate_stdin_grep(monkeypatch, capsys):
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'pref needle?\nneedle? suf\npref needle? suf\n'
+
+
+def test_to_find_reg():
+    assert grep.to_find_reg('ahhhe', 'h*i?')
+    assert grep.to_find_reg('colouuuur', 'colou*r')
+    assert not grep.to_find_reg('color', 'colou+r')
+
+
+def test_to_find_substring():
+    assert grep.to_find_substring('sdfsdassdf', 'as')
+    assert not grep.to_find_substring('ahhhe', 'h*i?')
+    assert grep.to_find_substring('sd', '')
+
+
+def test_to_find():
+    assert grep.to_find('ahhhe', 'h*i?', True) == grep.to_find_reg('ahhhe', 'h*i?')
+    assert grep.to_find('ahhhe', 'h*i?', False) == grep.to_find_substring('ahhhe', 'h*i?')
+
+
+def test_print_result(capsys):
+    grep.print_result('sleep.txt', 2, 'sleepsleepsleeeeeep')
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'sleep.txt:sleepsleepsleeeeeep\n'
+    grep.print_result('sleep.txt', 1, 'should I go to sleep?')
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'should I go to sleep?\n'
+    grep.print_result('notsleep.txt', 1, 'yes, i should, but i havent done my English hw yet')
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'yes, i should, but i havent done my English hw yet\n'
 
 
 def test_integrate_stdin_regex_grep(monkeypatch, capsys):
@@ -57,3 +90,65 @@ def test_integrate_files_grep_count(tmp_path, monkeypatch, capsys):
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'b.txt:1\na.txt:2\n'
+
+
+def test_counter(tmp_path, monkeypatch, capsys):
+    args = argparse.Namespace(regex=False, files=[], needle='needle', count=True)
+    (tmp_path / 'a.txt').write_text('pref needle\nneedle suf\n')
+    monkeypatch.chdir(tmp_path)
+    with open('a.txt', 'r') as in_file:
+        grep.counter(in_file, args, 'a.txt')
+        out, err = capsys.readouterr()
+        assert err == ''
+        assert out == '2\n'
+    (tmp_path / 'b.txt').write_text('')
+    monkeypatch.chdir(tmp_path)
+    with open('b.txt', 'r') as in_file:
+        grep.counter(in_file, args, 'b.txt')
+        out, err = capsys.readouterr()
+        assert err == ''
+        assert out == '0\n'
+
+
+def test_string_finder(tmp_path, monkeypatch, capsys):
+    args = argparse.Namespace(regex=False, files=['a.txt'], needle='needle', count=False)
+    (tmp_path / 'a.txt').write_text('pref needle\nneedle suf\n')
+    monkeypatch.chdir(tmp_path)
+    with open('a.txt', 'r') as in_file:
+        grep.string_finder(in_file, args, 'a.txt')
+        out, err = capsys.readouterr()
+        assert err == ''
+        assert out == 'pref needle\nneedle suf\n'
+    (tmp_path / 'b.txt').write_text('')
+    monkeypatch.chdir(tmp_path)
+    with open('b.txt', 'r') as in_file:
+        grep.string_finder(in_file, args, 'b.txt')
+        out, err = capsys.readouterr()
+        assert err == ''
+        assert out == ''
+    (tmp_path / 'c.txt').write_text('pref needle\nwhy suf\n')
+    monkeypatch.chdir(tmp_path)
+    with open('c.txt', 'r') as in_file:
+        grep.string_finder(in_file, args, 'c.txt')
+        out, err = capsys.readouterr()
+        assert err == ''
+        assert out == 'pref needle\n'
+
+
+def test_finder(tmp_path, monkeypatch, capsys):
+    args = argparse.Namespace(regex=False, files=['a.txt'], needle='needle', count=False)
+    (tmp_path / 'a.txt').write_text('pref needle\nneedle suf\n')
+    monkeypatch.chdir(tmp_path)
+    with open('a.txt', 'r') as in_file:
+        grep.finder(in_file, args, 'a.txt')
+        out, err = capsys.readouterr()
+        assert err == ''
+        assert out == 'pref needle\nneedle suf\n'
+    args = argparse.Namespace(regex=False, files=['a.txt'], needle='needle', count=True)
+    (tmp_path / 'a.txt').write_text('pref needle\nneedle suf\n')
+    monkeypatch.chdir(tmp_path)
+    with open('a.txt', 'r') as in_file:
+        grep.finder(in_file, args, 'a.txt')
+        out, err = capsys.readouterr()
+        assert err == ''
+        assert out == '2\n'
