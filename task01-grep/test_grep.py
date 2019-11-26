@@ -87,12 +87,18 @@ def test_integrate_files_grep_count_regex(tmp_path, monkeypatch, capsys):
     assert out == 'b.txt:1\na.txt:2\n'
 
 
-def test_print_result(tmp_path, monkeypatch, capsys):
-    monkeypatch.chdir(tmp_path)
+def test_print_result(capsys):
     grep.print_result(['b.txt:1', 'a.txt:2'])
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'b.txt:1\na.txt:2\n'
+
+
+def test_print_answer_1(capsys):
+    grep.print_result(['a', 'b', 'c'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'a\nb\nc\n'
 
 
 def test_strip_lines():
@@ -101,16 +107,41 @@ def test_strip_lines():
     assert lines == ['London', '\nis', 'the capital\n of Great Britain.']
 
 
-def test_filter_lines():
-    lines = ['aba', 'bcd', 'banana']
-    assert grep.filter_lines(False, 'a', lines) == ['aba', 'banana']
-    assert grep.filter_lines(False, 'b', lines) == ['aba', 'bcd', 'banana']
-    assert grep.filter_lines(True, 'a*b', lines) == ['aba', 'bcd', 'banana']
-    assert grep.filter_lines(False, 'a*b', lines) == []
+def test_filter_lines1():
+    assert grep.filter_lines(False, 'a', ['aba', 'bcd', 'banana']) == ['aba', 'banana']
 
 
-def test_grep_lines():
+def test_filter_lines2():
+    assert grep.filter_lines(False, 'b', ['aba', 'bcd', 'banana']) == ['aba', 'bcd', 'banana']
+
+
+def test_filter_lines3():
+    assert grep.filter_lines(True, 'a*b', ['aba', 'bcd', 'banana']) == ['aba', 'bcd', 'banana']
+
+
+def test_filter_lines4():
+    assert grep.filter_lines(False, 'a*b', ['aba', 'bcd', 'banana']) == []
+
+
+def test_grep_lines1():
     assert grep.grep_lines(['abc'], 'file.txt', 'a', False, False) == ['file.txt:abc']
+
+
+def test_grep_lines2():
     assert grep.grep_lines(['abc'], 'file.txt', 'a', False, True) == ['file.txt:1']
+
+
+def test_grep_lines3():
     assert grep.grep_lines(['abc'], 'file.txt', 'a', True, True) == ['file.txt:1']
+
+
+def test_grep_lines4():
     assert grep.grep_lines(['abc'], 'file.txt', 'a', True, False) == ['file.txt:abc']
+
+
+def test_match_pattern1():
+    assert grep.match_pattern(False, 'Ma', 'Masha')
+
+
+def test_match_pattern2():
+    assert grep.match_pattern(True, 'a*', 'Masha')
