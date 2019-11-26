@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 import io
 import grep
 
@@ -57,3 +56,58 @@ def test_integrate_files_grep_count(tmp_path, monkeypatch, capsys):
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'b.txt:1\na.txt:2\n'
+
+
+def test_integrate_files_regex_grep_count(tmp_path, monkeypatch, capsys):
+    (tmp_path / 'a.txt').write_text('ahaha\natata\n')
+    (tmp_path / 'b.txt').write_text('fasdkfj\naaaaa')
+    monkeypatch.chdir(tmp_path)
+    grep.main(['-c', '-E', 'a+a+a', 'b.txt', 'a.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'b.txt:1\na.txt:0\n'
+
+
+def test_unit_match_pattetn_and_string():
+    pattern = 'a?b*c+'
+    string = 'acc'
+    cond = True
+    ans = grep.match_pattetn_and_string(pattern, string, cond)
+    assert ans
+
+
+def test_unit_filter_strings_by_pattern():
+    pattern = 'alex?'
+    data = [['alex', '?', 'alex?', '????alex', 'ale'],
+            ['alex?', 'ale', 'alex', 'ale'],
+            ['hello'],
+            ['alx?', '?alex?', '?ale']]
+    cond = True
+    ans = grep.filter_strings_by_pattern(pattern, data, cond)
+    assert ans == [['alex', 'alex?', '????alex', 'ale'],
+                   ['alex?', 'ale', 'alex', 'ale'],
+                   [],
+                   ['?alex?', '?ale']]
+
+
+def test_unit_count_filtered_strings():
+    data = [['alex', 'alex?', '????alex', 'ale'],
+            ['alex?', 'ale', 'alex', 'ale'],
+            [],
+            ['?alex?', '?ale']]
+    ans = grep.count_filtered_strings(data)
+    assert ans == [['4'], ['4'], ['0'], ['2']]
+
+
+def test_print_lines(capsys):
+    files = ['a.txt', 'b.txt', 'a.txt']
+    data = [['aa', 'a', 's adf '],
+            ['alex', 's sf '],
+            ['aa', 'a', 's adf ']]
+    cond = True
+    grep.print_lines(files, data, cond)
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'a.txt:aa\na.txt:a\na.txt:s adf \n'\
+                  'b.txt:alex\nb.txt:s sf \na.txt:a'\
+                  'a\na.txt:a\na.txt:s adf \n'
