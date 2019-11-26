@@ -12,8 +12,8 @@ import grep
 
 # Следующие два в своей работе print_name используют. Что с этим лучше всего делать? Замокать?
 def test_unit_print_files(capsys):
-    grep.print_files('{line}', ('NOT_PRINTED', ['a', 'b', 'c', 'd']))
-    grep.print_files('{name}:{line}', ('PRINTED', []))
+    grep.print_matched_count('{line}', ('NOT_PRINTED', ['a', 'b', 'c', 'd']))
+    grep.print_matched_count('{name}:{line}', ('PRINTED', []))
     out, err = capsys.readouterr()
     assert err == ''
     assert out == '4\nPRINTED:0\n'
@@ -38,21 +38,7 @@ def test_unit_regexp_mach():
         ('cyh', 'cyhm', True)
     ]
     for pattern, data, answer in tests:
-        assert grep.match_regex(re.compile(pattern), False, data) == answer
-
-
-def test_unit_fulltext():
-    tests: List[Tuple[str, str, bool]] = [
-        ('cyhm', 'cyhm', True),
-        ('cyhm', 'cyh', False),
-        ('cyhm?', 'cyhm', False),
-        ('cyhm?', 'cyhm?', True),
-        ('cyhm?', 'cyh', False),
-        ('cyhm+', 'cyhmmmmmm', False),
-        ('cyh', 'cyhm', True)
-    ]
-    for pattern, data, answer in tests:
-        assert grep.match_fulltext(pattern, False, False, data) == answer
+        assert grep.match(re.compile(pattern), False, data) == answer
 
 
 def test_unit_search():
@@ -95,9 +81,10 @@ def test_get_match_func():
 
     matcher_fulltext: partial = grep.get_match_func(args_fulltext)  # type: ignore
     # pylint: disable=no-member
-    assert matcher_fulltext.func is grep.match_fulltext
+    assert matcher_fulltext.func is grep.match
     # pylint: disable=no-member
-    assert matcher_fulltext.args == (needle, False, False)
+    assert matcher_fulltext.args[0].pattern == re.escape(needle)
+    assert matcher_fulltext.args[1] is False
     # pylint: disable=no-member
     assert matcher_fulltext.keywords == {}
 
@@ -105,7 +92,7 @@ def test_get_match_func():
                            strict=False)
     matcher_regex: partial = grep.get_match_func(args_regex)  # type: ignore
     # pylint: disable=no-member
-    assert matcher_regex.func is grep.match_regex
+    assert matcher_regex.func is grep.match
     # pylint: disable=no-member
     assert matcher_regex.args[0].pattern == needle
     assert matcher_regex.args[1] is False

@@ -22,27 +22,6 @@ def test_unit_inverse_match():
     assert grep.inverse_match(match_asd, 'asdf') is False
 
 
-def test_unit_file_filter_all_files():
-    assert grep.all_files(('name', [])) is True
-    assert grep.all_files(('name', ['asd'])) is True
-    assert grep.all_files(('name', ['asd', 'dsa'])) is True
-    assert grep.all_files(('name', ['asd', 'dsa', 'sda'])) is True
-
-
-def test_unit_file_filter_non_empty():
-    assert grep.non_empty(('name', [])) is False
-    assert grep.non_empty(('name', ['asd'])) is True
-    assert grep.non_empty(('name', ['asd', 'dsa'])) is True
-    assert grep.non_empty(('name', ['asd', 'dsa', 'sda'])) is True
-
-
-def test_unit_file_filter_empty_only():
-    assert grep.empty_only(('name', [])) is True
-    assert grep.empty_only(('name', ['asd'])) is False
-    assert grep.empty_only(('name', ['asd', 'dsa'])) is False
-    assert grep.empty_only(('name', ['asd', 'dsa', 'sda'])) is False
-
-
 # INTEGRATION #
 
 

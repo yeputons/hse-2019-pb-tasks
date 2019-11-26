@@ -3,7 +3,7 @@ import re
 import sys
 from argparse import ArgumentParser, Namespace
 from functools import partial
-from typing import List, Tuple, Iterable, Callable, Pattern
+from typing import List, Tuple, Iterable, Callable, Pattern, IO
 MatchFunc = Callable[[str], bool]
 SearchResult = Tuple[str, List[str]]
 SearchFunc = Callable[[MatchFunc], List[SearchResult]]
@@ -11,8 +11,13 @@ PrintFunc = Callable[[str, SearchResult], None]
 FileFilter = Callable[[SearchResult], bool]
 
 
-def print_files(fmt: str,
-                found: SearchResult) -> None:
+def mask_file(file: IO) -> Iterable[str]:
+    for line in file:
+        yield line
+
+
+def print_matched_count(fmt: str,
+                        found: SearchResult) -> None:
     name, lines = found
     print(fmt.format(fmt, name=name, line=len(lines)))
 
@@ -23,46 +28,25 @@ def print_lines(fmt: str, found: SearchResult) -> None:
         print(fmt.format(name=name, line=line.rstrip('\n')))
 
 
-def match_regex(needle: Pattern, strict: bool, line: str) -> bool:
-    line = line.rstrip('\n')
-    return bool(re.fullmatch(needle, line) if strict else re.search(needle, line))
-
-
-def match_fulltext(needle: str, ignore_case: bool, strict: bool, line: str) -> bool:
-    if ignore_case:
-        needle, line = needle.lower(), line.lower()
-    line = line.rstrip('\n')
-    if strict:
-        return needle == line
-    else:
-        return needle in line
+def match(needle: Pattern, strict: bool, line: str) -> bool:
+    return bool(re.fullmatch(needle, line) if strict
+                else re.search(needle, line))
 
 
 def search(name: str, inp: Iterable[str], matcher: MatchFunc) -> SearchResult:
-    return name, list(filter(matcher, inp))
+    return name, [line for line in inp if matcher(line.rstrip('\n'))]
 
 
 def search_stdin(matcher: MatchFunc) -> List[SearchResult]:
-    return [search('', sys.stdin, matcher)]
+    return [search('', mask_file(sys.stdin), matcher)]
 
 
 def search_files(files: List[str], matcher: MatchFunc) -> List[SearchResult]:
     search_results = []
     for file in files:
         with open(file) as f:
-            search_results.append(search(file, f, matcher))
+            search_results.append(search(file, mask_file(f), matcher))
     return search_results
-
-
-def get_regex_match_func(args: Namespace) -> MatchFunc:
-    pattern = re.compile(args.needle, re.IGNORECASE if args.ignore_case else 0)
-    # noinspection PyTypeChecker
-    return partial(match_regex, pattern, args.strict)
-
-
-def get_fulltext_match_func(args: Namespace) -> MatchFunc:
-    # noinspection PyTypeChecker
-    return partial(match_fulltext, args.needle, args.ignore_case, args.strict)
 
 
 def inverse_match(func: MatchFunc, x: str) -> bool:
@@ -70,12 +54,14 @@ def inverse_match(func: MatchFunc, x: str) -> bool:
 
 
 def get_match_func(args: Namespace) -> MatchFunc:
-    # Пайчарм не понимает partial
-    # noinspection PyTypeChecker
-    func = (get_regex_match_func if args.regex else get_fulltext_match_func)(args)
+    needle = args.needle
+    if not args.regex:
+        needle = re.escape(needle)
+    pattern = re.compile(needle, re.IGNORECASE if args.ignore_case else 0)
+    func = partial(match, pattern, args.strict)
     if args.invert:
-        # noinspection PyTypeChecker
         func = partial(inverse_match, func)
+    # noinspection PyTypeChecker
     return func
 
 
@@ -92,24 +78,12 @@ def get_search_func(args: Namespace) -> SearchFunc:
     return func
 
 
-def all_files(found: SearchResult) -> bool:  # pylint: disable=unused-argument
-    return True
-
-
-def non_empty(found: SearchResult) -> bool:
-    return len(found[1]) > 0
-
-
-def empty_only(found: SearchResult) -> bool:
-    return len(found[1]) == 0
-
-
 def get_file_filter(args: Namespace) -> FileFilter:
     if args.list_found:
-        return non_empty
+        return lambda found: len(found[1]) > 0
     if args.list_empty:
-        return empty_only
-    return all_files
+        return lambda found: len(found[1]) == 0
+    return lambda found: True
 
 
 def get_format(args: Namespace) -> str:
@@ -123,7 +97,7 @@ def get_format(args: Namespace) -> str:
 
 def get_print_func(args: Namespace) -> PrintFunc:
     if args.count or args.list_found or args.list_empty:
-        return print_files
+        return print_matched_count
     else:
         return print_lines
 
