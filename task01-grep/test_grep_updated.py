@@ -7,19 +7,19 @@ import grep
 
 
 def test_unit_inverse_match():
-    def f(x):  # pylint: disable=unused-argument
+    def math_all(x):  # pylint: disable=unused-argument
         return True
 
-    def g(x):  # pylint: disable=unused-argument
+    def math_none(x):  # pylint: disable=unused-argument
         return False
 
-    def h(x):
+    def match_asd(x):
         return 'asd' in x
 
-    assert grep.inverse_match(f, 'a') is False
-    assert grep.inverse_match(g, 'a') is True
-    assert grep.inverse_match(h, 'a') is True
-    assert grep.inverse_match(h, 'asdf') is False
+    assert grep.inverse_match(math_all, 'a') is False
+    assert grep.inverse_match(math_none, 'a') is True
+    assert grep.inverse_match(match_asd, 'a') is True
+    assert grep.inverse_match(match_asd, 'asdf') is False
 
 
 def test_unit_file_filter_all_files():
