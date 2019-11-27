@@ -87,7 +87,8 @@ def search(args: argparse.Namespace) -> list:
                         flag = True
             else:
                 if convert(args.substring, args) == convert(line, args) or (
-                        convert(args.substring, args) in convert(line, args) and not args.full_find):
+                        convert(args.substring, args) in convert(line, args)
+                        and not args.full_find):
                     flag = True
             if args.inversion ^ flag:
                 box_of_strings['lines'].append(line)
