@@ -38,6 +38,17 @@ def test_unit_get_output_format():
     assert grep.get_output_format(2, []) == '{0}:{1}'
 
 
+def test_unit_print_matches(capsys):
+    all_matches = [('a.txt', ['abc', 'def']), ('b.txt', [])]
+    grep.print_matches(
+        all_matches,
+        ['files_without_matches'],
+        grep.get_output_format(len(all_matches), ['files_without_matches']))
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'b.txt\n'
+
+
 def test_integrate_all_keys_print_files_grep(tmp_path, monkeypatch, capsys):
     (tmp_path / 'a.txt').write_text('fO\nFO\nFoO\n')
     (tmp_path / 'b.txt').write_text('hello fo?o world\nxfooyfoz\nfooo\n')
