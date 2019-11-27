@@ -35,16 +35,6 @@ def substring_search_modifier(line: str, needle: str, match: bool,
     return search_result
 
 
-def printer_modifier(file_name: str, number_of_file: int, count: bool,
-                     is_file: bool, counter: int, line: str) -> None:
-    if count:
-        print_result(file_name, number_of_file, str(counter))
-    elif is_file:
-        print_result(file_name, 0, file_name)
-    else:
-        print_result(file_name, number_of_file, line)
-
-
 def print_result(file_name: str, number_of_file: int, output: str) -> None:
     if number_of_file <= 1:
         print(output)
@@ -65,14 +55,11 @@ def data_processing(in_file: TextIO, args: argparse.Namespace, file_name: str) -
         if is_correct:
             correct_line += 1
         if not (args.is_file or args.count) and is_correct:
-            printer_modifier(file_name, len(args.files),
-                             args.count, args.is_file, correct_line, line)
+            print_result(file_name, len(args.files), line)
     if args.is_file and correct_line > 0:
-        printer_modifier(file_name, len(args.files),
-                         args.count, args.is_file, correct_line, 'stub')
+        print_result(file_name, 0, file_name)
     if args.count:
-        printer_modifier(file_name, len(args.files),
-                         args.count, args.is_file, correct_line, 'stub')
+        print_result(file_name, len(args.files), str(correct_line))
 
 
 def open_file(args: argparse.Namespace) -> None:
