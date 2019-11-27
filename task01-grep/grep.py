@@ -49,7 +49,7 @@ def take_strings(name_file: str) -> list:
     return set_of_lines
 
 
-def conversion_str(string: str, args: argparse.Namespace):
+def convert(string: str, args: argparse.Namespace):
     """
     This is an accessory function. If we have flag -i
     then the function converts a string to a lowercase string and return it.
@@ -75,18 +75,22 @@ def search(args: argparse.Namespace) -> list:
         box_of_strings = {'name': name_file, 'lines': []}
         for line in take_strings(name_file):
             line = line.rstrip('\n')
+            flag = False
             if args.regex:
                 if args.ignore_case:
                     if re.fullmatch(args.substring, line, re.IGNORECASE) or (
                             re.search(args.substring, line, re.IGNORECASE) and not args.full_find):
-                        box_of_strings['lines'].append(line)
+                        flag = True
                 else:
-                    if re.fullmatch(args.substring, line) or (re.search(args.substring, line) and not args.full_find):
-                        box_of_strings['lines'].append(line)
+                    if re.fullmatch(args.substring, line) or (
+                            re.search(args.substring, line) and not args.full_find):
+                        flag = True
             else:
-                if conversion_str(args.substring, args) == conversion_str(line, args) or (
-                        conversion_str(args.substring, args) in conversion_str(line, args) and not args.full_find):
-                    box_of_strings['lines'].append(line)
+                if convert(args.substring, args) == convert(line, args) or (
+                        convert(args.substring, args) in convert(line, args) and not args.full_find):
+                    flag = True
+            if args.inversion ^ flag:
+                box_of_strings['lines'].append(line)
         find_strings.append(box_of_strings)
 
     return find_strings
@@ -102,6 +106,7 @@ def make_parameters(argv: list) -> argparse.Namespace:
     parser.add_argument('-E', dest='regex', action='store_true')
     parser.add_argument('-x', dest='full_find', action='store_true')
     parser.add_argument('-i', dest='ignore_case', action='store_true')
+    parser.add_argument('-v', dest='inversion', action='store_true')
     args = parser.parse_args(argv)
 
     return args

@@ -177,7 +177,8 @@ def test_print_data_first(capsys):
     data = [{'name': 'first.txt', 'lines': ['it was very funny', 'he saw this object']},
             {'name': 'second.txt', 'lines': ['summer was cold', 'saint clause was in my home']}]
     args = argparse.Namespace(count=True, name_with_str=False, name_without_str=False, full_find=False,
-                              ignore_case=False, files=['first.txt', 'second.txt'], regex=True, substring='[s][g]+')
+                              ignore_case=False, inversion=False, files=['first.txt', 'second.txt'], regex=True,
+                              substring='[s][g]+')
 
     grep.print_data(data, args)
     out, err = capsys.readouterr()
@@ -191,7 +192,7 @@ def test_print_data_first(capsys):
 def test_print_data_second(capsys):
     data = [{'name': '', 'lines': ['it was very funny', 'he saw this object']}]
     args = argparse.Namespace(count=True, name_with_str=False, name_without_str=False, full_find=False,
-                              ignore_case=False, files=[], regex=True, substring='[s][g]+')
+                              ignore_case=False, inversion=False, files=[], regex=True, substring='[s][g]+')
 
     grep.print_data(data, args)
     out, err = capsys.readouterr()
@@ -205,7 +206,8 @@ def test_print_data_third(capsys):
     data = [{'name': 'first.txt', 'lines': ['it was very funny']},
             {'name': 'second.txt', 'lines': ['saint clause was in my home']}]
     args = argparse.Namespace(count=False, name_with_str=False, name_without_str=False, full_find=False,
-                              ignore_case=False, files=['first.txt', 'second.txt'], regex=True, substring='[s][g]+')
+                              ignore_case=False, inversion=False, files=['first.txt', 'second.txt'], regex=True,
+                              substring='[s][g]+')
 
     grep.print_data(data, args)
     out, err = capsys.readouterr()
@@ -219,7 +221,7 @@ def test_print_data_third(capsys):
 def test_print_data_fourth(capsys):
     data = [{'name': 'first.txt', 'lines': ['it was very funny']}]
     args = argparse.Namespace(count=False, name_with_str=False, name_without_str=False, full_find=False,
-                              ignore_case=False, files=['first.txt'], regex=True, substring='[s][g]+')
+                              ignore_case=False, inversion=False, files=['first.txt'], regex=True, substring='[s][g]+')
 
     grep.print_data(data, args)
     out, err = capsys.readouterr()
@@ -256,7 +258,7 @@ def test_take_string_second(tmp_path, monkeypatch):
 # in this test we check the 'if'
 def test_search_first(monkeypatch):
     args = argparse.Namespace(count=False, name_with_str=False, name_without_str=False, full_find=False,
-                              ignore_case=False, files=[], regex=True, substring=r'\s[c][a-z]*')
+                              ignore_case=False, inversion=False, files=[], regex=True, substring=r'\s[c][a-z]*')
     monkeypatch.setattr('sys.stdin', io.StringIO(input_first))
 
     data = grep.search(args)
@@ -268,7 +270,7 @@ def test_search_first(monkeypatch):
 # in this test we check the 'else'
 def test_search_second(tmp_path, monkeypatch):
     args = argparse.Namespace(count=False, name_with_str=False, name_without_str=False, full_find=False,
-                              ignore_case=False, files=['first.txt'], regex=False, substring=r'that')
+                              ignore_case=False, inversion=False, files=['first.txt'], regex=False, substring=r'that')
     (tmp_path / 'first.txt').write_text('But is not\nthat enough?')
     monkeypatch.chdir(tmp_path)
 
