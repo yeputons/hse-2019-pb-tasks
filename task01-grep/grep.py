@@ -38,10 +38,22 @@ def print_lines_regex(word, lines: List[str]):
             print(line)
 
 
-def print_in_files(word, lines: List[str], file, amount_of_files):
+def find_lines_in_file(word, lines: List[str]):
+    list = []
     for line in lines:
         line = line.rstrip('\n')
         if word in line:
+            list.append(line)
+    return list
+
+
+def print_in_file(file, lines: List[str], c, amount_of_files):
+    if (c):
+        if (amount_of_files > 1):
+            print(file + ':', end='')
+        print(len(lines))
+    else:
+        for line in lines:
             if (amount_of_files > 1):
                 print(file + ':', end='')
             print(line)
@@ -54,16 +66,10 @@ def main(args_str: List[str]):
     amount_of_files = len(args.files)
     word = args.needle
     if (amount_of_files >= 1):
-        if (args.sum):
-            for file in args.files:
-                with open(file, 'r') as in_file:
-                    if (amount_of_files > 1):
-                        print(file + ':', end='')
-                    count_lines(word, in_file.readlines())
-        else:
-            for file in args.files:
-                with open(file, 'r') as in_file:
-                    print_in_files(word, in_file.readlines(), file, amount_of_files)
+        for file in args.files:
+            with open(file, 'r') as in_file:
+                lines = find_lines_in_file(word, in_file.readlines())
+                print_in_file(file, lines, args.sum, amount_of_files)
     else:
         lines = sys.stdin.readlines()
         if (args.regex):

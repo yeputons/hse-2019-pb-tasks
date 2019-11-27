@@ -30,10 +30,9 @@ def test_integrate_stdin_grep_count(monkeypatch, capsys):
     assert out == '3\n'
 
 
-
 def test_integrate_stdin_regex_grep_count(monkeypatch, capsys):
-    monkeypatch.setattr('sys.stdin', io.StringIO(
-        'pref needle?\nneedle? suf\nthe needl\npref needle? suf'))
+    monkeypatch.setattr('sys.stdin', io.StringIO('pref needle?'
+                                                 '\nneedle? suf\nthe needl\npref needle? suf'))
     grep.main(['-c', '-E', 'needle?'])
     out, err = capsys.readouterr()
     assert err == ''
