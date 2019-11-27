@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import io
+import sys
 import grep
 
 
@@ -142,3 +143,89 @@ def test_integrate_files_fullmatch_regex(tmp_path, monkeypatch, capsys):
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'a.txt:needle\nb.txt:needl\nb.txt:needle\n'
+
+
+def test_parse_arguments_files():
+    arg = grep.parse_arguments(['-l', '-xiv', 'needle', 'a.txt', 'b.txt'])
+    assert not arg.count
+    assert not arg.regex
+    assert arg.ignore_case
+    assert arg.invert_match
+    assert arg.full_match
+    assert arg.needle == 'needle'
+    assert arg.files == ['a.txt', 'b.txt']
+
+
+def test_print_answer_file_match(capsys):
+    grep.print_answer(['needle', 'no needle', 'no need'], 1, 'a.txt', False, True, False)
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'a.txt\n'
+
+
+def test_print_answer_file_no_match_empty(capsys):
+    grep.print_answer(['needle', 'no needle', 'no need'], 1, 'a.txt', False, False, True)
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == ''
+
+
+def test_print_answer_file_no_match(capsys):
+    grep.print_answer([], 1, 'a.txt', False, False, True)
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'a.txt\n'
+
+
+def test_is_regex_ignore():
+    assert grep.is_regex('h*i?', 'aHHHe', True, False)
+
+
+def test_is_regex_fullmatch():
+    assert not grep.is_regex('h*i?', 'ahhhe gg', False, True)
+
+
+def test_is_regex_fullmatch_ignore():
+    assert grep.is_regex('h*i?', 'HHHi', True, True)
+
+
+def test_is_substring_ignore():
+    assert grep.is_substring('needLe', 'no nEEdle is here', True, False)
+
+
+def test_is_substring_fullmatch():
+    assert not grep.is_substring('needLe', 'no nEEdle is here', False, True)
+
+
+def test_is_substring_fullmatch_ignore():
+    assert grep.is_substring('needLe', 'nEEdle', True, True)
+
+
+def test_find_in_input_invert(monkeypatch, capsys):
+    monkeypatch.setattr('sys.stdin', io.StringIO(
+        'no\nneedle\nfree\npref needle? suf\ndom\n'))
+    grep.find_in_input(False, False, False, False, False, True, False, 'needle', sys.stdin, '', 0)
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'no\nfree\ndom\n'
+
+
+def test_find_in_input_invert_fullmatch(monkeypatch, capsys):
+    monkeypatch.setattr('sys.stdin', io.StringIO(
+        'no\nneedle\nfree\npref needle? suf\ndom\n'))
+    grep.find_in_input(False, False, False, False, False, True, True, 'needle', sys.stdin, '', 0)
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'no\nfree\npref needle? suf\ndom\n'
+
+
+def test_find_in_files(tmp_path, monkeypatch, capsys):
+    (tmp_path / 'a.txt').write_text('hello\nits me')
+    (tmp_path / 'b.txt').write_text('pref needle suf\ncat\n')
+    (tmp_path / 'c.txt').write_text('NEEDLE')
+    monkeypatch.chdir(tmp_path)
+    arg = grep.parse_arguments(['-L', '-i', 'needle', 'a.txt', 'b.txt', 'c.txt'])
+    grep.find_in_files(arg)
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'a.txt\n'

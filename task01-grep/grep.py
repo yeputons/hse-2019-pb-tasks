@@ -65,14 +65,11 @@ def is_substring(needle: str, line: str, ignore_case_mode: bool, full_match_mode
     """ Returns true if substring is found false otherwise
         Supports -x and -i flags """
     if ignore_case_mode:
-        new_needle = needle.lower()
-        new_line = line.lower()
-    else:
-        new_needle = needle
-        new_line = line
+        needle = needle.lower()
+        line = line.lower()
     if full_match_mode:
-        return new_needle == new_line
-    return new_needle in new_line
+        return needle == line
+    return needle in line
 
 
 def find_in_input(count_mode: bool, file_match_mode: bool, file_no_match_mode: bool,
