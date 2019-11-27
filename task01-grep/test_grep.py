@@ -61,7 +61,16 @@ def test_integrate_files_grep_count(tmp_path, monkeypatch, capsys):
 
 def test_unit_get_lines_with_needle(capsys):
     lines = ['ball', 'all', 'tall', 'pal lamp', 'hello']
-    result = grep.get_lines_with_needle(lines, 'all', False)
+    flags = {
+        'count': False,
+        'regex': False,
+        'igncase': False,
+        'rev': False,
+        'fullmatch': False,
+        'good_file_names': False,
+        'bad_file_names': False
+    }
+    result = grep.get_lines_with_needle(lines, 'all', flags)
     correct = ['ball', 'all', 'tall']
     out, err = capsys.readouterr()
     assert correct == result
@@ -71,7 +80,16 @@ def test_unit_get_lines_with_needle(capsys):
 
 def test_unit_get_lines_with_needle_with_regex(capsys):
     lines = ['ball', 'all', 'tall', 'pal lamp', 'hello']
-    result = grep.get_lines_with_needle(lines, 'a?ll', True)
+    flags = {
+        'count': False,
+        'regex': True,
+        'igncase': False,
+        'rev': False,
+        'fullmatch': False,
+        'good_file_names': False,
+        'bad_file_names': False
+    }
+    result = grep.get_lines_with_needle(lines, 'a?ll', flags)
     correct = ['ball', 'all', 'tall', 'hello']
     out, err = capsys.readouterr()
     assert correct == result
@@ -79,17 +97,52 @@ def test_unit_get_lines_with_needle_with_regex(capsys):
     assert err == ''
 
 
-def test_unit_print_needle_with_name(capsys):
+def test_unit_print_needle_with_names(capsys):
     files_and_lines = [('name1', ['ball', 'all', 'tall']), ('name2', ['pal lamp', 'hello'])]
-    grep.print_lines(files_and_lines, '{}:{}', False)
+    flags = {
+        'count': False,
+        'regex': False,
+        'igncase': False,
+        'rev': False,
+        'fullmatch': False,
+        'good_file_names': False,
+        'bad_file_names': False
+    }
+    grep.print_lines(files_and_lines, '{}:{}', flags)
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'name1:ball\nname1:all\nname1:tall\nname2:pal lamp\nname2:hello\n'
 
 
+def test_unit_print_needle_with_one_name(capsys):
+    files_and_lines = [('name1', ['ball', 'all', 'tall', 'pal lamp', 'hello'])]
+    flags = {
+        'count': False,
+        'regex': False,
+        'igncase': False,
+        'rev': False,
+        'fullmatch': False,
+        'good_file_names': False,
+        'bad_file_names': False
+    }
+    grep.print_lines(files_and_lines, '{1}', flags)
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'ball\nall\ntall\npal lamp\nhello\n'
+
+
 def test_unit_print_needle_without_name(capsys):
     files_and_lines = [('', ['ball', 'all', 'tall', 'pal lamp', 'hello'])]
-    grep.print_lines(files_and_lines, '{}{}', False)
+    flags = {
+        'count': False,
+        'regex': False,
+        'igncase': False,
+        'rev': False,
+        'fullmatch': False,
+        'good_file_names': False,
+        'bad_file_names': False
+    }
+    grep.print_lines(files_and_lines, '{}{}', flags)
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'ball\nall\ntall\npal lamp\nhello\n'
@@ -97,7 +150,16 @@ def test_unit_print_needle_without_name(capsys):
 
 def test_unit_print_lines_with_count_and_name(capsys):
     files_and_lines = [('name1', ['ball', 'all']), ('name2', ['tall', 'pal lamp', 'hello'])]
-    grep.print_lines(files_and_lines, '{}:{}', True)
+    flags = {
+        'count': True,
+        'regex': False,
+        'igncase': False,
+        'rev': False,
+        'fullmatch': False,
+        'good_file_names': False,
+        'bad_file_names': False
+    }
+    grep.print_lines(files_and_lines, '{}:{}', flags)
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'name1:2\nname2:3\n'
@@ -106,7 +168,16 @@ def test_unit_print_lines_with_count_and_name(capsys):
 def test_unit_find_false(capsys):
     line = 'hi hello good morning'
     needle = 'ell'
-    result = grep.find(line, needle, False)
+    flags = {
+        'count': False,
+        'regex': False,
+        'igncase': False,
+        'rev': False,
+        'fullmatch': False,
+        'good_file_names': False,
+        'bad_file_names': False
+    }
+    result = grep.find(line, needle, flags)
     out, err = capsys.readouterr()
     assert err == ''
     assert out == ''
@@ -116,7 +187,16 @@ def test_unit_find_false(capsys):
 def test_unit_not_find_false(capsys):
     line = 'hi hello good morning'
     needle = 'god'
-    result = grep.find(line, needle, False)
+    flags = {
+        'count': False,
+        'regex': False,
+        'igncase': False,
+        'rev': False,
+        'fullmatch': False,
+        'good_file_names': False,
+        'bad_file_names': False
+    }
+    result = grep.find(line, needle, flags)
     out, err = capsys.readouterr()
     assert err == ''
     assert out == ''
@@ -126,7 +206,16 @@ def test_unit_not_find_false(capsys):
 def test_unit_find_true(capsys):
     line = 'hi hello good morning gd'
     needle = 'goo?d'
-    result = grep.find(line, needle, True)
+    flags = {
+        'count': True,
+        'regex': True,
+        'igncase': False,
+        'rev': False,
+        'fullmatch': False,
+        'good_file_names': False,
+        'bad_file_names': False
+    }
+    result = grep.find(line, needle, flags)
     out, err = capsys.readouterr()
     assert err == ''
     assert out == ''
@@ -136,7 +225,16 @@ def test_unit_find_true(capsys):
 def test_unit_not_find_true(capsys):
     line = 'hi hello good morning'
     needle = 'go?ne'
-    result = grep.find(line, needle, True)
+    flags = {
+        'count': True,
+        'regex': True,
+        'igncase': False,
+        'rev': False,
+        'fullmatch': False,
+        'good_file_names': False,
+        'bad_file_names': False
+    }
+    result = grep.find(line, needle, flags)
     out, err = capsys.readouterr()
     assert err == ''
     assert out == ''
