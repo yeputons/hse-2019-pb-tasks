@@ -6,11 +6,43 @@ import re
 import argparse
 
 
-def find(line: str, needle: str, regex: bool) -> bool:
-    if regex:
-        return re.search(needle, line) is not None
+def re_search_modifier(line: str, needle: str,  match: bool,
+                       ignore_case: bool, inverse: bool) -> bool:
+    flags = 0
+    if ignore_case:
+        flags = re.IGNORECASE
+    if match:
+        reg = re.fullmatch
     else:
-        return needle in line
+        reg = re.search
+    search_result = reg(needle, line, flags) is not None
+    if inverse:
+        return not search_result
+    return search_result
+
+
+def substring_search_modifier(line: str, needle: str,  match: bool,
+                              ignore_case: bool, inverse: bool) -> bool:
+    if ignore_case:
+        line = line.lower()
+        needle = needle.lower()
+    if match:
+        search_result = (line == needle)
+    else:
+        search_result = needle in line
+    if inverse:
+        return not search_result
+    return search_result
+
+
+def printer_modifier(file_name: str, number_of_file: int, count: bool,
+                     is_file: bool, counter: int, line: str) -> None:
+    if count:
+        print_result(file_name, number_of_file, str(counter))
+    elif is_file:
+        print_result(file_name, 0, file_name)
+    else:
+        print_result(file_name, number_of_file, line)
 
 
 def print_result(file_name: str, number_of_file: int, output: str) -> None:
@@ -20,33 +52,31 @@ def print_result(file_name: str, number_of_file: int, output: str) -> None:
         print(f'{file_name}:{output}')
 
 
-def counter(in_file: TextIO, args: argparse.Namespace, file_name: str) -> None:
-    line_counter = 0
+def read(in_file: TextIO, args: argparse.Namespace, file_name: str) -> None:
+    correct_line = 0
+    unusual_output = args.is_file or args.count
     for line in in_file.readlines():
         line = line.rstrip('\n')
-        if find(line, args.needle, args.regex):
-            line_counter += 1
-    print_result(file_name, len(args.files), str(line_counter))
+        if args.regex:
+            is_correct = re_search_modifier(line, args.needle,
+                                            args.match, args.ignore_case, args.inverse)
+        else:
+            is_correct = substring_search_modifier(line, args.needle,
+                                                   args.match, args.ignore_case, args.inverse)
+        if is_correct:
+            correct_line += 1
+        if not unusual_output and is_correct:
+            printer_modifier(file_name, len(args.files),
+                             args.count, args.is_file, correct_line, line)
+    if unusual_output:
+        printer_modifier(file_name, len(args.files),
+                         args.count, args.is_file, correct_line, "stub")
 
 
-def string_finder(in_file: TextIO, args: argparse.Namespace, file_name: str) -> None:
-    for line in in_file.readlines():
-        line = line.rstrip('\n')
-        if find(line, args.needle, args.regex):
-            print_result(file_name, len(args.files), line)
-
-
-def finder(in_file: TextIO, args: argparse.Namespace, file_name: str) -> None:
-    if not args.count:
-        string_finder(in_file, args, file_name)
-    else:
-        counter(in_file, args, file_name)
-
-
-def file_read(args: argparse.Namespace) -> None:
+def open_file(args: argparse.Namespace) -> None:
     for file_name in args.files:
         with open(file_name, 'r') as in_file:
-            finder(in_file, args, file_name)
+            read(in_file, args, file_name)
 
 
 def main(args_str: List[str]):
@@ -54,12 +84,20 @@ def main(args_str: List[str]):
     parser.add_argument('needle', type=str)
     parser.add_argument('files', nargs='*')
     parser.add_argument('-E', dest='regex', action='store_true')
+    parser.add_argument('-x', dest='match', action='store_true')
+    parser.add_argument('-i', dest='ignore_case', action='store_true')
+    parser.add_argument('-v', dest='inverse', action='store_true')
     parser.add_argument('-c', dest='count', action='store_true')
+    parser.add_argument('-l', dest='is_file', action='store_true')
+    parser.add_argument('-L', dest='is_not_file', action='store_true')
     args = parser.parse_args(args_str)
+    if args.is_not_file:
+        args.is_file = True
+        args.inverse = not args.inverse
     if len(args.files) > 0:
-        file_read(args)
+        open_file(args)
     else:
-        finder(sys.stdin, args, 'none_file')
+        read(sys.stdin, args, 'none_file')
 
 
 if __name__ == '__main__':
