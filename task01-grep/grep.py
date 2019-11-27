@@ -6,6 +6,7 @@ import argparse
 
 
 MATCHING_ARGS = ('regex', 'full_match', 'ignore_case', 'inverse')
+OUTPUT_ARGS = ('count', 'files_with_matches', 'files_without_matches')
 
 
 def find_in_str(pattern: str, s: str, matching_args: List[str]) -> bool:
@@ -31,6 +32,10 @@ def find_in_str(pattern: str, s: str, matching_args: List[str]) -> bool:
 
 def get_matching_args(args: argparse.Namespace) -> List[str]:
     return [arg for arg, value in vars(args).items() if (arg in MATCHING_ARGS) and value]
+
+
+def get_output_args(args: argparse.Namespace) -> List[str]:
+    return [arg for arg, value in vars(args).items() if (arg in OUTPUT_ARGS) and value]
 
 
 def find_in_file(
@@ -64,10 +69,27 @@ def to_count(matches: List[Tuple[str, List[str]]]) -> List[Tuple[str, int]]:
     return [(filename, len(lines)) for filename, lines in matches]
 
 
-def print_matches(all_matches: List[Tuple[str, List[str]]], print_count: bool) -> None:
-    output_format = '{1}' if len(all_matches) == 1 else '{0}:{1}'
+def get_output_format(matches_len: int, output_args: List[str]) -> str:
+    if 'files_with_matches' in output_args or 'files_without_matches' in output_args:
+        return '{0}'
+    elif matches_len == 1:
+        return '{1}'
+    else:
+        return '{0}:{1}'
 
-    if print_count:
+
+def print_matches(
+        all_matches: List[Tuple[str, List[str]]],
+        output_args: List[str],
+        output_format: str) -> None:
+
+    if 'files_with_matches' in output_args or 'files_without_matches' in output_args:
+        all_matches = list(filter(
+            lambda matches: matches[1] if 'files_with_matches' in output_args else not(matches[1]),
+            all_matches))
+        for filename, matches in all_matches:
+            print(output_format.format(filename))
+    elif 'count' in output_args:
         all_matches_cnt = to_count(all_matches)
         for filename, cnt in all_matches_cnt:
             print(output_format.format(filename, cnt))
@@ -86,10 +108,14 @@ def main(args_str: List[str]):
     parser.add_argument('-x', dest='full_match', action='store_true')
     parser.add_argument('-v', dest='inverse', action='store_true')
     parser.add_argument('-c', dest='count', action='store_true')
+    parser.add_argument('-l', dest='files_with_matches', action='store_true')
+    parser.add_argument('-L', dest='files_without_matches', action='store_true')
     args = parser.parse_args(args_str)
 
     matches = find_in_files_or_stdin(args.files, args.needle, get_matching_args(args))
-    print_matches(matches, args.count)
+    output_args = get_output_args(args)
+    output_format = get_output_format(len(matches), output_args)
+    print_matches(matches, output_args, output_format)
 
 
 if __name__ == '__main__':

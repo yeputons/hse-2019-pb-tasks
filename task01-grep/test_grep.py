@@ -67,12 +67,12 @@ def test_unit_to_count():
 
 def test_unit_print_matches(capsys):
     all_matches = [('a.txt', ['abc', 'def']), ('b.txt', [])]
-    grep.print_matches(all_matches, False)
+    grep.print_matches(all_matches, [], grep.get_output_format(len(all_matches), []))
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'a.txt:abc\na.txt:def\n'
 
-    grep.print_matches(all_matches, True)
+    grep.print_matches(all_matches, ['count'], grep.get_output_format(len(all_matches), ['count']))
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'a.txt:2\nb.txt:0\n'
