@@ -57,3 +57,18 @@ def test_integrate_files_grep_count(tmp_path, monkeypatch, capsys):
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'b.txt:1\na.txt:2\n'
+
+
+def test_print_result(capsys):
+    grep.print_result('sleep.txt', 2, 'sleepsleepsleeeeeep')
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'sleep.txt:sleepsleepsleeeeeep\n'
+    grep.print_result('sleep.txt', 1, 'should I go to sleep?')
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'should I go to sleep?\n'
+    grep.print_result('notsleep.txt', 1, 'yes, i should, but i havent done my English hw yet')
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'yes, i should, but i havent done my English hw yet\n'

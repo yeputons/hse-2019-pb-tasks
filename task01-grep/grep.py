@@ -15,7 +15,7 @@ def re_search_modifier(line: str, needle: str, match: bool,
         reg = re.fullmatch
     else:
         reg = re.search
-    search_result = reg(needle, line, flags=flags) is not None
+    search_result = reg(needle, line, flags) is not None
     if inverse:
         return not search_result
     return search_result
@@ -52,7 +52,7 @@ def print_result(file_name: str, number_of_file: int, output: str) -> None:
         print(f'{file_name}:{output}')
 
 
-def read(in_file: TextIO, args: argparse.Namespace, file_name: str) -> None:
+def data_processing(in_file: TextIO, args: argparse.Namespace, file_name: str) -> None:
     correct_line = 0
     for line in in_file.readlines():
         line = line.rstrip('\n')
@@ -78,7 +78,7 @@ def read(in_file: TextIO, args: argparse.Namespace, file_name: str) -> None:
 def open_file(args: argparse.Namespace) -> None:
     for file_name in args.files:
         with open(file_name, 'r') as in_file:
-            read(in_file, args, file_name)
+            data_processing(in_file, args, file_name)
 
 
 def main(args_str: List[str]):
@@ -99,7 +99,7 @@ def main(args_str: List[str]):
     if len(args.files) > 0:
         open_file(args)
     else:
-        read(sys.stdin, args, 'none_file')
+        data_processing(sys.stdin, args, 'none_file')
 
 
 if __name__ == '__main__':
