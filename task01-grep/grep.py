@@ -14,9 +14,21 @@ def print_data(lines: list, args: argparse.Namespace) -> None:
         if args.count:
             element['lines'] = [len(element['lines'])]
 
+        if args.name_with_str:
+            if element['lines']:
+                element['lines'] = [element['name']]
+            else:
+                element['lines'] = []
+
+        if args.name_without_str:
+            if not element['lines']:
+                element['lines'] = [element['name']]
+            else:
+                element['lines'] = []
+
     for element in lines:
         for line in element['lines']:
-            if len(lines) > 1:
+            if len(lines) > 1 and not args.name_with_str and not args.name_without_str:
                 print(element['name'], end=':')
             print(line)
 
@@ -67,6 +79,8 @@ def make_parameters(argv: list) -> argparse.Namespace:
     parser.add_argument('substring', type=str)
     parser.add_argument('files', nargs='*')
     parser.add_argument('-c', dest='count', action='store_true')
+    parser.add_argument('-l', dest='name_with_str', action='store_true')
+    parser.add_argument('-L', dest='name_without_str', action='store_true')
     parser.add_argument('-E', dest='regex', action='store_true')
     args = parser.parse_args(argv)
 
