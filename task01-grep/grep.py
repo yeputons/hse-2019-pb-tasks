@@ -6,7 +6,7 @@ import re
 import argparse
 
 
-def re_search_modifier(line: str, needle: str,  match: bool,
+def re_search_modifier(line: str, needle: str, match: bool,
                        ignore_case: bool, inverse: bool) -> bool:
     flags = 0
     if ignore_case:
@@ -21,7 +21,7 @@ def re_search_modifier(line: str, needle: str,  match: bool,
     return search_result
 
 
-def substring_search_modifier(line: str, needle: str,  match: bool,
+def substring_search_modifier(line: str, needle: str, match: bool,
                               ignore_case: bool, inverse: bool) -> bool:
     if ignore_case:
         line = line.lower()
@@ -69,10 +69,10 @@ def read(in_file: TextIO, args: argparse.Namespace, file_name: str) -> None:
                              args.count, args.is_file, correct_line, line)
     if args.is_file and correct_line > 0:
         printer_modifier(file_name, len(args.files),
-                         args.count, args.is_file, correct_line, "stub")
+                         args.count, args.is_file, correct_line, 'stub')
     if args.count:
         printer_modifier(file_name, len(args.files),
-                         args.count, args.is_file, correct_line, "stub")
+                         args.count, args.is_file, correct_line, 'stub')
 
 
 def open_file(args: argparse.Namespace) -> None:
