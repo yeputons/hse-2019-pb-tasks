@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import io
 import argparse
+import sys
 import grep
 
 
@@ -62,7 +63,7 @@ def test_stdin_working(monkeypatch, capsys):
     monkeypatch.setattr('sys.stdin', io.StringIO(
         'pref needle?\nneedle? suf\nthe needl\npref needle? suf'))
     grep.working(argparse.Namespace(needle='needle', files=[], regex=False, cnt=False),
-                 source=False, filename='')
+                 source=sys.stdin, filename='')
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'pref needle?\nneedle? suf\npref needle? suf\n'
