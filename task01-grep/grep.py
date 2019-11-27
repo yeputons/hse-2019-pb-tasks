@@ -15,7 +15,7 @@ def re_search_modifier(line: str, needle: str,  match: bool,
         reg = re.fullmatch
     else:
         reg = re.search
-    search_result = reg(needle, line, flags) is not None
+    search_result = reg(needle, line, flags=flags) is not None
     if inverse:
         return not search_result
     return search_result
@@ -54,7 +54,6 @@ def print_result(file_name: str, number_of_file: int, output: str) -> None:
 
 def read(in_file: TextIO, args: argparse.Namespace, file_name: str) -> None:
     correct_line = 0
-    unusual_output = args.is_file or args.count
     for line in in_file.readlines():
         line = line.rstrip('\n')
         if args.regex:
@@ -65,10 +64,13 @@ def read(in_file: TextIO, args: argparse.Namespace, file_name: str) -> None:
                                                    args.match, args.ignore_case, args.inverse)
         if is_correct:
             correct_line += 1
-        if not unusual_output and is_correct:
+        if not (args.is_file or args.count) and is_correct:
             printer_modifier(file_name, len(args.files),
                              args.count, args.is_file, correct_line, line)
-    if unusual_output:
+    if args.is_file and correct_line > 0:
+        printer_modifier(file_name, len(args.files),
+                         args.count, args.is_file, correct_line, "stub")
+    if args.count:
         printer_modifier(file_name, len(args.files),
                          args.count, args.is_file, correct_line, "stub")
 
