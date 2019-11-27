@@ -6,16 +6,10 @@ import re
 import argparse
 
 
-def match_pattetn_and_string(pattern: str, string: str, cond: bool) -> bool:
-    if (cond and re.search(pattern, string)) or (pattern in string):
-        return True
-    return False
-
-
-def filter_strings_by_pattern(pattern: str, data: List[List[str]], cond: bool) -> List[List[str]]:
+def filter_strings_by_pattern(pattern: str, data: List[List[str]]) -> List[List[str]]:
     result = []
     for file in data:
-        result.append([line for line in file if match_pattetn_and_string(pattern, line, cond)])
+        result.append([line for line in file if re.search(pattern, line)])
     return result
 
 
@@ -55,7 +49,12 @@ def main(args_str: List[str]):
         input_data.append([line.rstrip('\n') for line in sys.stdin.readlines()])
         files = [None]
 
-    filtered_strings = filter_strings_by_pattern(pattern, input_data, regex)
+    if regex:
+        pattern = re.compile(pattern)
+    else:
+        pattern = re.escape(pattern)
+
+    filtered_strings = filter_strings_by_pattern(pattern, input_data)
 
     output_data = filtered_strings
 

@@ -68,22 +68,13 @@ def test_integrate_files_regex_grep_count(tmp_path, monkeypatch, capsys):
     assert out == 'b.txt:1\na.txt:0\n'
 
 
-def test_unit_match_pattetn_and_string():
-    pattern = 'a?b*c+'
-    string = 'acc'
-    cond = True
-    ans = grep.match_pattetn_and_string(pattern, string, cond)
-    assert ans
-
-
 def test_unit_filter_strings_by_pattern():
     pattern = 'alex?'
     data = [['alex', '?', 'alex?', '????alex', 'ale'],
             ['alex?', 'ale', 'alex', 'ale'],
             ['hello'],
             ['alx?', '?alex?', '?ale']]
-    cond = True
-    ans = grep.filter_strings_by_pattern(pattern, data, cond)
+    ans = grep.filter_strings_by_pattern(pattern, data)
     assert ans == [['alex', 'alex?', '????alex', 'ale'],
                    ['alex?', 'ale', 'alex', 'ale'],
                    [],
