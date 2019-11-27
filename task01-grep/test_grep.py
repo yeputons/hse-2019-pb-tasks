@@ -30,6 +30,16 @@ def test_integrate_stdin_grep_count(monkeypatch, capsys):
     assert out == '3\n'
 
 
+
+def test_integrate_stdin_regex_grep_count(monkeypatch, capsys):
+    monkeypatch.setattr('sys.stdin', io.StringIO(
+        'pref needle?\nneedle? suf\nthe needl\npref needle? suf'))
+    grep.main(['-c', '-E', 'needle?'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == '3\npref needle?\nneedle? suf\nthe needl\npref needle? suf\n'
+
+
 def test_integrate_file_grep(tmp_path, monkeypatch, capsys):
     (tmp_path / 'a.txt').write_text('the needl\npref needle suf')
     monkeypatch.chdir(tmp_path)
