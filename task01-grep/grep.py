@@ -75,22 +75,20 @@ def search(args: argparse.Namespace) -> list:
         box_of_strings = {'name': name_file, 'lines': []}
         for line in take_strings(name_file):
             line = line.rstrip('\n')
-            flag = False
+            temp = False
             if args.regex:
+                flag = 0
                 if args.ignore_case:
-                    if re.fullmatch(args.substring, line, re.IGNORECASE) or (
-                            re.search(args.substring, line, re.IGNORECASE) and not args.full_find):
-                        flag = True
-                else:
-                    if re.fullmatch(args.substring, line) or (
-                            re.search(args.substring, line) and not args.full_find):
-                        flag = True
+                    flag = re.IGNORECASE
+                if re.fullmatch(args.substring, line, flag) or (
+                        re.search(args.substring, line, flag) and not args.full_find):
+                    temp = True
             else:
                 if convert(args.substring, args) == convert(line, args) or (
                         convert(args.substring, args) in convert(line, args)
                         and not args.full_find):
-                    flag = True
-            if args.inversion ^ flag:
+                    temp = True
+            if args.inversion ^ temp:
                 box_of_strings['lines'].append(line)
         find_strings.append(box_of_strings)
 

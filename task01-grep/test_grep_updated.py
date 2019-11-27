@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import grep
 import argparse
+import io
 
 input_first = 'it was very funny\n' \
               'he saw this object\n' \
@@ -139,6 +140,16 @@ def test_integrate_ninth(tmp_path, monkeypatch, capsys):
     out, err = capsys.readouterr()
     assert err == ''
     assert out == '3\n'
+
+
+# integrate test for standard input with flag -i
+def test_integrate_tenth(monkeypatch, capsys):
+    monkeypatch.setattr('sys.stdin', io.StringIO(input_second))
+    grep.main(['-i', 'love'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'i had too many LOVE\n' \
+                  'i remember about it with love\n'
 
 
 def test_for_convert_first():
