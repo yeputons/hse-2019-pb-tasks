@@ -24,13 +24,13 @@ def format_lines(args: argparse.Namespace, good_lines: List[str], filename: str)
         return output_lines
 
 
-def working(args: argparse.Namespace, source: [IO, bool], filename: str) -> None:
+def working(args: argparse.Namespace, source: IO[str], filename: str) -> None:
     line_pattern = args.needle if args.regex else re.escape(args.needle)
 
     if args.files:
         lines = [line.rstrip('\n') for line in source]
     else:
-        lines = [line.rstrip('\n') for line in sys.stdin]
+        lines = [line.rstrip('\n') for line in source]
 
     good_lines = [line for line in lines if re.search(line_pattern, line)]
     output_lines = format_lines(args, good_lines, filename)
@@ -47,7 +47,7 @@ def main(args_str: List[str]) -> None:
                 working(args, f, file)
 
     else:
-        working(args, source=False, filename='')
+        working(args, source=sys.stdin, filename='')
 
 
 if __name__ == '__main__':
