@@ -42,10 +42,18 @@ def print_result(file_name: str, number_of_file: int, output: str) -> None:
         print(f'{file_name}:{output}')
 
 
-def data_processing(in_file: TextIO, args: argparse.Namespace, file_name: str) -> None:
-    correct_line = 0
+def read(in_file: TextIO) -> list:
+    lines = []
     for line in in_file.readlines():
         line = line.rstrip('\n')
+        lines.append(line)
+    return lines
+
+
+def data_processing(in_file: TextIO, args: argparse.Namespace, file_name: str) -> None:
+    correct_line = 0
+    lines = read(in_file)
+    for line in lines:
         if args.regex:
             is_correct = re_search_modifier(line, args.needle,
                                             args.match, args.ignore_case, args.inverse)
