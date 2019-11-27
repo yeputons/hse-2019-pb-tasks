@@ -109,7 +109,7 @@ def test_print_stdio(capsys):
     assert err == ''
 
 
-def test_search_right_string():
+def test_search_right_string_file():
     lines = ['ahaha', 'win', 'victory', 'ha']
     res = []
     for line in lines:
@@ -120,4 +120,18 @@ def test_search_right_string():
     res = []
     for line in lines:
         grep.search_append('no', line, res)
+    assert res == []
+
+
+def test_search_right_string_stdin():
+    lines = ['lalaalla', 'win', 'nope', 'lllllla']
+    res = []
+    for line in lines:
+        grep.search_append('la', line, res)
+    assert res == ['lalaalla', 'lllllla']
+
+    lines = ['lalaalla', 'win', 'nope', 'lllllla']
+    res = []
+    for line in lines:
+        grep.search_append('grep', line, res)
     assert res == []

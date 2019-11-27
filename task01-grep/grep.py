@@ -2,7 +2,7 @@
 import argparse
 import re
 import sys
-from typing import List
+from typing import List, IO
 
 
 def parse_args(args_str: List[str]) -> argparse.Namespace:
@@ -15,32 +15,37 @@ def parse_args(args_str: List[str]) -> argparse.Namespace:
     return args
 
 
-def print_file(print_filenames, flag_c, prefix, lines: List[str]) -> None:
+def print_file(print_filenames: int, count: int, prefix: str, lines: List[str]) -> None:
     if not print_filenames:
         prefix = ''
-    if flag_c:
+    if count:
         print(f'{prefix}{len(lines)}')
     else:
         for lin in lines:
             print(f'{prefix}{lin}')
 
 
-def print_stdio(flag_c, lines: List[str]) -> None:
-    if flag_c:
+def print_stdio(count: int, lines: List[str]) -> None:
+    if count:
         print(len(lines))
     else:
         for lin in lines:
             print(lin)
 
 
-def search_append(string, line, lines: List[str]) -> None:
+def search_append(string: str, line: str, lines: List[str]) -> None:
     line = line.rstrip('\n')
     if re.search(string, line):
         lines.append(line)
 
 
-def search_right_string(string: str, place_of_search, lines: List[str]) -> None:
-    for line in place_of_search:
+def search_right_string_file(string: str, file: IO[str], lines: List[str]) -> None:
+    for line in file:
+        search_append(string, line, lines)
+
+
+def search_right_string_stdin(string: str, lines: List[str]) -> None:
+    for line in sys.stdin:
         search_append(string, line, lines)
 
 
@@ -53,12 +58,12 @@ def main(args_str: List[str]) -> None:
         print_filenames: bool = len(args.files) > 1
         for file in args.files:
             with open(file, 'r') as in_file:
-                search_right_string(string, in_file, lines)
+                search_right_string_file(string, in_file, lines)
                 print_file(print_filenames, args.count, file + ':', lines)
                 lines = []
 
     else:
-        search_right_string(string, sys.stdin, lines)
+        search_right_string_stdin(string, lines)
         print_stdio(args.count, lines)
 
 
