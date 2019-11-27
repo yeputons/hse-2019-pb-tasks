@@ -4,36 +4,65 @@ import argparse
 import grep
 
 
-def test_print_from_file(capsys):
-    grep.print_from_file(['pref needle', 'needle suf'], 'some_file.txt', 1)
-    out, err = capsys.readouterr()
+def test_format_lines_many(tmp_path, capsys):
+    (tmp_path / 'a.txt').write_text('pref needle\nneedle gref\n')
+    out = grep.format_lines(argparse.Namespace(
+        needle='.ref', files=['a.txt', 'b.txt'], regex=True, cnt=False),
+                            ['pref needle', 'needle gref'], 'a.txt')
+    _, err = capsys.readouterr()
     assert err == ''
-    assert out == 'pref needle\nneedle suf\n'
+    assert out == ['a.txt:pref needle', 'a.txt:needle gref']
 
 
-def test_print_from_stdin(monkeypatch, capsys):
-    monkeypatch.setattr('sys.stdin', io.StringIO(
-        'pref needle?\nneedle? suf\nthe needl\npref needle? suf'))
-    grep.print_from_stdin(['3'])  # amount of good strings
-    out, err = capsys.readouterr()
+def test_format_lines_many_cnt(tmp_path, capsys):
+    (tmp_path / 'a.txt').write_text('pref needle\nneedle gref\n')
+    out = grep.format_lines(argparse.Namespace(
+        needle='.ref', files=['a.txt', 'b.txt'], regex=True, cnt=True),
+                            ['pref needle', 'needle gref'], 'a.txt')
+    _, err = capsys.readouterr()
     assert err == ''
-    assert out == '3\n'
+    assert out == ['a.txt:2']
 
 
-def test_filew(tmp_path, capsys):
+def test_format_lines_one(tmp_path, capsys):
+    (tmp_path / 'b.txt').write_text('pref needle\nneedle tref\ntref card\n')
+    out = grep.format_lines(argparse.Namespace(
+        needle='.ref', files=['b.txt'], regex=True, cnt=False),
+                            ['pref needle', 'needle gref', 'tref card'], 'b.txt')
+    _, err = capsys.readouterr()
+    assert err == ''
+    assert out == ['pref needle', 'needle gref', 'tref card']
+
+
+def test_format_lines_one_cnt(tmp_path, capsys):
+    (tmp_path / 'b.txt').write_text('pref needle\nneedle tref\ntref card\n')
+    out = grep.format_lines(argparse.Namespace(
+        needle='.ref', files=['b.txt'], regex=True, cnt=True),
+                            ['pref needle', 'needle gref', 'tref card'], 'b.txt')
+    _, err = capsys.readouterr()
+    assert err == ''
+    assert out == ['3']
+
+
+def test_file_working(tmp_path, capsys):
     (tmp_path / 'a.txt').write_text('pref needle\nneedle suf\n')
     (tmp_path / 'b.txt').write_text('the needl\npref needle suf')
-    grep.filew('a.txt', argparse.Namespace(n='.ref', fs=['a.txt', 'b.txt'], regex=True, cnt=False))
-    grep.filew('b.txt', argparse.Namespace(n='.ref', fs=['a.txt', 'b.txt'], regex=True, cnt=False))
+    with open('a.txt', 'r') as f:
+        grep.working(argparse.Namespace(
+            needle='.ref', files=['a.txt', 'b.txt'], regex=True, cnt=False), f, 'a.txt')
+    with open('b.txt', 'r') as f:
+        grep.working(argparse.Namespace(
+            needle='.ref', files=['a.txt', 'b.txt'], regex=True, cnt=False), f, 'b.txt')
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'a.txt:pref needle\nb.txt:pref needle suf\n'
 
 
-def test_stdinw(monkeypatch, capsys):
+def test_stdin_working(monkeypatch, capsys):
     monkeypatch.setattr('sys.stdin', io.StringIO(
         'pref needle?\nneedle? suf\nthe needl\npref needle? suf'))
-    grep.stdinw(argparse.Namespace(n='needle', fs=[], regex=False, cnt=False))
+    grep.working(argparse.Namespace(needle='needle', files=[], regex=False, cnt=False),
+                 source=False, filename='')
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'pref needle?\nneedle? suf\npref needle? suf\n'
