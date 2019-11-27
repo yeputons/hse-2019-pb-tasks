@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 import sys
 import traceback
-from alarm_user_handler import AlarmUserHandler
 from bot import UserIndependentBot
+from tictactoe_user_handler import TicTacToeUserHandler
 
 
 def send_message(to_user_id: int, message: str) -> None:
@@ -14,7 +14,7 @@ def send_message(to_user_id: int, message: str) -> None:
 def main() -> None:
     bot = UserIndependentBot(
         send_message=send_message,
-        user_handler=AlarmUserHandler
+        user_handler=TicTacToeUserHandler
     )
     for line in sys.stdin:
         try:
