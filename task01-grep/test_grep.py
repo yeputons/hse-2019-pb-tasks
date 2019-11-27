@@ -125,29 +125,83 @@ def test_integrate_grep_empty_files_count(tmp_path, monkeypatch, capsys):
     assert out == 'a.txt:2\nb.txt:0\n'
 
 
+def test_integrate_all_keys_print_files_grep(tmp_path, monkeypatch, capsys):
+    (tmp_path / 'a.txt').write_text('fO\nFO\nFoO\n')
+    (tmp_path / 'b.txt').write_text('hello fo?o world\nxfooyfoz\nfooo\n')
+    monkeypatch.chdir(tmp_path)
+    grep.main(['-livx', '-E', 'fo?o', 'b.txt', 'a.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'b.txt\n'
+
+
+def test_integrate_all_keys_print_not_files_grep(tmp_path, monkeypatch, capsys):
+    (tmp_path / 'a.txt').write_text('fO\nFO\nFoO\n')
+    (tmp_path / 'b.txt').write_text('hello fo?o world\nxfooyfoz\nfooo\n')
+    monkeypatch.chdir(tmp_path)
+    grep.main(['-Livx', '-E', 'fo?o', 'b.txt', 'a.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'a.txt\n'
+
+
+def test_integrate_all_keys_count_files_grep(tmp_path, monkeypatch, capsys):
+    (tmp_path / 'a.txt').write_text('fO\nFO\nFoO\n')
+    (tmp_path / 'b.txt').write_text('hello fo?o world\nxfooyfoz\nfooo\n')
+    monkeypatch.chdir(tmp_path)
+    grep.main(['-civx', '-E', 'fo?o', 'b.txt', 'a.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'b.txt:3\na.txt:0\n'
+
+
+def test_integrate_all_keys_count_files_grep_2(tmp_path, monkeypatch, capsys):
+    (tmp_path / 'a.txt').write_text('fo\nfoo\nfoo\n')
+    (tmp_path / 'b.txt').write_text('hello fo?o world\nxfooyfoz\nfooo\n')
+    monkeypatch.chdir(tmp_path)
+    grep.main(['-civx', '-E', 'fo?o', 'b.txt', 'a.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'b.txt:3\na.txt:0\n'
+
+
 def test_unit_write(capsys):
-    grep.write(['a.txt'], False, {'a.txt': ['one', 'two']})
+    grep.write(False, False, ['a.txt'], False, {'a.txt': ['one', 'two']})
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'one\ntwo\n'
 
 
+def test_unit_write_names_has(capsys):
+    grep.write(True, False, ['a.txt'], False, {'a.txt': ['one', 'two']})
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'a.txt\n'
+
+
+def test_unit_write_names_has_not(capsys):
+    grep.write(False, True, ['a.txt'], False, {'a.txt': ['one', 'two']})
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == ''
+
+
 def test_unit_write_count(capsys):
-    grep.write(['a.txt'], True, {'a.txt': ['one', 'two']})
+    grep.write(False, False, ['a.txt'], True, {'a.txt': ['one', 'two']})
     out, err = capsys.readouterr()
     assert err == ''
     assert out == '2\n'
 
 
 def test_unit_write_two_files_count(capsys):
-    grep.write(['a.txt', 'b.txt'], True, {'a.txt': ['one', 'two'], 'b.txt': ['one']})
+    grep.write(False, False, ['a.txt', 'b.txt'], True, {'a.txt': ['one', 'two'], 'b.txt': ['one']})
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'a.txt:2\nb.txt:1\n'
 
 
 def test_unit_write_two_files(capsys):
-    grep.write(['a.txt', 'b.txt'], False, {'a.txt': ['one', 'two'], 'b.txt': ['one']})
+    grep.write(False, False, ['a.txt', 'b.txt'], False, {'a.txt': ['one', 'two'], 'b.txt': ['one']})
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'a.txt:one\na.txt:two\nb.txt:one\n'
@@ -156,16 +210,34 @@ def test_unit_write_two_files(capsys):
 def test_unit_find(tmpdir):
     a_file = tmpdir.join('a.txt')
     a_file.write('one two\ntwo? one\nonce')
-    assert grep.find(False, 'one', a_file) == ['one two', 'two? one']
+    assert grep.find(False, False, False, False, 'one', a_file) == ['one two', 'two? one']
+
+
+def test_unit_find_full_str(tmpdir):
+    a_file = tmpdir.join('a.txt')
+    a_file.write('one\ntwo? one\nonce')
+    assert grep.find(True, False, False, False, 'one', a_file) == ['one']
+
+
+def test_unit_find_register(tmpdir):
+    a_file = tmpdir.join('a.txt')
+    a_file.write('OnE two\ntwO? One\nonCe')
+    assert grep.find(False, True, False, False, 'one', a_file) == ['OnE two', 'twO? One']
+
+
+def test_unit_find_invert(tmpdir):
+    a_file = tmpdir.join('a.txt')
+    a_file.write('one two\ntwo? one\nonce')
+    assert grep.find(False, False, True, False, 'one', a_file) == ['once']
 
 
 def test_unit_find_regex(tmpdir):
     a_file = tmpdir.join('a.txt')
     a_file.write('one two\ntwo? one\nonce')
-    assert grep.find(True, 'o', a_file) == ['one two', 'two? one', 'once']
+    assert grep.find(False, False, False, True, 'o', a_file) == ['one two', 'two? one', 'once']
 
 
 def test_unit_find_regex_sym(tmpdir):
     a_file = tmpdir.join('a.txt')
     a_file.write('one1 two\ntwo? one\nonce24')
-    assert grep.find(True, '[0-9]+', a_file) == ['one1 two', 'once24']
+    assert grep.find(False, False, False, True, '[0-9]+', a_file) == ['one1 two', 'once24']
