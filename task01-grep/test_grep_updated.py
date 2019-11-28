@@ -185,7 +185,7 @@ def test_dict_filter_ex():
     options['do_ignore_case'] = True
     options['line'] = 'my precious'
     new_dict = grep.dict_filter(
-        options, ['regexE', 'do_count', 'some_trash_option'], ex=True)
+        options, ['regexE', 'do_count', 'some_trash_option'], exclude=True)
     corr_dict = {'do_ignore_case': True, 'line': 'my precious'}
     assert new_dict == corr_dict
 

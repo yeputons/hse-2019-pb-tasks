@@ -5,10 +5,10 @@ import re
 import argparse
 
 
-def dict_filter(options: Dict[str, Any], allowed: List[str], ex: bool = False) -> Dict[str, Any]:
+def dict_filter(options: Dict[str, Any], allowed: List[str], exclude: bool = False) -> Dict[str, Any]:
     # take dict and list and include/exclude only elements of dict mentioned in list
     new_options = {}
-    if ex:
+    if exclude:
         for opt in options.keys():
             if opt not in allowed:
                 new_options[opt] = options[opt]
@@ -196,7 +196,7 @@ def main(args: List[str]):
     options: Dict[str, Any] = vars(parsed_args)
     options_configure(options)  # configure options so not filtered
 
-    options = dict_filter(options, ['do_not_only_files'], ex=True)
+    options = dict_filter(options, ['do_not_only_files'], exclude=True)
 
     search_in_files(options)
 
