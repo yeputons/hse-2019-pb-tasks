@@ -1,22 +1,6 @@
 from typing import List, Optional
-from tictactoe_user_handler import TicTacToeUserHandler, Player
 import pytest_mock
-
-
-# def test_chat_broadcast(mocker: pytest_mock.MockFixture) -> None:
-#     send_message = mocker.stub(name='send_message_stub')
-#     bot = ChatBot(send_message)
-#     bot.handle_message(10, 'hello')
-#     bot.handle_message(11, 'world')
-#     assert send_message.call_args_list == [
-#         mocker.call(10, '#10: hello'),
-#         mocker.call(10, '#11: world'),
-#         mocker.call(11, '#11: world'),
-#     ]
-
-
-# def send_message(message: str) -> None:
-#     print(message)
+from tictactoe_user_handler import TicTacToeUserHandler, Player
 
 
 def test_handler_invalid_input_number(mocker: pytest_mock.MockFixture) -> None:
@@ -112,6 +96,7 @@ def test_send_field_mid_game(mocker: pytest_mock.MockFixture) -> None:
         [None, None, None],
         [None, None, None]
     ]
+    assert bot.game is not None
     bot.game.field = field
     bot.send_field()
     assert send_message.call_args_list == [
@@ -139,6 +124,7 @@ def test_make_turn(mocker: pytest_mock.MockFixture) -> None:
         mocker.call('...\n...\n...'),
         mocker.call('...\nX..\n...'),
     ]
+    assert bot.game is not None
     assert bot.game.field[1][0] == Player.X
 
 
@@ -146,6 +132,7 @@ def test_make_turn_game_finished(mocker: pytest_mock.MockFixture) -> None:
     send_message = mocker.stub(name='send_message_stub')
     bot = TicTacToeUserHandler(send_message)
     bot.start_game()
+    assert bot.game is not None
     bot.game.field = [
         [Player.X, Player.X, None],
         [Player.O, Player.O, None],
@@ -163,6 +150,7 @@ def test_make_turn_game_finished_draw(mocker: pytest_mock.MockFixture) -> None:
     send_message = mocker.stub(name='send_message_stub')
     bot = TicTacToeUserHandler(send_message)
     bot.start_game()
+    assert bot.game is not None
     bot.game.field = [
         [Player.X, Player.X, Player.O],
         [Player.O, Player.O, Player.X],

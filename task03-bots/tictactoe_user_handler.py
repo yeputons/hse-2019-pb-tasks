@@ -13,9 +13,9 @@ class TicTacToeUserHandler(UserHandler):
             self.start_game()
         else:
             try:
-                player, row, col = message.split()
-                row = int(row)
-                col = int(col)
+                player, r, c = message.split()
+                row = int(r)
+                col = int(c)
             except ValueError:
                 self.send_message('Invalid turn')
                 return
@@ -30,7 +30,8 @@ class TicTacToeUserHandler(UserHandler):
 
             pl = Player.X if player == 'X' else Player.O
             try:
-                if self.game.can_make_turn(pl, row=row, col=col):
+                assert self.game is not None
+                if self.game and self.game.can_make_turn(pl, row=row, col=col):
                     self.make_turn(pl, row=row, col=col)
                 else:
                     self.send_message('Invalid turn')
@@ -40,9 +41,9 @@ class TicTacToeUserHandler(UserHandler):
     def start_game(self) -> None:
         self.game = TicTacToe()
         self.send_field()
-        #self.send_message('Game is started')
 
     def make_turn(self, player: Player, *, row: int, col: int) -> None:
+        assert self.game is not None
         self.game.make_turn(player, row=row, col=col)
         self.send_field()
         if self.game.is_finished():
@@ -53,6 +54,7 @@ class TicTacToeUserHandler(UserHandler):
             self.send_message(f'Game is finished, {winner} wins')
 
     def send_field(self) -> None:
+        assert self.game is not None
         output = ''
         for row in range(3):
             for col in range(3):
