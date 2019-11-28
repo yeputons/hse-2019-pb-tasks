@@ -100,71 +100,18 @@ def test_integrate_files_grep_count(tmp_path, monkeypatch, capsys) -> None:
     assert out == 'b.txt:1\na.txt:2\n'
 
 
-def test_unit_files_output(capsys) -> None:
-    grep.files_output(2, 'temp.txt', 'needle')
-    out, err = capsys.readouterr()
-    assert err == ''
-    assert out == 'temp.txt:needle\n'
-
-
-def test_unit_in_file(tmp_path, monkeypatch, capsys) -> None:
-    (tmp_path / 'a.txt').write_text('the needl\npref needle suf')
-    monkeypatch.chdir(tmp_path)
-    grep.in_files('a.txt', 'needle', False, 1)
-    out, err = capsys.readouterr()
-    assert err == ''
-    assert out == 'pref needle suf\n'
-
-
-def test_in_file_count_one(tmp_path, monkeypatch, capsys) -> None:
-    (tmp_path / 'a.txt').write_text('pref needle\nneedle suf\n')
-    monkeypatch.chdir(tmp_path)
-    grep.in_files('a.txt', 'needle', True, 1)
-    out, err = capsys.readouterr()
-    assert err == ''
-    assert out == '2\n'
-
-
-def test_in_file_count_many(tmp_path, monkeypatch, capsys) -> None:
-    (tmp_path / 'a.txt').write_text('pref needle\nneedle suf\n')
-    monkeypatch.chdir(tmp_path)
-    grep.in_files('a.txt', 'needle', True, 3)
-    out, err = capsys.readouterr()
-    assert err == ''
-    assert out == 'a.txt:2\n'
-
-
-def test_unit_regex_in_file(tmp_path, monkeypatch, capsys) -> None:
-    (tmp_path / 'a.txt').write_text('the needl\npref needle suf')
-    monkeypatch.chdir(tmp_path)
-    grep.in_files('a.txt', 'needle?', False, 1)
-    out, err = capsys.readouterr()
-    assert err == ''
-    assert out == 'the needl\npref needle suf\n'
-
-
-def test_regex_in_file_cnt_one(tmp_path, monkeypatch, capsys) -> None:
-    (tmp_path / 'a.txt').write_text('the needl\npref needle suf')
-    monkeypatch.chdir(tmp_path)
-    grep.in_files('a.txt', 'needle?', True, 1)
-    out, err = capsys.readouterr()
-    assert err == ''
-    assert out == '2\n'
-
-
-def test_regex_in_file_cnt_many(tmp_path, monkeypatch, capsys) -> None:
-    (tmp_path / 'a.txt').write_text('the needl\npref needle suf')
-    monkeypatch.chdir(tmp_path)
-    grep.in_files('a.txt', 'needle?', True, 10)
-    out, err = capsys.readouterr()
-    assert err == ''
-    assert out == 'a.txt:2\n'
-
-
 def test_reader(monkeypatch, capsys) -> None:
     monkeypatch.setattr('sys.stdin', io.StringIO(
         'pref needle\nneedle suf\nthe needl\npref needle suf'))
-    grep.reader('a.txt', 'needle', sys.stdin, True, 1)
+    grep.reader('', 'needle', sys.stdin, True, False)
     out, err = capsys.readouterr()
     assert err == ''
     assert out == '3\n'
+
+
+def test_unit_files_output(capsys) -> None:
+    str_list = ['needle']
+    grep.files_output('temp.txt', str_list, False, True)
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'temp.txt:needle\n'

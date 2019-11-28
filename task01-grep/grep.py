@@ -6,32 +6,26 @@ import re
 import argparse
 
 
-def reader(fname: str, needle: str, wh: TextIO, fl: bool, length: int) -> None:
-    b = list()
-    for line in wh:
-        line = line.rstrip('\n')
-        if re.search(needle, line):
-            b.append(line)
-            if not fl:
-                files_output(length, fname, line)
-    if fl:
-        files_output(length, fname, len(b))
+def reader(fname: str, needle: str, wh: TextIO,
+           key_c: bool, key_add_fname: bool) -> None:
+    str_list = [line.rstrip('\n') for line in wh if re.search(needle, line)]
+    files_output(fname, str_list, key_c, key_add_fname)
 
 
-def in_stdin(needle: str, fl: bool) -> None:
-    reader('', needle, sys.stdin, fl, 1)
-
-
-def files_output(length: int, fname: str, line: object) -> None:
-    if length > 1:
-        print(f'{fname}:{line}')
+def files_output(fname: str, str_list: list,
+                 key_c: bool, key_add_fname: bool) -> None:
+    if key_add_fname:
+        if not key_c:
+            for line in str_list:
+                print(f'{fname}:{line}')
+        else:
+            print(f'{fname}:{len(str_list)}')
     else:
-        print(line)
-
-
-def in_files(fname: str, needle: str, fl: bool, length: int) -> None:
-    with open(fname, 'r') as in_file:
-        reader(fname, needle, in_file, fl, length)
+        if not key_c:
+            for line in str_list:
+                print(f'{line}')
+        else:
+            print(len(str_list))
 
 
 def main(args_str: List[str]) -> None:
@@ -44,11 +38,16 @@ def main(args_str: List[str]) -> None:
 
     # STUB BEGINS
     needle = args.needle if args.regex else re.escape(args.needle)
-    if len(args.files) == 0:
-        in_stdin(needle, args.c)
+    if len(args.files) > 1:
+        key_add_fname = True
     else:
+        key_add_fname = False
+    if args.files:
         for i in args.files:
-            in_files(i, needle, args.c, len(args.files))
+            with open(i, 'r') as in_file:
+                reader(i, needle, in_file, args.c, key_add_fname)
+    else:
+        reader('', needle, sys.stdin, args.c, key_add_fname)
 
 
 if __name__ == '__main__':
