@@ -122,4 +122,4 @@ def test_integrate_files_grep_regex_count_error(tmp_path, monkeypatch, capsys):
     grep.main(['-c', '-E', 'needle?', 'b.txt', 'a.txt', 'keklol'])
     out, err = capsys.readouterr()
     assert err == ''
-    assert out == 'b.txt:2\na.txt:2\nCould not open keklol!\n'
+    assert out == 'File keklol does not exist\nb.txt:2\na.txt:2\n'
