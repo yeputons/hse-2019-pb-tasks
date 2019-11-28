@@ -5,25 +5,51 @@ import re
 import argparse
 
 
-def main(args_str: List[str]):
+def get_list(regex: bool, needle: str, fin):
+    return [line.rstrip('\n') for line in fin if find(regex, needle, line)]
+
+
+def find(regex: bool, needle: str, line: str):
+    return regex and re.search(needle, line) or not regex and needle in line
+
+
+def print_list_count(list_of_lines: list, prefix: str = ''):
+    print(prefix, len(list_of_lines), sep='')
+
+
+def print_list(list_of_lines: list, prefix: str = ''):
+    for line in list_of_lines:
+        print(prefix, line, sep='')
+
+
+def create_parser(args_str: List[str]):
     parser = argparse.ArgumentParser()
     parser.add_argument('needle', type=str)
     parser.add_argument('files', nargs='*')
+    parser.add_argument('-c', dest='count', action='store_true')
     parser.add_argument('-E', dest='regex', action='store_true')
-    args = parser.parse_args(args_str)
+    return parser.parse_args(args_str)
 
-    # STUB BEGINS
-    for line in sys.stdin.readlines():
-        line = line.rstrip('\n')
-        if args.needle in line:
-            print('Found needle in ' + line)
 
-    with open('input.txt', 'r') as in_file:
-        for line in in_file.readlines():
-            line = line.rstrip('\n')
-            if re.search(args.needle, line):
-                print(f'Found re in {line}')
-    # STUB ENDS
+def main(args_str: List[str]):
+    args = create_parser(args_str)
+    num_of_files = len(args.files)
+
+    if num_of_files > 0:
+        for file_name in args.files:
+            with open(file_name, 'r') as fin:
+                list_of_lines = get_list(args.regex, args.needle, fin)
+                prefix = file_name + ':' if num_of_files > 1 else ''
+                if args.count:
+                    print_list_count(list_of_lines, prefix)
+                else:
+                    print_list(list_of_lines, prefix)
+    else:
+        list_of_lines = get_list(args.regex, args.needle, sys.stdin)
+        if args.count:
+            print_list_count(list_of_lines)
+        else:
+            print_list(list_of_lines)
 
 
 if __name__ == '__main__':
