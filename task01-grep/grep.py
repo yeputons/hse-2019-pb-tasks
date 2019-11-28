@@ -51,7 +51,7 @@ def search_right_string_stdin(string: str, lines: List[str]) -> None:
 
 def main(args_str: List[str]) -> None:
     args = parse_args(args_str)
-    string = args.string if args.regex else args.string
+    string = args.string if args.regex else re.escape(args.string)
     lines: List[str] = []
 
     if args.files:

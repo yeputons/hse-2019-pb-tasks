@@ -6,7 +6,7 @@ import grep
 
 def test_integrate_stdin_grep(monkeypatch, capsys):
     monkeypatch.setattr('sys.stdin', io.StringIO(
-        'pref needle?\nneedle? suf\npref needle? suf\nthank you OHneedHELP'))
+        'pref needle?\nneedle? suf\nthe needl\npref needle? suf'))
     grep.main(['needle?'])
     out, err = capsys.readouterr()
     assert err == ''
