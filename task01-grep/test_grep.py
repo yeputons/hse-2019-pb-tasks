@@ -80,17 +80,14 @@ def test_print_file(capsys):
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'hello, Olga:3\n'
-
     grep.print_file(1, 0, file_name, lines)
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'hello, Olga:thank you\nhello, Olga:a lot\nhello, Olga:thanks\n'
-
     grep.print_file(0, 1, file_name, lines)
     out, err = capsys.readouterr()
     assert err == ''
     assert out == '3\n'
-
     grep.print_file(0, 0, file_name, lines)
     out, err = capsys.readouterr()
     assert err == ''
