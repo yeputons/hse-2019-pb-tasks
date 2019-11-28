@@ -16,7 +16,6 @@ def main() -> None:
     for line in sys.stdin:
         try:
             user_id, message = line.rstrip('\n').split(' ', 1)
-            print(message)
             bot.handle_message(int(user_id), message)
         except Exception:  # pylint: disable=W0703
             traceback.print_exc()
