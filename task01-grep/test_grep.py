@@ -1,62 +1,126 @@
 #!/usr/bin/env python3
 import io
 import grep
+import argparse
 
 
 # unit tests
-def test_unit_search_as_regex_ok():
-    assert grep.search_as_regex('123*', 'onetwothree1j12jj123sd')
+
+# for function search_string_as_regex
+def test_unit_search_string_as_regex_ignore_case():
+    args = argparse.Namespace(needle='Wings?', ignore_case=True, full_match=False, invert=False)
+    assert grep.search_string_as_regex(args, 'winGs') is True
+    assert grep.search_string_as_regex(args, 'Wings') is True
+    assert grep.search_string_as_regex(args, 'Wingz') is True
+    args = argparse.Namespace(needle='Wings', ignore_case=True, full_match=False, invert=False)
+    assert grep.search_string_as_regex(args, 'WinGS') is True
 
 
-def test_unit_search_as_regex_false():
-    assert not grep.search_as_regex('needle', 'needl')
+def test_unit_search_string_as_regex_full_match():
+    args = argparse.Namespace(needle='Wings?', ignore_case=False, full_match=True, invert=False)
+    assert grep.search_string_as_regex(args, 'winGs') is False
+    assert grep.search_string_as_regex(args, 'Wings') is True
+    assert grep.search_string_as_regex(args, 'Wings?') is False
+    assert grep.search_string_as_regex(args, 'Wingss') is False
+    assert grep.search_string_as_regex(args, 'EWings') is False
 
 
-def test_unit_search_as_regex():
-    assert grep.search_as_regex('qt?qt', 'qqt')
+def test_unit_search_string_as_regex_invert():
+    args = argparse.Namespace(needle='Wings?', ignore_case=False, full_match=False, invert=True)
+    assert grep.search_string_as_regex(args, 'winGs') is True
+    assert grep.search_string_as_regex(args, 'wingff') is True
+    assert grep.search_string_as_regex(args, 'Wings') is False
+    assert grep.search_string_as_regex(args, 'Wings?') is False
+    assert grep.search_string_as_regex(args, 'Wingss') is False
+    assert grep.search_string_as_regex(args, 'EWings') is False
 
 
-def test_unit_search_as_regex_multiple():
-    assert grep.search_as_regex('a*', 'aaaaaaaaaaaaa')
+def test_unit_search_string_as_regex_two_flags():
+    args = argparse.Namespace(needle='Wings?', ignore_case=True, full_match=False, invert=True)
+    assert grep.search_string_as_regex(args, 'wingff') is False
+    assert grep.search_string_as_regex(args, 'winGs') is False
+    assert grep.search_string_as_regex(args, 'Wings') is False
+    assert grep.search_string_as_regex(args, 'Wings?') is False
+    assert grep.search_string_as_regex(args, 'Wingss') is False
+    assert grep.search_string_as_regex(args, 'EWings') is False
+    args = argparse.Namespace(needle='Wings?', ignore_case=False, full_match=True, invert=True)
+    assert grep.search_string_as_regex(args, 'winGs') is True
+    assert grep.search_string_as_regex(args, 'Wings') is False
+    assert grep.search_string_as_regex(args, 'Wings?') is True
+    assert grep.search_string_as_regex(args, 'Wingss') is True
+    assert grep.search_string_as_regex(args, 'EWings') is True
+    args = argparse.Namespace(needle='Wings?', ignore_case=True, full_match=True, invert=False)
+    assert grep.search_string_as_regex(args, 'winGs') is True
+    assert grep.search_string_as_regex(args, 'Wings') is True
+    assert grep.search_string_as_regex(args, 'Wings?') is False
+    assert grep.search_string_as_regex(args, 'Wingss') is False
+    assert grep.search_string_as_regex(args, 'EWings') is False
 
 
-def test_unit_search_as_string_ok():
-    assert grep.search_as_string('qwe', 'Hello qwe')
+def test_unit_search_string_as_regex_all_flags():
+    args = argparse.Namespace(needle='Wings?', ignore_case=True, full_match=True, invert=True)
+    assert grep.search_string_as_regex(args, 'wingff') is True
+    assert grep.search_string_as_regex(args, 'winGs') is False
+    assert grep.search_string_as_regex(args, 'Wings') is False
+    assert grep.search_string_as_regex(args, 'Wings?') is True
+    assert grep.search_string_as_regex(args, 'Wingss') is True
+    assert grep.search_string_as_regex(args, 'EWings') is True
 
 
-def test_unit_search_as_string_not_regex():
-    assert not grep.search_as_string('qwe?', 'Hello qwe')
+# for function search_string
+def test_unit_search_string_ignore_case():
+    args = argparse.Namespace(needle='Wings*', ignore_case=True, full_match=False, invert=False)
+    assert grep.search_string(args, 'Wings*') is True
+    assert grep.search_string(args, 'wings*') is True
+    assert grep.search_string(args, 'Wings') is False
+    assert grep.search_string(args, 'sdgwings*sdg') is True
 
 
-def test_unit_search_as_string():
-    assert grep.search_as_string('a*', 'Hello a*')
+def test_unit_search_string_full_match():
+    args = argparse.Namespace(needle='Wings*', ignore_case=False, full_match=True, invert=False)
+    assert grep.search_string(args, 'Wings*') is True
+    assert grep.search_string(args, 'wings*') is False
+    assert grep.search_string(args, 'Wings**') is False
+    assert grep.search_string(args, 'sdgwings*sdg') is False
 
 
-def test_unit_parse(tmp_path, monkeypatch):
-    (tmp_path / 'a.txt').write_text('the needl\npref needle suf')
-    monkeypatch.chdir(tmp_path)
-    file = open('a.txt', 'r')
-    output = list()
-    grep.parse(file, 'needle', grep.search_as_string, output)
-    assert output == ['pref needle suf']
+def test_unit_search_string_invert():
+    args = argparse.Namespace(needle='Wings*', ignore_case=False, full_match=False, invert=True)
+    assert grep.search_string(args, 'Wings*') is False
+    assert grep.search_string(args, 'wings*') is True
+    assert grep.search_string(args, 'Wings**') is False
+    assert grep.search_string(args, 'sdgwings*sdg') is True
 
 
-def test_unit_parse_empty(tmp_path, monkeypatch):
-    (tmp_path / 'a.txt').write_text('the needl\npref needle suf')
-    monkeypatch.chdir(tmp_path)
-    file = open('a.txt', 'r')
-    output = list()
-    grep.parse(file, 'needlee', grep.search_as_string, output)
-    assert output == []
+def test_unit_search_string_two_flags():
+    args = argparse.Namespace(needle='Wings*', ignore_case=True, full_match=False, invert=True)
+    assert grep.search_string(args, 'Wings*') is False
+    assert grep.search_string(args, 'wings*') is False
+    assert grep.search_string(args, 'Wings') is True
+    assert grep.search_string(args, 'sdgwings*sdg') is False
+    args = argparse.Namespace(needle='Wings*', ignore_case=False, full_match=True, invert=True)
+    assert grep.search_string(args, 'Wings*') is False
+    assert grep.search_string(args, 'wings*') is True
+    assert grep.search_string(args, 'Wings**') is True
+    assert grep.search_string(args, 'sdgwings*sdg') is True
+    args = argparse.Namespace(needle='Wings*', ignore_case=True, full_match=True, invert=False)
+    assert grep.search_string(args, 'Wings*') is True
+    assert grep.search_string(args, 'wings*') is True
+    assert grep.search_string(args, 'Wings**') is False
+    assert grep.search_string(args, 'sdgwings*sdg') is False
 
 
-def test_unit_parse_regex(tmp_path, monkeypatch):
-    (tmp_path / 'a.txt').write_text('the needl\npref needle suf\nneedy')
-    monkeypatch.chdir(tmp_path)
-    file = open('a.txt', 'r')
-    output = list()
-    grep.parse(file, 'needle?', grep.search_as_regex, output)
-    assert output == ['the needl', 'pref needle suf']
+def test_unit_search_string_all_flags():
+    args = argparse.Namespace(needle='Wings*', ignore_case=True, full_match=True, invert=True)
+    assert grep.search_string(args, 'Wings*') is False
+    assert grep.search_string(args, 'wings*') is False
+    assert grep.search_string(args, 'Wings**') is True
+    assert grep.search_string(args, 'sdgwings*sdg') is True
+
+
+# for function parse
+
+# for function print_output_for_file
 
 
 # integrate tests
@@ -130,7 +194,7 @@ def test_integrate_files_grep(tmp_path, monkeypatch, capsys):
     grep.main(['needle', 'b.txt', 'a.txt'])
     out, err = capsys.readouterr()
     assert err == ''
-    assert out == 'b.txt: pref needle suf\na.txt: pref needle\na.txt: needle suf\n'
+    assert out == 'b.txt:pref needle suf\na.txt:pref needle\na.txt:needle suf\n'
 
 
 def test_integrate_files_grep_empty_file(tmp_path, monkeypatch, capsys):
@@ -140,7 +204,7 @@ def test_integrate_files_grep_empty_file(tmp_path, monkeypatch, capsys):
     grep.main(['needle', 'b.txt', 'a.txt'])
     out, err = capsys.readouterr()
     assert err == ''
-    assert out == 'b.txt: pref needle suf\n'
+    assert out == 'b.txt:pref needle suf\n'
 
 
 def test_integrate_files_grep_same_files(tmp_path, monkeypatch, capsys):
@@ -149,7 +213,7 @@ def test_integrate_files_grep_same_files(tmp_path, monkeypatch, capsys):
     grep.main(['needle', 'a.txt', 'a.txt'])
     out, err = capsys.readouterr()
     assert err == ''
-    assert out == 'a.txt: pref needle\na.txt: needle suf\na.txt: pref needle\na.txt: needle suf\n'
+    assert out == 'a.txt:pref needle\na.txt:needle suf\na.txt:pref needle\na.txt:needle suf\n'
 
 
 def test_integrate_files_grep_count(tmp_path, monkeypatch, capsys):
@@ -159,7 +223,7 @@ def test_integrate_files_grep_count(tmp_path, monkeypatch, capsys):
     grep.main(['-c', 'needle', 'b.txt', 'a.txt'])
     out, err = capsys.readouterr()
     assert err == ''
-    assert out == 'b.txt: 1\na.txt: 2\n'
+    assert out == 'b.txt:1\na.txt:2\n'
 
 
 def test_integrate_files_grep_count_empty(tmp_path, monkeypatch, capsys):
@@ -169,7 +233,7 @@ def test_integrate_files_grep_count_empty(tmp_path, monkeypatch, capsys):
     grep.main(['-c', 'the', 'b.txt', 'a.txt'])
     out, err = capsys.readouterr()
     assert err == ''
-    assert out == 'b.txt: 1\na.txt: 0\n'
+    assert out == 'b.txt:1\na.txt:0\n'
 
 
 def test_integrate_files_grep_count_same_file(tmp_path, monkeypatch, capsys):
@@ -178,4 +242,64 @@ def test_integrate_files_grep_count_same_file(tmp_path, monkeypatch, capsys):
     grep.main(['-c', 'needle', 'a.txt', 'a.txt'])
     out, err = capsys.readouterr()
     assert err == ''
-    assert out == 'a.txt: 2\na.txt: 2\n'
+    assert out == 'a.txt:2\na.txt:2\n'
+
+
+def test_integrate_all_keys_print_files_grep(tmp_path, monkeypatch, capsys):
+    (tmp_path / 'a.txt').write_text('fO\nFO\nFoO\n')
+    (tmp_path / 'b.txt').write_text('hello fo?o world\nxfooyfoz\nfooo\n')
+    monkeypatch.chdir(tmp_path)
+    grep.main(['-livx', '-E', 'fo?o', 'b.txt', 'a.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'b.txt\n'
+
+
+def test_integrate_all_keys_print_not_files_grep(tmp_path, monkeypatch, capsys):
+    (tmp_path / 'a.txt').write_text('fO\nFO\nFoO\n')
+    (tmp_path / 'b.txt').write_text('hello fo?o world\nxfooyfoz\nfooo\n')
+    monkeypatch.chdir(tmp_path)
+    grep.main(['-Livx', '-E', 'fo?o', 'b.txt', 'a.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'a.txt\n'
+
+
+def test_integrate_all_keys_count_files_grep(tmp_path, monkeypatch, capsys):
+    (tmp_path / 'a.txt').write_text('fO\nFO\nFoO\n')
+    (tmp_path / 'b.txt').write_text('hello fo?o world\nxfooyfoz\nfooo\n')
+    monkeypatch.chdir(tmp_path)
+    grep.main(['-civx', '-E', 'fo?o', 'b.txt', 'a.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'b.txt:3\na.txt:0\n'
+
+
+def test_integrate_all_keys_not_regex_grep(tmp_path, monkeypatch, capsys):
+    (tmp_path / 'a.txt').write_text('fO\nFO\nFoO\n')
+    (tmp_path / 'b.txt').write_text('hello fo?o world\nxfooyfoz\nfooo\n')
+    monkeypatch.chdir(tmp_path)
+    grep.main(['-livx', 'fo?o', 'b.txt', 'a.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'b.txt\na.txt\n'
+
+
+def test_integrate_some_keys_invert_grep(tmp_path, monkeypatch, capsys):
+    (tmp_path / 'a.txt').write_text('fO\nFO\nFoO\n')
+    (tmp_path / 'b.txt').write_text('hello fo?o world\nxfooyfoz\nfooo\n')
+    monkeypatch.chdir(tmp_path)
+    grep.main(['-cv', '-E', 'fo?o', 'b.txt', 'a.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'b.txt:0\na.txt:3\n'
+
+
+def test_integrate_some_keys_ignore_case_grep(tmp_path, monkeypatch, capsys):
+    (tmp_path / 'a.txt').write_text('fO\nFO\nFoO\n')
+    (tmp_path / 'b.txt').write_text('hello fo?o world\nxfooyfoz\nfooo\n')
+    monkeypatch.chdir(tmp_path)
+    grep.main(['-ci', 'fo', 'b.txt', 'a.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'b.txt:3\na.txt:3\n'
