@@ -155,6 +155,26 @@ def test_integrate_all_keys_count_files_grep(tmp_path, monkeypatch, capsys):
     assert out == 'b.txt:3\na.txt:0\n'
 
 
+def test_integrate_ignore_case_full_match_files_grep(tmp_path, monkeypatch, capsys):
+    (tmp_path / 'a.txt').write_text('BoT\nis\nCoMing\n')
+    (tmp_path / 'b.txt').write_text('How\nto get\ntime\n')
+    monkeypatch.chdir(tmp_path)
+    grep.main(['-ix', 'bot', 'b.txt', 'a.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'a.txt:BoT\n'
+
+
+def test_integrate_inverted_ignore_case_count_files_grep(tmp_path, monkeypatch, capsys):
+    (tmp_path / 'a.txt').write_text('Im not\nsuperman\ntoDoto\n')
+    (tmp_path / 'b.txt').write_text('tofof\ntotoooooo\nwhat?\n')
+    monkeypatch.chdir(tmp_path)
+    grep.main(['-civ', 'tod', 'b.txt', 'a.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'b.txt:3\na.txt:2\n'
+
+
 def test_parse_arguments():
     testing_parser = grep.parse_arguments(['-c', '-E', 'needline', 'file_1.txt', 'file_2.txt'])
     assert testing_parser.needle == 'needline'
@@ -164,9 +184,9 @@ def test_parse_arguments():
 
 
 def test_create_flags_dict():
-    args = argparse.Namespace(count=True, files=['a.txt', 'b.txt'], full_match=False,
+    args = argparse.Namespace(count=True, full_match=False,
                               ignore_case=False, inverted_ans_names_only=True,
-                              inverted_found=True, names_only=False, needle='help', regex=False)
+                              inverted_found=True, names_only=False, regex=False)
     flags = grep.create_flags_dict(args)
     assert flags == {'c': True,
                      'E': False,

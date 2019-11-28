@@ -20,6 +20,10 @@ def parse_arguments(arguments: List[str]) -> argparse.Namespace:
 
 
 def create_flags_dict(args: argparse.Namespace) -> Dict:
+    """
+    Returns a dictionary which contain
+    information about flags appearance
+    """
     flags = {'c': args.count,
              'E': args.regex,
              'l': args.names_only,
@@ -32,24 +36,18 @@ def create_flags_dict(args: argparse.Namespace) -> Dict:
 
 def find_desired(flags: Dict, needle, line: str) -> bool:
     """
-    Hello, Nadya! I want to go to sleep
-    so I'll write this comment later
+    Returns True or False depending on
+    flags and the presence of needle in line
     """
-    cmd = 0
+    if not flags['E']:
+        needle = re.escape(needle)
     if flags['i']:
-        cmd = re.IGNORECASE
         needle = needle.lower()
         line = line.lower()
     if flags['x']:
-        if flags['E']:
-            is_desired = re.fullmatch(needle, line, cmd)
-        else:
-            is_desired = needle == line
+        is_desired = re.fullmatch(needle, line)
     else:
-        if flags['E']:
-            is_desired = re.search(needle, line, cmd)
-        else:
-            is_desired = needle in line
+        is_desired = re.search(needle, line)
     if flags['v']:
         return not is_desired
     return is_desired
@@ -83,7 +81,7 @@ def print_output(ans_list: List[str], flags: Dict, prefix: str):
 
 def print_file_name(flags: Dict, file_name: str, is_found: bool) -> List[str]:
     """
-    Print name of file witch contain
+    Print name of file which contain
     or not contain desired lines
     """
     if flags['L'] and not is_found or flags['l'] and is_found:
@@ -95,11 +93,11 @@ def work_with_file(file, prefix, needle: str, flags: Dict):
     Single file processing
     with file's lines input
     and files lines or file name output
-    witch contain string or regex needle
+    which contain string or regex needle
     or a number of that lines.
     """
     with open(file, 'r') as in_file:
-        input_lines = [s for s in in_file.readlines()]
+        input_lines = in_file.readlines()
         ans_list = create_ans_list(needle, input_lines, flags)
         if flags['L'] or flags['l']:
             print_file_name(flags, file, len(ans_list))
@@ -122,7 +120,7 @@ def main(args_str: List[str]):
     elif len(args.files) == 1:
         work_with_file(args.files[0], '', args.needle, flags)
     else:
-        input_lines = [s for s in sys.stdin.readlines()]
+        input_lines = sys.stdin.readlines()
         print_output(create_ans_list(args.needle, input_lines, flags),
                      flags,
                      '')
