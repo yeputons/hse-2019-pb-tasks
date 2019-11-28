@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import io
-import sys
 import grep
 
 
@@ -82,46 +81,3 @@ def test_integrate_files_regex_grep_count(tmp_path, monkeypatch, capsys):
 def test_parser_init():
     parser = grep.init_parser()
     assert parser is not None
-
-
-def test_add_found_needle():
-    listtest = []
-    grep.add_found_needle('Are you sleeping?', 'sleeping?', False, sys.stdin, 1, listtest)
-    assert listtest == ['Are you sleeping?']
-
-
-def test_add_found_regex_needle():
-    listtest = []
-    grep.add_found_needle('Are you sleeping?', 'sleep?', True, sys.stdin, 1, listtest)
-    assert listtest == ['Are you sleeping?']
-
-
-def test_update_cnt_needle():
-    cnt = 0
-    cnt = grep.update_cnt_needle('sleep', 'ee', False, cnt)
-    assert cnt == 1
-
-
-def test_update_cnt_needle_not_changed():
-    cnt = 0
-    cnt = grep.update_cnt_needle('sleep', 'ee1', False, cnt)
-    assert cnt == 0
-
-
-def test_update_regex_cnt_needle():
-    cnt = 0
-    cnt = grep.update_cnt_needle('Are you sleeping?', 'sleep?', True, cnt)
-    assert cnt == 1
-
-
-def test_add_cnt():
-    listtest = []
-    grep.add_cnt(1, sys.stdin, 1, listtest)
-    assert listtest == ['1']
-
-
-def test_print_res(capsys):
-    grep.print_res(['We want to sleep', 'Really want to sleep', 'But we should to write tests TT'])
-    out, err = capsys.readouterr()
-    assert err == ''
-    assert out == 'We want to sleep\nReally want to sleep\nBut we should to write tests TT\n'

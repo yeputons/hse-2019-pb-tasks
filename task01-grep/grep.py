@@ -5,8 +5,8 @@ import re
 import argparse
 
 
-def init_parser() -> argparse.ArgumentParser:   # Инициализируем парсер,
-    parser = argparse.ArgumentParser(              # теперь им можно пользоваться ^^
+def init_parser() -> argparse.ArgumentParser:  # Инициализируем парсер,
+    parser = argparse.ArgumentParser(  # теперь им можно пользоваться ^^
         'You can use this program for searching strings in files... If you really want it.\n'
         'To use you just need to write what you want to search, and where (file).\n'
         "If you don't input any file we will search in stdin).\n"
@@ -15,48 +15,105 @@ def init_parser() -> argparse.ArgumentParser:   # Инициализируем �
     parser.add_argument('files', nargs='*', default=[sys.stdin], type=argparse.FileType('r'))
     parser.add_argument('-E', dest='regex', action='store_true',
                         help='use needle as regular expression')
+    parser.add_argument('-i', dest='ignore', action='store_true',
+                        help='ignore register')
+    parser.add_argument('-v', dest='invert', action='store_true',
+                        help='invert result')
+    parser.add_argument('-x', dest='fullmatch', action='store_true',
+                        help='full match for strings')
     parser.add_argument('-c', dest='cflag', action='store_true',
                         help="count number of needle's enters")
+    parser.add_argument('-l', dest='writefile', action='store_true',
+                        help="print name file, where needle enters")
+    parser.add_argument('-L', dest='writeinvertfile', action='store_true',
+                        help="print name file, where needle doesn't enter")
     return parser
 
 
-def add_found_needle(line: str, needle: str, reg: bool, file, num: int, listres: list):   # Если
-    if (needle in line and not reg) or (reg and re.search(needle, line)):  # needle -подстрока line
-        listres.append(f"{file.name + ':' if num > 1 else ''}{line}")  # добавляем её в список
+def find_in_reg(line,
+                needle,
+                fullmatch) -> bool:
+    if fullmatch:
+        return re.fullmatch(needle, line) is not None
+    else:
+        return re.search(needle, line) is not None
 
 
-def update_cnt_needle(line: str, needle: str, reg: bool, cnt: int) -> int:   # Обновляем счётчик
-    if (needle in line and not reg) or (reg and re.search(needle, line)):     # если needle
-        cnt += 1                                                             # это подстрочка line
-    return cnt
+def find_in_not_reg(line,
+                    needle,
+                    fullmatch) -> bool:
+    if fullmatch:
+        return line == needle
+    else:
+        return needle in line
 
 
-def add_cnt(cnt: int, file, num: int, listres: list):  # Добавляем в список результат счёта строчек
-    listres.append(f"{file.name + ':' if num > 1 else ''}{cnt}")
+def find_in(line,
+            needle,
+            reg,
+            ignore,
+            invert,
+            fullmatch) -> bool:
+    if ignore:
+        line = line.lower()
+        needle = needle.lower()
+    if reg:
+        result = find_in_reg(line, needle, fullmatch)
+    else:
+        result = find_in_not_reg(line, needle, fullmatch)
+    if invert:
+        result = result is False
+    return result
 
 
-def print_res(listres: list):  # Выводим результат на экран
-    for line in listres:  # (переданный список в правильном формате)
-        print(line)
+def add_found_needle(line: str,
+                     file,
+                     num: int,
+                     listres: list):
+    listres.append(f"{file.name + ':' if num > 1 else ''}{line}")  # добавляем её в список
+
+
+def print_res(dictlistres,
+              dictfiles,
+              cflag: bool,
+              writefile: bool,
+              writeinvertfile: bool):  # Выводим результат на экран
+    for file in dictfiles:  # (переданный список в правильном формате)
+        if cflag:
+            print(f"{file.name + ':' if len(dictfiles) > 1 else ''}{len(dictlistres[file])}")
+            continue
+        if writefile:
+            if dictfiles[file] == 'found':
+                print(file.name)
+            continue
+        if writeinvertfile:
+            if dictfiles[file] == 'empty':
+                print(file.name)
+            continue
+        for line in dictlistres[file]:
+            print(line)
 
 
 def process_data(args):  # Эта функция - своеобразный заместитель главной. Тут вся логика программы
-    listres = []
+    dictlistres = {}
+    dictfiles = {}
     for file in args.files:
-        cnt = 0
+        linesinfile = []
+        dictfiles[file] = 'empty'
         for line in file.readlines():
             line = line.rstrip('\n')
-            if args.cflag:
-                cnt = update_cnt_needle(line, args.needle, args.regex, cnt)
-            else:
-                add_found_needle(line, args.needle, args.regex, file, len(args.files), listres)
-        if args.cflag:
-            add_cnt(cnt, file, len(args.files), listres)
+            if find_in(line, args.needle, args.regex, args.ignore, args.invert, args.fullmatch):
+                add_found_needle(line,
+                                 file,
+                                 len(args.files),
+                                 linesinfile)
+                dictfiles[file] = 'found'
+        dictlistres[file] = linesinfile
         file.close()
-    print_res(listres)
+    print_res(dictlistres, dictfiles, args.cflag, args.writefile, args.writeinvertfile)
 
 
-def main(args_str: List[str]):   # Самая главная функция ^^, координирует всю работу
+def main(args_str: List[str]):  # Самая главная функция ^^, координирует всю работу
     parser = init_parser()
     args = parser.parse_args(args_str)
     process_data(args)
