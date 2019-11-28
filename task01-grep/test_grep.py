@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import io
-import grep
 import sys
+import grep
 
 
 def test_integrate_stdin_grep(monkeypatch, capsys):
@@ -93,7 +93,7 @@ def test_file_grep_get_list(tmp_path, monkeypatch, capsys):
     monkeypatch.chdir(tmp_path)
     grep.main(['-c', 'privet', 'a.txt'])
     with open('a.txt', 'r') as fin:
-        print(grep.get_list(False, 'privet', fin))
+        print(grep.get_list(False, False, False, False, False, False, '', 'privet', fin))
         out, err = capsys.readouterr()
         assert out == "2\n['privetttt', 'OprivetO']\n"
         assert err == ''
@@ -103,34 +103,127 @@ def test_stdin_grep_get_list_stdin(monkeypatch, capsys):
     monkeypatch.setattr('sys.stdin', io.StringIO(
         'hello\naloha\nprivetttt\nOprivetO\n'))
     grep.main(['privet'])
-    grep.get_list(False, 'privet', sys.stdin)
+    grep.get_list(False, False, False, False, False, False, '', 'privet', sys.stdin)
     out, err = capsys.readouterr()
     assert out == 'privetttt\nOprivetO\n'
     assert err == ''
 
 
-def test_stdin_grep_find_true():
-    regex = False
+def test_grep_find_true():
+    regex = False; inverse = False
+    find_substr = False; ignore_case = False
     line = 'ThisisaSENtense'
     needle = 'SEN'
-    bool_value = grep.find(regex, needle, line)
+    bool_value = grep.find(regex, inverse, find_substr, ignore_case, needle, line)
     assert bool_value
+    
 
-
-def test_stdin_grep_find_false():
-    regex = False
-    line = 'Thisisaasdfdgtense'
-    needle = 'HELLO'
-    bool_value = grep.find(regex, needle, line)
+def test_grep_find_false():
+    regex = False; inverse = False
+    find_substr = False; ignore_case = False
+    line = 'ThisisaSENtense'
+    needle = 'SEN123'
+    bool_value = grep.find(regex, inverse, find_substr, ignore_case, needle, line)
     assert not bool_value
 
 
-def test_stdin_grep_find():
-    regex = False
+def test_grep_find_inverse_true():
+    regex = False; inverse = True
+    find_substr = False; ignore_case = False
     line = 'ThisisaSENtense'
     needle = 'SEN'
-    bool_value = grep.find(regex, needle, line)
+    bool_value = grep.find(regex, inverse, find_substr, ignore_case, needle, line)
+    assert not bool_value
+
+
+def test_grep_find_inverse_false():
+    regex = False; inverse = True
+    find_substr = False; ignore_case = False
+    line = 'Thisisasentense'
+    needle = 'SEN'
+    bool_value = grep.find(regex, inverse, find_substr, ignore_case, needle, line)
     assert bool_value
+
+
+def test_grep_find_find_substr_true():
+    regex = False; inverse = False
+    find_substr = True; ignore_case = False
+    line = 'hello\n'
+    needle = 'hello'
+    bool_value = grep.find(regex, inverse, find_substr, ignore_case, needle, line)
+    assert bool_value
+
+
+def test_grep_find_find_substr_false():
+    regex = False; inverse = False
+    find_substr = True; ignore_case = False
+    line = 'ollehhello\n'
+    needle = 'hello'
+    bool_value = grep.find(regex, inverse, find_substr, ignore_case, needle, line)
+    assert not bool_value
+
+
+def test_grep_find_ignore_case_true():
+    regex = False; inverse = False
+    find_substr = False; ignore_case = True
+    line = '123HELLO123'
+    needle = 'hello'
+    bool_value = grep.find(regex, inverse, find_substr, ignore_case, needle, line)
+    assert bool_value
+
+
+def test_grep_find_ignore_case_false():
+    regex = False; inverse = False
+    find_substr = False; ignore_case = True
+    line = 'HELLO'
+    needle = 'hello'
+    bool_value = grep.find(regex, inverse, find_substr, ignore_case, needle, line)
+    assert bool_value
+
+
+def test_grep_find_ignore_case_find_substr_true():
+    regex = False; inverse = False
+    find_substr = True; ignore_case = True
+    line = 'HELLO\n'
+    needle = 'hello'
+    bool_value = grep.find(regex, inverse, find_substr, ignore_case, needle, line)
+    assert bool_value
+
+
+def test_grep_find_ignore_case_find_substr_false():
+    regex = False; inverse = False
+    find_substr = True; ignore_case = True
+    line = 'HELLO123\n'
+    needle = 'hello'
+    bool_value = grep.find(regex, inverse, find_substr, ignore_case, needle, line)
+    assert not bool_value
+
+
+def test_grep_find_inverse_find_substr_true():
+    regex = False; inverse = True
+    find_substr = True; ignore_case = False
+    line = 'hello999\n'
+    needle = 'hello'
+    bool_value = grep.find(regex, inverse, find_substr, ignore_case, needle, line)
+    assert bool_value
+
+
+def test_grep_find_inverse_find_substr_false():
+    regex = False; inverse = True
+    find_substr = True; ignore_case = False
+    line = 'hello\n'
+    needle = 'hello'
+    bool_value = grep.find(regex, inverse, find_substr, ignore_case, needle, line)
+    assert not bool_value
+
+
+def test_grep_find_inverse_ignore_case():
+    regex = False; inverse = True
+    find_substr = False; ignore_case = True
+    line = 'hello'
+    needle = 'HELLo'
+    bool_value = grep.find(regex, inverse, find_substr, ignore_case, needle, line)
+    assert not bool_value
 
 
 def test_grep_create_parser():
@@ -142,19 +235,57 @@ def test_grep_create_parser():
     assert args.files == ['a.txt']
 
 
-def test_grep_find_regex():
-    regex = True
+def test_grep_find_regex_true():
+    regex = True; inverse = False
+    find_substr = False; ignore_case = False
     needle = r'\d{2}'
     line = 'hello34bye'
-    bool_value = grep.find(regex, needle, line)
+    bool_value = grep.find(regex, inverse, find_substr, ignore_case, needle, line)
     assert bool_value
 
 
 def test_grep_find_regex_false():
-    regex = True
+    regex = True; inverse = False
+    find_substr = False; ignore_case = False
     needle = r'\d{2}'
     line = 'helloalohabye'
-    bool_value = grep.find(regex, needle, line)
+    bool_value = grep.find(regex, inverse, find_substr, ignore_case, needle, line)
+    assert not bool_value
+
+
+def test_grep_find_regex_inverse_true():
+    regex = True; inverse = True
+    find_substr = False; ignore_case = False
+    needle = r'\d{2}'
+    line = 'helloalohabye'
+    bool_value = grep.find(regex, inverse, find_substr, ignore_case, needle, line)
+    assert bool_value
+
+
+def test_grep_find_regex_inverse_false():
+    regex = True; inverse = True
+    find_substr = False; ignore_case = False
+    needle = r'\d{2}'
+    line = 'hello34bye'
+    bool_value = grep.find(regex, inverse, find_substr, ignore_case, needle, line)
+    assert not bool_value
+
+
+def test_grep_find_regex_find_substr_true():
+    regex = True; inverse = False
+    find_substr = True; ignore_case = False
+    needle = r'\d{2}'
+    line = '34'
+    bool_value = grep.find(regex, inverse, find_substr, ignore_case, needle, line)
+    assert bool_value
+
+
+def test_grep_find_regex_find_substr_false():
+    regex = True; inverse = False
+    find_substr = True; ignore_case = False
+    needle = r'\d{2}'
+    line = 'wow34wow'
+    bool_value = grep.find(regex, inverse, find_substr, ignore_case, needle, line)
     assert not bool_value
 
 
