@@ -3,6 +3,7 @@ import io
 import re
 from typing import Any, Dict
 import grep
+import pytest
 
 # trusted options generator
 
@@ -150,7 +151,7 @@ def test_unit_finder_inline_new():
     options['do_ignore_case'] = False
 
     assert not grep.finder_inline(options)
-    
+
     options['regexE_flags'] = [re.IGNORECASE]
 
     options['do_whole_line'] = False
@@ -222,12 +223,9 @@ def test_integrate_all_keys_count_files_grep(tmp_path, monkeypatch, capsys):
 
 def test_integrate_new_parser_fail():
     args = ['-L', '-civ', '-x', "neeeee''eedle", 'file1', 'stdin']
-    try:
+    with pytest.raises(SystemExit) as parser_fail_info:
         grep.main(args)
-    except SystemExit:
-        pass
-    else:
-        assert 0 == 1
+    assert str(parser_fail_info) == "<ExceptionInfo SystemExit(2) tblen=6>"
 
 
 def test_integrate_inverse(monkeypatch, capsys):
@@ -237,3 +235,14 @@ def test_integrate_inverse(monkeypatch, capsys):
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'pref needle\nneedle suf\npref needle suf\n'
+
+
+def test_integrade_do_only_not_files_issue(tmp_path, monkeypatch, capsys):
+    (tmp_path / '1.txt').write_text('pattern\npattern\npattern')
+    (tmp_path / '2.txt').write_text('pattern\npattern\nnot one more :)')
+    (tmp_path / '3.txt').write_text('no needles here!\n')
+    monkeypatch.chdir(tmp_path)
+    grep.main(['-L', 'pattern', '1.txt', '2.txt', '3.txt'])
+    out, err = capsys.readouterr()
+    assert err == ""
+    assert out == "3.txt\n"

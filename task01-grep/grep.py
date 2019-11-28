@@ -11,6 +11,7 @@ def dict_filter(options: Dict[str, Any], allowed: List[str], exclude: bool = Fal
     for opt in options:
         if (opt in allowed) ^ exclude:
             new_options[opt] = options[opt]
+            # xor here and further
     return new_options
 
 
@@ -100,10 +101,15 @@ def options_configure(options: Dict[str, Any]) -> None:
 
 def finder_inline(options: Dict[str, Any]) -> bool:
     # actually looks for needle in a haystack
+
     if options['do_whole_line']:
-        return bool(re.fullmatch(options['needle'], options['line'], *options['regexE_flags']))
+        search_result = bool(re.fullmatch(
+            options['needle'], options['line'], *options['regexE_flags']))
     else:
-        return bool(re.search(options['needle'], options['line'], *options['regexE_flags']))
+        search_result = bool(
+            re.search(options['needle'], options['line'], *options['regexE_flags']))
+
+    return search_result ^ options['do_invert']
 
 
 def handler(options: Dict[str, Any], final: bool) -> None:
@@ -131,7 +137,7 @@ def searcher(options: Dict[str, Any]) -> None:
         options, ['do_count', 'do_only_files', 'do_only_not_files', 'filename', 'files'])
     options['format_out'] = format_builder(options_for_formatter)
     options_for_finder = dict_filter(options, ['regexE', 'do_whole_line', 'regexE_flags',
-                                               'needle', 'do_ignore_case',
+                                               'needle', 'do_ignore_case', 'do_invert',
                                                'do_whole_line', 'line'])
     options_for_handler = dict_filter(options, ['late_output', 'do_count', 'count', 'format_out',
                                                 'count', 'do_only_files', 'do_only_not_files'])
@@ -141,9 +147,6 @@ def searcher(options: Dict[str, Any]) -> None:
         options_for_finder['line'] = line
         options_for_handler['line'] = line
         found = finder_inline(options_for_finder)
-
-        if options['do_invert']:
-            found = not found
 
         if found:
             handler(options_for_handler, final=False)
@@ -174,8 +177,6 @@ def main(args: List[str]):
 
     options: Dict[str, Any] = vars(parsed_args)
     options_configure(options)  # configure options so not filtered
-
-    options = dict_filter(options, ['do_not_only_files'], exclude=True)
 
     search_in_files(options)
 
