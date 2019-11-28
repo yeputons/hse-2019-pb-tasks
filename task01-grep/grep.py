@@ -11,14 +11,6 @@ def dict_filter(options: Dict[str, Any], allowed: List[str], exclude: bool = Fal
     for opt in options:
         if (opt in allowed) ^ exclude:
             new_options[opt] = options[opt]
-#    if exclude:
-#        for opt in options.keys():
-#            if opt not in allowed:
-#                new_options[opt] = options[opt]
-#    else:
-#        for opt in options.keys():
-#            if opt in allowed:
-#                new_options[opt] = options[opt]
     return new_options
 
 
@@ -81,8 +73,7 @@ def parser_init() -> argparse.ArgumentParser:
 def format_builder(options: Dict[str, Any]) -> str:
     # here format of output can be modified (in case of adding of additional flags)
     output_format = ''
-
-    if options['do_only_files']:
+    if options['do_only_files'] or options['do_only_not_files']:
         output_format += options['filename']
     else:
         if len(options['files']) > 1:
@@ -99,23 +90,16 @@ def options_configure(options: Dict[str, Any]) -> None:
     # here options are configured according to arguments
     if not options['regexE']:
         options['needle'] = re.escape(options['needle'])
-    
+
     options['regexE_flags'] = []
     if options['do_ignore_case']:
         options['regexE_flags'].append(re.IGNORECASE)
 
-    if options['do_only_not_files']:
-        options['do_invert'] = not options['do_invert']
-        options['do_only_files'] = True
-
-    options['late_output'] = options['do_count'] or options['do_only_files']
+    options['late_output'] = options['do_count'] or options['do_only_files'] or options['do_only_not_files']
 
 
 def finder_inline(options: Dict[str, Any]) -> bool:
     # actually looks for needle in a haystack
-    if options['do_ignore_case']:
-        options['line'] = options['line'].casefold()
-
     if options['do_whole_line']:
         return bool(re.fullmatch(options['needle'], options['line'], *options['regexE_flags']))
     else:
@@ -131,7 +115,8 @@ def handler(options: Dict[str, Any], final: bool) -> None:
             # to make final output
 
             if options['do_count'] or \
-                    options['do_only_files'] and options['count'] > 0:
+                    options['do_only_files'] and options['count'] > 0 or \
+                    options['do_only_not_files'] and options['count'] == 0:
                 print(options['format_out'].format_map(options))
     else:
         options['count'] += 1
@@ -142,14 +127,14 @@ def handler(options: Dict[str, Any], final: bool) -> None:
 def searcher(options: Dict[str, Any]) -> None:
     # search needle
     options['count'] = 0
-    options_fb = dict_filter(
-        options, ['do_only_files', 'do_count', 'filename', 'files'])
-    options['format_out'] = format_builder(options_fb)
+    options_for_formatter = dict_filter(
+        options, ['do_count', 'do_only_files', 'do_only_not_files', 'filename', 'files'])
+    options['format_out'] = format_builder(options_for_formatter)
     options_for_finder = dict_filter(options, ['regexE', 'do_whole_line', 'regexE_flags',
                                                'needle', 'do_ignore_case',
                                                'do_whole_line', 'line'])
-    options_for_handler = dict_filter(options, ['late_output', 'do_count', 'count',
-                                                'format_out', 'count', 'do_only_files'])
+    options_for_handler = dict_filter(options, ['late_output', 'do_count', 'count', 'format_out',
+                                                'count', 'do_only_files', 'do_only_not_files'])
 
     for line in options['io']:
         line = line.rstrip('\n')

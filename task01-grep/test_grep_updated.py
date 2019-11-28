@@ -96,8 +96,6 @@ def test_unit_options_configure_other():
                    'needle': 'JaVaNoChKa'})
     options['do_invert'] = True
     corr_opt = options.copy()
-    corr_opt['do_only_files'] = True
-    corr_opt['do_invert'] = False
     corr_opt['late_output'] = True
     grep.options_configure(options)
     assert options == corr_opt
@@ -152,14 +150,14 @@ def test_unit_finder_inline_new():
     options['do_ignore_case'] = False
 
     assert not grep.finder_inline(options)
+    
+    options['regexE_flags'] = [re.IGNORECASE]
 
     options['do_whole_line'] = False
     options['do_ignore_case'] = True
-    options['needle'] = options['needle'].casefold()
     options['line'] = '(hO){1,3} ooooo'
 
     assert grep.finder_inline(options)
-    assert options['line'] == '(ho){1,3} ooooo'
 
     options['do_whole_line'] = True
     options['do_ignore_case'] = True
