@@ -72,7 +72,7 @@ def test_search_append():
     assert lines.pop() == 'victor'
 
 
-def test_print_file(capsys):  # DODODODOODODODODODODO
+def test_print_file(capsys):
     lines: List[str] = ['thank you', 'a lot', 'thanks']
     file_name = 'hello, Olga:'
 

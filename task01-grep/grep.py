@@ -61,7 +61,6 @@ def main(args_str: List[str]) -> None:
                 search_right_string_file(string, in_file, lines)
                 print_file(print_filenames, args.count, file + ':', lines)
                 lines = []
-
     else:
         search_right_string_stdin(string, lines)
         print_stdio(args.count, lines)
