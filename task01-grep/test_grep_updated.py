@@ -84,7 +84,7 @@ def test_unit_options_configure_simple():
                    'do_only_files': True, 'needle': 'JaVaNoChKa'})
     options['do_ignore_case'] = True
     corr_opt = options.copy()
-    corr_opt['needle'] = 'javanochka'
+    corr_opt['regexE_flags'] = [re.IGNORECASE]
     grep.options_configure(options)
     assert options == corr_opt
 

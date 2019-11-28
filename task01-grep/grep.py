@@ -8,14 +8,17 @@ import argparse
 def dict_filter(options: Dict[str, Any], allowed: List[str], exclude: bool = False) -> Dict[str, Any]:
     # take dict and list and include/exclude only elements of dict mentioned in list
     new_options = {}
-    if exclude:
-        for opt in options.keys():
-            if opt not in allowed:
-                new_options[opt] = options[opt]
-    else:
-        for opt in options.keys():
-            if opt in allowed:
-                new_options[opt] = options[opt]
+    for opt in options:
+        if (opt in allowed) ^ exclude:
+            new_options[opt] = options[opt]
+#    if exclude:
+#        for opt in options.keys():
+#            if opt not in allowed:
+#                new_options[opt] = options[opt]
+#    else:
+#        for opt in options.keys():
+#            if opt in allowed:
+#                new_options[opt] = options[opt]
     return new_options
 
 
@@ -94,13 +97,13 @@ def format_builder(options: Dict[str, Any]) -> str:
 
 def options_configure(options: Dict[str, Any]) -> None:
     # here options are configured according to arguments
-    if options['regexE']:
-        options['regexE_flags'] = []
-        if options['do_ignore_case']:
-            options['regexE_flags'].append(re.IGNORECASE)
-    else:
-        if options['do_ignore_case']:
-            options['needle'] = options['needle'].casefold()
+    if not options['regexE']:
+        options['needle'] = re.escape(options['needle'])
+    
+    options['regexE_flags'] = []
+    if options['do_ignore_case']:
+        options['regexE_flags'].append(re.IGNORECASE)
+
     if options['do_only_not_files']:
         options['do_invert'] = not options['do_invert']
         options['do_only_files'] = True
@@ -110,19 +113,13 @@ def options_configure(options: Dict[str, Any]) -> None:
 
 def finder_inline(options: Dict[str, Any]) -> bool:
     # actually looks for needle in a haystack
-    if options['regexE']:
-        if options['do_whole_line']:
-            return bool(re.fullmatch(options['needle'], options['line'], *options['regexE_flags']))
-        else:
-            return bool(re.search(options['needle'], options['line'], *options['regexE_flags']))
-    else:
-        if options['do_ignore_case']:
-            options['line'] = options['line'].casefold()
+    if options['do_ignore_case']:
+        options['line'] = options['line'].casefold()
 
-        if options['do_whole_line']:
-            return options['needle'] == options['line']
-        else:
-            return options['needle'] in options['line']
+    if options['do_whole_line']:
+        return bool(re.fullmatch(options['needle'], options['line'], *options['regexE_flags']))
+    else:
+        return bool(re.search(options['needle'], options['line'], *options['regexE_flags']))
 
 
 def handler(options: Dict[str, Any], final: bool) -> None:
@@ -130,15 +127,11 @@ def handler(options: Dict[str, Any], final: bool) -> None:
 
     if final:
         if options['late_output']:
-            # clause variable find if there are any
-            # reason (according to arguments) to make final output
+            # search a reason (according to arguments)
+            # to make final output
 
-            clause = False
-            clause = clause or (options['do_count'])
-            clause = clause or (
-                options['do_only_files'] and options['count'] > 0)
-
-            if clause:
+            if options['do_count'] or \
+                    options['do_only_files'] and options['count'] > 0:
                 print(options['format_out'].format_map(options))
     else:
         options['count'] += 1
@@ -152,24 +145,25 @@ def searcher(options: Dict[str, Any]) -> None:
     options_fb = dict_filter(
         options, ['do_only_files', 'do_count', 'filename', 'files'])
     options['format_out'] = format_builder(options_fb)
-    options_fi = dict_filter(options, ['regexE', 'do_whole_line', 'regexE_flags', 'needle',
-                                       'do_ignore_case', 'do_whole_line', 'line'])
-    options_ha = dict_filter(options, ['late_output', 'do_count', 'count',
-                                       'format_out', 'count', 'do_only_files'])
+    options_for_finder = dict_filter(options, ['regexE', 'do_whole_line', 'regexE_flags',
+                                               'needle', 'do_ignore_case',
+                                               'do_whole_line', 'line'])
+    options_for_handler = dict_filter(options, ['late_output', 'do_count', 'count',
+                                                'format_out', 'count', 'do_only_files'])
 
     for line in options['io']:
         line = line.rstrip('\n')
-        options_fi['line'] = line
-        options_ha['line'] = line
-        found = finder_inline(options_fi)
+        options_for_finder['line'] = line
+        options_for_handler['line'] = line
+        found = finder_inline(options_for_finder)
 
         if options['do_invert']:
             found = not found
 
         if found:
-            handler(options_ha, final=False)
+            handler(options_for_handler, final=False)
 
-    handler(options_ha, final=True)
+    handler(options_for_handler, final=True)
 
 
 def search_in_files(options: Dict[str, Any]):

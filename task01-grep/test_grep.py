@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import io
+import re
 from typing import Any, Dict
 import grep
 
@@ -93,6 +94,7 @@ def test_unit_finder_inline_no_regexe():
                    'filename': 'file_#1', 'count': 0,
                    'do_count': True, 'regexE': False, 'line': 'hohoho, merry christmas @_@',
                    'needle': '(ho){1,3}'})
+    options['needle'] = re.escape(options['needle'])
     assert not grep.finder_inline(options)
     options['line'] = 'hahahahpo'
     options_old = options
@@ -106,6 +108,7 @@ def test_unit_finder_inline_no_regexe():
     options['line'] = '(ho){1,3}}}}}}'
     assert grep.finder_inline(options)
     options['needle'] = '[a-z].'
+    options['needle'] = re.escape(options['needle'])
     options['line'] = 'vvvvvv'
     assert not grep.finder_inline(options)
     options['line'] = '1337228322'
