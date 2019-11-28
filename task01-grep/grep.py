@@ -5,7 +5,9 @@ import re
 import argparse
 
 
-def dict_filter(options: Dict[str, Any], allowed: List[str], exclude: bool = False) -> Dict[str, Any]:
+def dict_filter(options: Dict[str, Any], allowed: List[str],
+                exclude: bool = False) -> Dict[str, Any]:
+
     # take dict and list and include/exclude only elements of dict mentioned in list
     new_options = {}
     for opt in options:
@@ -96,7 +98,9 @@ def options_configure(options: Dict[str, Any]) -> None:
     if options['do_ignore_case']:
         options['regexE_flags'].append(re.IGNORECASE)
 
-    options['late_output'] = options['do_count'] or options['do_only_files'] or options['do_only_not_files']
+    options['late_output'] = options['do_count'] or \
+        options['do_only_files'] or \
+        options['do_only_not_files']
 
 
 def finder_inline(options: Dict[str, Any]) -> bool:

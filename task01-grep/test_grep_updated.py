@@ -2,8 +2,8 @@
 import io
 import re
 from typing import Any, Dict
-import grep
 import pytest
+import grep
 
 # trusted options generator
 
@@ -225,7 +225,7 @@ def test_integrate_new_parser_fail():
     args = ['-L', '-civ', '-x', "neeeee''eedle", 'file1', 'stdin']
     with pytest.raises(SystemExit) as parser_fail_info:
         grep.main(args)
-    assert str(parser_fail_info) == "<ExceptionInfo SystemExit(2) tblen=6>"
+    assert str(parser_fail_info) == '<ExceptionInfo SystemExit(2) tblen=6>'
 
 
 def test_integrate_inverse(monkeypatch, capsys):
@@ -244,5 +244,5 @@ def test_integrade_do_only_not_files_issue(tmp_path, monkeypatch, capsys):
     monkeypatch.chdir(tmp_path)
     grep.main(['-L', 'pattern', '1.txt', '2.txt', '3.txt'])
     out, err = capsys.readouterr()
-    assert err == ""
-    assert out == "3.txt\n"
+    assert err == ''
+    assert out == '3.txt\n'
