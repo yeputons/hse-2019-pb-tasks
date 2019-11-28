@@ -72,3 +72,14 @@ def test_print_result(capsys):
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'yes, i should, but i havent done my English hw yet\n'
+
+
+def test_read(tmp_path, monkeypatch):
+    (tmp_path / 'a.txt').write_text('pref needle\nneedle suf\n')
+    monkeypatch.chdir(tmp_path)
+    with open('a.txt', 'r') as in_file:
+        assert grep.read(in_file) == ['pref needle', 'needle suf']
+    (tmp_path / 'a.txt').write_text('')
+    monkeypatch.chdir(tmp_path)
+    with open('a.txt', 'r') as in_file:
+        assert grep.read(in_file) == []

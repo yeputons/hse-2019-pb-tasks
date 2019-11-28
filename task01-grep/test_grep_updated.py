@@ -55,4 +55,3 @@ def test_substring_search_modifier():
     line = 'hey HI world'
     needle = 'hi'
     assert not grep.substring_search_modifier(line, needle, False, True, True)
-
