@@ -58,29 +58,24 @@ def filter_line(line: str, invert_mode: bool, fullmatch_mode: bool,
     :param searcher: for searching
     :return:
     """
-    if not fullmatch_mode:
-        matched = searcher.search(line)
-    else:
-        matched = searcher.fullmatch(line)
+    matched = searcher.search(line) if not fullmatch_mode else searcher.fullmatch(line)
     return invert_mode ^ bool(matched)
 
 
-def filter_matched_lines(lines: List[str], pattern: str, regex_mode: bool,
-                         invert_mode: bool, ignore_mode: bool, fullmatch_mode: bool) -> List[str]:
+def filter_lines(lines: List[str], pattern: str, regex_mode: bool, invert_mode: bool,
+                 ignore_mode: bool, fullmatch_mode: bool) -> List[str]:
     """
     Searches for lines that match pattern
     :param lines: lines to be checked
     :param pattern: pattern to be matched
+    :param regex_mode: -E flag
     :param invert_mode: -v flag
     :param ignore_mode: -i flag
     :param fullmatch_mode: -x flag
     """
     if not regex_mode:
         pattern = re.escape(pattern)
-    if ignore_mode:
-        searcher = re.compile(pattern, flags=re.IGNORECASE)
-    else:
-        searcher = re.compile(pattern)
+    searcher = re.compile(pattern, flags=re.IGNORECASE) if ignore_mode else re.compile(pattern)
     return [line for line in lines if filter_line(line, invert_mode, fullmatch_mode, searcher)]
 
 
@@ -99,10 +94,7 @@ def prepare_output(lines: List[str], stream_name: Optional[str], counting_mode: 
         assert stream_name
         output_lines = [stream_name] if bool(lines) ^ only_not_files_mode else []
     else:
-        if stream_name:
-            stream_name = f'{stream_name}:'
-        else:
-            stream_name = ''
+        stream_name = f'{stream_name}:' if stream_name else ''
         if counting_mode:
             lines = [str(len(lines))]
         output_lines = [f'{stream_name}{line}' for line in lines]
@@ -157,8 +149,8 @@ def main(args_str: List[str]):
 
     for lines, stream_name in zip(all_lines, stream_names):
         lines = strip_lines(lines)
-        matched_lines = filter_matched_lines(lines, args.pattern, args.regex,
-                                             args.invert, args.ignore, args.fullmatch)
+        matched_lines = filter_lines(lines, args.pattern, args.regex,
+                                     args.invert, args.ignore, args.fullmatch)
         output_lines = prepare_output(matched_lines, stream_name, args.counting,
                                       args.only_files, args.only_not_files)
         print_matched_lines(output_lines)
