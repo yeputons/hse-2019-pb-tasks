@@ -17,10 +17,10 @@ class TicTacToeUserHandler(UserHandler):
                 row = int(row)
                 col = int(col)
             except ValueError:
-                self.send_message('Invalid input - ValueError')
+                self.send_message('Invalid turn')
                 return
 
-            if not self.game:
+            if not self.game or self.game.is_finished():
                 self.send_message('Game is not started')
                 return
 
@@ -33,26 +33,33 @@ class TicTacToeUserHandler(UserHandler):
                 if self.game.can_make_turn(pl, row=row, col=col):
                     self.make_turn(pl, row=row, col=col)
                 else:
-                    print('Incorrect Turn')
+                    self.send_message('Invalid turn')
             except AssertionError:
-                self.send_message('Invalid values of col or row')
+                self.send_message('Invalid turn')
 
     def start_game(self) -> None:
         self.game = TicTacToe()
         self.send_field()
-        self.send_message('Game is started')
+        #self.send_message('Game is started')
 
     def make_turn(self, player: Player, *, row: int, col: int) -> None:
         self.game.make_turn(player, row=row, col=col)
         self.send_field()
         if self.game.is_finished():
-            self.send_message('Game is finished')
+            if not self.game.winner():
+                self.send_message('Game is finished, draw')
+                return
+            winner = 'X' if player == Player.X else 'O'
+            self.send_message(f'Game is finished, {winner} wins')
 
     def send_field(self) -> None:
+        output = ''
         for row in range(3):
             for col in range(3):
                 symbol = '.'
                 if self.game.field[row][col]:
                     symbol = 'X' if self.game.field[row][col] == Player.X else 'O'
-                print(symbol, end=' ')
-            print()
+                output += symbol
+            if row != 2:
+                output += '\n'
+        self.send_message(output)
