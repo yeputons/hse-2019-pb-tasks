@@ -1,20 +1,61 @@
 #!/usr/bin/env python3
-from typing import List
+from typing import List, Dict
 import sys
 import re
 import argparse
 
 
-def parse_arguments(arguments: List[str]):
+def parse_arguments(arguments: List[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument('needle', type=str)
     parser.add_argument('files', nargs='*')
     parser.add_argument('-c', dest='count', action='store_true')
+    parser.add_argument('-l', dest='names_only', action='store_true')
+    parser.add_argument('-L', dest='inverted_ans_names_only', action='store_true')
+    parser.add_argument('-i', dest='ignore_case', action='store_true')
+    parser.add_argument('-v', dest='inverted_found', action='store_true')
+    parser.add_argument('-x', dest='full_match', action='store_true')
     parser.add_argument('-E', dest='regex', action='store_true')
     return parser.parse_args(arguments)
 
 
-def create_ans_list(needle: str, search_lines: List[str], is_regex: bool) -> List[str]:
+def create_flags_dict(args: argparse.Namespace) -> Dict:
+    flags = {'c': args.count,
+             'E': args.regex,
+             'l': args.names_only,
+             'L': args.inverted_ans_names_only,
+             'i': args.ignore_case,
+             'v': args.inverted_found,
+             'x': args.full_match}
+    return flags
+
+
+def find_desired(flags: Dict, needle, line: str) -> bool:
+    """
+    Hello, Nadya! I want to go to sleep
+    so I'll write this comment later
+    """
+    cmd = 0
+    if flags['i']:
+        cmd = re.IGNORECASE
+        needle = needle.lower()
+        line = line.lower()
+    if flags['x']:
+        if flags['E']:
+            is_desired = re.fullmatch(needle, line, cmd)
+        else:
+            is_desired = needle == line
+    else:
+        if flags['E']:
+            is_desired = re.search(needle, line, cmd)
+        else:
+            is_desired = needle in line
+    if flags['v']:
+        return not is_desired
+    return is_desired
+
+
+def create_ans_list(needle: str, search_lines: List[str], flags: Dict) -> List[str]:
     """
     Returns a list with lines
     which contain a string or a regex needle.
@@ -22,40 +63,48 @@ def create_ans_list(needle: str, search_lines: List[str], is_regex: bool) -> Lis
     needle_lines = []
     for line in search_lines:
         line = line.rstrip('\n')
-        if is_regex:
-            if re.search(needle, line):
-                needle_lines.append(line)
-        elif needle in line:
+        if find_desired(flags, needle, line):
             needle_lines.append(line)
     return needle_lines
 
 
-def print_output(ans_list: List[str], is_count: bool, prefix: str):
+def print_output(ans_list: List[str], flags: Dict, prefix: str):
     """
     List output containing lines
     with string or regex needle
     or that list length output.
     """
-    if is_count:
+    if flags['c']:
         print(prefix, len(ans_list), sep='')
     else:
         for answer in ans_list:
             print(prefix, answer, sep='')
 
 
-def work_with_file(file, prefix, needle: str, is_regex, is_count: bool):
+def print_file_name(flags: Dict, file_name: str, is_found: bool) -> List[str]:
+    """
+    Print name of file witch contain
+    or not contain desired lines
+    """
+    if flags['L'] and not is_found or flags['l'] and is_found:
+        print(file_name)
+
+
+def work_with_file(file, prefix, needle: str, flags: Dict):
     """
     Single file processing
     with file's lines input
-    and files lines output
+    and files lines or file name output
     witch contain string or regex needle
     or a number of that lines.
     """
     with open(file, 'r') as in_file:
         input_lines = [s for s in in_file.readlines()]
-        print_output(create_ans_list(needle, input_lines, is_regex),
-                     is_count,
-                     prefix)
+        ans_list = create_ans_list(needle, input_lines, flags)
+        if flags['L'] or flags['l']:
+            print_file_name(flags, file, len(ans_list))
+            return
+        print_output(ans_list, flags, prefix)
 
 
 def main(args_str: List[str]):
@@ -66,15 +115,16 @@ def main(args_str: List[str]):
     or functions for working with standard input.
     """
     args = parse_arguments(args_str)
+    flags = create_flags_dict(args)
     if len(args.files) > 1:
         for file in args.files:
-            work_with_file(file, file + ':', args.needle, args.regex, args.count)
+            work_with_file(file, file + ':', args.needle, flags)
     elif len(args.files) == 1:
-        work_with_file(args.files[0], '', args.needle, args.regex, args.count)
+        work_with_file(args.files[0], '', args.needle, flags)
     else:
         input_lines = [s for s in sys.stdin.readlines()]
-        print_output(create_ans_list(args.needle, input_lines, args.regex),
-                     args.count,
+        print_output(create_ans_list(args.needle, input_lines, flags),
+                     flags,
                      '')
 
 

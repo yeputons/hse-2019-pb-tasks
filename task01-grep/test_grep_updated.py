@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-import io
 import grep
+import io
+import argparse
 
 
 def test_integrate_stdin_grep(monkeypatch, capsys):
@@ -124,6 +125,36 @@ def test_integrate_files_regex_grep_count(tmp_path, monkeypatch, capsys):
     assert out == 'b.txt:3\na.txt:1\n'
 
 
+def test_integrate_all_keys_print_files_grep(tmp_path, monkeypatch, capsys):
+    (tmp_path / 'a.txt').write_text('fO\nFO\nFoO\n')
+    (tmp_path / 'b.txt').write_text('hello fo?o world\nxfooyfoz\nfooo\n')
+    monkeypatch.chdir(tmp_path)
+    grep.main(['-livx', '-E', 'fo?o', 'b.txt', 'a.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'b.txt\n'
+
+
+def test_integrate_all_keys_print_not_files_grep(tmp_path, monkeypatch, capsys):
+    (tmp_path / 'a.txt').write_text('fO\nFO\nFoO\n')
+    (tmp_path / 'b.txt').write_text('hello fo?o world\nxfooyfoz\nfooo\n')
+    monkeypatch.chdir(tmp_path)
+    grep.main(['-Livx', '-E', 'fo?o', 'b.txt', 'a.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'a.txt\n'
+
+
+def test_integrate_all_keys_count_files_grep(tmp_path, monkeypatch, capsys):
+    (tmp_path / 'a.txt').write_text('fO\nFO\nFoO\n')
+    (tmp_path / 'b.txt').write_text('hello fo?o world\nxfooyfoz\nfooo\n')
+    monkeypatch.chdir(tmp_path)
+    grep.main(['-civx', '-E', 'fo?o', 'b.txt', 'a.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'b.txt:3\na.txt:0\n'
+
+
 def test_parse_arguments():
     testing_parser = grep.parse_arguments(['-c', '-E', 'needline', 'file_1.txt', 'file_2.txt'])
     assert testing_parser.needle == 'needline'
@@ -132,50 +163,176 @@ def test_parse_arguments():
     assert testing_parser.files == ['file_1.txt', 'file_2.txt']
 
 
+def test_create_flags_dict():
+    args = argparse.Namespace(count=True, files=['a.txt', 'b.txt'], full_match=False,
+                              ignore_case=False, inverted_ans_names_only=True,
+                              inverted_found=True, names_only=False, needle='help', regex=False)
+    flags = grep.create_flags_dict(args)
+    assert flags == {'c': True,
+                     'E': False,
+                     'l': False,
+                     'L': True,
+                     'i': False,
+                     'v': True,
+                     'x': False}
+
+
 def test_print_output(capsys):
-    grep.print_output(['kek', 'lol'], False, '')
+    flags = {'c': False,
+             'E': False,
+             'l': False,
+             'L': False,
+             'i': False,
+             'v': False,
+             'x': False}
+    return flags
+    grep.print_output(['kek', 'lol'], flags, '')
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'kek\nlol\n'
 
 
 def test_print_output_count(capsys):
-    grep.print_output(['kek', 'lol'], True, '')
+    flags = {'c': True,
+             'E': False,
+             'l': False,
+             'L': False,
+             'i': False,
+             'v': False,
+             'x': False}
+    grep.print_output(['kek', 'lol'], flags, '')
     out, err = capsys.readouterr()
     assert err == ''
     assert out == '2\n'
 
 
 def test_print_output_file(capsys):
-    grep.print_output(['kek', 'lol'], False, 'a.txt:')
+    flags = {'c': False,
+             'E': False,
+             'l': False,
+             'L': False,
+             'i': False,
+             'v': False,
+             'x': False}
+    grep.print_output(['kek', 'lol'], flags, 'a.txt:')
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'a.txt:kek\na.txt:lol\n'
 
 
 def test_print_output_file_count(capsys):
-    grep.print_output(['kek', 'lol'], True, 'a.txt:')
+    flags = {'c': True,
+             'E': False,
+             'l': False,
+             'L': False,
+             'i': False,
+             'v': False,
+             'x': False}
+    grep.print_output(['kek', 'lol'], flags, 'a.txt:')
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'a.txt:2\n'
 
 
 def test_create_ans_list():
-    testing_list = grep.create_ans_list('love', ['All you', 'need is', 'love!'], False)
+    flags = {'c': False,
+             'E': False,
+             'l': False,
+             'L': False,
+             'i': False,
+             'v': False,
+             'x': False}
+    testing_list = grep.create_ans_list('love', ['All you', 'need is', 'love!'], flags)
     assert testing_list == ['love!']
 
 
 def test_create_ans_list_regex():
+    flags = {'c': False,
+             'E': True,
+             'l': False,
+             'L': False,
+             'i': False,
+             'v': False,
+             'x': False}
     testing_list = grep.create_ans_list(r'\d{2}/\d{2}/\d{4}',
                                         ['20/02/1991', 'w', '14/11/2019'],
-                                        True)
+                                        flags)
     assert testing_list == ['20/02/1991', '14/11/2019']
 
 
 def test_work_with_file(tmp_path, monkeypatch, capsys):
+    flags = {'c': False,
+             'E': False,
+             'l': False,
+             'L': False,
+             'i': False,
+             'v': False,
+             'x': False}
     (tmp_path / 'a.txt').write_text('fff yes!\nnot working\nfff')
     monkeypatch.chdir(tmp_path)
-    grep.work_with_file('a.txt', '', 'ff', False, False)
+    grep.work_with_file('a.txt', '', 'ff', flags)
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'fff yes!\nfff\n'
+
+
+def test_print_file_name(capsys):
+    flags = {'c': False,
+             'E': False,
+             'l': False,
+             'L': True,
+             'i': False,
+             'v': False,
+             'x': False}
+    grep.print_file_name(flags, 'a.txt', False)
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'a.txt\n'
+
+
+def test_find_desired():
+    flags = {'c': False,
+             'E': False,
+             'l': False,
+             'L': False,
+             'i': False,
+             'v': False,
+             'x': False}
+    is_found = grep.find_desired(flags, 'sleep', 'I need some sleep')
+    assert is_found
+
+
+def test_find_desired_x_regex():
+    flags = {'c': False,
+             'E': True,
+             'l': False,
+             'L': False,
+             'i': False,
+             'v': False,
+             'x': True}
+    is_found = grep.find_desired(flags, r'\d:\d{2}', '4:50')
+    assert is_found
+
+
+def test_find_desired_i_v():
+    flags = {'c': False,
+             'E': False,
+             'l': False,
+             'L': False,
+             'i': True,
+             'v': True,
+             'x': False}
+    is_found = grep.find_desired(flags, 'he', 'HElp me')
+    assert is_found is False
+
+
+def test_find_desired_i_v_x():
+    flags = {'c': False,
+             'E': False,
+             'l': False,
+             'L': False,
+             'i': True,
+             'v': True,
+             'x': True}
+    is_found = grep.find_desired(flags, 'pP', 'Pp')
+    assert is_found is False
