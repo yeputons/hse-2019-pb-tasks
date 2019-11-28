@@ -17,11 +17,11 @@ def main():
             flip = random.choice([0, 1])
             if flip:
                 cur_run += 1
-                if cur_run > max_run:
-                    max_run += 1
-                    s += 1
             else:
                 cur_run = 0
+            if max_run < cur_run:
+                max_run = cur_run
+        s += max_run
     print(s, total, s / total)
 
 
