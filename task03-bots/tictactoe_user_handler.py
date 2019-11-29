@@ -40,17 +40,17 @@ class TicTacToeUserHandler(UserHandler):
         self.send_field()
 
     def finish_game(self) -> None:
-        if self.game.current_player():
-            self.send_message(f'Game is finished, {self.`char_by_player(self.game.current_player())} wins')
+        if self.game.winner():
+            self.send_message(f'Game is finished, {self.char_by_player(self.game.winner())} wins')
         else:
             self.send_message('Game is finished, draw')
+
 
     def make_turn(self, player: Player, *, row: int, col: int) -> None:
         if self.game.can_make_turn(player, row=row, col=col):
             self.game.make_turn(player, row=row, col=col)
             self.send_field()
             if self.game.is_finished():
-                #problem: current player incorrect
                 self.finish_game()
         else:
             self.send_message('Invalid turn')
