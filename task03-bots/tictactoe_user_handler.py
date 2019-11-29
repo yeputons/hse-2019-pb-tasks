@@ -20,7 +20,15 @@ class TicTacToeUserHandler(UserHandler):
             self.game.make_turn(player, row=row, col=col)
             self.send_field()
         else:
-            self.send_message("Invalid turn")
+            self.send_message("Invalid turn: player can't make turn")
 
     def send_field(self) -> None:
-        raise NotImplementedError
+        if self.game is not None:
+            for line in self.game.field:
+                lineres = ""
+                for el in range(0, 3):
+                    if line[el] is not None:
+                        lineres += (str(line[el]).split('.'))[1]
+                    else:
+                        lineres += '.'
+                self.send_message(lineres)
