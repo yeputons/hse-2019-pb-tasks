@@ -1,17 +1,15 @@
 #!/usr/bin/env python3
 import sys
 import traceback
-from alarm_user_handler import AlarmUserHandler
+from tictactoe_user_handler import TicTacToeUserHandler
 
 
 def send_message(message: str) -> None:
-    print(f'===== Message =====')
     print(message)
-    print('==========')
 
 
 def main() -> None:
-    user_handler = AlarmUserHandler(send_message=send_message)
+    user_handler = TicTacToeUserHandler(send_message=send_message)
     for line in sys.stdin:
         try:
             message = line.rstrip('\n')
