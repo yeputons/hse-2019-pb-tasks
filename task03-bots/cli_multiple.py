@@ -12,6 +12,7 @@ def send_message(to_user_id: int, message: str) -> None:
 
 
 def main() -> None:
+    """Пример работы с ботом через консоль."""
     bot = UserIndependentBot(send_message=send_message, user_handler=AlarmUserHandler)
     for line in sys.stdin:
         try:
