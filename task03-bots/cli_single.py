@@ -3,13 +3,14 @@ import sys
 import traceback
 from tictactoe_user_handler import TicTacToeUserHandler
 
+
 def send_message(message: str) -> None:
     print(message)
 
 
 def main() -> None:
     bot = TicTacToeUserHandler(send_message)
-    
+
     for line in sys.stdin:
         try:
             message = line.rstrip('\n')
