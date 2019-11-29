@@ -18,9 +18,9 @@ class TicTacToeUserHandler(UserHandler):
             self.send_message('Game is not started')
         else:
             player_by_symbol, col, row = message.split()
-            player = Player.X if player_by_symbol == 'X' else Player.O
-            row, col = int(row), int(col)
-            self.make_turn(player, row=row, col=col)
+            if player_by_symbol in ('X', 'O'):
+                player = Player.X if player_by_symbol == 'X' else Player.O
+                self.make_turn(player, row=int(row), col=int(col))
 
     def start_game(self) -> None:
         """Начинает новую игру в крестики-нолики и сообщает об этом пользователю."""
@@ -36,7 +36,7 @@ class TicTacToeUserHandler(UserHandler):
                 if self.game.winner() == Player.X:
                     self.send_message('Game is finished, X wins')
                 elif self.game.winner() == Player.O:
-                    self.send_message('Game is finished, Y wins')
+                    self.send_message('Game is finished, O wins')
                 else:
                     self.send_message('Game is finished, draw')
                 self.game = None
@@ -45,15 +45,9 @@ class TicTacToeUserHandler(UserHandler):
 
     def send_field(self) -> None:
         """Отправляет пользователю сообщение с состоянием игры."""
-        field_message = '\n'
+        field_message = ''
         for row in self.game.field:
             for player in row:
-                if player == Player.X:
-                    field_message += 'X'
-                elif player == Player.O:
-                    field_message += 'O'
-                else:
-                    field_message += '.'
+                field_message += player.name if player else '.'
             field_message += '\n'
-
-        self.send_message(field_message)
+        self.send_message(field_message.rstrip('\n'))
