@@ -6,32 +6,48 @@ import grep
 def test_find_in_string_first():
     needle = 'kud'
     check_list = 'kudkuda'
+    register = False
+    full = False
+    invert = False
+    miss = False
     regex = False
-    ans_value = grep.find_in_string(regex, needle, check_list)
+    ans_value = grep.find_in_string(register, full, invert, miss, regex, needle, check_list)
     assert ans_value
 
 
 def test_find_in_string_second():
     needle = '[0-9]'
     check_list = 'ku12dkuda'
+    register = False
+    full = False
+    invert = False
+    miss = False
     regex = True
-    ans_value = grep.find_in_string(regex, needle, check_list)
+    ans_value = grep.find_in_string(register, full, invert, miss, regex, needle, check_list)
     assert ans_value is not None
 
 
 def test_find_in_string_first_false():
     needle = 'kud'
     check_list = 'kuergkrgfuda'
+    register = False
+    full = False
+    invert = False
+    miss = False
     regex = False
-    ans_value = grep.find_in_string(regex, needle, check_list)
+    ans_value = grep.find_in_string(register, full, invert, miss, regex, needle, check_list)
     assert not ans_value
 
 
 def test_find_in_string_second_false():
     needle = '[0-9]'
     check_list = 'kudkuda'
+    register = False
+    full = False
+    invert = False
+    miss = False
     regex = True
-    ans_value = grep.find_in_string(regex, needle, check_list)
+    ans_value = grep.find_in_string(register, full, invert, miss, regex, needle, check_list)
     assert not ans_value
 
 
@@ -74,21 +90,29 @@ def test_action_count_second(capsys):
 
 
 def test_create_right_list_true():
+    register = False
+    full = False
+    invert = False
+    miss = False
     regex = True
     input_list = ['rbrb', '1', 'ejhbv43njev43bfr', 'rrrjnb789', '245', '342645654', 'rebrhrh']
     right_list = []
     needle = '[0-9]'
-    grep.create_right_list(regex, input_list, needle, right_list)
+    grep.create_right_list(register, full, invert, miss, regex, input_list, needle, right_list)
     assert right_list == ['1', 'ejhbv43njev43bfr', 'rrrjnb789', '245', '342645654']
 
 
 def test_create_right_list_false():
+    register = False
+    full = False
+    invert = False
+    miss = False
     regex = False
     input_list = ['rbrb', 'b1rb', 'ejhbv4brb3njev43bfr',
                   'rrrjnb789', '245', '34264brb5654', 'rebrhrbrbrbrbrbrbrrbrbh']
     right_list = []
     needle = 'brb'
-    grep.create_right_list(regex, input_list, needle, right_list)
+    grep.create_right_list(register, full, invert, miss, regex, input_list, needle, right_list)
     assert right_list == ['rbrb', 'ejhbv4brb3njev43bfr', '34264brb5654', 'rebrhrbrbrbrbrbrbrrbrbh']
 
 
@@ -225,3 +249,33 @@ def test_grep_few_files_count_regex(tmp_path, monkeypatch, capsys):
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'b.txt:2\na.txt:3\n'
+
+
+def test_integrate_all_keys_print_files_grep(tmp_path, monkeypatch, capsys):
+    (tmp_path / 'a.txt').write_text('fO\nFO\nFoO\n')
+    (tmp_path / 'b.txt').write_text('hello fo?o world\nxfooyfoz\nfooo\n')
+    monkeypatch.chdir(tmp_path)
+    grep.main(['-livx', '-E', 'fo?o', 'b.txt', 'a.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'b.txt\n'
+
+
+def test_integrate_all_keys_print_not_files_grep(tmp_path, monkeypatch, capsys):
+    (tmp_path / 'a.txt').write_text('fO\nFO\nFoO\n')
+    (tmp_path / 'b.txt').write_text('hello fo?o world\nxfooyfoz\nfooo\n')
+    monkeypatch.chdir(tmp_path)
+    grep.main(['-Livx', '-E', 'fo?o', 'b.txt', 'a.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'a.txt\n'
+
+
+def test_integrate_all_keys_count_files_grep(tmp_path, monkeypatch, capsys):
+    (tmp_path / 'a.txt').write_text('fO\nFO\nFoO\n')
+    (tmp_path / 'b.txt').write_text('hello fo?o world\nxfooyfoz\nfooo\n')
+    monkeypatch.chdir(tmp_path)
+    grep.main(['-civx', '-E', 'fo?o', 'b.txt', 'a.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'b.txt:3\na.txt:0\n'
