@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
 import sys
 import traceback
-from alarm_user_handler import AlarmUserHandler
-
+from tictactoe_user_handler import TicTacToeUserHandler
 
 def send_message(message: str) -> None:
     print(message)
 
 
 def main() -> None:
-    bot = AlarmUserHandler(send_message)
+    bot = TicTacToeUserHandler(send_message)
     
     for line in sys.stdin:
         try:
