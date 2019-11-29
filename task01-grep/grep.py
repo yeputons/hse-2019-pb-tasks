@@ -5,8 +5,12 @@ import re
 import argparse
 
 
-def init_parser() -> argparse.ArgumentParser:  # Инициализируем парсер,
-    parser = argparse.ArgumentParser(  # теперь им можно пользоваться ^^
+def init_parser() -> argparse.ArgumentParser:
+    """
+        Инициализируем парсер
+        теперь им можно пользоваться ^^
+    """
+    parser = argparse.ArgumentParser(
         'You can use this program for searching strings in files... If you really want it.\n'
         'To use you just need to write what you want to search, and where (file).\n'
         "If you don't input any file we will search in stdin).\n"
@@ -70,16 +74,18 @@ def add_found_needle(line: str,
                      file,
                      num: int,
                      listres: list):
-    listres.append(f"{file.name + ':' if num > 1 else ''}{line}")  # добавляем её в список
+    """ Добавляем в переданный список сторчку, по пути форматируя её """
+    listres.append(f"{file.name + ':' if num > 1 else ''}{line}")
 
 
 def collect_res(dictlistres,
                 dictfiles,
                 cflag: bool,
                 writefile: bool,
-                writeinvertfile: bool):  # Собираем результат
+                writeinvertfile: bool):
+    """ Собираем результат (список строчек в правильном формате) """
     listres = []
-    for file in dictfiles:  # (переданный список в правильном формате)
+    for file in dictfiles:
         if cflag:
             listres.append(f"{file.name + ':' if len(dictfiles) > 1 else ''}{len(dictlistres[file])}")
             continue
@@ -101,7 +107,8 @@ def print_res(listres):
         print(line)
 
 
-def process_data(args):  # Эта функция - своеобразный заместитель главной. Тут вся логика программы
+def process_data(args):
+    """ Функция, в которой прописана вся логика программы """
     dictlistres = {}
     dictfiles = {}
     for file in args.files:
@@ -129,7 +136,10 @@ def process_data(args):  # Эта функция - своеобразный за
                           args.writeinvertfile))
 
 
-def main(args_str: List[str]):  # Самая главная функция ^^, координирует всю работу
+def main(args_str: List[str]):
+    """
+        Самая главная функция ^^, она координирут всю работу
+    """
     parser = init_parser()
     args = parser.parse_args(args_str)
     process_data(args)
