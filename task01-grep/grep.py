@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from typing import List
-from typing import IO
+from typing import Iterable
 from typing import Pattern
 from typing import Tuple
 
@@ -18,8 +18,8 @@ def parse_args(args_str: List[str]) -> argparse.Namespace:
     return parser.parse_args(args_str)
 
 
-def get_lines(file: IO[str]) -> List[str]:
-    return [line.rstrip('\n') for line in file.readlines()]
+def get_lines(file: Iterable) -> List[str]:
+    return [line.rstrip('\n') for line in file]
 
 
 def get_re_pattern(pattern: str, regex_flag: bool) -> Pattern[str]:
