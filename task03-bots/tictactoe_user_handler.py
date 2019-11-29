@@ -12,7 +12,8 @@ class TicTacToeUserHandler(UserHandler):
         raise NotImplementedError
 
     def start_game(self) -> None:
-        raise NotImplementedError
+        self.game = TicTacToe()
+        self.send_field()
 
     def make_turn(self, player: Player, *, row: int, col: int) -> None:
         raise NotImplementedError
