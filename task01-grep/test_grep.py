@@ -93,7 +93,8 @@ def test_file_grep_get_list(tmp_path, monkeypatch, capsys):
     monkeypatch.chdir(tmp_path)
     grep.main(['-c', 'privet', 'a.txt'])
     with open('a.txt', 'r') as fin:
-        print(grep.get_list(False, False, False, False, False, False, '', 'privet', fin))
+        print(grep.get_list(False, False, False,
+                            False, False, False, '', 'privet', fin))
         out, err = capsys.readouterr()
         assert out == "2\n['privetttt', 'OprivetO']\n"
         assert err == ''
@@ -103,126 +104,166 @@ def test_stdin_grep_get_list_stdin(monkeypatch, capsys):
     monkeypatch.setattr('sys.stdin', io.StringIO(
         'hello\naloha\nprivetttt\nOprivetO\n'))
     grep.main(['privet'])
-    grep.get_list(False, False, False, False, False, False, '', 'privet', sys.stdin)
+    grep.get_list(False, False, False, False, False,
+                  False, '', 'privet', sys.stdin)
     out, err = capsys.readouterr()
     assert out == 'privetttt\nOprivetO\n'
     assert err == ''
 
 
 def test_grep_find_true():
-    regex = False; inverse = False
-    find_substr = False; ignore_case = False
+    regex = False
+    inverse = False
+    find_substr = False
+    ignore_case = False
     line = 'ThisisaSENtense'
     needle = 'SEN'
-    bool_value = grep.find(regex, inverse, find_substr, ignore_case, needle, line)
+    bool_value = grep.find(regex, inverse, find_substr,
+                           ignore_case, needle, line)
     assert bool_value
-    
+
 
 def test_grep_find_false():
-    regex = False; inverse = False
-    find_substr = False; ignore_case = False
+    regex = False
+    inverse = False
+    find_substr = False
+    ignore_case = False
     line = 'ThisisaSENtense'
     needle = 'SEN123'
-    bool_value = grep.find(regex, inverse, find_substr, ignore_case, needle, line)
+    bool_value = grep.find(regex, inverse, find_substr,
+                           ignore_case, needle, line)
     assert not bool_value
 
 
 def test_grep_find_inverse_true():
-    regex = False; inverse = True
-    find_substr = False; ignore_case = False
+    regex = False
+    inverse = True
+    find_substr = False
+    ignore_case = False
     line = 'ThisisaSENtense'
     needle = 'SEN'
-    bool_value = grep.find(regex, inverse, find_substr, ignore_case, needle, line)
+    bool_value = grep.find(regex, inverse, find_substr,
+                           ignore_case, needle, line)
     assert not bool_value
 
 
 def test_grep_find_inverse_false():
-    regex = False; inverse = True
-    find_substr = False; ignore_case = False
+    regex = False
+    inverse = True
+    find_substr = False
+    ignore_case = False
     line = 'Thisisasentense'
     needle = 'SEN'
-    bool_value = grep.find(regex, inverse, find_substr, ignore_case, needle, line)
+    bool_value = grep.find(regex, inverse, find_substr,
+                           ignore_case, needle, line)
     assert bool_value
 
 
 def test_grep_find_find_substr_true():
-    regex = False; inverse = False
-    find_substr = True; ignore_case = False
+    regex = False
+    inverse = False
+    find_substr = True
+    ignore_case = False
     line = 'hello\n'
     needle = 'hello'
-    bool_value = grep.find(regex, inverse, find_substr, ignore_case, needle, line)
+    bool_value = grep.find(regex, inverse, find_substr,
+                           ignore_case, needle, line)
     assert bool_value
 
 
 def test_grep_find_find_substr_false():
-    regex = False; inverse = False
-    find_substr = True; ignore_case = False
+    regex = False
+    inverse = False
+    find_substr = True
+    ignore_case = False
     line = 'ollehhello\n'
     needle = 'hello'
-    bool_value = grep.find(regex, inverse, find_substr, ignore_case, needle, line)
+    bool_value = grep.find(regex, inverse, find_substr,
+                           ignore_case, needle, line)
     assert not bool_value
 
 
 def test_grep_find_ignore_case_true():
-    regex = False; inverse = False
-    find_substr = False; ignore_case = True
+    regex = False
+    inverse = False
+    find_substr = False
+    ignore_case = True
     line = '123HELLO123'
     needle = 'hello'
-    bool_value = grep.find(regex, inverse, find_substr, ignore_case, needle, line)
+    bool_value = grep.find(regex, inverse, find_substr,
+                           ignore_case, needle, line)
     assert bool_value
 
 
 def test_grep_find_ignore_case_false():
-    regex = False; inverse = False
-    find_substr = False; ignore_case = True
+    regex = False
+    inverse = False
+    find_substr = False
+    ignore_case = True
     line = 'HELLO'
     needle = 'hello'
-    bool_value = grep.find(regex, inverse, find_substr, ignore_case, needle, line)
+    bool_value = grep.find(regex, inverse, find_substr,
+                           ignore_case, needle, line)
     assert bool_value
 
 
 def test_grep_find_ignore_case_find_substr_true():
-    regex = False; inverse = False
-    find_substr = True; ignore_case = True
+    regex = False
+    inverse = False
+    find_substr = True
+    ignore_case = True
     line = 'HELLO\n'
     needle = 'hello'
-    bool_value = grep.find(regex, inverse, find_substr, ignore_case, needle, line)
+    bool_value = grep.find(regex, inverse, find_substr,
+                           ignore_case, needle, line)
     assert bool_value
 
 
 def test_grep_find_ignore_case_find_substr_false():
-    regex = False; inverse = False
-    find_substr = True; ignore_case = True
+    regex = False
+    inverse = False
+    find_substr = True
+    ignore_case = True
     line = 'HELLO123\n'
     needle = 'hello'
-    bool_value = grep.find(regex, inverse, find_substr, ignore_case, needle, line)
+    bool_value = grep.find(regex, inverse, find_substr,
+                           ignore_case, needle, line)
     assert not bool_value
 
 
 def test_grep_find_inverse_find_substr_true():
-    regex = False; inverse = True
-    find_substr = True; ignore_case = False
+    regex = False
+    inverse = True
+    find_substr = True
+    ignore_case = False
     line = 'hello999\n'
     needle = 'hello'
-    bool_value = grep.find(regex, inverse, find_substr, ignore_case, needle, line)
+    bool_value = grep.find(regex, inverse, find_substr,
+                           ignore_case, needle, line)
     assert bool_value
 
 
 def test_grep_find_inverse_find_substr_false():
-    regex = False; inverse = True
-    find_substr = True; ignore_case = False
+    regex = False
+    inverse = True
+    find_substr = True
+    ignore_case = False
     line = 'hello\n'
     needle = 'hello'
-    bool_value = grep.find(regex, inverse, find_substr, ignore_case, needle, line)
+    bool_value = grep.find(regex, inverse, find_substr,
+                           ignore_case, needle, line)
     assert not bool_value
 
 
 def test_grep_find_inverse_ignore_case():
-    regex = False; inverse = True
-    find_substr = False; ignore_case = True
+    regex = False
+    inverse = True
+    find_substr = False
+    ignore_case = True
     line = 'hello'
     needle = 'HELLo'
-    bool_value = grep.find(regex, inverse, find_substr, ignore_case, needle, line)
+    bool_value = grep.find(regex, inverse, find_substr,
+                           ignore_case, needle, line)
     assert not bool_value
 
 
@@ -236,56 +277,74 @@ def test_grep_create_parser():
 
 
 def test_grep_find_regex_true():
-    regex = True; inverse = False
-    find_substr = False; ignore_case = False
+    regex = True
+    inverse = False
+    find_substr = False
+    ignore_case = False
     needle = r'\d{2}'
     line = 'hello34bye'
-    bool_value = grep.find(regex, inverse, find_substr, ignore_case, needle, line)
+    bool_value = grep.find(regex, inverse, find_substr,
+                           ignore_case, needle, line)
     assert bool_value
 
 
 def test_grep_find_regex_false():
-    regex = True; inverse = False
-    find_substr = False; ignore_case = False
+    regex = True
+    inverse = False
+    find_substr = False
+    ignore_case = False
     needle = r'\d{2}'
     line = 'helloalohabye'
-    bool_value = grep.find(regex, inverse, find_substr, ignore_case, needle, line)
+    bool_value = grep.find(regex, inverse, find_substr,
+                           ignore_case, needle, line)
     assert not bool_value
 
 
 def test_grep_find_regex_inverse_true():
-    regex = True; inverse = True
-    find_substr = False; ignore_case = False
+    regex = True
+    inverse = True
+    find_substr = False
+    ignore_case = False
     needle = r'\d{2}'
     line = 'helloalohabye'
-    bool_value = grep.find(regex, inverse, find_substr, ignore_case, needle, line)
+    bool_value = grep.find(regex, inverse, find_substr,
+                           ignore_case, needle, line)
     assert bool_value
 
 
 def test_grep_find_regex_inverse_false():
-    regex = True; inverse = True
-    find_substr = False; ignore_case = False
+    regex = True
+    inverse = True
+    find_substr = False
+    ignore_case = False
     needle = r'\d{2}'
     line = 'hello34bye'
-    bool_value = grep.find(regex, inverse, find_substr, ignore_case, needle, line)
+    bool_value = grep.find(regex, inverse, find_substr,
+                           ignore_case, needle, line)
     assert not bool_value
 
 
 def test_grep_find_regex_find_substr_true():
-    regex = True; inverse = False
-    find_substr = True; ignore_case = False
+    regex = True
+    inverse = False
+    find_substr = True
+    ignore_case = False
     needle = r'\d{2}'
     line = '34'
-    bool_value = grep.find(regex, inverse, find_substr, ignore_case, needle, line)
+    bool_value = grep.find(regex, inverse, find_substr,
+                           ignore_case, needle, line)
     assert bool_value
 
 
 def test_grep_find_regex_find_substr_false():
-    regex = True; inverse = False
-    find_substr = True; ignore_case = False
+    regex = True
+    inverse = False
+    find_substr = True
+    ignore_case = False
     needle = r'\d{2}'
     line = 'wow34wow'
-    bool_value = grep.find(regex, inverse, find_substr, ignore_case, needle, line)
+    bool_value = grep.find(regex, inverse, find_substr,
+                           ignore_case, needle, line)
     assert not bool_value
 
 
@@ -340,3 +399,132 @@ def test_grep_print_list_count_num(capsys):
     out, err = capsys.readouterr()
     assert out == 'a.txt:3\n'
     assert err == ''
+
+
+def test_integrate_file_grep_count_inv(tmp_path, monkeypatch, capsys):
+    (tmp_path / 'a.txt').write_text('the needl\npref needle suf\nhello\naloha')
+    monkeypatch.chdir(tmp_path)
+    grep.main(['-c', '-v', 'needle', 'a.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == '3\n'
+
+
+def test_integrate_files_grep_count_inv(tmp_path, monkeypatch, capsys):  # TODO
+    (tmp_path / 'a.txt').write_text('pref needle\nneedle suf\nfirst\nsecond')
+    (tmp_path / 'b.txt').write_text('the needl-first\npref needle suf\nsecond\nthird')
+    monkeypatch.chdir(tmp_path)
+    grep.main(['-c', '-v', 'needle', 'b.txt', 'a.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'b.txt:3\na.txt:2\n'
+
+
+def test_integrate_stdin_grep_count_inv(monkeypatch, capsys):
+    monkeypatch.setattr('sys.stdin', io.StringIO(
+        'pref needle\nneedle suf\nfirst\nsecond\nthird'))
+    grep.main(['-c', '-v', 'needle'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == '3\n'
+
+
+def test_integrate_file_grep_count_ignore(tmp_path, monkeypatch, capsys):
+    (tmp_path / 'a.txt').write_text('NEEDLE\npref needle suf\nnEEdlE\naloha')
+    monkeypatch.chdir(tmp_path)
+    grep.main(['-c', '-i', 'needle', 'a.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == '3\n'
+
+
+def test_integrate_files_grep_count_ignore(tmp_path, monkeypatch, capsys):
+    (tmp_path / 'a.txt').write_text('pref needle\nneedle suf\nNEEDLE\nsecond')
+    (tmp_path / 'b.txt').write_text('the need-first\npref needle suf\nneedlE\nthird')
+    monkeypatch.chdir(tmp_path)
+    grep.main(['-c', '-i', 'needle', 'b.txt', 'a.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'b.txt:2\na.txt:3\n'
+
+
+def test_integrate_stdin_grep_count_ignore(monkeypatch, capsys):
+    monkeypatch.setattr('sys.stdin', io.StringIO(
+        'pref needle\nNEEDLE\nNeeDle\nstr'))
+    grep.main(['-c', '-i', 'needle'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == '3\n'
+# -------------------------------------------------------------------------
+
+
+def test_integrate_file_grep_count_substr(tmp_path, monkeypatch, capsys):
+    (tmp_path / 'a.txt').write_text('NEEDLE\nneedle\nnEEdlE\nneedle123')
+    monkeypatch.chdir(tmp_path)
+    grep.main(['-c', '-x', 'needle', 'a.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == '1\n'
+
+
+def test_integrate_files_grep_count_substr(tmp_path, monkeypatch, capsys):
+    (tmp_path / 'a.txt').write_text('pref needle\nneedle\nNEEDLE\nsecond')
+    (tmp_path / 'b.txt').write_text('the need-first\npref needle suf\nneedlE\nthird')
+    monkeypatch.chdir(tmp_path)
+    grep.main(['-c', '-x', 'needle', 'b.txt', 'a.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'a.txt:1\n'
+
+
+def test_integrate_stdin_grep_count_substr(monkeypatch, capsys):
+    monkeypatch.setattr('sys.stdin', io.StringIO(
+        'pref needle\nneedldldlde\nneedle\nNeeDle\nstr'))
+    grep.main(['-c', '-x', 'needle'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == '1\n'
+
+
+def test_integrate_files_grep_print_found(tmp_path, monkeypatch, capsys):
+    (tmp_path / 'a.txt').write_text('pref needle\nneedle\nNEEDLE\nsecond')
+    (tmp_path / 'b.txt').write_text('the need-first\npref needle suf\nneedlE\nthird')
+    (tmp_path / 'c.txt').write_text('hello\nit\nis\nme')
+    monkeypatch.chdir(tmp_path)
+    grep.main(['-l', 'needle', 'c.txt', 'b.txt', 'a.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'b.txt\na.txt\n'
+
+
+def test_integrate_files_grep_print_not_found(tmp_path, monkeypatch, capsys):
+    (tmp_path / 'a.txt').write_text('pref needle\nneedle\nNEEDLE\nsecond')
+    (tmp_path / 'b.txt').write_text('the need-first\npref needle suf\nneedlE\nthird')
+    (tmp_path / 'c.txt').write_text('hello\nit\nis\nme')
+    monkeypatch.chdir(tmp_path)
+    grep.main(['-L', 'needle', 'c.txt', 'b.txt', 'a.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'c.txt\n'
+
+
+def test_integrate_files_grep_print_found_inv(tmp_path, monkeypatch, capsys):
+    (tmp_path / 'a.txt').write_text('pref needle\nneedle')
+    (tmp_path / 'b.txt').write_text('the need-first\npref needle suf\nneedlE\nthird')
+    (tmp_path / 'c.txt').write_text('hello\nit\nis\nme')
+    monkeypatch.chdir(tmp_path)
+    grep.main(['-l', '-v', 'needle', 'c.txt', 'b.txt', 'a.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'c.txt\nb.txt\n'
+
+
+def test_integrate_files_grep_print_not_found_inv(tmp_path, monkeypatch, capsys):
+    (tmp_path / 'a.txt').write_text('pref needle\nneedle\nNEEDLE\nsecond')
+    (tmp_path / 'b.txt').write_text('the need-first\npref needle suf\nneedlE\nthird')
+    (tmp_path / 'c.txt').write_text('hello\nit\nis\nme')
+    monkeypatch.chdir(tmp_path)
+    grep.main(['-L', '-v', 'needle', 'c.txt', 'b.txt', 'a.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == ''
