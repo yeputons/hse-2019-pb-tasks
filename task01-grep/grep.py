@@ -73,25 +73,32 @@ def add_found_needle(line: str,
     listres.append(f"{file.name + ':' if num > 1 else ''}{line}")  # добавляем её в список
 
 
-def print_res(dictlistres,
-              dictfiles,
-              cflag: bool,
-              writefile: bool,
-              writeinvertfile: bool):  # Выводим результат на экран
+def collect_res(dictlistres,
+                dictfiles,
+                cflag: bool,
+                writefile: bool,
+                writeinvertfile: bool):  # Собираем результат
+    listres = []
     for file in dictfiles:  # (переданный список в правильном формате)
         if cflag:
-            print(f"{file.name + ':' if len(dictfiles) > 1 else ''}{len(dictlistres[file])}")
+            listres.append(f"{file.name + ':' if len(dictfiles) > 1 else ''}{len(dictlistres[file])}")
             continue
         if writefile:
             if dictfiles[file] == 'found':
-                print(file.name)
+                listres.append(file.name)
             continue
         if writeinvertfile:
             if dictfiles[file] == 'empty':
-                print(file.name)
+                listres.append(file.name)
             continue
         for line in dictlistres[file]:
-            print(line)
+            listres.append(line)
+    return listres
+
+
+def print_res(listres):
+    for line in listres:
+        print(line)
 
 
 def process_data(args):  # Эта функция - своеобразный заместитель главной. Тут вся логика программы
@@ -102,7 +109,12 @@ def process_data(args):  # Эта функция - своеобразный за
         dictfiles[file] = 'empty'
         for line in file.readlines():
             line = line.rstrip('\n')
-            if find_in(line, args.needle, args.regex, args.ignore, args.invert, args.fullmatch):
+            if find_in(line,
+                       args.needle,
+                       args.regex,
+                       args.ignore,
+                       args.invert,
+                       args.fullmatch):
                 add_found_needle(line,
                                  file,
                                  len(args.files),
@@ -110,7 +122,11 @@ def process_data(args):  # Эта функция - своеобразный за
                 dictfiles[file] = 'found'
         dictlistres[file] = linesinfile
         file.close()
-    print_res(dictlistres, dictfiles, args.cflag, args.writefile, args.writeinvertfile)
+    print_res(collect_res(dictlistres,
+                          dictfiles,
+                          args.cflag,
+                          args.writefile,
+                          args.writeinvertfile))
 
 
 def main(args_str: List[str]):  # Самая главная функция ^^, координирует всю работу
