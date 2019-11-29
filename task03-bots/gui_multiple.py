@@ -3,7 +3,6 @@ import tkinter
 import traceback
 from typing import Callable, Dict, Optional
 from chat_bot import ChatBot
-from bot import UserIndependentBot
 
 
 class UserWidget(tkinter.LabelFrame):
