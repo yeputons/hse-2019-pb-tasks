@@ -69,4 +69,3 @@ class TicTacToeUserHandler(UserHandler):
                 str_field += character
             str_field += '\n'
         self.send_message(str_field[:11])
-        
