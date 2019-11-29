@@ -2,8 +2,10 @@ from typing import Callable, Optional
 from bot import UserHandler
 from tictactoe import Player, TicTacToe
 
+
 class TicTacToeUserHandler(UserHandler):
     """Реализация логики бота для игры в крестики-нолики с одним пользователем."""
+
     def __init__(self, send_message: Callable[[str], None]) -> None:
         super(TicTacToeUserHandler, self).__init__(send_message)
         self.game: Optional[TicTacToe] = None
@@ -16,12 +18,13 @@ class TicTacToeUserHandler(UserHandler):
             self.send_message('Game is not started')
         else:
             player, row, col = message.split(maxsplit=2)
-            self.make_turn(player=Player[player],row=int(row),col=int(col))
+            self.make_turn(player=Player[player], row=int(row), col=int(col))
             if self.game.is_finished():
-                if self.game.winner():
-                    self.send_message('Game is finished, {0} wins'.format(self.game.winner().name))
-                else:
+                winner = self.game.winner()
+                if winner is None:
                     self.send_message('Game is finished, draw')
+                else:
+                    self.send_message('Game is finished, {0} wins'.format(winner.name))
                 self.game = None
 
     def start_game(self) -> None:
@@ -32,8 +35,8 @@ class TicTacToeUserHandler(UserHandler):
     def make_turn(self, player: Player, *, row: int, col: int) -> None:
         """Обрабатывает ход игрока player в клетку (row, col)."""
         assert self.game
-        if self.game.can_make_turn(player=player,row=row,col=col):
-            self.game.make_turn(player=player,row=row,col=col)
+        if self.game.can_make_turn(player=player, row=row, col=col):
+            self.game.make_turn(player=player, row=row, col=col)
             self.send_field()
         else:
             self.send_message('Invalid turn')
@@ -43,6 +46,8 @@ class TicTacToeUserHandler(UserHandler):
         assert self.game
         message = ''
         for line in self.game.field:
-            message += '{0[0]} {0[1]} {0[2]}\n'.format([el.name if el else '.' for el in line])
-        message.rstrip('\n')
+            for el in line:
+                message += el.name if el else '.'
+            message += '\n'
+        message = message.rstrip('\n')
         self.send_message(message)
