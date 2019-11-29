@@ -1,20 +1,5 @@
 #!/usr/bin/env python3
-from typing import List
 import random
-
-
-def get_max_run(flips: List[int]) -> int:
-    cur_run = 0
-    max_run = 0
-    for flip in flips:
-        if flip:
-            if flip:
-                cur_run += 1
-            else:
-                cur_run = 0
-            max_run = max(max_run, cur_run)
-    return max_run
-
 
 ITERS = 1000
 FLIPS = 100
@@ -26,8 +11,17 @@ def main():
     total = 0
     for _ in range(ITERS):
         total += 1
-        flips = [random.choice([0, 1]) for _ in range(FLIPS)]
-        s += get_max_run(flips)
+        cur_run = 0
+        max_run = 0
+        for _ in range(FLIPS):
+            flip = random.choice([0, 1])
+            if flip:
+                cur_run += 1
+                if cur_run > max_run:
+                    max_run += 1
+            else:
+                cur_run = 0
+        s += max_run
     print(s, total, s / total)
 
 
