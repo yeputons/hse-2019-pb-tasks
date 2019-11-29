@@ -2,3 +2,6 @@ __pycache__
 .cache
 .mypy_cache
 *.idea/
+*.coverage
+htmlcov/
+*cover
