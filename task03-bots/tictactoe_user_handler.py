@@ -49,8 +49,6 @@ class TicTacToeUserHandler(UserHandler):
                         self.send_message('Game is finished, X wins')
                     elif winner == Player.O:
                         self.send_message('Game is finished, O wins')
-                    else:
-                        assert False
 
                     self.game = None
 
@@ -70,13 +68,12 @@ class TicTacToeUserHandler(UserHandler):
     def send_field(self) -> None:
         assert self.game
         for row in self.game.field:
+            row_str = ''
             for cell in row:
                 if cell is None:
-                    print('.', end='')
+                    row_str += '.'
                 elif cell == Player.X:
-                    print('X', end='')
+                    row_str += 'X'
                 elif cell == Player.O:
-                    print('O', end='')
-                else:
-                    assert False
-            print('')
+                    row_str += 'O'
+            self.send_message(row_str)
