@@ -10,9 +10,13 @@ class TicTacToeUserHandler(UserHandler):
 
     def handle_message(self, message: str) -> None:
         """Обрабатывает очередное сообщение от пользователя."""
-        self.game = TicTacToe()
-        if message == "start":
+        if message == 'start':
             self.start_game()
+        elif self.game is None:
+            self.send_message('Game is not started')
+        else:
+            player, row, col = message.split(maxsplit=2)
+            self.make_turn(player=Player[player],row=int(row),col=int(col))
 
     def start_game(self) -> None:
         """Начинает новую игру в крестики-нолики и сообщает об этом пользователю."""
@@ -21,7 +25,12 @@ class TicTacToeUserHandler(UserHandler):
 
     def make_turn(self, player: Player, *, row: int, col: int) -> None:
         """Обрабатывает ход игрока player в клетку (row, col)."""
-        raise NotImplementedError
+        assert self.game
+        if self.game.can_make_turn(player=player,row=row,col=col):
+            self.game.make_turn(player=player,row=row,col=col)
+            self.send_field()
+        else:
+            self.send_message('Invalid turn')
 
     def send_field(self) -> None:
         """Отправляет пользователю сообщение с текущим состоянием игры."""
