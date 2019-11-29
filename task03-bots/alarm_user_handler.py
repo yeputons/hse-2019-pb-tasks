@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import threading
 import time
 from bot import UserHandler
@@ -14,4 +15,4 @@ class AlarmUserHandler(UserHandler):
         def alarm() -> None:
             time.sleep(alarm_after)  # Untestable! Inject `time.sleep`.
             self.send_message('Alarm!')
-        threading.Thread(target=alarm).start()
+        threading.Thread(target=alarm).start()  
