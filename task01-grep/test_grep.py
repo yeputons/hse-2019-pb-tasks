@@ -4,18 +4,32 @@ import io
 import grep
 
 
-def test_parse_args():
+def test_parse_args_without_flags():
     args_str: List[str] = ['-c', '-E', 'needle']
     args: ap.Namespace = grep.parse_args(args_str)
     assert args.count and args.regex and args.pattern == 'needle'
-    args_str = ['needle']
-    args = grep.parse_args(args_str)
+
+
+def test_parse_args_with_flags():
+    args_str: List[str] = ['needle']
+    args: ap.Namespace = grep.parse_args(args_str)
     assert not args.count and not args.regex and args.pattern == 'needle'
 
 
-def test_pattern_in_line():
-    assert not grep.pattern_in_line('h+i?', 'ahhhe', False)
+def test_not_regex_pattern_found_in_line():
+    assert grep.pattern_in_line('h+i?', 'ah+i?he', False)
+
+
+def test_regex_pattern_found_in_line():
     assert grep.pattern_in_line('h+i?', 'ahhhe', True)
+
+
+def test_not_regex_pattern_not_found_in_line():
+    assert not grep.pattern_in_line('h+i?', 'ahhhe', False)
+
+
+def test_regex_pattern_not_found_in_line():
+    assert not grep.pattern_in_line('h+i?', 'aiiie', True)
 
 
 def test_strip_lines():
@@ -39,8 +53,8 @@ def test_format_data():
 
 def test_find_in_file():
     data: List[str] = ['pref needle?', 'needle? suf\n', 'the needl', 'pref needle? suf']
-    assert grep.find_in_file(data, 'needle?', False, False) == ['pref needle?',
-                                                                'needle? suf', 'pref needle? suf']
+    assert grep.find_in_source(data, 'needle?', False, False) == ['pref needle?',
+                                                                  'needle? suf', 'pref needle? suf']
 
 
 def test_integrate_stdin_grep(monkeypatch, capsys):
