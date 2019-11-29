@@ -19,6 +19,13 @@ class TicTacToeUserHandler(UserHandler):
         if self.game.can_make_turn(player, row=row, col=col):
             self.game.make_turn(player, row=row, col=col)
             self.send_field()
+            if self.game.is_finished():
+                if self.game.winner() is None:
+                    self.send_message("Game is finished, draw")
+                    self.game = None
+                else:
+                    self.send_message(f"Game is finished, {self.game.winner()} wins")
+                    self.game = None
         else:
             self.send_message("Invalid turn: player can't make turn")
 
