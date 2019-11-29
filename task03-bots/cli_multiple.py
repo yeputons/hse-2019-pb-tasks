@@ -14,6 +14,7 @@ def send_message(to_user_id: int, message: str) -> None:
 def main() -> None:
     bot = UserIndependentBot(send_message=send_message,
                              user_handler=AlarmUserHandler)
+    bot = ChatBot(send_message=send_message)
     for line in sys.stdin:
         try:
             user_id, message = line.rstrip('\n').split(maxsplit=1)
