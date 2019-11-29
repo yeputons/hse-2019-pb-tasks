@@ -11,12 +11,13 @@ class TicTacToeUserHandler(UserHandler):
     def handle_message(self, message: str) -> None:
         """Обрабатывает очередное сообщение от пользователя."""
         self.game = TicTacToe()
-        if message == "print":
-            self.send_field()
+        if message == "start":
+            self.start_game()
 
     def start_game(self) -> None:
         """Начинает новую игру в крестики-нолики и сообщает об этом пользователю."""
-        raise NotImplementedError
+        self.game = TicTacToe()
+        self.send_field()
 
     def make_turn(self, player: Player, *, row: int, col: int) -> None:
         """Обрабатывает ход игрока player в клетку (row, col)."""
