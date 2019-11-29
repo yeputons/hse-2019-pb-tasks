@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import sys
 import traceback
-from alarm_user_handler import AlarmUserHandler
+from tictactoe_user_handler import TicTacToeUserHandler
 from bot import UserHandler
 
 
@@ -10,7 +10,7 @@ def send_message(message: str) -> None:
 
 
 def main() -> None:
-    handler: UserHandler = AlarmUserHandler(send_message=send_message)
+    handler: UserHandler = TicTacToeUserHandler(send_message=send_message)
     for line in sys.stdin:
         try:
             handler.handle_message(line.rstrip('\n'))
