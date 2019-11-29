@@ -137,16 +137,16 @@ def test_unit_parse_args():
     assert ans.files == ['b.txt', 'a.txt']
 
 
-def test_get_lines_from_file(tmp_path, monkeypatch):
+def test_strip_lines_from_file(tmp_path, monkeypatch):
     (tmp_path / 'a.txt').write_text('one\ntwo\n')
     monkeypatch.chdir(tmp_path)
     with open('a.txt', 'r') as file:
-        assert grep.get_lines(file) == ['one', 'two']
+        assert grep.strip_lines(file) == ['one', 'two']
 
 
-def test_get_lines_from_stdin(monkeypatch):
+def test_strip_lines_from_stdin(monkeypatch):
     monkeypatch.setattr('sys.stdin', io.StringIO('one\ntwo\n'))
-    assert grep.get_lines(sys.stdin) == ['one', 'two']
+    assert grep.strip_lines(sys.stdin) == ['one', 'two']
 
 
 def test_filter_lines_by_re():

@@ -18,7 +18,7 @@ def parse_args(args_str: List[str]) -> argparse.Namespace:
     return parser.parse_args(args_str)
 
 
-def get_lines(file: Iterable) -> List[str]:
+def strip_lines(file: Iterable) -> List[str]:
     return [line.rstrip('\n') for line in file]
 
 
@@ -57,9 +57,9 @@ def main(args_str: List[str]):
     blocks = []
     for file_name in args.files:
         with open(file_name, 'r') as file:
-            blocks.append(get_lines(file))
+            blocks.append(strip_lines(file))
     if not args.files:
-        blocks.append(get_lines(sys.stdin))
+        blocks.append(strip_lines(sys.stdin))
 
     sources = args.files
     if not sources:
