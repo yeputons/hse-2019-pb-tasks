@@ -2,9 +2,7 @@
 import tkinter
 import traceback
 from typing import Callable, Dict, Optional
-from alarm_user_handler import AlarmUserHandler
-from bot import UserIndependentBot
-from calculator_user_handler import CalculatorUserHandler
+from chat_bot import ChatBot
 
 
 class UserWidget(tkinter.LabelFrame):
@@ -57,9 +55,8 @@ class UserWidget(tkinter.LabelFrame):
 def main() -> None:
     user_widgets: Dict[int, UserWidget] = {}
 
-    bot = UserIndependentBot(
-        send_message=lambda user_id, message: user_widgets[user_id].received_message(message),
-        user_handler=CalculatorUserHandler
+    bot = ChatBot(
+        send_message=lambda user_id, message: user_widgets[user_id].received_message(message)
     )
 
     def handle_message(user_id: int, message: str) -> None:
@@ -79,7 +76,7 @@ def main() -> None:
     root.title('Chat bot debug GUI example')
     root.geometry('640x480')
 
-    rows = 1
+    rows = 2
     columns = 2
     for row in range(rows):
         tkinter.Grid.rowconfigure(root, row, weight=1)
