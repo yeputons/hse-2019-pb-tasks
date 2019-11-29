@@ -12,7 +12,7 @@ class TicTacToeUserHandler(UserHandler):
         if self.game is not None:
             datamess = message.rstrip('\n').split(' ')
             if len(datamess) != 3:
-                self.send_message("Invalid turn: few args")
+                self.send_message("Invalid turn")
             else:
                 if datamess[0] == 'X':
                     player = Player.X
@@ -50,7 +50,7 @@ class TicTacToeUserHandler(UserHandler):
                     self.send_message(f"Game is finished, {str(self.game.winner()).split('.')[1]} wins")
                     self.game = None
         else:
-            self.send_message("Invalid turn: player can't make turn")
+            self.send_message("Invalid turn")
 
     def send_field(self) -> None:
         if self.game is not None:
