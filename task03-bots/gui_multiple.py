@@ -75,8 +75,8 @@ def main() -> None:
     root.title('Chat bot debug GUI example')
     root.geometry('640x480')
 
-    rows = 2
-    columns = 2
+    rows = 3
+    columns = 3
     for row in range(rows):
         tkinter.Grid.rowconfigure(root, row, weight=1)
     for column in range(columns):
