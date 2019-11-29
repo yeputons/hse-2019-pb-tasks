@@ -51,4 +51,3 @@ class TicTacToeUserHandler(UserHandler):
             output += '\n'
         output = output.rstrip('\n')
         self.send_message(output)
-
