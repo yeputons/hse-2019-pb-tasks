@@ -9,7 +9,30 @@ class TicTacToeUserHandler(UserHandler):
         self.game: Optional[TicTacToe] = None
 
     def handle_message(self, message: str) -> None:
-        raise NotImplementedError
+        if self.game is not None:
+            datamess = message.rstrip('\n').split(' ')
+            if len(datamess) != 3:
+                self.send_message("Invalid turn: few args")
+            else:
+                if datamess[0] == 'X':
+                    player = Player.X
+                elif datamess[0] == 'O':
+                    player = Player.O
+                else:
+                    self.send_message('There is no such player')
+                    return
+                try:
+                    row = int(datamess[1])
+                    col = int(datamess[2])
+                except ValueError:
+                    self.send_message('Please send correct turn: Player row col')
+                    return
+                self.make_turn(player=player, row=row, col=col)
+        else:
+            if message != "start":
+                self.send_message("Game is not started")
+            else:
+                self.start_game()
 
     def start_game(self) -> None:
         self.game = TicTacToe()
@@ -24,7 +47,7 @@ class TicTacToeUserHandler(UserHandler):
                     self.send_message("Game is finished, draw")
                     self.game = None
                 else:
-                    self.send_message(f"Game is finished, {self.game.winner()} wins")
+                    self.send_message(f"Game is finished, {str(self.game.winner()).split('.')[1]} wins")
                     self.game = None
         else:
             self.send_message("Invalid turn: player can't make turn")
