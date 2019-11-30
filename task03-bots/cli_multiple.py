@@ -4,6 +4,7 @@ import traceback
 from alarm_user_handler import AlarmUserHandler
 from bot import UserIndependentBot
 
+
 def send_message(to_user_id: int, message: str) -> None:
     print(f'===== Message to {to_user_id} =====')
     print(message)
