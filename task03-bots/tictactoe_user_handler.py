@@ -1,5 +1,4 @@
 from typing import Callable, Optional
-import traceback
 from bot import UserHandler
 from tictactoe import Player, TicTacToe
 
@@ -21,10 +20,8 @@ class TicTacToeUserHandler(UserHandler):
     def str_to_player(self, s: str) -> Player:
         if s == 'X':
             return Player.X
-        elif s == 'O':
-            return Player.O
         else:
-            raise ValueError
+            return Player.O
 
     def handle_message(self, message: str) -> None:
         """Обрабатывает очередное сообщение от пользователя."""
@@ -34,14 +31,11 @@ class TicTacToeUserHandler(UserHandler):
             if not self.game:
                 self.send_message('Game is not started')
             else:
-                try:
-                    str_player, str_row, str_col = message.rstrip('\n').split(maxsplit=3)
-                    row = int(str_row)
-                    col = int(str_col)
-                    player = self.str_to_player(str_player)
-                except Exception:  # pylint: disable=W0703
-                    traceback.print_exc()
-                self.make_turn(player, row=row, col=col)
+                str_player, str_row, str_col = message.rstrip('\n').split(maxsplit=3)
+                self.make_turn(
+                    self.str_to_player(str_player),
+                    row=int(str_row),
+                    col=int(str_col))
 
     def start_game(self) -> None:
         """Начинает новую игру в крестики-нолики и сообщает об этом пользователю."""
@@ -70,7 +64,7 @@ class TicTacToeUserHandler(UserHandler):
             message = 'Game is finished, '
             winner = self.game.winner()
             if winner:
-                message += self.player_to_str(winner) + 'wins'
+                message += self.player_to_str(winner) + ' wins'
             else:
                 message += 'draw'
             self.send_message(message)
