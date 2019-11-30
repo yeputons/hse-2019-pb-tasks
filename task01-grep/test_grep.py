@@ -1,5 +1,6 @@
 from typing import List
 import argparse as ap
+import re
 import io
 import grep
 
@@ -16,45 +17,45 @@ def test_parse_args_with_flags():
     assert not args.count and not args.regex and args.pattern == 'needle'
 
 
-def test_not_regex_pattern_found_in_line():
-    assert grep.pattern_in_line('h+i?', 'ah+i?he', False)
-
-
-def test_regex_pattern_found_in_line():
-    assert grep.pattern_in_line('h+i?', 'ahhhe', True)
-
-
-def test_not_regex_pattern_not_found_in_line():
-    assert not grep.pattern_in_line('h+i?', 'ahhhe', False)
-
-
-def test_regex_pattern_not_found_in_line():
-    assert not grep.pattern_in_line('h+i?', 'aiiie', True)
-
-
 def test_strip_lines():
     data: List[str] = ['pref needle?\n', 'needle? suf\n', 'the needl\n', 'pref needle? suf']
     assert grep.strip_lines(data) == ['pref needle?', 'needle? suf',
                                       'the needl', 'pref needle? suf']
 
 
-def test_find_matches():
+def test_compile_pattern_regex():
+    assert grep.compile_pattern('h+i?', True) == re.compile('h+i?')
+
+
+def test_compile_pattern_not_regex():
+    assert grep.compile_pattern('h+i?', False) == re.compile('h\\+i\\?')
+
+
+def test_find_matches_not_regex():
     data = ['ahhhe', 'h+i?', 'qwerty']
-    assert grep.find_matches('h+i?', data, False) == ['h+i?']
-    assert grep.find_matches('h+i?', data, True) == ['ahhhe', 'h+i?']
+    assert grep.match_lines(re.compile(re.escape('h+i?')), data) == ['h+i?']
 
 
-def test_format_data():
+def test_find_matches_regex():
+    data = ['ahhhe', 'h+i?', 'qwerty']
+    assert grep.match_lines(re.compile('h+i?'), data) == ['ahhhe', 'h+i?']
+
+
+def test_format_data_counting_mode():
     data: List[str] = ['abcdef', 'asdf', 'qwerty', 'oo']
     assert grep.format_data(data, True, None) == ['4']
+
+
+def test_format_data_lines_mode():
+    data: List[str] = ['abcdef', 'asdf', 'qwerty', 'oo']
     assert grep.format_data(data, False, 'name') == ['name:abcdef',
                                                      'name:asdf', 'name:qwerty', 'name:oo']
 
 
-def test_find_in_file():
+def test_find_in_source():
     data: List[str] = ['pref needle?', 'needle? suf\n', 'the needl', 'pref needle? suf']
-    assert grep.find_in_source(data, 'needle?', False, False) == ['pref needle?',
-                                                                  'needle? suf', 'pref needle? suf']
+    assert grep.find_in_source(data, re.compile(re.escape('needle?')),
+                               False) == ['pref needle?', 'needle? suf', 'pref needle? suf']
 
 
 def test_integrate_stdin_grep(monkeypatch, capsys):
