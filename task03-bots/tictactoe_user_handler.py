@@ -23,6 +23,8 @@ class TicTacToeUserHandler(UserHandler):
         self.send_field()
 
     def make_turn(self, player: Player, *, row: int, col: int) -> None:
+        if not self.game:
+            return
         if self.game.can_make_turn(player=player, row=row, col=col):
             self.game.make_turn(player=player, row=row, col=col)
             self.send_field()
@@ -39,6 +41,8 @@ class TicTacToeUserHandler(UserHandler):
             self.send_message('Invalid turn')
 
     def send_field(self) -> None:
+        if not self.game:
+            return
         output = ''
         for rows in self.game.field:
             for cell in rows:
