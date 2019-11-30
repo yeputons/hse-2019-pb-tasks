@@ -50,7 +50,7 @@ def search_files(files: List[str], matcher: MatchFunc) -> List[SearchResult]:
     return search_results
 
 
-def inverse_match(func: MatchFunc, x: str) -> bool:
+def invert_match(func: MatchFunc, x: str) -> bool:
     return not func(x)
 
 
@@ -61,7 +61,7 @@ def get_match_func(args: Namespace) -> MatchFunc:
     pattern = re.compile(needle, re.IGNORECASE if args.ignore_case else 0)
     func = partial(match, pattern, args.strict)
     if args.invert:
-        func = partial(inverse_match, func)
+        func = partial(invert_match, func)
     # noinspection PyTypeChecker
     return func
 
