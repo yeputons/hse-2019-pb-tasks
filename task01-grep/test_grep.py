@@ -31,12 +31,12 @@ def test_compile_pattern_not_regex():
     assert grep.compile_pattern('h+i?', False) == re.compile('h\\+i\\?')
 
 
-def test_find_matches_not_regex():
+def test_match_lines_not_regex():
     data = ['ahhhe', 'h+i?', 'qwerty']
     assert grep.match_lines(re.compile(re.escape('h+i?')), data) == ['h+i?']
 
 
-def test_find_matches_regex():
+def test_match_line_regex():
     data = ['ahhhe', 'h+i?', 'qwerty']
     assert grep.match_lines(re.compile('h+i?'), data) == ['ahhhe', 'h+i?']
 
