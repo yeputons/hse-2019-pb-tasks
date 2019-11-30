@@ -84,7 +84,7 @@ def test_get_match_func():
     assert matcher_fulltext.func is grep.match
     # pylint: disable=no-member
     assert matcher_fulltext.args[0].pattern == re.escape(needle)
-    assert matcher_fulltext.args[1] is False
+    assert not matcher_fulltext.args[1]
     # pylint: disable=no-member
     assert matcher_fulltext.keywords == {}
 
@@ -95,7 +95,7 @@ def test_get_match_func():
     assert matcher_regex.func is grep.match
     # pylint: disable=no-member
     assert matcher_regex.args[0].pattern == needle
-    assert matcher_regex.args[1] is False
+    assert not matcher_regex.args[1]
     # pylint: disable=no-member
     assert matcher_regex.keywords == {}
 

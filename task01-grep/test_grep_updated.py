@@ -16,10 +16,10 @@ def test_unit_inverse_match():
     def match_asd(x):
         return 'asd' in x
 
-    assert grep.inverse_match(math_all, 'a') is False
-    assert grep.inverse_match(math_none, 'a') is True
-    assert grep.inverse_match(match_asd, 'a') is True
-    assert grep.inverse_match(match_asd, 'asdf') is False
+    assert not grep.inverse_match(math_all, 'a')
+    assert grep.inverse_match(math_none, 'a')
+    assert grep.inverse_match(match_asd, 'a')
+    assert not grep.inverse_match(match_asd, 'asdf')
 
 
 # INTEGRATION #
