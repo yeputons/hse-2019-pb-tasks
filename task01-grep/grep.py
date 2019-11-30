@@ -11,11 +11,6 @@ PrintFunc = Callable[[str, SearchResult], None]
 FileFilter = Callable[[SearchResult], bool]
 
 
-def mask_file(file: IO) -> Iterable[str]:
-    for line in file:
-        yield line
-
-
 def print_matched_count(fmt: str,
                         found: SearchResult) -> None:
     name, lines = found
@@ -38,10 +33,13 @@ def search(name: str, inp: Iterable[str], matcher: MatchFunc) -> SearchResult:
 
 
 def search_stdin(matcher: MatchFunc) -> List[SearchResult]:
-    return [search('', mask_file(sys.stdin), matcher)]
+    return [search('', sys.stdin, matcher)]
 
 
 def search_files(files: List[str], matcher: MatchFunc) -> List[SearchResult]:
+    def mask_file(file_stream: IO) -> Iterable[str]:
+        for line in file_stream:
+            yield line
     search_results = []
     for file in files:
         with open(file) as f:
