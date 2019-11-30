@@ -48,8 +48,14 @@ def strip_lines(lines: List[str]) -> List[str]:
     return [line.rstrip('\n') for line in lines]
 
 
-def filter_line(line: str, invert_mode: bool, fullmatch_mode: bool,
-                searcher: Pattern[str]) -> bool:
+def compile_searcher(pattern: str, regex_mode: bool, ignore_mode: bool):
+    if not regex_mode:
+        pattern = re.escape(pattern)
+    return re.compile(pattern, flags=re.IGNORECASE) if ignore_mode else re.compile(pattern)
+
+
+def match_line(line: str, searcher: Pattern[str], invert_mode: bool,
+               fullmatch_mode: bool) -> bool:
     """
     Check if the line matches the pattern with the flags
     :param line: the given line
@@ -62,21 +68,16 @@ def filter_line(line: str, invert_mode: bool, fullmatch_mode: bool,
     return invert_mode ^ bool(matched)
 
 
-def filter_lines(lines: List[str], pattern: str, regex_mode: bool, invert_mode: bool,
-                 ignore_mode: bool, fullmatch_mode: bool) -> List[str]:
+def filter_lines(lines: List[str], searcher: Pattern[str], invert_mode: bool,
+                 fullmatch_mode: bool) -> List[str]:
     """
     Searches for lines that match pattern
     :param lines: lines to be checked
-    :param pattern: pattern to be matched
-    :param regex_mode: -E flag
     :param invert_mode: -v flag
-    :param ignore_mode: -i flag
     :param fullmatch_mode: -x flag
+    :param searcher: for searching pattern
     """
-    if not regex_mode:
-        pattern = re.escape(pattern)
-    searcher = re.compile(pattern, flags=re.IGNORECASE) if ignore_mode else re.compile(pattern)
-    return [line for line in lines if filter_line(line, invert_mode, fullmatch_mode, searcher)]
+    return [line for line in lines if match_line(line, searcher, invert_mode, fullmatch_mode)]
 
 
 def prepare_output(lines: List[str], stream_name: Optional[str], counting_mode: bool,
@@ -92,6 +93,8 @@ def prepare_output(lines: List[str], stream_name: Optional[str], counting_mode: 
     """
     if only_files_mode or only_not_files_mode:
         assert stream_name
+        # ^ means that if only_not_files_mode is true then we are sure that
+        # only_files_mode is false and we can just invert the result
         output_lines = [stream_name] if bool(lines) ^ only_not_files_mode else []
     else:
         stream_name = f'{stream_name}:' if stream_name else ''
@@ -138,8 +141,10 @@ def main(args_str: List[str]):
     if args.files:
         stream_names, nonexistent_files = split_files_by_existence(args.files)
         all_lines = read_files(stream_names)
-        for file in nonexistent_files:
-            print(f'No such file: {file}', file=sys.stderr)
+        if nonexistent_files:
+            for file in nonexistent_files:
+                print(f'No such file: {file}', file=sys.stderr)
+            return
     else:
         all_lines = [sys.stdin.readlines()]
         stream_names = [None]
@@ -147,10 +152,11 @@ def main(args_str: List[str]):
     if len(args.files) == 1 and not args.only_files and not args.only_not_files:
         stream_names = [None]
 
+    searcher = compile_searcher(args.pattern, args.regex, args.ignore)
+
     for lines, stream_name in zip(all_lines, stream_names):
         lines = strip_lines(lines)
-        matched_lines = filter_lines(lines, args.pattern, args.regex,
-                                     args.invert, args.ignore, args.fullmatch)
+        matched_lines = filter_lines(lines, searcher, args.invert, args.fullmatch)
         output_lines = prepare_output(matched_lines, stream_name, args.counting,
                                       args.only_files, args.only_not_files)
         print_matched_lines(output_lines)

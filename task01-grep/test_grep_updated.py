@@ -50,7 +50,7 @@ def test_integrate_keys_liv_and_nonexistent_files(tmp_path, monkeypatch, capsys)
     grep.main(['-i', '-v', '-l', "i'M", 'a.txt', 'b.txt', 'c.txt'])
     out, err = capsys.readouterr()
     assert err == 'No such file: c.txt\n'
-    assert out == 'b.txt\n'
+    assert out == ''
 
 
 def test_integrate_keys_i_check_letter_cases(tmp_path, monkeypatch, capsys):
@@ -80,22 +80,24 @@ def test_integrate_not_empty_because_flag_big_l(tmp_path, monkeypatch, capsys):
     assert out == 'hey.dot\n'
 
 
-def test_unit_filter_line_xv_regex():
+def test_unit_match_line_xv_regex():
     searcher = re.compile('going?', flags=re.IGNORECASE)
-    matched_false = grep.filter_line('goin', True, True, searcher)
-    matched_true = grep.filter_line('I am going', True, True, searcher)
+    matched_false = grep.match_line('goin', searcher, True, True)
+    matched_true = grep.match_line('I am going', searcher, True, True)
     assert not matched_false and matched_true
 
 
 def test_unit_filter_lines_ix():
     lines = ['go?', 'Go?', 'go!', 'g', 'going', 'go??']
-    matched_lines = grep.filter_lines(lines, 'go?', False, False, True, True)
+    searcher = re.compile(re.escape('go?'), flags=re.IGNORECASE)
+    matched_lines = grep.filter_lines(lines, searcher, False, True)
     assert matched_lines == ['go?', 'Go?']
 
 
 def test_unit_filter_lines_v_regex():
     lines = ['go?', 'Go?', 'go!', 'g', 'going', 'go??']
-    matched_lines = grep.filter_lines(lines, 'go?', True, True, False, False)
+    searcher = re.compile('go?')
+    matched_lines = grep.filter_lines(lines, searcher, True, False)
     assert matched_lines == ['Go?']
 
 

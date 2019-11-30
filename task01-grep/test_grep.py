@@ -86,7 +86,7 @@ def test_integrate_files_no_such_file_grep(tmp_path, monkeypatch, capsys):
     grep.main(['needle', 'b.txt', 'c.txt', 'a.txt', 'd.txt'])
     out, err = capsys.readouterr()
     assert err == 'No such file: c.txt\nNo such file: d.txt\n'
-    assert out == 'b.txt:pref needle suf\na.txt:pref needle\na.txt:needle suf\n'
+    assert out == ''
 
 
 def test_unit_split_files_by_existence(tmp_path, monkeypatch):
@@ -116,19 +116,21 @@ def test_unit_strip_lines():
 
 def test_unit_filter_line():
     searcher = re.compile('hello')
-    matched = grep.filter_line('hello, how are you?', False, False, searcher)
+    matched = grep.match_line('hello, how are you?', searcher, False, False)
     assert matched
 
 
-def test_unit_filter_matched_lines():
+def test_unit_filter_lines():
     lines = ['hello yohoo!', 'how are you?', 'do you want?', 'do u want?']
-    lines = grep.filter_lines(lines, 'you', False, False, False, False)
+    searcher = re.compile(re.escape('you'))
+    lines = grep.filter_lines(lines, searcher, False, False)
     assert lines == ['how are you?', 'do you want?']
 
 
-def test_unit_filter_matched_lines_regex():
+def test_unit_filter_lines_regex():
     lines = ['hello yohoo!', 'how are you?', 'do you want?', 'do u want?']
-    lines = grep.filter_lines(lines, 'you?', True, False, False, False)
+    searcher = re.compile('you?')
+    lines = grep.filter_lines(lines, searcher, False, False)
     assert lines == ['hello yohoo!', 'how are you?', 'do you want?']
 
 
