@@ -83,6 +83,8 @@ def test_integrate_draw(mocker: pytest_mock.MockFixture):
     handler.handle_message('X 1 2')
     handler.handle_message('O 2 2')
     handler.handle_message('X 2 1')
-    assert send_message.call_args_list[-1:] == [
-        mocker.call('Game is finished, draw')
+    handler.handle_message('X 2 1')
+    assert send_message.call_args_list[-2:] == [
+        mocker.call('Game is finished, draw'),
+        mocker.call('Game is not started'),
     ]
