@@ -26,8 +26,11 @@ def test_regex_search():
 
 
 def test_single_grep():
-    def search_hi(_, y):
-        return 'hi' in y
+    def search_hi(_, y, exact: bool = False):
+        if exact:
+            return y == 'hi'
+        else:
+            return 'hi' in y
 
     assert grep.single_grep('unused', ['hihihi', 'hihi', 'hi', 'hhhh'],
                             search_hi) == ['hihihi', 'hihi', 'hi']
