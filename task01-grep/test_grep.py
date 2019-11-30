@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 import io
 import grep
+from grep import has_needle
+from grep import find_in_file
 
 
 def test_integrate_stdin_grep(monkeypatch, capsys):
@@ -57,3 +59,67 @@ def test_integrate_files_grep_count(tmp_path, monkeypatch, capsys):
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'b.txt:1\na.txt:2\n'
+
+
+def test_unit_has_needle():
+    s = 'abcdef'
+    needles_in = ['a', 'abcdef', 'ef', '']
+    needles_not_in = ['ac', 'fa', 'abcdf']
+    for needle in needles_in:
+        assert has_needle(s, needle, False)
+    for needle in needles_not_in:
+        assert not has_needle(s, needle, False)
+
+
+def test_unit_has_needle_regex():
+    s = 'abacaba123adacabaaaa'
+    needles_in = ['[adc]', '[1]', '.', 'd?', '', 'abacaba', 'abacaba...adacaba', 'acaba{4,}']
+    needles_not_in = ['e+', 'abac{2}', 'abacaba...abacaba', 'a{5,}']
+    for needle in needles_in:
+        assert has_needle(s, needle, True)
+    for needle in needles_not_in:
+        assert not has_needle(s, needle, True)
+
+
+def test_unit_find_in_file(capsys):
+    lines = ['abra', 'cobra', 'masla', 'kavooo', 'z z z', '123o789', 'coq', '']
+    needles = ['z', 'bra', 'o', '  ']
+    results = ['q:z z z\n', 'q:abra\nq:cobra\n', 'q:cobra\nq:kavooo\nq:123o789\nq:coq\n', '']
+    for i, needle in enumerate(needles):
+        find_in_file(lines, needle, False, 'q:', False)
+        out, err = capsys.readouterr()
+        assert err == ''
+        assert out == results[i]
+
+
+def test_unit_find_in_file_count(capsys):
+    lines = ['abram', 'cobram', 'maslom', 'kavooo', 'z z zq', '123o789', 'coq', '']
+    needles = ['am', 'ram', 'o', '  ', 'q']
+    results = ['2\n', '2\n', '5\n', '0\n', '2\n']
+    for i, needle in enumerate(needles):
+        find_in_file(lines, needle, False, '', True)
+        out, err = capsys.readouterr()
+        assert err == ''
+        assert out == results[i]
+
+
+def test_unit_find_in_file_regex(capsys):
+    lines = ['abra', 'cobra', 'maslo', 'kavooo', 'ms', '123o789', 'cooq', '']
+    needles = ['[ao]', 'ma?s', 'o{2,}']
+    results = ['abra\ncobra\nmaslo\nkavooo\n123o789\ncooq\n', 'maslo\nms\n', 'kavooo\ncooq\n']
+    for i, needle in enumerate(needles):
+        find_in_file(lines, needle, True, '', False)
+        out, err = capsys.readouterr()
+        assert err == ''
+        assert out == results[i]
+
+
+def test_unit_find_in_file_regex_count(capsys):
+    lines = ['abra', 'cobra', 'maslo', 'kavooo', 'ms', '123o789', 'cooq', '', 'cq']
+    needles = ['', 'kavo+', 'co?q', 'o{3}', '[a-c]o?[a-s]']
+    results = ['9\n', '1\n', '1\n', '1\n', '5\n']
+    for i, needle in enumerate(needles):
+        find_in_file(lines, needle, True, '', True)
+        out, err = capsys.readouterr()
+        assert err == ''
+        assert out == results[i]
