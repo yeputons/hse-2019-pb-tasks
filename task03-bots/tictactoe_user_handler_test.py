@@ -86,3 +86,16 @@ def test_check_starts_in_the_middle(mocker: pytest_mock.MockFixture) -> None:
         'X..\n...\n...', 'X..\n.O.\n...', 'XX.\n.O.\n...',
         '...\n...\n...', '...\n...\n...', 'Invalid turn',
     ])
+
+
+def test_wrong_symbols(mocker: pytest_mock.MockFixture) -> None:
+    send_message = mocker.stub(name='send_message_stub')
+    bot = TicTacToeUserHandler(send_message)
+    send_messages(bot, [
+        'start', 'X 1 1', 'Z 0 0',
+        'O 0 0', 'Q 2 1'
+    ])
+    assert send_message.call_args_list == create_list_of_calls(mocker, [
+        '...\n...\n...', '...\n.X.\n...', 'Invalid turn',
+        'O..\n.X.\n...', 'Invalid turn'
+    ])

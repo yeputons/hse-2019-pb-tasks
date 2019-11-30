@@ -1,4 +1,4 @@
-from typing import Callable, Optional
+from typing import Callable, Optional, List
 from bot import UserHandler
 from tictactoe import Player, TicTacToe
 
@@ -17,7 +17,10 @@ class TicTacToeUserHandler(UserHandler):
             self.send_message('Game is not started')
             return
         symbol, col, row = message.rstrip('\n').split(maxsplit=2)
-        self.make_turn(player=Player.X if symbol == 'X' else Player.O,
+        if symbol != 'X' and symbol != 'O':
+            self.send_message('Invalid turn')
+            return
+        self.make_turn(player={'X': Player.X, 'O': Player.O}[symbol],
                        row=int(row), col=int(col))
 
     def start_game(self) -> None:
@@ -36,20 +39,18 @@ class TicTacToeUserHandler(UserHandler):
 
     def send_field(self) -> None:
         assert self.game
-        field = ''
+        rows: List[str] = []
         for row in self.game.field:
-            for col in row:
-                field += col.name if col else '.'
-            field += '\n'
-        self.send_message(field.rstrip('\n'))
+            rows.append(''.join([col.name if col else '.' for col in row]))
+        self.send_message('\n'.join(rows))
 
     def finish_game(self):
         assert self.game
-        player = self.game.current_player()
+        player = self.game.winner()
         if not player:
             self.send_message('Game is finished, draw')
         else:
             self.send_message('Game is finished, {} wins'.format(
-                'X' if player == Player.O else 'O'
+                'X' if player == Player.X else 'O'
             ))
         self.game = None
