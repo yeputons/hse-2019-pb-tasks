@@ -17,7 +17,7 @@ def parse_args(args_str: List[str]) -> ap.Namespace:
 
 
 def pattern_in_line(pattern: str, line: str, is_regex: bool) -> bool:
-    return (is_regex and re.search(pattern, line)) or (not is_regex and pattern in line)
+    return (is_regex and bool(re.search(pattern, line))) or (not is_regex and pattern in line)
 
 
 def find_matches(pattern: str, data: List[str], is_regex: bool) -> List[str]:
@@ -49,8 +49,8 @@ def main(args_str: List[str]):
     if args.file_names:
         for file_name in args.file_names:
             with open(file_name, 'r') as file:
-                result += find_in_source(file, args.pattern, args.regex,
-                                         args.count, file_name if len(args.file_names) > 1 else None)
+                result += find_in_source(file, args.pattern, args.regex, args.count,
+                                         file_name if len(args.file_names) > 1 else None)
     else:
         result = find_in_source(sys.stdin, args.pattern, args.regex, args.count)
     print(*result, sep='\n')
