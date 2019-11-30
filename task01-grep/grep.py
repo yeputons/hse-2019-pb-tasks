@@ -24,8 +24,11 @@ def print_lines(fmt: str, found: SearchResult) -> None:
 
 
 def match(needle: Pattern, strict: bool, line: str) -> bool:
-    return bool(re.fullmatch(needle, line) if strict
-                else re.search(needle, line))
+    if strict:
+        re_match = re.fullmatch(needle, line)
+    else:
+        re_match = re.search(needle, line)
+    return bool(re_match)
 
 
 def search(name: str, inp: Iterable[str], matcher: MatchFunc) -> SearchResult:
