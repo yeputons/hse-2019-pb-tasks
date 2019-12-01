@@ -27,22 +27,17 @@ def get_value(flags: Dict[str, bool], name: str) -> bool:
     return False
 
 
-def case_sensitive_search(needle: str, line: str, ignoring_case: bool,
-                          search) -> bool:
-    if ignoring_case:
-        return search(needle, line, flags=re.I) is not None
-    else:
-        return search(needle, line) is not None
-
-
 def match(needle: str, line: str, flags: Dict[str, bool]) -> bool:
     if not get_value(flags, REGEX):
         needle = re.escape(needle)
-    ignoring_case = get_value(flags, IGNORE_CASE)
+    ignoring_case = re.IGNORECASE if get_value(flags, IGNORE_CASE) else 0
     full_match = get_value(flags, FULL_MATCH)
     inverted = get_value(flags, INVERTED)
-    ans = case_sensitive_search(needle, line, ignoring_case,
-                                re.fullmatch if full_match else re.search)
+    ans: bool = False
+    if full_match:
+        ans = re.fullmatch(needle, line, flags=ignoring_case)
+    else:
+        ans = re.search(needle, line, flags=ignoring_case)
     return not ans if inverted else ans
 
 
