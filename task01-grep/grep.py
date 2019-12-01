@@ -34,10 +34,8 @@ def lines_to_numbers(file_line_dict: fl_dict_type) -> fl_dict_type:
 # My escaped characters:
 # &&f - filename
 # &&l - line
-def print_format(output_format: str, filename: str, line: str) -> None:
-    output_format = output_format.replace('&&f', filename)
-    output_format = output_format.replace('&&l', line)
-    print(output_format)
+def print_format(output_line: str, filename: str, line: str) -> None:
+    print(output_line.format(line=line, filename=filename))
 
 
 def print_output_dict(output: fl_dict_type, output_format: str) -> None:
@@ -81,11 +79,11 @@ def main(args_str: List[str]):
     if args.output_count:
         lines_to_numbers(matching_elements)
 
-    output_format = '&&l'
+    output_line = '{line}'
     if len(args.files) > 1:
-        output_format = '&&f:&&l'
+        output_line = '{filename}:{line}'
 
-    print_output_dict(matching_elements, output_format)
+    print_output_dict(matching_elements, output_line)
 
 
 if __name__ == '__main__':
