@@ -50,7 +50,5 @@ class TicTacToeUserHandler(UserHandler):
         if not player:
             self.send_message('Game is finished, draw')
         else:
-            self.send_message('Game is finished, {} wins'.format(
-                'X' if player == Player.X else 'O'
-            ))
+            self.send_message(f'Game is finished, {player.name} wins')
         self.game = None

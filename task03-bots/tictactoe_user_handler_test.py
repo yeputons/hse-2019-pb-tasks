@@ -56,6 +56,21 @@ def test_x_wins_result(mocker: pytest_mock.MockFixture) -> None:
     ])
 
 
+def test_o_wins_result(mocker: pytest_mock.MockFixture) -> None:
+    send_message = mocker.stub(name='send_message_stub')
+    bot = TicTacToeUserHandler(send_message)
+    send_messages(bot, [
+        'start', 'X 0 0', 'O 0 1',
+        'X 2 2', 'O 1 1', 'X 2 0',
+        'O 2 1'
+    ])
+    assert send_message.call_args_list == create_list_of_calls(mocker, [
+        '...\n...\n...', 'X..\n...\n...', 'X..\nO..\n...',
+        'X..\nO..\n..X', 'X..\nOO.\n..X', 'X.X\nOO.\n..X',
+        'X.X\nOOO\n..X', 'Game is finished, O wins'
+    ])
+
+
 def test_draw_result(mocker: pytest_mock.MockFixture) -> None:
     send_message = mocker.stub(name='send_message_stub')
     bot = TicTacToeUserHandler(send_message)
