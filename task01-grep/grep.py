@@ -7,20 +7,31 @@ import argparse
 fl_dict_type = Dict[str, List[str]]
 
 
-def does_line_match(line: str, regex: bool, needle: str) -> bool:
+def does_line_match(line: str, regex: bool, needle: str, ignore_case: bool = False) -> bool:
     if regex:
-        return bool(re.search(needle, line))
+        if ignore_case:
+            return bool(re.search(needle, line, flags=re.IGNORECASE))
+        else:
+            return bool(re.search(needle, line))
     else:
-        return needle in line
+        if ignore_case:
+            return needle.lower() in line.lower()
+        else:
+            return needle in line
 
 
-def search_needle_in_file_line_dict(file_line_dict: fl_dict_type,
-                                    needle: str, regex: bool, invert: bool) -> fl_dict_type:
+def search_needle_in_file_line_dict(
+        file_line_dict: fl_dict_type,
+        needle: str,
+        regex: bool = False,
+        invert: bool = False,
+        ignore_case: bool = False
+) -> fl_dict_type:
     matching_elements: fl_dict_type = {}
     for file in file_line_dict:
         matching_elements[file] = []
         for line in file_line_dict[file]:
-            if does_line_match(line, regex, needle) != invert: # acts like xor
+            if does_line_match(line, regex, needle, ignore_case) != invert:  # acts like xor
                 matching_elements[file].append(line)
     return matching_elements
 
@@ -76,6 +87,7 @@ def main(args_str: List[str]):
     parser.add_argument('-l', dest='print_only_filenames', action='store_true')
     parser.add_argument('-v', dest='invert_results', action='store_true')
     parser.add_argument('-L', dest='print_only_filenames_invert', action='store_true')
+    parser.add_argument('-i', dest='ignore_case', action='store_true')
     args = parser.parse_args(args_str)
 
     if args.print_only_filenames_invert:
@@ -84,7 +96,8 @@ def main(args_str: List[str]):
 
     file_line_dict = read_files(args.files) if args.files else read_stdin()
 
-    matching_elements = search_needle_in_file_line_dict(file_line_dict, args.needle, args.regex, args.invert_results)
+    matching_elements = search_needle_in_file_line_dict(file_line_dict, args.needle, args.regex, args.invert_results,
+                                                        args.ignore_case)
     if args.output_count:
         lines_to_numbers(matching_elements)
 

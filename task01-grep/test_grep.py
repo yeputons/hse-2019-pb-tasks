@@ -129,6 +129,22 @@ def test_integrate_files_grep_filenames_only_invert(tmp_path, monkeypatch, capsy
     assert out == 'b.txt\na.txt\n'
 
 
+def test_integrate_files_grep_ignore_case(tmp_path, monkeypatch, capsys):
+    (tmp_path / 'a.txt').write_text('pref neEdle\nneedLe suf\n')
+    (tmp_path / 'b.txt').write_text('the neeDl\npref nEedle suf')
+    monkeypatch.chdir(tmp_path)
+
+    grep.main(['-i', 'needle', 'b.txt', 'a.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'b.txt:pref nEedle suf\na.txt:pref neEdle\na.txt:needLe suf\n'
+
+    grep.main(['-iE', 'LE\\b', 'b.txt', 'a.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'b.txt:pref nEedle suf\na.txt:pref neEdle\na.txt:needLe suf\n'
+
+
 def search_needle_in_file_line_dict_test_helper(
         input_dict: grep.fl_dict_type, needle: str, regex: bool,
         expected_dict: grep.fl_dict_type) -> bool:
