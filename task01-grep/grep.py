@@ -83,11 +83,9 @@ def main(args_str: List[str]):
                 lines = in_file.readlines()
                 found = find_in_file(lines, args.needle, args.regex,
                                      args.ignore_case, args.inverted, args.full_match)
-                if args.only_files and found:
+                if found and not args.only_not_files:
                     result.append((file_name, found))
-                if args.only_not_files and not found:
-                    result.append((file_name, found))
-                if not args.only_files and not args.only_not_files:
+                if not found and not args.only_files:
                     result.append((file_name, found))
         print_res(result, args.count, args.only_files or args.only_not_files, False)
 

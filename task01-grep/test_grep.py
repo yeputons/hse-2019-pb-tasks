@@ -5,6 +5,8 @@ from grep import has_needle
 from grep import find_in_file
 
 
+# test integrate
+
 def test_integrate_stdin_grep(monkeypatch, capsys):
     monkeypatch.setattr('sys.stdin', io.StringIO(
         'pref needle?\nneedle? suf\nthe needl\npref needle? suf'))
@@ -61,6 +63,9 @@ def test_integrate_files_grep_count(tmp_path, monkeypatch, capsys):
     assert out == 'b.txt:1\na.txt:2\n'
 
 
+# test unit
+# test has_needle
+
 def test_unit_has_needle():
     s = 'abcdef'
     needles_in = ['a', 'abcdef', 'ef', '']
@@ -80,6 +85,8 @@ def test_unit_has_needle_regex():
     for needle in needles_not_in:
         assert not has_needle(s, needle, True, False, False, False)
 
+
+# test find_in_file
 
 def test_unit_find_in_file():
     lines = ['abra', 'cobra', 'masla', 'kavooo', 'z z z', '123o789', 'coq', '']
