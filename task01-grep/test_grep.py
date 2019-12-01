@@ -90,10 +90,11 @@ def test_unit_find_in_file():
         assert out == results[i]
 
 
-def test_unit_find_in_file_regex(capsys):
+def test_unit_find_in_file_regex():
     lines = ['abra', 'cobra', 'maslo', 'kavooo', 'ms', '123o789', 'cooq', '']
     needles = ['[ao]', 'ma?s', 'o{2,}']
-    results = [['abra','cobra','maslo','kavooo','123o789','cooq'], ['maslo','ms'],['kavooo','cooq']]
+    results = [['abra', 'cobra', 'maslo', 'kavooo', '123o789', 'cooq'],
+               ['maslo', 'ms'], ['kavooo', 'cooq']]
     for i, needle in enumerate(needles):
         out = find_in_file(lines, needle, True, False, False, False)
         assert out == results[i]

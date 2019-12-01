@@ -10,14 +10,14 @@ def has_needle(line: str, needle: str, regex: bool,
                ignore_case: bool, inverted: bool, full_match: bool) -> bool:
     if regex:
         if ignore_case:
-            needle = re.compile(needle, re.IGNORECASE)
+            re_needle = re.compile(needle, re.IGNORECASE)
         else:
-            needle = re.compile(needle)
+            re_needle = re.compile(needle)
         if full_match:
             search = re.fullmatch
         else:
             search = re.search
-        result = search(needle, line) is not None
+        result = search(re_needle, line) is not None
     else:
         if ignore_case:
             needle = needle.lower()
