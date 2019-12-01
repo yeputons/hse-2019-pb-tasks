@@ -88,6 +88,16 @@ def test_integrate_files_grep_count(tmp_path, monkeypatch, capsys):
     assert out == 'b.txt:1\na.txt:2\n'
 
 
+def test_integrate_files_grep_filenames_only(tmp_path, monkeypatch, capsys):
+    (tmp_path / 'a.txt').write_text('pref needle\nneedle suf\n')
+    (tmp_path / 'b.txt').write_text('the needl\npref needle suf')
+    monkeypatch.chdir(tmp_path)
+    grep.main(['-l', 'needle', 'b.txt', 'a.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'b.txt\na.txt\n'
+
+
 def search_needle_in_file_line_dict_test_helper(
         input_dict: grep.fl_dict_type, needle: str, regex: bool,
         expected_dict: grep.fl_dict_type) -> bool:
@@ -148,24 +158,29 @@ def test_unit_lines_to_numbers():
 def test_unit_print_output_dict(capsys):
     func = grep.print_output_dict
 
-    func({'file1': ['basic test', 'second line'], 'file2': ['another line']}, '{filename}:{line}')
+    func({'file1': ['basic test', 'second line'], 'file2': ['another line']}, '{filename}:{line}', by_line=True)
     out, err = capsys.readouterr()
     assert out == 'file1:basic test\nfile1:second line\nfile2:another line\n'
     assert err == ''
 
-    func({'file': ['line1', 'line2']}, '{line}')
+    func({'file': ['line1', 'line2']}, '{line}', by_line=True)
     out, err = capsys.readouterr()
     assert out == 'line1\nline2\n'
     assert err == ''
 
-    func({'file': []}, '{line}')
+    func({'file': []}, '{line}', by_line=True)
     out, err = capsys.readouterr()
     assert out == '\n'
     assert err == ''
 
-    func({'file': []}, '{line}')
+    func({'file': []}, '{line}', by_line=True)
     out, err = capsys.readouterr()
     assert out == '\n'
+    assert err == ''
+
+    func({'file1': ['basic test', 'second line'], 'file2': ['another line']}, '{filename}', by_line=False)
+    out, err = capsys.readouterr()
+    assert out == 'file1\nfile2\n'
     assert err == ''
 
 

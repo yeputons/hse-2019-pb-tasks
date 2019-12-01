@@ -31,19 +31,21 @@ def lines_to_numbers(file_line_dict: fl_dict_type) -> fl_dict_type:
     return file_line_dict
 
 
-# My escaped characters:
-# &&f - filename
-# &&l - line
-def print_format(output_line: str, filename: str, line: str) -> None:
+def print_format(output_line: str, filename: str = '', line: str = '') -> None:
     print(output_line.format(line=line, filename=filename))
 
 
-def print_output_dict(output: fl_dict_type, output_format: str) -> None:
+def print_output_dict(output: fl_dict_type, output_format: str, by_line: bool) -> None:
     is_any_output = False
     for file in output:
-        for line in output[file]:
-            print_format(output_format, file, line)
-            is_any_output = True
+        if by_line:
+            for line in output[file]:
+                print_format(output_line=output_format, filename=file, line=line)
+                is_any_output = True
+        else:
+            if output[file]:
+                print_format(output_line=output_format, filename=file)
+                is_any_output = True
     if not is_any_output:
         print()
 
@@ -71,6 +73,7 @@ def main(args_str: List[str]):
     parser.add_argument('files', nargs='*')
     parser.add_argument('-E', dest='regex', action='store_true')
     parser.add_argument('-c', dest='output_count', action='store_true')
+    parser.add_argument('-l', dest='print_only_filenames', action='store_true')
     args = parser.parse_args(args_str)
 
     file_line_dict = read_files(args.files) if args.files else read_stdin()
@@ -83,7 +86,12 @@ def main(args_str: List[str]):
     if len(args.files) > 1:
         output_line = '{filename}:{line}'
 
-    print_output_dict(matching_elements, output_line)
+    by_line = True
+    if args.print_only_filenames:
+        output_line = '{filename}'
+        by_line = False
+
+    print_output_dict(matching_elements, output_line, by_line=by_line)
 
 
 if __name__ == '__main__':
