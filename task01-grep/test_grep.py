@@ -179,6 +179,15 @@ def test_unit_read_files(tmp_path, monkeypatch):
         'a.txt': ['pref needle', 'needle suf']
     }
 
+    (tmp_path / 'empty.txt').write_text('')
+    (tmp_path / 'tabs.txt').write_text('abc\t\tabc\n\tcabaca \n\t\t \n\n\t \n   \t   oh   ')
+    monkeypatch.chdir(tmp_path)
+    result = grep.read_files(['empty.txt', 'tabs.txt'])
+    assert result == {
+        'empty.txt': [],
+        'tabs.txt': ['abc\t\tabc', '\tcabaca ', '\t\t ', '', '\t ', '   \t   oh   ']
+    }
+
 
 def test_unit_read_stdin(monkeypatch):
     monkeypatch.setattr('sys.stdin', io.StringIO('pref needle suf\nohlala\n\n'))
