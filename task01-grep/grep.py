@@ -58,13 +58,15 @@ def find_in(line: str,
             ignore: bool,
             invert: bool,
             fullmatch) -> bool:
+    linetemp = line
+    needletemp = needle
     if ignore:
-        line = line.lower()
-        needle = needle.lower()
+        linetemp = line.lower()
+        needletemp = needle.lower()
     if reg:
-        result = find_in_reg(line, needle, fullmatch)
+        result = find_in_reg(linetemp, needletemp, fullmatch)
     else:
-        result = find_in_not_reg(line, needle, fullmatch)
+        result = find_in_not_reg(linetemp, needletemp, fullmatch)
     if invert:
         return not result
     return result
