@@ -15,12 +15,12 @@ def does_line_match(line: str, regex: bool, needle: str) -> bool:
 
 
 def search_needle_in_file_line_dict(file_line_dict: fl_dict_type,
-                                    needle: str, regex: bool) -> fl_dict_type:
+                                    needle: str, regex: bool, invert: bool) -> fl_dict_type:
     matching_elements: fl_dict_type = {}
     for file in file_line_dict:
         matching_elements[file] = []
         for line in file_line_dict[file]:
-            if does_line_match(line, regex, needle):
+            if does_line_match(line, regex, needle) != invert: # acts like xor
                 matching_elements[file].append(line)
     return matching_elements
 
@@ -74,11 +74,12 @@ def main(args_str: List[str]):
     parser.add_argument('-E', dest='regex', action='store_true')
     parser.add_argument('-c', dest='output_count', action='store_true')
     parser.add_argument('-l', dest='print_only_filenames', action='store_true')
+    parser.add_argument('-v', dest='invert_results', action='store_true')
     args = parser.parse_args(args_str)
 
     file_line_dict = read_files(args.files) if args.files else read_stdin()
 
-    matching_elements = search_needle_in_file_line_dict(file_line_dict, args.needle, args.regex)
+    matching_elements = search_needle_in_file_line_dict(file_line_dict, args.needle, args.regex, args.invert_results)
     if args.output_count:
         lines_to_numbers(matching_elements)
 
