@@ -34,29 +34,29 @@ def init_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def find_in_reg(line,
-                needle,
-                fullmatch) -> bool:
+def find_in_reg(line: str,
+                needle: str,
+                fullmatch: bool) -> bool:
     if fullmatch:
         return re.fullmatch(needle, line) is not None
     else:
         return re.search(needle, line) is not None
 
 
-def find_in_not_reg(line,
-                    needle,
-                    fullmatch) -> bool:
+def find_in_not_reg(line: str,
+                    needle: str,
+                    fullmatch: bool) -> bool:
     if fullmatch:
         return line == needle
     else:
         return needle in line
 
 
-def find_in(line,
-            needle,
-            reg,
-            ignore,
-            invert,
+def find_in(line: str,
+            needle: str,
+            reg: bool,
+            ignore: bool,
+            invert: bool,
             fullmatch) -> bool:
     if ignore:
         line = line.lower()
@@ -66,20 +66,20 @@ def find_in(line,
     else:
         result = find_in_not_reg(line, needle, fullmatch)
     if invert:
-        result = result is False
+        return not result
     return result
 
 
 def add_found_needle(line: str,
                      file,
                      num: int,
-                     listres: list):
+                     listres: list[str]):
     """ Добавляем в переданный список сторчку, по пути форматируя её """
     listres.append(f"{file.name + ':' if num > 1 else ''}{line}")
 
 
-def collect_res(dictlistres,
-                dictfiles,
+def collect_res(dictlistres: dict,
+                dictfiles: dict,
                 cflag: bool,
                 writefile: bool,
                 writeinvertfile: bool):
@@ -102,7 +102,7 @@ def collect_res(dictlistres,
     return listres
 
 
-def print_res(listres):
+def print_res(listres: List[str]):
     for line in listres:
         print(line)
 
