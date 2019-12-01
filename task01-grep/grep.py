@@ -66,15 +66,15 @@ def find_in(line: str,
     else:
         result = find_in_not_reg(line, needle, fullmatch)
     if invert:
-        result = not result
+        return not result
     return result
 
 
-def add_found_needle(line: str,
-                     file,
-                     num: int,
-                     listres: List[str]):
-    """ Добавляем в переданный список сторчку, по пути форматируя её """
+def add_format_line(line: str,
+                    file,
+                    num: int,
+                    listres: List[str]):
+    """ Добавляем в переданный список строчку, по пути форматируя её """
     listres.append(f"{file.name + ':' if num > 1 else ''}{line}")
 
 
@@ -87,7 +87,10 @@ def collect_res(dictlistres: dict,
     listres = []
     for file in dictfiles:
         if cflag:
-            listres.append(f"{file.name + ':' if len(dictfiles) > 1 else ''}{len(dictlistres[file])}")
+            add_format_line(str(len(dictlistres[file])),
+                            file,
+                            len(dictfiles),
+                            listres)
             continue
         if writefile:
             if dictfiles[file] == 'found':
@@ -122,10 +125,10 @@ def process_data(args):
                        args.ignore,
                        args.invert,
                        args.fullmatch):
-                add_found_needle(line,
-                                 file,
-                                 len(args.files),
-                                 linesinfile)
+                add_format_line(line,
+                                file,
+                                len(args.files),
+                                linesinfile)
                 dictfiles[file] = 'found'
         dictlistres[file] = linesinfile
         file.close()
