@@ -7,17 +7,23 @@ import argparse
 fl_dict_type = Dict[str, List[str]]
 
 
-def does_line_match(line: str, regex: bool, needle: str, ignore_case: bool = False) -> bool:
+def does_line_match(line: str, regex: bool, needle: str, ignore_case: bool = False, full_match: bool = False) -> bool:
     if regex:
         if ignore_case:
-            return bool(re.search(needle, line, flags=re.IGNORECASE))
+            if full_match:
+                return bool(re.fullmatch(needle, line, flags=re.IGNORECASE))
+            else:
+                return bool(re.search(needle, line, flags=re.IGNORECASE))
         else:
-            return bool(re.search(needle, line))
+            if full_match:
+                return bool(re.fullmatch(needle, line))
+            else:
+                return bool(re.search(needle, line))
     else:
         if ignore_case:
-            return needle.lower() in line.lower()
+            return needle.lower() == line.lower() if full_match else needle.lower() in line.lower()
         else:
-            return needle in line
+            return needle == line if full_match else needle in line
 
 
 def search_needle_in_file_line_dict(
@@ -25,13 +31,14 @@ def search_needle_in_file_line_dict(
         needle: str,
         regex: bool = False,
         invert: bool = False,
-        ignore_case: bool = False
+        ignore_case: bool = False,
+        full_match: bool = False
 ) -> fl_dict_type:
     matching_elements: fl_dict_type = {}
     for file in file_line_dict:
         matching_elements[file] = []
         for line in file_line_dict[file]:
-            if does_line_match(line, regex, needle, ignore_case) != invert:  # acts like xor
+            if does_line_match(line, regex, needle, ignore_case, full_match) != invert:  # acts like xor
                 matching_elements[file].append(line)
     return matching_elements
 
@@ -88,6 +95,7 @@ def main(args_str: List[str]):
     parser.add_argument('-v', dest='invert_results', action='store_true')
     parser.add_argument('-L', dest='print_only_filenames_invert', action='store_true')
     parser.add_argument('-i', dest='ignore_case', action='store_true')
+    parser.add_argument('-x', dest='full_match', action='store_true')
     args = parser.parse_args(args_str)
 
     if args.print_only_filenames_invert:
@@ -97,7 +105,7 @@ def main(args_str: List[str]):
     file_line_dict = read_files(args.files) if args.files else read_stdin()
 
     matching_elements = search_needle_in_file_line_dict(file_line_dict, args.needle, args.regex, args.invert_results,
-                                                        args.ignore_case)
+                                                        args.ignore_case, args.full_match)
     if args.output_count:
         lines_to_numbers(matching_elements)
 
