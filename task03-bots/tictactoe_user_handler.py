@@ -5,7 +5,7 @@ from tictactoe import Player, TicTacToe
 
 
 class TicTacToeUserHandler(UserHandler):
-    turn_pattern: Pattern = re.compile(r'([XO])\s([0-2])\s([0-2])')
+    turn_pattern: Pattern = re.compile(r'([XO])\s+([0-2])\s+([0-2])')
 
     def __init__(self, send_message: Callable[[str], None]) -> None:
         super(TicTacToeUserHandler, self).__init__(send_message)
