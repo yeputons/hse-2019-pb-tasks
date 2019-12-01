@@ -7,8 +7,9 @@ import grep
 def test_unit_print_in_format_more_than_one_argument(monkeypatch, tmp_path, capsys):
     (tmp_path / 'a.txt').write_text('fO\nFO\nFoO\n')
     (tmp_path / 'b.txt').write_text('hello fo?o world\nxfooyfoz\nfooo\n')
+    test_text = 'test\n'
     monkeypatch.chdir(tmp_path)
-    grep.print_in_format([['a.txt', 'hello'], ['b.txt', 'hi']], 2)
+    grep.print_in_format([['a.txt', 'hello'], ['b.txt', 'hi']], 2, False, [io.StringIO(test_text)])
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'a.txt:hello\nb.txt:hi\n'
@@ -18,21 +19,42 @@ def test_unit_print_in_format_more_than_one_argument(monkeypatch, tmp_path, caps
 def test_unit_print_in_format_one_argument(monkeypatch, tmp_path, capsys):
     (tmp_path / 'a.txt').write_text('fO\nFO\nFoO\n')
     monkeypatch.chdir(tmp_path)
-    grep.print_in_format([['a.txt', 'hello']], 1)
+    test_text = 'test\n'
+    grep.print_in_format([['a.txt', 'hello']], 1, False, [io.StringIO(test_text)])
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'hello\n'
 
 
-def test_unit_print_in_format_count(monkeypatch, tmp_path, capsys):
+def test_unit_print_in_l_format(monkeypatch, tmp_path, capsys):
+    (tmp_path / 'a.txt').write_text('fO\nFO\nFoO\n')
+    monkeypatch.chdir(tmp_path)
+    grep.l_format([['a.txt', 'hello'], ['b.txt', 'world'], ['a.txt', 'here_i_come']])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'a.txt\nb.txt\n'
+
+
+def test_unit_print_result(monkeypatch, tmp_path, capsys):
     (tmp_path / 'a.txt').write_text('fO\nFO\nFoO\n')
     monkeypatch.chdir(tmp_path)
     file = open('a.txt', 'r')
-    grep.print_in_format_count(1, file, 1)
+    grep.print_result([['a.txt', 'this o']], [['a.txt', 'he'], ['b.txt', 'wor'], ['a.txt', 'hi']],
+                      True, False, 1, False, [file])
     out, err = capsys.readouterr()
-    assert err == ''
-    assert out == '1\n'
     file.close()
+    assert err == ''
+    assert out == 'a.txt\nb.txt\n'
+
+
+def test_unit_append_to_list(monkeypatch, tmp_path):
+    (tmp_path / 'a.txt').write_text('fO\nFO\nFoO\n')
+    monkeypatch.chdir(tmp_path)
+    file = open('a.txt', 'r')
+    lists = [['a.txt', 'nothing here yet']]
+    grep.append_to_list(lists, 'hello', 2, file)
+    file.close()
+    assert lists == [['a.txt', 'nothing here yet'], [file.name, 'hello']]
 
 
 def test_unit_search():

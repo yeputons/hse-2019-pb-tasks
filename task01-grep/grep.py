@@ -7,53 +7,36 @@ import argparse
 
 
 # Print when -l or -L flags are not given
-def print_in_format(right_files, length: int):
-    if length > 1:
-        for file in right_files:
-            print(file[0], ':', file[1], sep='')
+def print_in_format(chosen_files: List[str], length: int, count: bool, file: io.StringIO):
+    if count:
+        if length > 1:
+            print(file.name, ':', len(chosen_files), sep='')
+        else:
+            print(len(chosen_files))
+    elif length > 1:
+        for files in chosen_files:
+            print(files[0], ':', files[1], sep='')
     else:
-        for file in right_files:
-            print(file[1])
-
-
-# Print when -c flag is given
-def print_in_format_count(length, file, number):
-    if length > 1:
-        print(file.name, ':', number, sep='')
-    else:
-        print(number)
+        for files in chosen_files:
+            print(files[1])
 
 
 # Verifying that needle can be found in line
 def search(needle: str, line: str, regex: bool, ignore_register: bool, full_match: bool) -> bool:
-    if regex and ignore_register and full_match:
-        if re.fullmatch(needle, line, re.IGNORECASE):
-            return True
-    if regex and ignore_register and not full_match:
-        if re.search(needle, line, re.IGNORECASE):
-            return True
-    if regex and not ignore_register and full_match:
-        if re.fullmatch(needle, line):
-            return True
-    if regex and not ignore_register and not full_match:
-        if re.search(needle, line):
-            return True
-    if not regex and not ignore_register and full_match:
-        return needle == line
-    if not regex and not ignore_register and not full_match:
-        return needle in line
-    string = line.lower()
-    if not regex and ignore_register and full_match:
-        return needle.lower() == string
-    if not regex and ignore_register and not full_match:
-        return needle.lower() in string
-    return False
+    if not regex:
+        needle = re.escape(needle)
+    if ignore_register:
+        needle = needle.lower()
+        line = line.lower()
+    if full_match:
+        return bool(re.fullmatch(needle, line))
+    return bool(re.search(needle, line))
 
 
-# Print with -l or -L flags
-def l_format(right_files):
-    files = []
-    for line in right_files:
+# Print when -l or -L flags are given
+def l_format(chosen_files: List[str]):
+    files: List[str] = []
+    for line in chosen_files:
         if line[0] not in files:
             files.append(line[0])
     for line in files:
@@ -61,51 +44,46 @@ def l_format(right_files):
 
 
 # General function in which format of printing is decided
-def print_result(not_right_files, right_files, l1_format, l2_format, length: int):
+def print_result(not_chosen_files: List[str], chosen_files: List[str], l1_format: bool,
+                 l2_format: bool, length: int, count: bool, file: io.StringIO):
     if l1_format:
-        l_format(right_files)
+        l_format(chosen_files)
     elif l2_format:
-        l_format(not_right_files)
+        l_format(not_chosen_files)
     else:
-        print_in_format(right_files, length)
+        print_in_format(chosen_files, length, count, file)
 
 
-# Append found line either to list with results or to list with not suitable lines
-def append_to_list(invert: bool, right_files, not_right_files, line, length, file: io.StringIO):
-    if not invert:
-        if length > 1:
-            right_files.append([file.name, line])
-        else:
-            right_files.append(['sys.stdin', line])
+# Append found line to list with results
+def append_to_list(chosen_files, line: str, length: int, file: io.StringIO):
+    if length > 1:
+        chosen_files.append([file.name, line])
     else:
-        if length > 1:
-            not_right_files.append([file.name, line])
-        else:
-            not_right_files.append(['sys.stdin', line])
+        chosen_files.append(['sys.stdin', line])
 
 
 # Principal function in which all the files are processed
 def process(needle: str, files: List[io.StringIO], regex: bool, count: bool,
             ignore_register: bool, invert: bool, full_match: bool,
             l1_format: bool, l2_format: bool):
-    not_right_files = []  # type: List[str]
-    right_files = []  # type: List[str]
     for file in files:
-        number = 0
+        not_chosen_files: List[str] = []
+        chosen_files: List[str] = []
         for line in file.readlines():
             line = line.strip('\n')
             if search(needle, line, regex, ignore_register, full_match):
-                append_to_list(invert, right_files, not_right_files, line, len(files), file)
-                if not invert and count:
-                    number += 1
+                if invert:
+                    append_to_list(not_chosen_files, line, len(files), file)
+                else:
+                    append_to_list(chosen_files, line, len(files), file)
             else:
-                append_to_list(not invert, right_files, not_right_files, line, len(files), file)
-                if invert and count:
-                    number += 1
-        if count:
-            print_in_format_count(len(files), file, number)
-    if not count:
-        print_result(not_right_files, right_files, l1_format, l2_format, len(files))
+                if invert:
+                    append_to_list(chosen_files, line, len(files), file)
+                else:
+                    append_to_list(not_chosen_files, line, len(files), file)
+        print_result(not_chosen_files, chosen_files, l1_format, l2_format, len(files), count, file)
+    for file in files:
+        file.close()
 
 
 def parser_initialisation() -> argparse.ArgumentParser:
