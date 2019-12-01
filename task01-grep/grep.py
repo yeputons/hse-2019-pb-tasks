@@ -66,14 +66,14 @@ def find_in(line: str,
     else:
         result = find_in_not_reg(line, needle, fullmatch)
     if invert:
-        return not result
+        result = not result
     return result
 
 
 def add_found_needle(line: str,
                      file,
                      num: int,
-                     listres: list[str]):
+                     listres: List[str]):
     """ Добавляем в переданный список сторчку, по пути форматируя её """
     listres.append(f"{file.name + ':' if num > 1 else ''}{line}")
 
