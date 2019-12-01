@@ -53,7 +53,7 @@ def read_files(files: List['str']) -> fl_dict_type:
     for file in files:
         file_line_dict[file] = []
         with open(file, 'r') as input_file:
-            for line in input_file.readlines():
+            for line in input_file:
                 file_line_dict[file].append(line.rstrip('\n'))
     return file_line_dict
 
