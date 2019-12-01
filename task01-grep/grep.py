@@ -45,6 +45,11 @@ def find_in_source(source: Iterable, pattern: Pattern[str],
     return format_data(result, counting_mode, source_name)
 
 
+def print_result(lines: List[str]) -> None:
+    for line in lines:
+        print(line)
+
+
 def main(args_str: List[str]):
     args: ap.Namespace = parse_args(args_str)
     result: List[str] = []
@@ -56,7 +61,7 @@ def main(args_str: List[str]):
                                          file_name if len(args.file_names) > 1 else None)
     else:
         result = find_in_source(sys.stdin, pattern, args.count)
-    print(*result, sep='\n')
+    print_result(result)
 
 
 if __name__ == '__main__':

@@ -58,6 +58,29 @@ def test_find_in_source():
                                False) == ['pref needle?', 'needle? suf', 'pref needle? suf']
 
 
+def test_print_result(capsys):
+    grep.print_result(['neadle', 'notneedle', 'filename:sometext'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'neadle\nnotneedle\nfilename:sometext\n'
+
+
+def test_print_empty_result(capsys):
+    grep.print_result([])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == ''
+
+
+def test_integrate_file_grep_empty_result(tmp_path, monkeypatch, capsys):
+    (tmp_path / 'a.txt').write_text('the needl\npref needle suf')
+    monkeypatch.chdir(tmp_path)
+    grep.main(['neadle', 'a.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == ''
+
+
 def test_integrate_stdin_grep(monkeypatch, capsys):
     monkeypatch.setattr('sys.stdin', io.StringIO(
         'pref needle?\nneedle? suf\nthe needl\npref needle? suf'))
