@@ -18,6 +18,7 @@ class TicTacToeUserHandler(UserHandler):
         # а mypy не может понять, что если мы зашли внутрь, то turn_match не может быть None
         # (вставить явное is not None не помогает)
         elif turn_match := self.turn_pattern.fullmatch(message):
+            assert turn_match is not None
             self.make_turn(Player[turn_match.group(1)],
                            col=int(turn_match.group(2)), row=int(turn_match.group(3)))
         else:
