@@ -37,6 +37,8 @@ class TicTacToeUserHandler(UserHandler):
             return
         self.game.make_turn(player, row=row, col=col)
         self.send_field()
+        if self.game.is_finished():
+            self._handle_victory()
 
     def send_field(self) -> None:
         if self.game is None:
@@ -53,8 +55,6 @@ class TicTacToeUserHandler(UserHandler):
                     msg += '.'
             msg += '\n'
         self.send_message(msg.rstrip('\n'))
-        if self.game.is_finished():
-            self._handle_victory()
 
     def _handle_victory(self):
         winner = self.game.winner()
