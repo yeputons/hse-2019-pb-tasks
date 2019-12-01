@@ -62,6 +62,7 @@ def test_integrate_stdin_grep_count(monkeypatch, capsys):
 def test_integrate_file_grep(tmp_path, monkeypatch, capsys):
     (tmp_path / 'a.txt').write_text('the needl\npref needle suf')
     monkeypatch.chdir(tmp_path)
+
     grep.main(['needle', 'a.txt'])
     out, err = capsys.readouterr()
     assert err == ''
@@ -72,6 +73,7 @@ def test_integrate_files_grep(tmp_path, monkeypatch, capsys):
     (tmp_path / 'a.txt').write_text('pref needle\nneedle suf\n')
     (tmp_path / 'b.txt').write_text('the needl\npref needle suf')
     monkeypatch.chdir(tmp_path)
+
     grep.main(['needle', 'b.txt', 'a.txt'])
     out, err = capsys.readouterr()
     assert err == ''
@@ -82,6 +84,7 @@ def test_integrate_files_grep_count(tmp_path, monkeypatch, capsys):
     (tmp_path / 'a.txt').write_text('pref needle\nneedle suf\n')
     (tmp_path / 'b.txt').write_text('the needl\npref needle suf')
     monkeypatch.chdir(tmp_path)
+
     grep.main(['-c', 'needle', 'b.txt', 'a.txt'])
     out, err = capsys.readouterr()
     assert err == ''
@@ -92,6 +95,7 @@ def test_integrate_files_grep_filenames_only(tmp_path, monkeypatch, capsys):
     (tmp_path / 'a.txt').write_text('pref needle\nneedle suf\n')
     (tmp_path / 'b.txt').write_text('the needl\npref needle suf')
     monkeypatch.chdir(tmp_path)
+
     grep.main(['-l', 'needle', 'b.txt', 'a.txt'])
     out, err = capsys.readouterr()
     assert err == ''
@@ -102,10 +106,27 @@ def test_integrate_files_grep_invert(tmp_path, monkeypatch, capsys):
     (tmp_path / 'a.txt').write_text('pref needle\nneedle suf\n')
     (tmp_path / 'b.txt').write_text('the needl\npref needle suf')
     monkeypatch.chdir(tmp_path)
+
     grep.main(['-v', 'needle', 'b.txt', 'a.txt'])
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'b.txt:the needl\n'
+
+
+def test_integrate_files_grep_filenames_only_invert(tmp_path, monkeypatch, capsys):
+    (tmp_path / 'a.txt').write_text('pref needle\nneedle suf\n')
+    (tmp_path / 'b.txt').write_text('the needl\npref needle suf')
+    monkeypatch.chdir(tmp_path)
+
+    grep.main(['-L', 'needle', 'b.txt', 'a.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'b.txt\n'
+
+    grep.main(['-Lv', 'needle', 'b.txt', 'a.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'b.txt\na.txt\n'
 
 
 def search_needle_in_file_line_dict_test_helper(

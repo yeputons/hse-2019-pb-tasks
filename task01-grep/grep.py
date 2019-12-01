@@ -75,7 +75,12 @@ def main(args_str: List[str]):
     parser.add_argument('-c', dest='output_count', action='store_true')
     parser.add_argument('-l', dest='print_only_filenames', action='store_true')
     parser.add_argument('-v', dest='invert_results', action='store_true')
+    parser.add_argument('-L', dest='print_only_filenames_invert', action='store_true')
     args = parser.parse_args(args_str)
+
+    if args.print_only_filenames_invert:
+        args.print_only_filenames = True
+        args.invert_results = not args.invert_results
 
     file_line_dict = read_files(args.files) if args.files else read_stdin()
 
