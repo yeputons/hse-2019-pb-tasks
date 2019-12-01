@@ -87,14 +87,14 @@ def test_integrate_files_grep_count_regex(tmp_path, monkeypatch, capsys):
     assert out == 'b.txt:1\na.txt:2\n'
 
 
-def test_print_result(capsys):
+def test_print_result_filename_and_text(capsys):
     grep.print_result(['b.txt:1', 'a.txt:2'])
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'b.txt:1\na.txt:2\n'
 
 
-def test_print_answer_1(capsys):
+def test_print_result_text(capsys):
     grep.print_result(['a', 'b', 'c'])
     out, err = capsys.readouterr()
     assert err == ''
@@ -107,41 +107,55 @@ def test_strip_lines():
     assert lines == ['London', '\nis', 'the capital\n of Great Britain.']
 
 
-def test_filter_lines1():
-    assert grep.filter_lines(False, 'a', ['aba', 'bcd', 'banana']) == ['aba', 'banana']
+def test_filter_lines_without_regex_with_substring():
+    assert grep.filter_lines('b', ['aba', 'bcd', 'banana'],
+                             is_regex=False) == ['aba', 'bcd', 'banana']
 
 
-def test_filter_lines2():
-    assert grep.filter_lines(False, 'b', ['aba', 'bcd', 'banana']) == ['aba', 'bcd', 'banana']
+def test_filter_lines_with_regex_with_regular_expression():
+    assert grep.filter_lines('a*b', ['aba', 'bcd', 'banana'],
+                             is_regex=True) == ['aba', 'bcd', 'banana']
 
 
-def test_filter_lines3():
-    assert grep.filter_lines(True, 'a*b', ['aba', 'bcd', 'banana']) == ['aba', 'bcd', 'banana']
+def test_filter_lines_without_regex_with_regular_expression():
+    assert grep.filter_lines('a*b', ['aba', 'bcd', 'banana'], is_regex=False) == []
 
 
-def test_filter_lines4():
-    assert grep.filter_lines(False, 'a*b', ['aba', 'bcd', 'banana']) == []
+def test_filter_lines_with_regex_with_substring():
+    assert grep.filter_lines('a', ['aba', 'bcd', 'banana'], is_regex=True) == ['aba', 'banana']
 
 
-def test_grep_lines1():
-    assert grep.grep_lines(['abc'], 'file.txt', 'a', False, False) == ['file.txt:abc']
+def test_grep_lines_without_regex_without_counting_mode():
+    assert grep.grep_lines(['abc'], 'file.txt', 'a', is_regex=False,
+                           counting_mode=False) == ['file.txt:abc']
 
 
-def test_grep_lines2():
-    assert grep.grep_lines(['abc'], 'file.txt', 'a', False, True) == ['file.txt:1']
+def test_grep_lines_without_regex_with_counting_mode():
+    assert grep.grep_lines(['abc'], 'file.txt', 'a', is_regex=False,
+                           counting_mode=True) == ['file.txt:1']
 
 
-def test_grep_lines3():
-    assert grep.grep_lines(['abc'], 'file.txt', 'a', True, True) == ['file.txt:1']
+def test_grep_lines_with_regex_with_counting_mode():
+    assert grep.grep_lines(['abc'], 'file.txt', 'a', is_regex=True,
+                           counting_mode=True) == ['file.txt:1']
 
 
-def test_grep_lines4():
-    assert grep.grep_lines(['abc'], 'file.txt', 'a', True, False) == ['file.txt:abc']
+def test_grep_lines_with_regex_without_counting_mode():
+    assert grep.grep_lines(['abc'], 'file.txt', 'a', is_regex=True,
+                           counting_mode=False) == ['file.txt:abc']
 
 
-def test_match_pattern1():
-    assert grep.match_pattern(False, 'Ma', 'Masha')
+def test_match_pattern_without_regex_with_substring():
+    assert grep.match_pattern('Ma', 'Masha', is_regex=False)
 
 
-def test_match_pattern2():
-    assert grep.match_pattern(True, 'a*', 'Masha')
+def test_match_pattern_with_regex_with_regular_expression():
+    assert grep.match_pattern('a*', 'Masha', is_regex=True)
+
+
+def test_match_pattern_with_regex_with_substring():
+    assert grep.match_pattern('Ma', 'Masha', is_regex=True)
+
+
+def test_match_pattern_without_regex_with_regular_expression():
+    assert not grep.match_pattern('a*', 'Masha', is_regex=False)
