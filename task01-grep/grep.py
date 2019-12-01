@@ -30,7 +30,7 @@ def find_in_file(regex: bool, invert: bool, ignore_case: bool, exact: bool,
         is_researched: bool = (regex and re.search(key, line))
         is_not_researched: bool = (regex and not re.search(key, line))
         is_in_line: bool = (not regex and key in line)
-        is_not_in_line: bool = (not regex and not key in line)
+        is_not_in_line: bool = (not regex and key not in line)
         if ((not invert) and (exact and is_exact)) or \
                 (invert and (exact and not is_exact)) or \
                 (((not invert) and is_researched) or
