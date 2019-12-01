@@ -37,6 +37,7 @@ def init_parser() -> argparse.ArgumentParser:
 def find_in_reg(line: str,
                 needle: str,
                 fullmatch: bool) -> bool:
+    """ Ищем в регулярном выражении вхождение """
     if fullmatch:
         return re.fullmatch(needle, line) is not None
     else:
@@ -46,6 +47,7 @@ def find_in_reg(line: str,
 def find_in_not_reg(line: str,
                     needle: str,
                     fullmatch: bool) -> bool:
+    """ Ищем в нерегулярном выражении вхождение """
     if fullmatch:
         return line == needle
     else:
@@ -58,6 +60,7 @@ def find_in(line: str,
             ignore: bool,
             invert: bool,
             fullmatch) -> bool:
+    """ Ищем вхождение needle в line """
     linetemp = line
     needletemp = needle
     if ignore:
@@ -108,6 +111,7 @@ def collect_res(dictlistres: dict,
 
 
 def print_res(listres: List[str]):
+    """ Выводим собранный результат """
     for line in listres:
         print(line)
 
