@@ -5,12 +5,8 @@ from bot import UserHandler
 from alarm_user_handler import AlarmUserHandler
 
 
-def send_message(msg: str) -> None:
-    print(msg)
-
-
 def main() -> None:
-    handler: UserHandler = AlarmUserHandler(send_message=send_message)
+    handler: UserHandler = AlarmUserHandler(send_message=print)
     for line in sys.stdin:
         try:
             handler.handle_message(line.rstrip('\n'))
