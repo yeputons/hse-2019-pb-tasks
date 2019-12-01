@@ -117,3 +117,61 @@ def test_integrate_stdin_grep_ivx(monkeypatch, capsys):
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'neEDle suf\npref needLe suf\n'
+
+
+def test_integrate_ix_keys_files_grep_no_matches(tmp_path, monkeypatch, capsys):
+    (tmp_path / 'a.txt').write_text('foko\nxfooyfoz\nFOOOOOp\n')
+    (tmp_path / 'b.txt').write_text('hello fo?o world\nxfooyfoz\nfooo\n')
+    monkeypatch.chdir(tmp_path)
+    grep.main(['-ix', 'abc.?.?.?', 'a.txt', 'b.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == ''
+
+
+def test_integrate_regex_i_keys_files_grep_no_matches(tmp_path, monkeypatch, capsys):
+    (tmp_path / 'a.txt').write_text('foko\nxlkjmnz\nFOOOOp\n')
+    (tmp_path / 'b.txt').write_text('hello fo?o world\nxfooyfoz\nfooo\n')
+    monkeypatch.chdir(tmp_path)
+    grep.main(['-i', '-E', '.*g.*', 'a.txt', 'b.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == ''
+
+
+def test_integrate_regex_ci_keys_files_grep_no_matches(tmp_path, monkeypatch, capsys):
+    (tmp_path / 'a.txt').write_text('foko\nxlkjmnz\nFOOOOp\n')
+    (tmp_path / 'b.txt').write_text('hello fo?o world\nxfooyfoz\nfooo\n')
+    monkeypatch.chdir(tmp_path)
+    grep.main(['-ci', '-E', '.*g.*', 'a.txt', 'b.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'a.txt:0\nb.txt:0\n'
+
+
+def test_integrate_regex_ci_keys_file_grep_no_matches(tmp_path, monkeypatch, capsys):
+    (tmp_path / 'a.txt').write_text('zdrastvuite privet\nxlkjmnz\nFOOOOp\n')
+    monkeypatch.chdir(tmp_path)
+    grep.main(['-ci', '-E', '.*g.*', 'a.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == '0\n'
+
+
+def test_integrate_regex_civ_keys_files_grep_no_matches(tmp_path, monkeypatch, capsys):
+    (tmp_path / 'a.txt').write_text('fogo\nxfaggomnz\nFOOOGp\n')
+    (tmp_path / 'b.txt').write_text('hello fogo world\nxfogyfoz\nfogoo\n')
+    monkeypatch.chdir(tmp_path)
+    grep.main(['-civ', '-E', '.*g.*', 'a.txt', 'b.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'a.txt:0\nb.txt:0\n'
+
+
+def test_integrate_stdin_grep_civx_no_matches(monkeypatch, capsys):
+    monkeypatch.setattr('sys.stdin', io.StringIO(
+        'needle\nneedle\nneedle\nneedle'))
+    grep.main(['-civx', 'needle'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == '0\n'
