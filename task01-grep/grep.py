@@ -34,7 +34,7 @@ def create_flags_dict(args: argparse.Namespace) -> Dict:
     return flags
 
 
-def find_desired(flags: Dict, needle, line: str) -> bool:
+def find_if_desired(flags: Dict, needle, line: str) -> bool:
     """
     Returns True or False depending on
     flags and the presence of needle in line
@@ -49,8 +49,8 @@ def find_desired(flags: Dict, needle, line: str) -> bool:
     else:
         is_desired = re.search(needle, line)
     if flags['v']:
-        return not is_desired
-    return is_desired
+        return not bool(is_desired)
+    return bool(is_desired)
 
 
 def create_ans_list(needle: str, search_lines: List[str], flags: Dict) -> List[str]:
@@ -61,7 +61,7 @@ def create_ans_list(needle: str, search_lines: List[str], flags: Dict) -> List[s
     needle_lines = []
     for line in search_lines:
         line = line.rstrip('\n')
-        if find_desired(flags, needle, line):
+        if find_if_desired(flags, needle, line):
             needle_lines.append(line)
     return needle_lines
 
@@ -79,7 +79,7 @@ def print_output(ans_list: List[str], flags: Dict, prefix: str):
             print(prefix, answer, sep='')
 
 
-def print_file_name(flags: Dict, file_name: str, is_found: bool) -> List[str]:
+def print_file_name(flags: Dict, file_name: str, is_found: int):
     """
     Print name of file which contain
     or not contain desired lines

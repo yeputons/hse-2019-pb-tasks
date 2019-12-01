@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-import grep
 import io
 import argparse
+import grep
 
 
 def test_integrate_stdin_grep(monkeypatch, capsys):
@@ -205,7 +205,6 @@ def test_print_output(capsys):
              'i': False,
              'v': False,
              'x': False}
-    return flags
     grep.print_output(['kek', 'lol'], flags, '')
     out, err = capsys.readouterr()
     assert err == ''
@@ -310,7 +309,7 @@ def test_print_file_name(capsys):
     assert out == 'a.txt\n'
 
 
-def test_find_desired():
+def test_find_if_desired():
     flags = {'c': False,
              'E': False,
              'l': False,
@@ -318,11 +317,11 @@ def test_find_desired():
              'i': False,
              'v': False,
              'x': False}
-    is_found = grep.find_desired(flags, 'sleep', 'I need some sleep')
+    is_found = grep.find_if_desired(flags, 'sleep', 'I need some sleep')
     assert is_found
 
 
-def test_find_desired_x_regex():
+def test_find_if_desired_x_regex():
     flags = {'c': False,
              'E': True,
              'l': False,
@@ -330,11 +329,11 @@ def test_find_desired_x_regex():
              'i': False,
              'v': False,
              'x': True}
-    is_found = grep.find_desired(flags, r'\d:\d{2}', '4:50')
+    is_found = grep.find_if_desired(flags, r'\d:\d{2}', '4:50')
     assert is_found
 
 
-def test_find_desired_i_v():
+def test_find_if_desired_i_v():
     flags = {'c': False,
              'E': False,
              'l': False,
@@ -342,11 +341,11 @@ def test_find_desired_i_v():
              'i': True,
              'v': True,
              'x': False}
-    is_found = grep.find_desired(flags, 'he', 'HElp me')
+    is_found = grep.find_if_desired(flags, 'he', 'HElp me')
     assert is_found is False
 
 
-def test_find_desired_i_v_x():
+def test_find_if_desired_i_v_x():
     flags = {'c': False,
              'E': False,
              'l': False,
@@ -354,5 +353,5 @@ def test_find_desired_i_v_x():
              'i': True,
              'v': True,
              'x': True}
-    is_found = grep.find_desired(flags, 'pP', 'Pp')
+    is_found = grep.find_if_desired(flags, 'pP', 'Pp')
     assert is_found is False
