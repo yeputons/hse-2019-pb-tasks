@@ -28,7 +28,7 @@ def test_unit_print_lines(capsys):
 def test_unit_count_lines():
     lines = [['first', '2th', 'third'], [], [], ['word']]
     lines = grep.count_lines(lines)
-    assert lines == [['3'], ['0'], ['0'], ['1']]
+    assert lines == [3, 0, 0, 1]
 
 
 def test_unit_count_lines_empty():
@@ -40,7 +40,7 @@ def test_unit_count_lines_empty():
 def test_unit_build_pattern():
     substr = 'needle'
     result = grep.build_pattern(substr, False)
-    assert result == re.escape(substr)
+    assert result == re.compile(re.escape(substr))
 
 
 def test_unit_build_pattern_regex():

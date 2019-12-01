@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-from typing import List, Pattern, Union, Iterable, Any
+from typing import List, Pattern, Iterable, Any
 import sys
 import argparse
 import re
 
 
-def filter_matching_lines(pattern: Union[Pattern, str], lines: List[str]) -> List[str]:
+def filter_matching_lines(pattern: Pattern, lines: List[str]) -> List[str]:
     return [line for line in lines if re.search(pattern, line)]
 
 
@@ -14,22 +14,22 @@ def print_lines(lines: Iterable) -> None:
         print(line)
 
 
-def build_pattern(string: str, is_regex: bool) -> Union[Pattern, str]:
-    if is_regex:
-        return re.compile(string)
-    return re.escape(string)
+def build_pattern(string: str, is_regex: bool) -> Pattern:
+    if not is_regex:
+        string = re.escape(string)
+    return re.compile(string)
 
 
-def rstrip_lines(lines: List[str], chars: str) -> List[str]:
+def rstrip_lines(lines: List[str], chars='\n') -> List[str]:
     return [line.rstrip(chars) for line in lines]
 
 
-def count_lines(line_sets: List[List[Any]]) -> List[List[str]]:
-    return [[str(len(lines))] for lines in line_sets]
+def count_lines(line_sets: List[List[Any]]) -> List[int]:
+    return [len(lines) for lines in line_sets]
 
 
-def add_prefix(prefix: str, lines: List[str], chars_between='') -> List[str]:
-    return list(map(lambda x: prefix + chars_between + x, lines))
+def add_prefix(prefix: str, lines: Iterable, chars_between='') -> List[str]:
+    return list(map(lambda x: '{}{}{}'.format(prefix, chars_between, x), lines))
 
 
 def main(args_str: List[str]):
@@ -46,17 +46,22 @@ def main(args_str: List[str]):
 
     for file_name in args.files:
         with open(file_name, 'r') as file:
-            result.append(filter_matching_lines(pattern, rstrip_lines(file.readlines(), '\n')))
+            result.append(file.readlines())
 
     if not args.files:
-        result.append(filter_matching_lines(pattern, rstrip_lines(sys.stdin.readlines(), '\n')))
+        result.append(sys.stdin.readlines())
+
+    result = list(map(
+        lambda lines: filter_matching_lines(pattern, rstrip_lines(lines)),
+        result
+    ))
 
     if args.count:
-        result = count_lines(result)
+        result = [[str(x)] for x in count_lines(result)]
 
     if len(args.files) > 1:
-        for i in range(len(args.files)):
-            result[i] = add_prefix(args.files[i], result[i], chars_between=':')
+        for i, file_name in enumerate(args.files):
+            result[i] = add_prefix(file_name, result[i], chars_between=':')
 
     for lines in result:
         print_lines(lines)
