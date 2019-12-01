@@ -35,9 +35,9 @@ def match(needle: str, line: str, flags: Dict[str, bool]) -> bool:
     inverted = get_value(flags, INVERTED)
     ans: bool = False
     if full_match:
-        ans = re.fullmatch(needle, line, flags=ignoring_case)
+        ans = re.fullmatch(needle, line, flags=ignoring_case) is not None
     else:
-        ans = re.search(needle, line, flags=ignoring_case)
+        ans = re.search(needle, line, flags=ignoring_case) is not None
     return not ans if inverted else ans
 
 
