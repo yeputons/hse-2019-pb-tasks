@@ -151,7 +151,8 @@ def test_unit_lines_to_numbers():
 def test_unit_print_output_dict(capsys):
     func = grep.print_output_dict
 
-    func({'file1': ['basic test', 'second line'], 'file2': ['another line']}, '{filename}:{line}', by_line=True)
+    func({'file1': ['basic test', 'second line'], 'file2': ['another line']},
+         '{filename}:{line}', by_line=True)
     out, err = capsys.readouterr()
     assert out == 'file1:basic test\nfile1:second line\nfile2:another line\n'
     assert err == ''
@@ -171,7 +172,8 @@ def test_unit_print_output_dict(capsys):
     assert out == '\n'
     assert err == ''
 
-    func({'file1': ['basic test', 'second line'], 'file2': ['another line']}, '{filename}', by_line=False)
+    func({'file1': ['basic test', 'second line'], 'file2': ['another line']},
+         '{filename}', by_line=False)
     out, err = capsys.readouterr()
     assert out == 'file1\nfile2\n'
     assert err == ''

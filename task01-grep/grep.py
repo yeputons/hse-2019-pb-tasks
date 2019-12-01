@@ -7,7 +7,8 @@ import argparse
 fl_dict_type = Dict[str, List[str]]
 
 
-def does_line_match(line: str, regex: bool, needle: str, ignore_case: bool = False, full_match: bool = False) -> bool:
+def does_line_match(line: str, regex: bool, needle: str,
+                    ignore_case: bool = False, full_match: bool = False) -> bool:
     if regex:
         if ignore_case:
             if full_match:
@@ -38,7 +39,8 @@ def search_needle_in_file_line_dict(
     for file in file_line_dict:
         matching_elements[file] = []
         for line in file_line_dict[file]:
-            if does_line_match(line, regex, needle, ignore_case, full_match) != invert:  # acts like xor
+            # != acts as xor, which in order acts as negation
+            if does_line_match(line, regex, needle, ignore_case, full_match) != invert:
                 matching_elements[file].append(line)
     return matching_elements
 
@@ -104,8 +106,13 @@ def main(args_str: List[str]):
 
     file_line_dict = read_files(args.files) if args.files else read_stdin()
 
-    matching_elements = search_needle_in_file_line_dict(file_line_dict, args.needle, args.regex, args.invert_results,
-                                                        args.ignore_case, args.full_match)
+    matching_elements = search_needle_in_file_line_dict(
+        file_line_dict,
+        args.needle,
+        args.regex,
+        args.invert_results,
+        args.ignore_case, args.full_match
+    )
     if args.output_count:
         lines_to_numbers(matching_elements)
 
