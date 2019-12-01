@@ -149,20 +149,24 @@ def test_unit_print_output_dict(capsys):
     func = grep.print_output_dict
 
     func({'file1': ['basic test', 'second line'], 'file2': ['another line']}, '{filename}:{line}')
-    output = capsys.readouterr().out
-    assert output == 'file1:basic test\nfile1:second line\nfile2:another line\n'
+    out, err = capsys.readouterr()
+    assert out == 'file1:basic test\nfile1:second line\nfile2:another line\n'
+    assert err == ''
 
     func({'file': ['line1', 'line2']}, '{line}')
-    output = capsys.readouterr().out
-    assert output == 'line1\nline2\n'
+    out, err = capsys.readouterr()
+    assert out == 'line1\nline2\n'
+    assert err == ''
 
     func({'file': []}, '{line}')
-    output = capsys.readouterr().out
-    assert output == '\n'
+    out, err = capsys.readouterr()
+    assert out == '\n'
+    assert err == ''
 
     func({'file': []}, '{line}')
-    output = capsys.readouterr().out
-    assert output == '\n'
+    out, err = capsys.readouterr()
+    assert out == '\n'
+    assert err == ''
 
 
 def test_unit_read_files(tmp_path, monkeypatch):
