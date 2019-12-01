@@ -15,8 +15,8 @@ class TicTacToeUserHandler(UserHandler):
         if not self.game:
             self.send_message('Game is not started')
             return
-        symbol, col, row = message.rstrip('\n').split(maxsplit=2)
-        if symbol != 'X' and symbol != 'O':
+        symbol, col, row = message.split(maxsplit=2)
+        if symbol not in ['X', 'O']:
             self.send_message('Invalid turn')
             return
         self.make_turn(player={'X': Player.X, 'O': Player.O}[symbol],
