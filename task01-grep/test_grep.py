@@ -36,7 +36,7 @@ def test_integrate_stdin_regex_grep_count(monkeypatch, capsys):
     grep.main(['-c', '-E', 'needle?'])
     out, err = capsys.readouterr()
     assert err == ''
-    assert out == '3\npref needle?\nneedle? suf\nthe needl\npref needle? suf\n'
+    assert out == '4\n'
 
 
 def test_integrate_file_grep(tmp_path, monkeypatch, capsys):
