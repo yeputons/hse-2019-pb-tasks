@@ -48,7 +48,14 @@ def strip_lines(lines: List[str]) -> List[str]:
     return [line.rstrip('\n') for line in lines]
 
 
-def compile_searcher(pattern: str, regex_mode: bool, ignore_mode: bool):
+def compile_regex(pattern: str, regex_mode: bool, ignore_mode: bool):
+    """
+    Compiles regex for searching the pattern
+    :param pattern: pattern to be searched
+    :param regex_mode: regular or not
+    :param ignore_mode: if true the regex ignores letter cases
+    :return:
+    """
     if not regex_mode:
         pattern = re.escape(pattern)
     return re.compile(pattern, flags=re.IGNORECASE) if ignore_mode else re.compile(pattern)
@@ -80,27 +87,27 @@ def filter_lines(lines: List[str], searcher: Pattern[str], invert_mode: bool,
     return [line for line in lines if match_line(line, searcher, invert_mode, fullmatch_mode)]
 
 
-def prepare_output(lines: List[str], stream_name: Optional[str], counting_mode: bool,
+def prepare_output(lines: List[str], source: Optional[str], counting_mode: bool,
                    only_files_mode: bool, only_not_files_mode: bool) -> List[str]:
     """
     Process the lines before output to satisfy the flags
     :param lines: the given lines
-    :param stream_name: the name of file
+    :param source: the name of file
     :param counting_mode: -c flag
     :param only_files_mode: -l flag
     :param only_not_files_mode: -L flag
     :return: list of the output
     """
     if only_files_mode or only_not_files_mode:
-        assert stream_name
-        # ^ means that if only_not_files_mode is true then we are sure that
+        assert source
+        # xor means that if only_not_files_mode is true then we are sure that
         # only_files_mode is false and we can just invert the result
-        output_lines = [stream_name] if bool(lines) ^ only_not_files_mode else []
+        output_lines = [source] if bool(lines) ^ only_not_files_mode else []
     else:
-        stream_name = f'{stream_name}:' if stream_name else ''
+        prefix = f'{source}:' if source else ''
         if counting_mode:
             lines = [str(len(lines))]
-        output_lines = [f'{stream_name}{line}' for line in lines]
+        output_lines = [f'{prefix}{line}' for line in lines]
     return output_lines
 
 
@@ -128,8 +135,10 @@ def parse_arguments(args_str: List[str]) -> argparse.Namespace:
     parser.add_argument('-x', dest='fullmatch', action='store_true')
     format_group = parser.add_mutually_exclusive_group()
     format_group.add_argument('-c', dest='counting', action='store_true')
-    format_group.add_argument('-l', dest='only_files', action='store_true')
-    format_group.add_argument('-L', dest='only_not_files', action='store_true')
+    format_group.add_argument('-l', dest='only_files', action='store_true',
+                              help='Require file name to be set')
+    format_group.add_argument('-L', dest='only_not_files', action='store_true',
+                              help='Require file name to be set')
     return parser.parse_args(args_str)
 
 
@@ -139,25 +148,25 @@ def main(args_str: List[str]):
     """
     args = parse_arguments(args_str)
     if args.files:
-        stream_names, nonexistent_files = split_files_by_existence(args.files)
-        all_lines = read_files(stream_names)
+        sources, nonexistent_files = split_files_by_existence(args.files)
+        all_lines = read_files(sources)
         if nonexistent_files:
             for file in nonexistent_files:
                 print(f'No such file: {file}', file=sys.stderr)
             return
     else:
         all_lines = [sys.stdin.readlines()]
-        stream_names = [None]
+        sources = [None]
 
     if len(args.files) == 1 and not args.only_files and not args.only_not_files:
-        stream_names = [None]
+        sources = [None]
 
-    searcher = compile_searcher(args.pattern, args.regex, args.ignore)
+    searcher = compile_regex(args.pattern, args.regex, args.ignore)
 
-    for lines, stream_name in zip(all_lines, stream_names):
+    for lines, source in zip(all_lines, sources):
         lines = strip_lines(lines)
         matched_lines = filter_lines(lines, searcher, args.invert, args.fullmatch)
-        output_lines = prepare_output(matched_lines, stream_name, args.counting,
+        output_lines = prepare_output(matched_lines, source, args.counting,
                                       args.only_files, args.only_not_files)
         print_matched_lines(output_lines)
 

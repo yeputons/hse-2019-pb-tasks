@@ -146,3 +146,9 @@ def test_unit_parse_arguments():
     assert args.invert
     assert args.ignore
     assert args.fullmatch
+
+
+def test_unit_compile_regex_ignore_letter_cases():
+    searcher = grep.compile_regex('hE?Llo', True, True)
+    assert searcher.search('Hello, Dad!')
+    assert searcher.search('HllOO')

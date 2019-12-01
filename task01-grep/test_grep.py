@@ -170,3 +170,14 @@ def test_unit_get_arguments_nothing():
     assert not args.regex
     assert not args.counting
     assert not args.files
+
+
+def test_unit_compile_regex():
+    searcher = grep.compile_regex('he?llo', False, False)
+    searcher_reg = grep.compile_regex('he?llo', True, False)
+    assert searcher.search('he?llo')
+    assert not searcher.search('hello')
+    assert searcher_reg.search('hello')
+    assert searcher_reg.search('hey, hllo')
+    assert not searcher_reg.search('helo')
+    assert not searcher_reg.search('he?llo')
