@@ -348,6 +348,18 @@ def test_grep_find_regex_find_substr_false():
     assert not bool_value
 
 
+def test_grep_find_regex_ignore_true():
+    regex = True
+    inverse = False
+    find_substr = False
+    ignore_case = True
+    needle = r'\d{2}'
+    line = 'wow34wow'
+    bool_value = grep.find(regex, inverse, find_substr,
+                           ignore_case, needle, line)
+    assert bool_value
+
+
 def test_grep_print_list(capsys):
     list_of_lines = ['line1', 'line2', 'line3']
     grep.print_list(list_of_lines)
@@ -410,7 +422,7 @@ def test_integrate_file_grep_count_inv(tmp_path, monkeypatch, capsys):
     assert out == '3\n'
 
 
-def test_integrate_files_grep_count_inv(tmp_path, monkeypatch, capsys):  # TODO
+def test_integrate_files_grep_count_inv(tmp_path, monkeypatch, capsys):
     (tmp_path / 'a.txt').write_text('pref needle\nneedle suf\nfirst\nsecond')
     (tmp_path / 'b.txt').write_text('the needl-first\npref needle suf\nsecond\nthird')
     monkeypatch.chdir(tmp_path)
