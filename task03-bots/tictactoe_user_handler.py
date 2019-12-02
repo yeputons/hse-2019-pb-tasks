@@ -43,7 +43,7 @@ class TicTacToeUserHandler(UserHandler):
 
     def send_field(self) -> None:
         if self.game is None:
-            raise ValueError("Game is not started, when send_field is called")
+            raise ValueError('Game is not started, when send_field is called')
         msg = ''
         for i in range(3):
             for j in range(3):
