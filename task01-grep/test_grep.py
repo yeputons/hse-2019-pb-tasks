@@ -48,8 +48,9 @@ def test_format_data_counting_mode():
 
 def test_format_data_lines_mode():
     data: List[str] = ['abcdef', 'asdf', 'qwerty', 'oo']
-    assert grep.format_data(data, False, 'name') == ['name:abcdef',
-                                                     'name:asdf', 'name:qwerty', 'name:oo']
+    assert grep.format_data(data, counting_mode=False,
+                            source_name='name') == ['name:abcdef',
+                                                    'name:asdf', 'name:qwerty', 'name:oo']
 
 
 def test_find_in_source():
