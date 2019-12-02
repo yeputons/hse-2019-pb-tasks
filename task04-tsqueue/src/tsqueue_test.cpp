@@ -75,7 +75,9 @@ TEST_CASE("ThreadsafeQueue multithreaded ping-pong" *
         ThreadsafeQueue *qs = static_cast<ThreadsafeQueue *>(_qs);
         // TODO(2)
         static_cast<void>(qs);  // Используем переменную как-нибудь.
-        static_cast<void>(PING_PONGS);  // Используем переменную как-нибудь.
+        // Оно в лямбде не захвачено, и не компилируется тут
+        //        static_cast<void>(PING_PONGS);  // Используем переменную
+        //        как-нибудь.
         return nullptr;
     };
 
@@ -109,8 +111,11 @@ void *consumer(void *_q) {
 
 void *consumer_try(void *_q) {
     ThreadsafeQueue *q = static_cast<ThreadsafeQueue *>(_q);
-    // TODO используется в тесте ниже.
-    static_cast<void>(q);
+    void *res;
+    for (int i = 0; i < ELEMENTS_PER_THREAD; i++) {
+        REQUIRE(threadsafe_queue_try_pop(q, &res));
+        CHECK(res == nullptr);
+    }
     return nullptr;
 }
 
@@ -119,8 +124,17 @@ TEST_SUITE("ThreadsafeQueue pops from multiple threads") {
         ThreadsafeQueue q;
         threadsafe_queue_init(&q);
 
-        // TODO: аналогично тесту ниже, но с threadsafe_queue_try_pop,
-        //       используемый в consumer_try выше.
+        for (int repeat = 0; repeat < REPEATS; repeat++) {
+            for (int i = 0; i < 2 * ELEMENTS_PER_THREAD; i++) {
+                threadsafe_queue_push(&q, nullptr);
+            }
+
+            pthread_t t1, t2;
+            REQUIRE(pthread_create(&t1, nullptr, consumer_try, &q) == 0);
+            REQUIRE(pthread_create(&t2, nullptr, consumer_try, &q) == 0);
+            REQUIRE(pthread_join(t2, nullptr) == 0);
+            REQUIRE(pthread_join(t1, nullptr) == 0);
+        }
 
         threadsafe_queue_destroy(&q);
     }
