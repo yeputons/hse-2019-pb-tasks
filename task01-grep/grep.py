@@ -33,30 +33,28 @@ def print_format(file_name: str, line: str, name_in_output: bool,
     return 0
 
 
-def input_from_file(files: List[str], pattern: str, regular_expression_format: bool,
+def input_type_check(files: List[str], pattern: str, regular_expression_format: bool,
                     amount_output_format: bool) -> None:
-    name_in_output = len(files) > 1
-    for file_name in files:
-        counter = 0
-        with open(file_name, 'r') as in_file:
-            for line in in_file.readlines():
-                line = line.rstrip('\n')
-                counter += which_keys_included(regular_expression_format,
-                                               amount_output_format, pattern,
-                                               line, file_name, name_in_output)
-        if amount_output_format:
-            print(f'{file_name}:{counter}')
-
-
-def input_from_console(pattern: str, amount_output_format: bool,
-                       regular_expression_format: bool) -> None:
     counter = 0
-    for line in sys.stdin.readlines():
-        line = line.rstrip('\n')
-        counter += which_keys_included(regular_expression_format, amount_output_format,
-                                       pattern, line, '', False)
-    if amount_output_format:
-        print(counter)
+    if files:
+        name_in_output = len(files) > 1
+        for file_name in files:
+            with open(file_name, 'r') as in_file:
+                for line in in_file.readlines():
+                    line = line.rstrip('\n')
+                    counter += which_keys_included(regular_expression_format,
+                                                   amount_output_format, pattern,
+                                                   line, file_name, name_in_output)
+            if amount_output_format:
+                print(f'{file_name}:{counter}')
+                counter = 0
+    else:
+        for line in sys.stdin.readlines():
+            line = line.rstrip('\n')
+            counter += which_keys_included(regular_expression_format, amount_output_format,
+                                           pattern, line, '', False)
+        if amount_output_format:
+            print(counter)
 
 
 def main(args_str: List[str]):
@@ -68,12 +66,8 @@ def main(args_str: List[str]):
     args = parser.parse_args(args_str)
 
     # STUB BEGINS
-    if args.files:
-        input_from_file(args.files, args.pattern, args.regular_expression_format,
-                        args.amount_output_format)
-    else:
-        input_from_console(args.pattern, args.amount_output_format,
-                           args.regular_expression_format)
+    input_type_check(args.files, args.pattern, args.regular_expression_format,
+                    args.amount_output_format)
     # STUB ENDS
 
 
