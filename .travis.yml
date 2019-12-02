@@ -14,6 +14,7 @@ install:
 - source .py38/bin/activate
 - python --version
 - python3 --version
+- pip install git+https://github.com/pycqa/pyflakes
 - pip install -r requirements.txt -r requirements-dev.txt
 - valgrind --version
 - clang-format --version
