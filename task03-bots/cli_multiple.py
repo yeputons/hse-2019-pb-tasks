@@ -14,7 +14,7 @@ def send_message(to_user_id: int, message: str) -> None:
 def main() -> None:
     """Пример работы с ботом через консоль."""
     bot = UserIndependentBot(
-        send_message=lambda user_id, message: send_message(int(user_id), message),
+        send_message=lambda user_id, message: send_message(user_id, message),
         user_handler=TicTacToeUserHandler
     )
 
