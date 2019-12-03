@@ -4,12 +4,8 @@ import traceback
 from tictactoe_user_handler import TicTacToeUserHandler
 
 
-def send_message(message: str) -> None:
-    print(message)
-
-
 def main() -> None:
-    user_handler = TicTacToeUserHandler(send_message=send_message)
+    user_handler = TicTacToeUserHandler(send_message=print)
     for line in sys.stdin:
         try:
             message = line.rstrip('\n')

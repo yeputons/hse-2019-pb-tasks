@@ -16,44 +16,32 @@ class TicTacToeUserHandler(UserHandler):
             self.send_message('Game is not started')
             return
         player, row, col = message.rstrip('\n').split(maxsplit=2)
-        self.make_turn(Player[player], row=int(row), col=int(col))
+        if self.game.can_make_turn(Player[player], row=int(row), col=int(col)):
+            self.make_turn(Player[player], row=int(row), col=int(col))
+        else:
+            self.send_message('Invalid turn')
 
     def start_game(self) -> None:
         self.game = TicTacToe()
         self.send_field()
 
     def make_turn(self, player: Player, *, row: int, col: int) -> None:
-        if self.game is None:
-            return
-        if self.game.can_make_turn(player, row=row, col=col):
-            self.game.make_turn(player, row=row, col=col)
-            self.send_field()
-            if self.game.is_finished():
-                game_result = 'Game is finished, '
-                if self.game.winner() is None:
-                    game_result += 'draw'
-                elif self.game.winner() == Player.X:
-                    game_result += 'X wins'
-                else:
-                    game_result += 'O wins'
-                self.send_message(game_result)
-                self.game = None
-        else:
-            self.send_message('Invalid turn')
+        assert self.game is not None
+        self.game.make_turn(player, row=row, col=col)
+        self.send_field()
+        if self.game.is_finished():
+            winner = self.game.winner()
+            game_result = 'Game is finished, {}'.format('draw' if winner is None else
+                                                        '{} wins'.format(winner.name))
+            self.send_message(game_result)
+            self.game = None
 
     def send_field(self) -> None:
-        if self.game is not None:
-            field_in_chars = ''
-            i = 0
-            for row in self.game.field:
-                for cell in row:
-                    if cell == Player.X:
-                        field_in_chars += 'X'
-                    elif cell == Player.O:
-                        field_in_chars += 'O'
-                    else:
-                        field_in_chars += '.'
-                if i != 2:
-                    field_in_chars += '\n'
-                i += 1
-            self.send_message(field_in_chars)
+        assert self.game is not None
+        field_in_lines = []
+        for row in self.game.field:
+            row_line = ''
+            for cell in row:
+                row_line += '{}'.format('.' if cell is None else cell.name)
+            field_in_lines.append(row_line)
+        self.send_message('\n'.join(field_in_lines))
