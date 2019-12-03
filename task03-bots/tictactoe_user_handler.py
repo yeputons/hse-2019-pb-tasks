@@ -27,15 +27,15 @@ class TicTacToeUserHandler(UserHandler):
         """Обрабатывает очередное сообщение от пользователя."""
         if message == 'start':
             self.start_game()
-        else:
-            if not self.game:
-                self.send_message('Game is not started')
-            else:
-                str_player, str_row, str_col = message.rstrip('\n').split(maxsplit=3)
-                self.make_turn(
-                    self.str_to_player(str_player),
-                    row=int(str_row),
-                    col=int(str_col))
+            return
+        if not self.game:
+            self.send_message('Game is not started')
+            return
+        str_player, str_row, str_col = message.split(maxsplit=3)
+        self.make_turn(
+            self.str_to_player(str_player),
+            row=int(str_row),
+            col=int(str_col))
 
     def start_game(self) -> None:
         """Начинает новую игру в крестики-нолики и сообщает об этом пользователю."""
@@ -45,12 +45,13 @@ class TicTacToeUserHandler(UserHandler):
     def make_turn(self, player: Player, *, row: int, col: int) -> None:
         """Обрабатывает ход игрока player в клетку (row, col)."""
         assert self.game
-        try:
-            self.game.make_turn(player, row=row, col=col)
-            self.send_field()
-            self.try_finish()
-        except Exception:  # pylint: disable=W0703
+        if not self.game.can_make_turn(player, row=row, col=col):
             self.send_message('Invalid turn')
+            return
+
+        self.game.make_turn(player, row=row, col=col)
+        self.send_field()
+        self.try_finish()
 
     def send_field(self) -> None:
         """Отправляет пользователю сообщение с текущим состоянием игры."""
