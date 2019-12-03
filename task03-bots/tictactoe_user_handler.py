@@ -1,4 +1,5 @@
 from typing import Callable, Optional
+import traceback
 from bot import UserHandler
 from tictactoe import Player, TicTacToe
 
@@ -20,8 +21,10 @@ class TicTacToeUserHandler(UserHandler):
     def __str_to_player(self, s: str) -> Player:
         if s == 'X':
             return Player.X
-        else:
+        elif s == 'O':
             return Player.O
+        else:
+            raise ValueError
 
     def handle_message(self, message: str) -> None:
         """Обрабатывает очередное сообщение от пользователя."""
@@ -34,8 +37,13 @@ class TicTacToeUserHandler(UserHandler):
 
         str_player, str_row, str_col = message.split(maxsplit=3)
 
+        try:
+            player = self.__str_to_player(str_player)
+        except Exception:  # pylint: disable=W0703
+            traceback.print_exc()
+
         self.__make_turn(
-            self.__str_to_player(str_player),
+            player,
             row=int(str_row),
             col=int(str_col))
 
