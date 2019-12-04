@@ -57,4 +57,4 @@ class TicTacToeUserHandler(UserHandler):
                 else:
                     msg += '.'
             msg += '\n'
-        self.send_message(msg)
+        self.send_message(msg[:-1])
