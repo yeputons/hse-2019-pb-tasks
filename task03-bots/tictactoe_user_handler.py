@@ -11,7 +11,8 @@ class TicTacToeUserHandler(UserHandler):
 
     def handle_message(self, message: str) -> None:
         """Обрабатывает очередное сообщение от пользователя."""
-        if message == 'start\n':
+        message = message.rstrip()
+        if message == 'start':
             self.start_game()
         elif self.game:
             how, id_column, id_line = message.split()
