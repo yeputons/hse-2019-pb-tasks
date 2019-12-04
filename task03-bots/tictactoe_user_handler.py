@@ -31,18 +31,19 @@ class TicTacToeUserHandler(UserHandler):
         assert isinstance(self.game, TicTacToe)
         if not self.game.can_make_turn(player, col=col, row=row):
             self.send_message('Invalid turn')
-        else:
-            self.game.make_turn(player, col=col, row=row)
-            self.send_field()
-            if self.game.is_finished():
-                winner = self.game.winner()
-                if winner == Player.X:
-                    self.send_message('Game is finished, X wins')
-                elif winner == Player.O:
-                    self.send_message('Game is finished, O wins')
-                else:
-                    self.send_message('Game is finished, draw')
-                self.game = None
+            return
+
+        self.game.make_turn(player, col=col, row=row)
+        self.send_field()
+        if self.game.is_finished():
+            winner = self.game.winner()
+            if winner == Player.X:
+                self.send_message('Game is finished, X wins')
+            elif winner == Player.O:
+                self.send_message('Game is finished, O wins')
+            else:
+                self.send_message('Game is finished, draw')
+            self.game = None
 
     def send_field(self) -> None:
         assert isinstance(self.game, TicTacToe)
