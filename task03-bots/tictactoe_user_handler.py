@@ -12,7 +12,7 @@ class TicTacToeUserHandler(UserHandler):
         if message == 'start':
             self.start_game()
             self.send_field()
-        elif self.game is None:
+        elif not self.game:
             self.send_message('Game is not started')
         else:
             p, c, r = message.split()
