@@ -18,24 +18,19 @@ def format_lines(args: argparse.Namespace, good_lines: List[str], filename: str)
     output_lines = [str(len(good_lines))] if args.cnt else good_lines
     if len(args.files) <= 1:
         return output_lines
-    else:
-        for i, line in enumerate(output_lines):
-            output_lines[i] = f'{filename}:{line}'
-        return output_lines
+    return [f'{filename}:{line}' for line in output_lines]
 
 
-def working(args: argparse.Namespace, source: IO[str], filename: str) -> None:
+def processing_lines(args: argparse.Namespace, source: IO[str], filename: str) -> None:
     line_pattern = args.needle if args.regex else re.escape(args.needle)
 
-    if args.files:
-        lines = [line.rstrip('\n') for line in source]
-    else:
-        lines = [line.rstrip('\n') for line in source]
+    lines = [line.rstrip('\n') for line in source]
 
     good_lines = [line for line in lines if re.search(line_pattern, line)]
     output_lines = format_lines(args, good_lines, filename)
 
-    print(*output_lines, sep='\n')
+    if output_lines:
+        print(*output_lines, sep='\n')
 
 
 def main(args_str: List[str]) -> None:
@@ -43,11 +38,11 @@ def main(args_str: List[str]) -> None:
 
     if args.files:
         for file in args.files:
-            with open(file, 'r') as f:
-                working(args, f, file)
+            with open(file, "r") as f:
+                processing_lines(args, f, file)
 
     else:
-        working(args, source=sys.stdin, filename='')
+        processing_lines(args, source=sys.stdin, filename='')
 
 
 if __name__ == '__main__':
