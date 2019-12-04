@@ -79,7 +79,10 @@ def test_invalid_commands(mocker):
     send_message = mocker.stub(name='send_message_stub')
     handler = TicTacToeUserHandler(send_message)
     handler.handle_message('X 0 0')
+    handler.handle_message('asd')
+    handler.handle_message('X00')
     handler.handle_message('start')
+    handler.handle_message('X00')
     handler.handle_message('O 0 0')
     handler.handle_message('X 0 0')
     handler.handle_message('X 0 1')
@@ -92,7 +95,10 @@ def test_invalid_commands(mocker):
     handler.handle_message('O 0 2')
     assert send_message.call_args_list == [
         mocker.call('Game is not started'),
+        mocker.call('Game is not started'),
+        mocker.call('Game is not started'),
         mocker.call('...\n...\n...'),
+        mocker.call('Invalid turn'),
         mocker.call('Invalid turn'),
         mocker.call('X..\n...\n...'),
         mocker.call('Invalid turn'),

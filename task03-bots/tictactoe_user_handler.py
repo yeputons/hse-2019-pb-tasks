@@ -15,15 +15,16 @@ class TicTacToeUserHandler(UserHandler):
     def handle_message(self, message: str) -> None:
         if message == 'start':
             self.start_game()
-        # тут flake8 ругается, он кажись ещё не знает про этот оператор...
-        # а mypy не может понять, что если мы зашли внутрь, то turn_match не может быть None
-        # (вставить явное is not None не помогает)
-        elif turn_match := self.turn_pattern.fullmatch(message):  # noqa: E701,E203,E231
-            assert turn_match is not None
-            self.make_turn(Player[turn_match.group(1)],
-                           col=int(turn_match.group(2)), row=int(turn_match.group(3)))
-        else:
+            return
+        if self.game is None:
+            self.send_message('Game is not started')
+            return
+        turn_match = self.turn_pattern.fullmatch(message)
+        if not turn_match:
             self.send_message('Invalid turn')
+            return
+        self.make_turn(Player[turn_match.group(1)],
+                       col=int(turn_match.group(2)), row=int(turn_match.group(3)))
 
     def start_game(self) -> None:
         self.game = TicTacToe()
@@ -31,8 +32,7 @@ class TicTacToeUserHandler(UserHandler):
 
     def make_turn(self, player: Player, *, row: int, col: int) -> None:
         if self.game is None:
-            self.send_message('Game is not started')
-            return
+            raise ValueError('Game is not started, when make_turn is called')
         if not self.game.can_make_turn(player, row=row, col=col):
             self.send_message('Invalid turn')
             return
@@ -47,12 +47,12 @@ class TicTacToeUserHandler(UserHandler):
         msg = ''
         for i in range(3):
             for j in range(3):
-                f = self.game.field[i][j]
-                if f is Player.X:
+                cell = self.game.field[i][j]
+                if cell is Player.X:
                     msg += 'X'
-                elif f is Player.O:
+                elif cell is Player.O:
                     msg += 'O'
-                elif f is None:
+                elif cell is None:
                     msg += '.'
             msg += '\n'
         self.send_message(msg.rstrip('\n'))
