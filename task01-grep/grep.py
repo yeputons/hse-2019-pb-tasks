@@ -7,53 +7,49 @@ from typing import List, Iterable
 
 def print_result(result: Iterable) -> None:  # выводит результат
     for line in result:
-        if line:
+        if line is not None:
             print(line)
 
 
-def format_lines(result: str, name_file: str, args_presence: bool, args_absent: bool) -> str:
+def format_lines(result: str, name_file: str, args_presence: bool, args_absent: bool):
     # форматирует строки в вид имя файла : результат, если есть ключи -l и -L в вид: имя файла
     # int(result) с ключами -l и -L, так как result = [str(len(result))]
     if args_presence:
         if int(result) > 0:
             return f'{name_file}'
         else:
-            return ''
+            return None
     elif args_absent:
         if not int(result):
             return f'{name_file}'
         else:
-            return ''
+            return None
     else:
         return f'{name_file}:{result}'
-
-
-def checking_keys(args_reverse: bool, lines: List[str], args_needle: str,
-                  args_ignore: bool, r) -> List[str]:
-    # если есть ключ -x, будет искать с помощью re.fullmatch,
-    # если нет, то с помощью re.search,
-    # если есть ключ -i, будет искать с аргументом re.IGNORECASE
-    # если есть ключ -v, будет найденные строки делать не найденными и наооборот
-    if args_reverse:
-        return [line for line in lines
-                if not r(args_needle, line, re.IGNORECASE * args_ignore)]
-    else:
-        return [line for line in lines
-                if r(args_needle, line, re.IGNORECASE * args_ignore)]
 
 
 def find_all_lines(args_needle: str, lines: List[str],
                    args_regex: bool, args_ignore: bool, args_full: bool,
                    args_reverse: bool) -> List[str]:
-    # если нет ключа -E, применит re.escape и будет работать с ней также,
-    # как и с регулярным выражением,
-    # потом вызовет функцию, кооторая проверяет ключи: -x, -i, -v
+    """если есть ключ -x, будет искать с помощью re.fullmatch,
+    если нет, то с помощью re.search,
+    если есть ключ -i, будет искать с аргументом re.IGNORECASE
+    если есть ключ -v, будет найденные строки делать не найденными и наооборот
+    если нет ключа -E, применит re.escape и будет работать с ней также,
+    как и с регулярным выражением,
+    потом вызовет функцию, кооторая проверяет ключи: -x, -i, -v """
     if not args_regex:
         args_needle = re.escape(args_needle)
     if args_full:
-        return checking_keys(args_reverse, lines, args_needle, args_ignore, re.fullmatch)
+        search = re.fullmatch
     else:
-        return checking_keys(args_reverse, lines, args_needle, args_ignore, re.search)
+        search = re.search
+    if args_reverse:
+        return [line for line in lines
+                if not search(args_needle, line, re.IGNORECASE * args_ignore)]
+    else:
+        return [line for line in lines
+                if search(args_needle, line, re.IGNORECASE * args_ignore)]
 
 
 def calculate_result(name_file: str, args_needle: str, args_regex: bool,
@@ -88,11 +84,11 @@ def parse_args(args_str: List[str]) -> argparse.Namespace:
 
 def print_grep(args_needle: str, args_regex: bool,
                args_count: bool, args_ignore: bool, args_full: bool,
-               args_reverse: bool, args_presence: bool, args_absent: bool, read: List[str],
+               args_reverse: bool, args_presence: bool, args_absent: bool, read_lines: List[str],
                size: int, file: str) -> None:
     # вызывает функцию calculate_result, чтобы отфильтровать нужные строчки
     # и затем вызывает функцию print_result, чтобы вывести их
-    lines = [line.rstrip('\n') for line in read]
+    lines = [line.rstrip('\n') for line in read_lines]
     print_result(calculate_result(file, args_needle, args_regex, args_count, args_ignore,
                                   args_full, args_reverse, args_presence, args_absent, size, lines))
 
