@@ -4,17 +4,13 @@ import traceback
 from tictactoe_user_handler import TicTacToeUserHandler
 
 
-def send_message(message: str) -> None:
-    print(message)
-
-
 def main() -> None:
-    bot = TicTacToeUserHandler(send_message)
+    user_handler = TicTacToeUserHandler(print)
 
     for line in sys.stdin:
         try:
             message = line.rstrip('\n')
-            bot.handle_message(message)
+            user_handler.handle_message(message)
         except Exception:  # pylint: disable=W0703
             traceback.print_exc()
 
