@@ -32,7 +32,7 @@ def test_integrate_all_keys_count_files_grep(tmp_path, monkeypatch, capsys):
     assert out == 'b.txt:3\na.txt:0\n'
 
 
-def test_integrate_Ecvx_keys(tmp_path, monkeypatch, capsys):
+def test_integrate_keys_case1(tmp_path, monkeypatch, capsys):
     (tmp_path / 'a.txt').write_text('fO\nFO\nFoO\n')
     (tmp_path / 'b.txt').write_text('hello fo?o world\nxfooyfoz\nfooo\n')
     monkeypatch.chdir(tmp_path)
@@ -42,7 +42,7 @@ def test_integrate_Ecvx_keys(tmp_path, monkeypatch, capsys):
     assert out == 'b.txt:3\na.txt:3\n'
 
 
-def test_integrate_ivLx_keys(tmp_path, monkeypatch, capsys):
+def test_integrate_keys_case2(tmp_path, monkeypatch, capsys):
     (tmp_path / 'a.txt').write_text('fO\nFO\nFoO\n')
     (tmp_path / 'b.txt').write_text('hello fo?o world\nxfooyfoz\nfooo\n')
     monkeypatch.chdir(tmp_path)
