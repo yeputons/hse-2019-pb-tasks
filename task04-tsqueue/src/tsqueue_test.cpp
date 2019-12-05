@@ -52,6 +52,8 @@ TEST_SUITE("ThreadsafeQueue works like Queue in a single thread") {
     }
 }
 
+const int PING_PONGS = 100;
+
 TEST_CASE("ThreadsafeQueue multithreaded ping-pong" *
           doctest::skip()) {  // TODO(2)
     ThreadsafeQueue qs[2];
@@ -67,7 +69,6 @@ TEST_CASE("ThreadsafeQueue multithreaded ping-pong" *
     //    единицу и отправляет результат обратно через `qs[1]`.
     // 3. Поток `pinger` проверяет, что пришёл правильный адрес
     //    и что локальная переменная была увеличена.
-    const int PING_PONGS = 100;
 
     // Специальный синтаксис для объявления функции внутри функции.
     // (в общем случае это лямбда-функции/замыкания, но нам это неважно).
