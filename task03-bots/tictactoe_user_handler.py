@@ -4,7 +4,6 @@ from tictactoe import Player, TicTacToe
 
 
 class TicTacToeUserHandler(UserHandler):
-    """Реализация логики бота для игры в крестики-нолики с одним пользователем."""
     def __init__(self, send_message: Callable[[str], None]) -> None:
         super(TicTacToeUserHandler, self).__init__(send_message)
         self.game: Optional[TicTacToe] = None
@@ -27,7 +26,7 @@ class TicTacToeUserHandler(UserHandler):
 
     def start_game(self) -> None:
         self.game = TicTacToe()
-bazq        self.send_field()
+        self.send_field()
 
     def make_turn(self, player: Player, *, row: int, col: int) -> None:
         assert self.game is not None

@@ -2,8 +2,6 @@
 import tkinter
 import traceback
 from typing import Callable, Dict, Optional
-from alarm_user_handler import AlarmUserHandler
-from bot import UserIndependentBot
 from chat_bot import ChatBot
 
 

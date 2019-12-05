@@ -1,21 +1,19 @@
 #!/usr/bin/env python3
 import sys
 import traceback
-from bot import UserHandler
 from alarm_user_handler import AlarmUserHandler
-from bot import UserIndependentBot
 
 
-def send_message(user_id: int, message: str) -> None:
+def send_message(message: str) -> None:
     print(message)
 
 
 def main() -> None:
-    bot = UserIndependentBot(send_message=send_message, user_handler=AlarmUserHandler)
+    bot = AlarmUserHandler(send_message)
     for line in sys.stdin:
         try:
             message = line.rstrip('\n')
-            bot.handle_message(1, message)
+            bot.handle_message(message)
         except Exception:  # pylint: disable=W0703
             traceback.print_exc()
 
