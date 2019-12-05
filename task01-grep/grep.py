@@ -6,72 +6,63 @@ import argparse
 
 
 def read_stdin() -> List[str]:
-    new_lines = [line for line in sys.stdin.readlines()]
-    return new_lines
+    return sys.stdin.readlines()
 
 
 def read_file(filename: str) -> List[str]:
     with open(filename, 'r') as in_file:
-        new_lines = [line for line in in_file.readlines()]
-    return new_lines
+        return in_file.readlines()
 
 
-def is_line_in_answer(line: str, pattern: str, text_flags: dict) -> bool:
-    result = False
-    if not text_flags.get('is_regex'):
+def pattern_format(pattern: str, is_regex: bool, full_matches: bool) -> str:
+    if not is_regex:
         pattern = re.escape(pattern)
-    if text_flags.get('full_matches'):
-        pattern = '^' + pattern + '$'
-    if text_flags.get('is_ignore_case') and \
+    if full_matches:
+        pattern = f'^({pattern})$'
+    return pattern
+
+
+def check_if_line_in_answer(line: str, pattern: str, is_ignore_case: bool, invert_result: bool) -> bool:
+    result = False
+    if is_ignore_case and \
             re.search(re.compile(pattern.lower()), line.lower()) or \
-            not text_flags.get('is_ignore_case') and \
+            not is_ignore_case and \
             re.search(re.compile(pattern), line):
         result = True
-    if text_flags.get('invert_result'):
-        if result:
-            result = False
-        else:
-            result = True
+    if invert_result:
+        return not result
     return result
 
 
-def working_with_text_flags(lines: List[str], pattern: str, flags: dict) -> List[str]:
-    new_list_of_lines = [line for line in lines if is_line_in_answer(line, pattern, flags)]
+def working_with_text_flags(lines: List[str], pattern: str, is_ignore_case: bool, invert_result: bool) -> List[str]:
+    lines = [line.rstrip('\n') for line in lines]
+    new_list_of_lines = [line for line in lines if
+                         check_if_line_in_answer(line, pattern, is_ignore_case, invert_result)]
     return new_list_of_lines
 
 
-def working_with_print_flags(lines: List[str], prefix: str,
-                             number_of_files: int, flags: dict) -> List[str]:
+def working_with_print_flags(lines: List[str], source: str,
+                             number_of_files: bool, flags: dict) -> List[str]:
     if flags.get('count_mode'):
         lines = [str(len(lines))]
-    if number_of_files > 2:
-        lines = [f'{prefix}:{line}' for line in lines]
-    lines = [line.rstrip('\n') for line in lines]
+    if number_of_files:
+        lines = [f'{source}:{line}' for line in lines]
     if flags.get('filenames_matches_exist'):
-        if len(lines) > 0:
-            lines = [prefix]
+        if lines:
+            lines = [source]
         else:
             lines = []
     if flags.get('filenames_matches_not_exist'):
-        if len(lines) > 0:
+        if lines:
             lines = []
         else:
-            lines = [prefix]
+            lines = [source]
     return lines
 
 
 def printing(lines: list) -> None:
     for line in lines:
         print(line)
-
-
-def format_and_print_lines(list_of_lines: List[List[str]], files: List[str],
-                           flags: dict, pattern: str) -> None:
-    files.append('')
-    for i, lines in enumerate(list_of_lines):
-        lines = working_with_text_flags(lines, pattern, flags)
-        lines = working_with_print_flags(lines, files[i], len(files), flags)
-        printing(lines)
 
 
 def main(args_str: List[str]) -> None:
@@ -86,15 +77,18 @@ def main(args_str: List[str]) -> None:
     parser.add_argument('-l', dest='filenames_exist', action='store_true')
     parser.add_argument('-L', dest='filenames_not_exist', action='store_true')
     args = parser.parse_args(args_str)
-    flags = {'is_regex': args.regex, 'count_mode': args.count, 'is_ignore_case': args.ignore,
-             'invert_result': args.invert, 'full_matches': args.full_matches,
-             'filenames_matches_exist': args.filenames_exist,
-             'filenames_matches_not_exist': args.filenames_not_exist}
+    print_flags = {'count_mode': args.count, 'filenames_matches_exist': args.filenames_exist,
+                   'filenames_matches_not_exist': args.filenames_not_exist}
     if len(args.files) > 0:
         list_of_lines = [read_file(filename) for filename in args.files]
     else:
         list_of_lines = [read_stdin()]
-    format_and_print_lines(list_of_lines, args.files, flags, args.pattern)
+    args.files.append('')
+    pattern = pattern_format(args.pattern, args.regex, args.full_matches)
+    for i, lines in enumerate(list_of_lines):
+        lines = working_with_text_flags(lines, pattern, args.ignore, args.invert)
+        lines = working_with_print_flags(lines, args.files[i], len(args.files) > 2, print_flags)
+        printing(lines)
 
 
 if __name__ == '__main__':
