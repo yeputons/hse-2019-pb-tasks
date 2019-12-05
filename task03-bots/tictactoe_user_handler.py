@@ -29,30 +29,30 @@ class TicTacToeUserHandler(UserHandler):
     def handle_message(self, message: str) -> None:
         """Обрабатывает очередное сообщение от пользователя."""
         if message == 'start':
-            self.__start_game()
+            self.start_game()
             return
         if not self.game:
             self.send_message('Game is not started')
             return
 
-        str_player, str_row, str_col = message.split(maxsplit=3)
+        str_player, str_col, str_row = message.split(maxsplit=3)
 
         try:
             player = self.__str_to_player(str_player)
         except Exception:  # pylint: disable=W0703
             traceback.print_exc()
 
-        self.__make_turn(
+        self.make_turn(
             player,
             row=int(str_row),
             col=int(str_col))
 
-    def __start_game(self) -> None:
+    def start_game(self) -> None:
         """Начинает новую игру в крестики-нолики и сообщает об этом пользователю."""
         self.game = TicTacToe()
-        self.__send_field()
+        self.send_field()
 
-    def __make_turn(self, player: Player, *, row: int, col: int) -> None:
+    def make_turn(self, player: Player, *, row: int, col: int) -> None:
         """Обрабатывает ход игрока player в клетку (row, col)."""
         assert self.game
         if not self.game.can_make_turn(player, row=row, col=col):
@@ -60,15 +60,16 @@ class TicTacToeUserHandler(UserHandler):
             return
 
         self.game.make_turn(player, row=row, col=col)
-        self.__send_field()
+        self.send_field()
         self.__try_finish()
 
-    def __send_field(self) -> None:
+    def send_field(self) -> None:
         """Отправляет пользователю сообщение с текущим состоянием игры."""
-        if self.game:
-            self.send_message('\n'.join(
-                [''.join(map(self.__player_to_str, line)) for line in self.game.field]
-                ))
+        if not self.game:
+            return
+        self.send_message('\n'.join(
+            [''.join(map(self.__player_to_str, line)) for line in self.game.field]
+            ))
 
     def __try_finish(self) -> None:
         if self.game and self.game.is_finished():
