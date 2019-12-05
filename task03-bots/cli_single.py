@@ -4,16 +4,10 @@ import traceback
 from alarm_user_handler import AlarmUserHandler
 
 
-def send_message(message: str) -> None:
-    print(f'===== Message =====')
-    print(message)
-    print('==========')
-
-
 def main() -> None:
     #raise NotImplementedError
     """Пример работы с ботом через консоль."""
-    bot = AlarmUserHandler(send_message=send_message)
+    bot = AlarmUserHandler(send_message=print)
     for line in sys.stdin:
         try:
             message = line.rstrip('\n')
