@@ -3,6 +3,7 @@ import sys
 import traceback
 from alarm_user_handler import AlarmUserHandler
 
+
 def main() -> None:
     bot = AlarmUserHandler(print)
     for line in sys.stdin:
