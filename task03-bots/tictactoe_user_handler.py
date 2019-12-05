@@ -15,6 +15,7 @@ class TicTacToeUserHandler(UserHandler):
             return
         elif not self.game:
             self.send_message('Game not started')
+            return
         else:
             symbol, col, row = message.split(maxsplit=2)
             if symbol in ['X', 'O'] and 0 <= int(row) < 3 and 0 <= int(col) < 3:
@@ -48,6 +49,6 @@ class TicTacToeUserHandler(UserHandler):
         assert self.game
         winner = self.game.winner()
         if not winner:
-            self.send_message("Game is finished, draw")
+            self.send_message('Game is finished, draw')
         else:
             self.send_message('Game is finished, {} wins'.format(winner.name))
