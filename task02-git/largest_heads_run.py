@@ -11,8 +11,7 @@ def get_max_run(flips: List[int]) -> int:
             cur_run += 1
         else:
             cur_run = 0
-        if max_run < cur_run:
-            max_run = cur_run
+        max_run = max(max_run, cur_run)
     return max_run
 
 
