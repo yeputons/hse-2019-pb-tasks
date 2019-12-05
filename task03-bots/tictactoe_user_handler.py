@@ -14,19 +14,17 @@ class TicTacToeUserHandler(UserHandler):
         """Обрабатывает очередное сообщение от пользователя."""
         if message == 'start':
             self.start_game()
+        elif self.game is None:
+            self.send_message('Game is not started')
         else:
-            try:
-                player, row, col = message.split()
+            player, row, col = message.split()
 
-                player_ = Player.X if player == 'X' else Player.O
+            players = {'X': Player.X, 'O': Player.O}
 
-                self.make_turn(player=player_, row=int(row), col=int(col))
-            except Exception:  # pylint: disable=W0703
-                if self.game is None:
-                    self.send_message('Game is not started')
-                else:
-                    self.send_message('Invalid turn')
-                return
+            if self.game.can_make_turn(player=players[player], row=int(row), col=int(col)):
+                self.make_turn(player=players[player], row=int(row), col=int(col))
+            else:
+                self.send_message('Invalid turn')
 
     def start_game(self) -> None:
         """Начинает новую игру в крестики-нолики и сообщает об этом пользователю."""
@@ -35,36 +33,28 @@ class TicTacToeUserHandler(UserHandler):
 
     def make_turn(self, player: Player, *, row: int, col: int) -> None:
         """Обрабатывает ход игрока player в клетку (row, col)."""
-        if self.game is not None:
-            if self.game.can_make_turn(player=player, row=row, col=col):
-                self.game.make_turn(player=player, row=row, col=col)
-                if self.game.is_finished():
-                    if self.game.winner() is None:
-                        self.send_message('Game is finished, draw')
-                    else:
-                        who = 'X' if self.game.winner() is Player.X else 'O'
-                        self.send_message(f'Game is finished, {who} wins')
-                    self.game = None
-                    return
-                else:
-                    self.send_field()
+        self.game.make_turn(player=player, row=row, col=col)
+        if self.game.is_finished():
+            if self.game.winner() is None:
+                self.send_message('Game is finished, draw')
             else:
-                self.send_message('Invalid turn')
+                self.send_message(f'Game is finished, {self.game.winner().name} wins')
+            self.game = None
+            return
         else:
-            self.send_message('Game is not started')
+            self.send_field()
 
     def send_field(self) -> None:
         """Отправляет пользователю сообщение с текущим состоянием игры."""
-        message = ''
+        game_field = []
         for col in range(3):
+            message = ''
             for row in range(3):
-                if self.game is not None:
-                    if self.game.field[col][row] is Player.X:
-                        message += 'X'
-                    elif self.game.field[col][row] is Player.O:
-                        message += 'O'
-                    else:
-                        message += '.'
-            if col != 2:
-                message += '\n'
-        self.send_message(message)
+                if self.game.field[row][col] is Player.X:
+                    message += 'X'
+                elif self.game.field[row][col] is Player.O:
+                    message += 'O'
+                else:
+                    message += '.'
+            game_field.append(message)
+        self.send_message('\n'.join(game_field))
