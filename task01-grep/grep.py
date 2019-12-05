@@ -21,7 +21,7 @@ def search_needle_in_line(line: str, args: argparse.Namespace) -> bool:
     # possibly double inverse
     if args.no_lines:
         res = not res
-    if args.inverse: 
+    if args.inverse:
         res = not res
 
     return res
@@ -50,8 +50,6 @@ def print_asked_string(line_list: List[str], args: argparse.Namespace, filename:
                 print(f'{filename}:{line}' if len(args.files) > 1 else line)
 
 
-
-
 def read(args_str: List[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument('needle', type=str)
@@ -70,13 +68,13 @@ def read(args_str: List[str]) -> argparse.Namespace:
 def main(args_str: List[str]):
     args = read(args_str)
 
-    
     if args.files == []:
         find_in_file(sys.stdin, args)
 
     for filename in args.files:
         with open(filename, 'r') as file:
             find_in_file(file, args, filename)
+
 
 if __name__ == '__main__':
     main(sys.argv[1:])

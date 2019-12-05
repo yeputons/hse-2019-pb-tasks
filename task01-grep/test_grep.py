@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-import grep
 import io
 import argparse
+import grep
 
 
 def test_integrate_all_keys_print_files_grep(tmp_path, monkeypatch, capsys):
@@ -32,6 +32,7 @@ def test_integrate_all_keys_count_files_grep(tmp_path, monkeypatch, capsys):
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'b.txt:3\na.txt:0\n'
+
 
 def test_search_needle_in_line():
     parser = argparse.ArgumentParser()
@@ -79,7 +80,7 @@ def test_print_asked_string(capsys):
     args = parser.parse_args(['', '-c'])
     grep.print_asked_string([], args, '')
     helper('0\n', capsys)
-    
+
     args = parser.parse_args(['', '-c'])
     grep.print_asked_string([1, 2, 3, 4, 5], args, '')
     helper('5\n', capsys)
