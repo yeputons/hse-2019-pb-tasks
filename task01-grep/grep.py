@@ -17,8 +17,7 @@ def parse_args(args_str: List[str]) -> argparse.Namespace:
 
 
 def find_pattern_in_line(line: str, pattern: str, is_pattern_regex: bool) -> bool:
-    return is_pattern_regex and bool(re.search(pattern, line)) or \
-                not is_pattern_regex and pattern in line
+    return re.search(re.compile(pattern) if is_pattern_regex else re.escape(pattern), line)
 
 
 def filter_matched_lines(lines: List[str], pattern: str, is_pattern_regex: bool) -> List[str]:
@@ -26,37 +25,34 @@ def filter_matched_lines(lines: List[str], pattern: str, is_pattern_regex: bool)
             if find_pattern_in_line(line, pattern, is_pattern_regex)]
 
 
-def count_lines_with_pattern(lines: List[str], pattern: str, is_pattern_regex: bool) -> int:
-    return len(filter_matched_lines(lines, pattern, is_pattern_regex))
-
-
-def find_lines_from_grep(read_lines: List[str], pattern: str,
-                         is_pattern_regex=False, is_only_count=False) -> List:
+def grep_from_lines(read_lines: List[str], pattern: str,
+                    is_pattern_regex=False, is_only_count=False) -> List:
+    filtered_lines = filter_matched_lines(read_lines, pattern, is_pattern_regex)
     if is_only_count:
-        cnt = count_lines_with_pattern(read_lines, pattern, is_pattern_regex)
+        cnt = len(filtered_lines)
         return [cnt] if cnt else []
-    return filter_matched_lines(read_lines, pattern, is_pattern_regex)
+    return filtered_lines
 
 
 def find_lines_from_grep_files(files: str, pattern: str, is_pattern_regex=False,
                                is_only_count=False) -> List[str]:
-    all_lines: List[str] = []
+    filtered_lines: List[str] = []
     for file_name in files:
         try:
             with open(file_name, 'r') as in_file:
-                lines = find_lines_from_grep([line.rstrip('\n') for line in in_file.readlines()],
-                                             pattern, is_pattern_regex, is_only_count)
-                all_lines += ['{}{}'.format((file_name + ':') * (len(files) > 1), line)
-                              for line in lines]
+                lines = grep_from_lines(in_file.read().split('\n'),
+                                        pattern, is_pattern_regex, is_only_count)
+                filtered_lines += ['{}{}'.format((file_name + ':') if len(files) > 1 else '', line)
+                                   for line in lines]
         except (OSError, IOError):
-            all_lines += ['{}:not found'.format(file_name)]
-    return all_lines
+            print('{}:not found'.format(file_name), file=sys.stderr)
+    return filtered_lines
 
 
 def find_lines_from_grep_stdin(pattern: str, is_pattern_regex=False,
                                is_only_count=False) -> List[str]:
-    return find_lines_from_grep([line.rstrip('\n') for line in sys.stdin.readlines()],
-                                pattern, is_pattern_regex, is_only_count)
+    return grep_from_lines(sys.stdin.read().split('\n'),
+                           pattern, is_pattern_regex, is_only_count)
 
 
 def main(args_str: List[str]):

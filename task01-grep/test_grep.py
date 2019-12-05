@@ -44,8 +44,8 @@ def test_integrate_not_found_file_grep(tmp_path, monkeypatch, capsys):
     monkeypatch.chdir(tmp_path)
     grep.main(['needle', 'c.txt', 'b.txt', 'a.txt'])
     out, err = capsys.readouterr()
-    assert err == ''
-    assert out == 'c.txt:not found\nb.txt:pref needle suf\na.txt:pref needle\na.txt:needle suf\n'
+    assert err == 'c.txt:not found\n'
+    assert out == 'b.txt:pref needle suf\na.txt:pref needle\na.txt:needle suf\n'
 
 
 def test_integrate_files_grep(tmp_path, monkeypatch, capsys):
@@ -96,27 +96,17 @@ def test_unit_filter_matched_lines_not_regex():
     assert lines == ['CGSG_FOREVER_30', 'DF5']
 
 
-def test_unit_count_lines_with_pattern_regex():
-    cnt = grep.count_lines_with_pattern(['b.cpp', 'a.c', 'mmmc'], '[a-z]+\\.cp*', True)
-    assert cnt == 2
-
-
-def test_unit_count_lines_with_pattern_not_regex():
-    cnt = grep.count_lines_with_pattern(['hello world', 'CGSG_FOREVER_30', 'DF5'], 'F', False)
-    assert cnt == 2
-
-
 def test_unit_find_lines_from_grep_not_regex_not_count():
     parsed_args = grep.parse_args(['needle?'])
-    lines = grep.find_lines_from_grep(['pref needle?', 'needle? suf', 'the needl',
-                                       'pref needle? suf'], parsed_args.pattern,
-                                      parsed_args.regex, parsed_args.count)
+    lines = grep.grep_from_lines(['pref needle?', 'needle? suf', 'the needl',
+                                  'pref needle? suf'], parsed_args.pattern,
+                                 parsed_args.regex, parsed_args.count)
     assert lines == ['pref needle?', 'needle? suf', 'pref needle? suf']
 
 
 def test_unit_find_lines_from_grep_regex_count():
     parsed_args = grep.parse_args(['-c', 'needle?', '-E'])
-    result = grep.find_lines_from_grep(['pref needle?', 'needle? suf',
-                                        'the needl', 'pref needle? suf'], parsed_args.pattern,
-                                       parsed_args.regex, parsed_args.count)
+    result = grep.grep_from_lines(['pref needle?', 'needle? suf',
+                                   'the needl', 'pref needle? suf'], parsed_args.pattern,
+                                  parsed_args.regex, parsed_args.count)
     assert result == [4]
