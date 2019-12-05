@@ -46,7 +46,9 @@ class UserWidget(tkinter.LabelFrame):
 def main() -> None:
     user_widgets: Dict[int, UserWidget] = {}
 
-    bot = ChatBot(send_message=lambda user_id, message: user_widgets[user_id].received_message(message))
+    bot = ChatBot(
+        send_message=lambda user_id, message: user_widgets[user_id].received_message(message)
+    )
 
     def handle_message(user_id: int, message: str) -> None:
         try:
@@ -55,11 +57,9 @@ def main() -> None:
             traceback.print_exc()
 
     def create_widget(user_id: int) -> None:
-        user_widgets[user_id] = UserWidget(
-            f'User #{user_id}',
-            lambda message: handle_message(user_id, message),
-            root
-        )
+        user_widgets[user_id] = UserWidget(f'User #{user_id}',
+                                           lambda message: handle_message(user_id, message),
+                                           root)
 
     root = tkinter.Tk()
     root.title('Chat bot debug GUI example')
