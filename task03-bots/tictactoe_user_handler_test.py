@@ -40,19 +40,53 @@ def test_multiple_start(mocker: MockFixture) -> None:
     ]
 
 
-def test_invalid_turn(mocker: MockFixture) -> None:
+def test_invalid_turn_invalid_player(mocker: MockFixture) -> None:
+    send_message = mocker.stub(name='send_message_stub')
+    handler = TicTacToeUserHandler(send_message=send_message)
+    handle_multiple_messages(handler, [
+        'start', 'A 1 1'
+    ])
+    assert send_message.call_args_list == [
+        mocker.call('...\n...\n...'),
+        mocker.call('Invalid turn')
+    ]
+
+
+def test_invalid_turn_this_tile_is_occupied(mocker: MockFixture) -> None:
     send_message = mocker.stub(name='send_message_stub')
     handler = TicTacToeUserHandler(send_message=send_message)
     handle_multiple_messages(handler, [
         'start', 'X 0 0',
-        'O 0 0', 'O 2 3',
-        'O -1 2', 'A 1 1'
+        'O 0 0'
     ])
     assert send_message.call_args_list == [
         mocker.call('...\n...\n...'),
         mocker.call('X..\n...\n...'),
-        mocker.call('Invalid turn'),
-        mocker.call('Invalid turn'),
+        mocker.call('Invalid turn')
+    ]
+
+
+def test_invalid_turn_another_player_turn(mocker: MockFixture) -> None:
+    send_message = mocker.stub(name='send_message_stub')
+    handler = TicTacToeUserHandler(send_message=send_message)
+    handle_multiple_messages(handler, [
+        'start', 'O 0 0'
+    ])
+    assert send_message.call_args_list == [
+        mocker.call('...\n...\n...'),
+        mocker.call('Invalid turn')
+    ]
+
+
+def test_invalid_turn_invalid_coordinates(mocker: MockFixture) -> None:
+    send_message = mocker.stub(name='send_message_stub')
+    handler = TicTacToeUserHandler(send_message=send_message)
+    handle_multiple_messages(handler, [
+        'start', 'X 2 3',
+        'X -1 2'
+    ])
+    assert send_message.call_args_list == [
+        mocker.call('...\n...\n...'),
         mocker.call('Invalid turn'),
         mocker.call('Invalid turn')
     ]
