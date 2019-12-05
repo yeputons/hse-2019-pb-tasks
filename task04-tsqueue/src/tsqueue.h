@@ -11,8 +11,8 @@ extern "C" {
  * использовать напрямую, только при помощи функцией threadsafe_queue_*().
  */
 struct ThreadsafeQueue {
+    pthread_mutex_t mutex;
     Queue q;
-    // TODO
 };
 
 /**
