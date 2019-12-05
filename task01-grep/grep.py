@@ -5,7 +5,9 @@ import re
 import argparse
 
 
-def search_needle_in_line(needle, line: str, args: argparse.Namespace) -> bool:
+def search_needle_in_line(line: str, args: argparse.Namespace) -> bool:
+    needle = args.needle
+
     if not args.regex:
         needle = re.escape(needle)
 
@@ -30,7 +32,7 @@ def find_in_file(file: TextIO, args: argparse.Namespace, filename: str = ''):
 
     for line in file.readlines():
         line = line.rstrip('\n')
-        if search_needle_in_line(args.needle, line, args):
+        if search_needle_in_line(line, args):
             line_list.append(line)
 
     print_asked_string(line_list, args, filename)
@@ -38,7 +40,8 @@ def find_in_file(file: TextIO, args: argparse.Namespace, filename: str = ''):
 
 def print_asked_string(line_list: List[str], args: argparse.Namespace, filename: str):
     if args.counter:
-            print(f'{filename}:{len(line_list)}')
+        filename += ':' if len(args.files) > 0 else ''
+        print(f'{filename}{len(line_list)}')
     elif line_list:
         if args.has_lines or args.no_lines:
             print(filename)
@@ -52,7 +55,7 @@ def print_asked_string(line_list: List[str], args: argparse.Namespace, filename:
 def read(args_str: List[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument('needle', type=str)
-    parser.add_argument('files', nargs='*', default=sys.stdin)
+    parser.add_argument('files', nargs='*')
     parser.add_argument('-E', dest='regex', action='store_true')
     parser.add_argument('-c', dest='counter', action='store_true')
     parser.add_argument('-i', dest='ignore', action='store_true')
@@ -68,8 +71,8 @@ def main(args_str: List[str]):
     args = read(args_str)
 
     
-    #if args.files == []:
-     #   find_in_file(sys.stdin, args)
+    if args.files == []:
+        find_in_file(sys.stdin, args)
 
     for filename in args.files:
         with open(filename, 'r') as file:
