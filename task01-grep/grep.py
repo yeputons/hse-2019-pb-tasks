@@ -11,20 +11,13 @@ OUTPUT_ARGS = ('count', 'files_with_matches', 'files_without_matches')
 
 def find_in_str(pattern: str, s: str, matching_args: List[str]) -> bool:
     result: bool
-    if 'regex' in matching_args:
-        flags = re.IGNORECASE if 'ignore_case' in matching_args else 0
-        if 'full_match' in matching_args:
-            result = bool(re.fullmatch(pattern, s, flags=flags))
-        else:
-            result = bool(re.search(pattern, s, flags=flags))
+    if 'regex' not in matching_args:
+        pattern = re.escape(pattern)
+    flags = re.IGNORECASE if 'ignore_case' in matching_args else 0
+    if 'full_match' in matching_args:
+        result = bool(re.fullmatch(pattern, s, flags=flags))
     else:
-        if 'ignore_case' in matching_args:
-            pattern = pattern.lower()
-            s = s.lower()
-        if 'full_match' in matching_args:
-            result = pattern == s
-        else:
-            result = pattern in s
+        result = bool(re.search(pattern, s, flags=flags))
     if 'inverse' in matching_args:
         result = not result
     return result
@@ -42,15 +35,14 @@ def find_in_files_or_stdin(  # find in files or in stdin if files empty
         files: List[str],
         pattern: str,
         matching_args: List[str]) -> List[Tuple[str, List[str]]]:
-    
+
     def find_in_file(
             file: TextIO,
             pattern: str,
             matching_args: List[str]
-            ) -> List[str]:
+                ) -> List[str]:
         lines = map(lambda line: line.rstrip('\n'), file)
         return list(filter(lambda line: find_in_str(pattern, line, matching_args), lines))
-
 
     matches = []
 
