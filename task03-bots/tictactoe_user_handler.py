@@ -15,8 +15,11 @@ class TicTacToeUserHandler(UserHandler):
         elif not self.game:
             self.send_message('Game is not started')
         else:
-            step, row, col = message.rstrip('\n').split(maxsplit=2)
-            self.make_turn(player=Player.X if step == 'X' else Player.O,
+            step, row, col = message.split(maxsplit=2)
+            if self.game.can_make_turn(step, row=int(row), col=int(col)):
+                self.send_message('Invalid turn')
+                return
+            self.make_turn(player={'X': Player.X, 'O': Player.O}[step],
                            row=int(row), col=int(col))
 
     def start_game(self) -> None:
@@ -24,35 +27,24 @@ class TicTacToeUserHandler(UserHandler):
         self.send_field()
 
     def make_turn(self, player: Player, *, row: int, col: int) -> None:
-        assert self.game
-        if not self.game.can_make_turn(player, row=row, col=col):
-            self.send_message('Invalid turn')
-
-        else:
+        if self.game:
             self.game.make_turn(player, row=int(row), col=int(col))
             self.send_field()
             if self.game.is_finished():
-                self.winners()
+                self.finish_game()
 
-    def winners(self):
+    def finish_game(self):
         assert self.game
         player = self.game.winner()
-        if player == Player.X:
-            self.send_message('Game is finished, X wins')
-        elif player == Player.O:
-            self.send_message('Game is finished, O wins')
+        if player:
+            self.send_message(f'Game is finished, {player.name} wins')
         else:
             self.send_message('Game is finished, draw')
         self.game = None
 
     def send_field(self) -> None:
         assert self.game
-        field = ''
+        field = []
         for row in self.game.field:
-            for col in row:
-                if col:
-                    field += col.name
-                else:
-                    field += '.'
-            field += '\n'
-        self.send_message(field.rstrip('\n'))
+            field.append(''.join([col.name if col else '.' for col in row]))
+        self.send_message('\n'.join(field))
