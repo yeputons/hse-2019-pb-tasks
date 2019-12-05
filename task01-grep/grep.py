@@ -38,20 +38,19 @@ def get_output_args(args: argparse.Namespace) -> List[str]:
     return [arg for arg, value in vars(args).items() if (arg in OUTPUT_ARGS) and value]
 
 
-def find_in_file(
-        file: TextIO,
-        pattern: str,
-        matching_args: List[str]
-        ) -> List[str]:
-
-    lines = map(lambda line: line.rstrip('\n'), file)
-    return [line for line in lines if find_in_str(pattern, line, matching_args)]
-
-
 def find_in_files_or_stdin(  # find in files or in stdin if files empty
         files: List[str],
         pattern: str,
         matching_args: List[str]) -> List[Tuple[str, List[str]]]:
+    
+    def find_in_file(
+            file: TextIO,
+            pattern: str,
+            matching_args: List[str]
+            ) -> List[str]:
+        lines = map(lambda line: line.rstrip('\n'), file)
+        return list(filter(lambda line: find_in_str(pattern, line, matching_args), lines))
+
 
     matches = []
 
@@ -85,7 +84,7 @@ def print_matches(
 
     if 'files_with_matches' in output_args or 'files_without_matches' in output_args:
         all_matches = list(filter(
-            lambda matches: matches[1] if 'files_with_matches' in output_args else not(matches[1]),
+            lambda matches: matches[1] if 'files_with_matches' in output_args else not matches[1],
             all_matches))
         for filename, matches in all_matches:
             print(output_format.format(filename))
