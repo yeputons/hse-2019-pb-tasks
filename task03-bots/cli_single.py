@@ -5,12 +5,8 @@ from tictactoe_user_handler import TicTacToeUserHandler
 from bot import UserHandler
 
 
-def send_message(message: str) -> None:
-    print(message)
-
-
 def main() -> None:
-    handler: UserHandler = TicTacToeUserHandler(send_message=send_message)
+    handler: UserHandler = TicTacToeUserHandler(send_message=print)
     for line in sys.stdin:
         try:
             handler.handle_message(line.rstrip('\n'))

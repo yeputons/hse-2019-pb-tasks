@@ -46,11 +46,12 @@ def test_invalid_turn(mocker: MockFixture) -> None:
     handle_multiple_messages(handler, [
         'start', 'X 0 0',
         'O 0 0', 'O 2 3',
-        'O -1 2'
+        'O -1 2', 'A 1 1'
     ])
     assert send_message.call_args_list == [
         mocker.call('...\n...\n...'),
         mocker.call('X..\n...\n...'),
+        mocker.call('Invalid turn'),
         mocker.call('Invalid turn'),
         mocker.call('Invalid turn'),
         mocker.call('Invalid turn')
