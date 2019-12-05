@@ -23,24 +23,6 @@ def test_unit_get_matching_args():
     assert grep.get_matching_args(Namespace(regex=True)) == ['regex']
 
 
-def test_unit_find_in_file(tmp_path, monkeypatch):
-    (tmp_path / 'a.txt').write_text('sssstr\nstr\ntrs\nstrr')
-    (tmp_path / 'b.txt').write_text('sssstr\nstr\ntrs\nstrr\ntr\nstd')
-    monkeypatch.chdir(tmp_path)
-
-    with open('a.txt', 'r') as file:
-        assert grep.find_in_file(
-            file,
-            'str',
-            []) == ['sssstr', 'str', 'strr']
-
-    with open('b.txt', 'r') as file:
-        assert grep.find_in_file(
-            file,
-            's+tr?',
-            ['regex']) == ['sssstr', 'str', 'strr', 'std']
-
-
 def test_unit_find_in_files_or_stdin(tmp_path, monkeypatch):
     (tmp_path / 'a.txt').write_text('sssstr\nstr\ntr')
     (tmp_path / 'b.txt').write_text('st\nssssttttrrr\nsstrr')
