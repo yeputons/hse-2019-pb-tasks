@@ -51,7 +51,7 @@ TEST_SUITE("ThreadsafeQueue works like Queue in a single thread") {
         threadsafe_queue_destroy(&q);
     }
 }
-
+/* in process
 TEST_CASE("ThreadsafeQueue multithreaded ping-pong" *
           doctest::skip()) {  // TODO(2)
     ThreadsafeQueue qs[2];
@@ -71,6 +71,7 @@ TEST_CASE("ThreadsafeQueue multithreaded ping-pong" *
 
     // Специальный синтаксис для объявления функции внутри функции.
     // (в общем случае это лямбда-функции/замыкания, но нам это неважно).
+
     auto pinger = [](void *_qs) -> void * {
         ThreadsafeQueue *qs = static_cast<ThreadsafeQueue *>(_qs);
         // TODO(2)
@@ -89,7 +90,7 @@ TEST_CASE("ThreadsafeQueue multithreaded ping-pong" *
 
     threadsafe_queue_destroy(&qs[1]);
     threadsafe_queue_destroy(&qs[0]);
-}
+} */
 
 void *producer(void *_q) {
     ThreadsafeQueue *q = static_cast<ThreadsafeQueue *>(_q);
