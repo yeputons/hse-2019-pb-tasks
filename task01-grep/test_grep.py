@@ -126,7 +126,7 @@ def test_invalid_file_name(tmp_path, monkeypatch, capsys):
     main(['-c', '-E', 'v*u', 'b.txt'])
     out, err = capsys.readouterr()
     assert err == ''
-    assert out == 'File not found\n'
+    assert out == 'Is not a file\n'
 
 
 def test_attempt_at_integration_testing(tmp_path, monkeypatch, capsys):
@@ -138,7 +138,7 @@ def test_attempt_at_integration_testing(tmp_path, monkeypatch, capsys):
     main(['-c', 'needle', 'a.txt', 'b.txt', 'c.txt', 'c.txt', 'd1.txt'])
     out, err = capsys.readouterr()
     assert err == ''
-    assert out == 'a.txt:2\nb.txt:1\nc.txt:0\nc.txt:0\nFile not found\n'
+    assert out == 'a.txt:2\nb.txt:1\nc.txt:0\nc.txt:0\nIs not a file\n'
 
 
 def test_is_a_directory(tmp_path, monkeypatch, capsys):
@@ -156,10 +156,10 @@ def test_grep_files_file_not_found(tmp_path, monkeypatch, capsys):
     (tmp_path / 'a.txt').write_text('dejavut\ndddekkk;slkl\nvoooouu\n'
                                     'vousaveszvu\nredex\nog\nvvvviiivivivivovovlk')
     monkeypatch.chdir(tmp_path)
-    redirect_input_stream([direct], 'abc', True)
+    redirect_input_stream([direct], 'abc', True, False, False, False, False, False)
     out, err = capsys.readouterr()
     assert err == ''
-    assert out == 'File not found\n'
+    assert out == 'Is not a file\n'
 
 
 def test_grep_input_file(tmp_path, monkeypatch, capsys):
@@ -168,7 +168,7 @@ def test_grep_input_file(tmp_path, monkeypatch, capsys):
     p.write_text('the needl\npref needle suf')
     monkeypatch.chdir(tmp_path)
     with p.open() as f:
-        grep_input(f, needle, False, False, 'a.txt')
+        grep_input(f, needle, False, False, False, False, False, False, False, 'a.txt')
         out, err = capsys.readouterr()
         assert err == ''
         assert out == 'pref needle suf\n'
@@ -178,7 +178,7 @@ def test_grep_input_stdin(capsys):
     output = io.StringIO(
         'pref needle?\nneedle? suf\nthe needl\npref needle? suf')
     needle = 'needle'
-    grep_input(output, needle, False, False, '')
+    grep_input(output, needle, False, False, False, False, False, False, False, '')
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'pref needle?\nneedle? suf\npref needle? suf\n'
@@ -188,7 +188,7 @@ def test_grep_input_stdin_is_count(capsys):
     output = io.StringIO(
         'pref needle?\nneedle? suf\nthe needl\npref needle? suf')
     needle = 'needle'
-    grep_input(output, needle, True, False, '')
+    grep_input(output, needle, True, False, False, False, False, False, False, '')
     out, err = capsys.readouterr()
     assert err == ''
     assert out == '3\n'
@@ -198,7 +198,7 @@ def test_grep_input_stdin_is_regex(capsys):
     output = io.StringIO(
         'pref needle?\nneedle? suf\nthe needl\npref needle? suf')
     needle = 'need?'
-    grep_input(output, needle, False, False, '')
+    grep_input(output, needle, False, False, False, False, False, False, False, '')
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'pref needle?\nneedle? suf\nthe needl\npref needle? suf\n'
@@ -208,7 +208,7 @@ def test_grep_input_stdin_is_regex_is_amount(capsys):
     output = io.StringIO(
         'pref needle?\nneedle? suf\nthe needl\npref needle? suf')
     needle = 'need?'
-    grep_input(output, needle, True, False, '')
+    grep_input(output, needle, True, False, False, False, False, False, False, '')
     out, err = capsys.readouterr()
     assert err == ''
     assert out == '4\n'
@@ -221,21 +221,21 @@ def test_grep_input_files(tmp_path, monkeypatch, capsys):
     p.write_text('the needl\npref needle suf')
     f.write_text('the needlejnkejbsvkj\npref needlescassuf')
     monkeypatch.chdir(tmp_path)
-    redirect_input_stream([p, f], needle, True)
+    redirect_input_stream([p, f], needle, True, False, False, False, False, False)
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'a.txt:1\nb.txt:2\n'
 
 
 def test_print_out_result_1(capsys):
-    print_out_result(['hello', 'friend'], False, False, '')
+    print_out_result(['hello', 'friend'], False, False, False, False, '', 2)
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'hello\nfriend\n'
 
 
 def test_print_out_result_2(capsys):
-    print_out_result(['hello', 'friend'], False, True, 'i_say')
+    print_out_result(['hello', 'friend'], False, True, False, False, 'i_say', 2)
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'i_say:hello\ni_say:friend\n'
