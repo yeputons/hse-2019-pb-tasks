@@ -17,31 +17,31 @@ def test_integrate_multistart(mocker: pytest_mock.MockFixture) -> None:
     handler.handle_message('start')
 
     assert send_message.call_args_list == [
-        mocker.call('...'),
-        mocker.call('...'),
-        mocker.call('...'),
-        mocker.call('...'),
-        mocker.call('...'),
-        mocker.call('...'),
-        mocker.call('...'),
-        mocker.call('.X.'),
-        mocker.call('...'),
-        mocker.call('...'),
-        mocker.call('...'),
-        mocker.call('...'),
+        mocker.call('...\n'
+                    '...\n'
+                    '...'),
+        mocker.call('...\n'
+                    '...\n'
+                    '...'),
+        mocker.call('...\n'
+                    '.X.\n'
+                    '...'),
+        mocker.call('...\n'
+                    '...\n'
+                    '...'),
         mocker.call('Invalid turn'),
-        mocker.call('...'),
-        mocker.call('...'),
-        mocker.call('...'),
-        mocker.call('...'),
-        mocker.call('.X.'),
-        mocker.call('...'),
-        mocker.call('.O.'),
-        mocker.call('.X.'),
-        mocker.call('...'),
-        mocker.call('...'),
-        mocker.call('...'),
-        mocker.call('...')
+        mocker.call('...\n'
+                    '...\n'
+                    '...'),
+        mocker.call('...\n'
+                    '.X.\n'
+                    '...'),
+        mocker.call('.O.\n'
+                    '.X.\n'
+                    '...'),
+        mocker.call('...\n'
+                    '...\n'
+                    '...')
     ]
 
 
@@ -59,30 +59,30 @@ def test_integrate_win_x(mocker: pytest_mock.MockFixture) -> None:
     handler.handle_message('X 2 0')
 
     assert send_message.call_args_list == [
-        mocker.call('...'),
-        mocker.call('...'),
-        mocker.call('...'),
-        mocker.call('...'),
-        mocker.call('.X.'),
-        mocker.call('...'),
-        mocker.call('...'),
-        mocker.call('OX.'),
-        mocker.call('...'),
-        mocker.call('...'),
-        mocker.call('OX.'),
-        mocker.call('..X'),
-        mocker.call('O..'),
-        mocker.call('OX.'),
-        mocker.call('..X'),
-        mocker.call('O..'),
-        mocker.call('OX.'),
-        mocker.call('X.X'),
-        mocker.call('O..'),
-        mocker.call('OX.'),
-        mocker.call('XOX'),
-        mocker.call('O.X'),
-        mocker.call('OX.'),
-        mocker.call('XOX'),
+        mocker.call('...\n'
+                    '...\n'
+                    '...'),
+        mocker.call('...\n'
+                    '.X.\n'
+                    '...'),
+        mocker.call('...\n'
+                    'OX.\n'
+                    '...'),
+        mocker.call('...\n'
+                    'OX.\n'
+                    '..X'),
+        mocker.call('O..\n'
+                    'OX.\n'
+                    '..X'),
+        mocker.call('O..\n'
+                    'OX.\n'
+                    'X.X'),
+        mocker.call('O..\n'
+                    'OX.\n'
+                    'XOX'),
+        mocker.call('O.X\n'
+                    'OX.\n'
+                    'XOX'),
         mocker.call('Game is finished, X wins')
     ]
 
@@ -100,27 +100,27 @@ def test_integrate_win_o(mocker: pytest_mock.MockFixture) -> None:
     handler.handle_message('O 1 2')
 
     assert send_message.call_args_list == [
-        mocker.call('...'),
-        mocker.call('...'),
-        mocker.call('...'),
-        mocker.call('..X'),
-        mocker.call('...'),
-        mocker.call('...'),
-        mocker.call('..X'),
-        mocker.call('.O.'),
-        mocker.call('...'),
-        mocker.call('X.X'),
-        mocker.call('.O.'),
-        mocker.call('...'),
-        mocker.call('XOX'),
-        mocker.call('.O.'),
-        mocker.call('...'),
-        mocker.call('XOX'),
-        mocker.call('XO.'),
-        mocker.call('...'),
-        mocker.call('XOX'),
-        mocker.call('XO.'),
-        mocker.call('.O.'),
+        mocker.call('...\n'
+                    '...\n'
+                    '...'),
+        mocker.call('..X\n'
+                    '...\n'
+                    '...'),
+        mocker.call('..X\n'
+                    '.O.\n'
+                    '...'),
+        mocker.call('X.X\n'
+                    '.O.\n'
+                    '...'),
+        mocker.call('XOX\n'
+                    '.O.\n'
+                    '...'),
+        mocker.call('XOX\n'
+                    'XO.\n'
+                    '...'),
+        mocker.call('XOX\n'
+                    'XO.\n'
+                    '.O.'),
         mocker.call('Game is finished, O wins')
     ]
 
@@ -141,36 +141,36 @@ def test_integrate_draw(mocker: pytest_mock.MockFixture) -> None:
     handler.handle_message('X 2 1')
 
     assert send_message.call_args_list == [
-        mocker.call('...'),
-        mocker.call('...'),
-        mocker.call('...'),
-        mocker.call('...'),
-        mocker.call('.X.'),
-        mocker.call('...'),
-        mocker.call('...'),
-        mocker.call('OX.'),
-        mocker.call('...'),
-        mocker.call('.X.'),
-        mocker.call('OX.'),
-        mocker.call('...'),
-        mocker.call('.X.'),
-        mocker.call('OX.'),
-        mocker.call('.O.'),
-        mocker.call('.X.'),
-        mocker.call('OX.'),
-        mocker.call('.OX'),
-        mocker.call('OX.'),
-        mocker.call('OX.'),
-        mocker.call('.OX'),
-        mocker.call('OX.'),
-        mocker.call('OX.'),
-        mocker.call('XOX'),
-        mocker.call('OXO'),
-        mocker.call('OX.'),
-        mocker.call('XOX'),
-        mocker.call('OXO'),
-        mocker.call('OXX'),
-        mocker.call('XOX'),
+        mocker.call('...\n'
+                    '...\n'
+                    '...'),
+        mocker.call('...\n'
+                    '.X.\n'
+                    '...'),
+        mocker.call('...\n'
+                    'OX.\n'
+                    '...'),
+        mocker.call('.X.\n'
+                    'OX.\n'
+                    '...'),
+        mocker.call('.X.\n'
+                    'OX.\n'
+                    '.O.'),
+        mocker.call('.X.\n'
+                    'OX.\n'
+                    '.OX'),
+        mocker.call('OX.\n'
+                    'OX.\n'
+                    '.OX'),
+        mocker.call('OX.\n'
+                    'OX.\n'
+                    'XOX'),
+        mocker.call('OXO\n'
+                    'OX.\n'
+                    'XOX'),
+        mocker.call('OXO\n'
+                    'OXX\n'
+                    'XOX'),
         mocker.call('Game is finished, draw')
     ]
 
@@ -199,9 +199,9 @@ def test_integrate_invalid_turn(mocker: pytest_mock.MockFixture) -> None:
 
     assert send_message.call_args_list == [
         mocker.call('Game is not started'),
-        mocker.call('...'),
-        mocker.call('...'),
-        mocker.call('...'),
+        mocker.call('...\n'
+                    '...\n'
+                    '...'),
         mocker.call('Invalid turn'),
         mocker.call('Invalid turn'),
         mocker.call('Invalid turn'),
@@ -209,11 +209,144 @@ def test_integrate_invalid_turn(mocker: pytest_mock.MockFixture) -> None:
         mocker.call('Invalid turn'),
         mocker.call('Invalid turn'),
         mocker.call('Invalid turn'),
-        mocker.call('...'),
-        mocker.call('.X.'),
-        mocker.call('...'),
+        mocker.call('...\n'
+                    '.X.\n'
+                    '...'),
         mocker.call('Invalid turn'),
         mocker.call('Invalid turn'),
         mocker.call('Invalid turn'),
         mocker.call('Invalid turn')
+    ]
+
+
+def test_integrate_game_is_not_started(mocker: pytest_mock.MockFixture) -> None:
+    send_message = mocker.stub(name='send_message_stub')
+    handler = TicTacToeUserHandler(send_message)
+
+    handler.handle_message('start')
+    handler.handle_message('X 1 1')
+    handler.handle_message('O 0 1')
+    handler.handle_message('X 2 2')
+    handler.handle_message('O 0 0')
+    handler.handle_message('X 0 2')
+    handler.handle_message('O 1 2')
+    handler.handle_message('X 2 0')
+    handler.handle_message('O 1 0')
+    handler.handle_message('pls do smthing')
+    handler.handle_message('pls do smthing 2')
+    handler.handle_message('pls do smthing 3')
+    handler.handle_message('start')
+
+    assert send_message.call_args_list == [
+        mocker.call('...\n'
+                    '...\n'
+                    '...'),
+        mocker.call('...\n'
+                    '.X.\n'
+                    '...'),
+        mocker.call('...\n'
+                    'OX.\n'
+                    '...'),
+        mocker.call('...\n'
+                    'OX.\n'
+                    '..X'),
+        mocker.call('O..\n'
+                    'OX.\n'
+                    '..X'),
+        mocker.call('O..\n'
+                    'OX.\n'
+                    'X.X'),
+        mocker.call('O..\n'
+                    'OX.\n'
+                    'XOX'),
+        mocker.call('O.X\n'
+                    'OX.\n'
+                    'XOX'),
+        mocker.call('Game is finished, X wins'),
+        mocker.call('Game is not started'),
+        mocker.call('Game is not started'),
+        mocker.call('Game is not started'),
+        mocker.call('Game is not started'),
+        mocker.call('...\n'
+                    '...\n'
+                    '...')
+    ]
+
+
+def test_integrate_ok_google(mocker: pytest_mock.MockFixture) -> None:
+    send_message = mocker.stub(name='send_message_stub')
+    handler = TicTacToeUserHandler(send_message)
+
+    handler.handle_message('start')
+    handler.handle_message('X 2 0')
+    handler.handle_message('O 1 1')
+    handler.handle_message('X 0 0')
+    handler.handle_message('O 1 0')
+    handler.handle_message('X 0 1')
+    handler.handle_message('O 1 2')
+    handler.handle_message('- Player.X: OK Google how to win tictactoe')
+    handler.handle_message('- Google: Here is an algorithm <pic>')
+    handler.handle_message('- Player.X: Thanks!')
+    handler.handle_message('start')
+    handler.handle_message('X 1 1')
+    handler.handle_message('O 0 1')
+    handler.handle_message('X 2 2')
+    handler.handle_message('O 0 0')
+    handler.handle_message('X 0 2')
+    handler.handle_message('O 1 2')
+    handler.handle_message('X 2 0')
+    handler.handle_message('- Player.X: EEEEEEEEEEEEEE!')
+
+    assert send_message.call_args_list == [
+        mocker.call('...\n'
+                    '...\n'
+                    '...'),
+        mocker.call('..X\n'
+                    '...\n'
+                    '...'),
+        mocker.call('..X\n'
+                    '.O.\n'
+                    '...'),
+        mocker.call('X.X\n'
+                    '.O.\n'
+                    '...'),
+        mocker.call('XOX\n'
+                    '.O.\n'
+                    '...'),
+        mocker.call('XOX\n'
+                    'XO.\n'
+                    '...'),
+        mocker.call('XOX\n'
+                    'XO.\n'
+                    '.O.'),
+        mocker.call('Game is finished, O wins'),
+        mocker.call('Game is not started'),
+        mocker.call('Game is not started'),
+        mocker.call('Game is not started'),
+        mocker.call('...\n'
+                    '...\n'
+                    '...'),
+        mocker.call('...\n'
+                    '.X.\n'
+                    '...'),
+        mocker.call('...\n'
+                    'OX.\n'
+                    '...'),
+        mocker.call('...\n'
+                    'OX.\n'
+                    '..X'),
+        mocker.call('O..\n'
+                    'OX.\n'
+                    '..X'),
+        mocker.call('O..\n'
+                    'OX.\n'
+                    'X.X'),
+        mocker.call('O..\n'
+                    'OX.\n'
+                    'XOX'),
+        mocker.call('O.X\n'
+                    'OX.\n'
+                    'XOX'),
+        mocker.call('Game is finished, X wins'),
+        mocker.call('Game is not started'),
     ]
