@@ -11,7 +11,7 @@ class TicTacToeUserHandler(UserHandler):
 
     def handle_message(self, message: str) -> None:
         """Обрабатывает очередное сообщение от пользователя."""
-        message = message.rstrip()
+        message = message.rstrip('\n')
         if message == 'start':
             self.start_game()
         elif self.game:
@@ -34,7 +34,7 @@ class TicTacToeUserHandler(UserHandler):
             self.send_field()
             if self.game.is_finished():
                 if self.game.winner():
-                    winner = 'X' if self.game.winner() == Player.X else 'O'
+                    winner = self.game.winner().name
                     self.send_message(f'Game is finished, {winner} wins')
                 else:
                     self.send_message('Game is finished, draw')
@@ -55,4 +55,4 @@ class TicTacToeUserHandler(UserHandler):
                 else:
                     field += '.'
             field += '\n'
-        self.send_message(field[:len(field) - 1])
+        self.send_message(field[:-1])

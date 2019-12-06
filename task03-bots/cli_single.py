@@ -8,7 +8,7 @@ def main() -> None:
     bot = AlarmUserHandler(send_message=print)
     for line in sys.stdin:
         try:
-            line = line.rstrip()
+            line = line.rstrip('\n')
             bot.handle_message(line)
         except Exception:  # pylint: disable=W0703
             traceback.print_exc()

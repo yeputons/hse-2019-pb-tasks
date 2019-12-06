@@ -88,6 +88,7 @@ def test_for_other_messages(mocker: MockFixture):
     handler.handle_message('O 2 2')
     handler.handle_message('start')
     handler.handle_message('X 1 1')
+    handler.handle_message('O 1 1')
     handler.handle_message('O 0 2')
     handler.handle_message('X 2 0')
     handler.handle_message('O 2 2')
@@ -101,6 +102,7 @@ def test_for_other_messages(mocker: MockFixture):
         mocker.call('Game is not started'),
         mocker.call('...\n...\n...'),
         mocker.call('...\n.X.\n...'),
+        mocker.call('Invalid turn'),
         mocker.call('...\n.X.\nO..'),
         mocker.call('..X\n.X.\nO..'),
         mocker.call('..X\n.X.\nO.O'),
