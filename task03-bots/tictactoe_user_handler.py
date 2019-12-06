@@ -9,13 +9,41 @@ class TicTacToeUserHandler(UserHandler):
         self.game: Optional[TicTacToe] = None
 
     def handle_message(self, message: str) -> None:
-        raise NotImplementedError
+        bot_message = message.rstrip('\n').split()
+        if bot_message[0] != 'start' and not self.game:
+            self.send_message('Game is not started')
+        elif bot_message[0] == 'start':
+            self.start_game()
+        else:
+            if bot_message[0] == 'X':
+                cur_player = Player.X
+            else:
+                cur_player = Player.O
+            self.make_turn(cur_player, row=int(bot_message[1]), col=int(bot_message[2]))
 
     def start_game(self) -> None:
-        raise NotImplementedError
+        self.game = TicTacToe()
+        self.send_field()
 
     def make_turn(self, player: Player, *, row: int, col: int) -> None:
-        raise NotImplementedError
+        assert self.game
+        if self.game.can_make_turn(player, row=row, col=col):
+            self.game.make_turn(player, row=row, col=col)
+            self.send_field()
+        else:
+            self.send_message('Invalid turn')
+        if self.game.is_finished():
+            finish_str = 'Game is finished, '
+            winner = self.game.winner()
+            if not winner:
+                self.send_message(finish_str + 'draw')
+            else:
+                self.send_message(finish_str + str(winner.name) + ' wins')
+            self.game = None
 
     def send_field(self) -> None:
-        raise NotImplementedError
+        assert self.game
+        field = []
+        for row in self.game.field:
+            field.append(''.join([cell.name if cell else '.' for cell in row]))
+        self.send_message('\n'.join(field))
