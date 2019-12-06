@@ -11,9 +11,9 @@ void threadsafe_queue_destroy(ThreadsafeQueue *q) {
 }
 
 void threadsafe_queue_push(ThreadsafeQueue *q, void *data) {
-    // TODO
-    static_cast<void>(q);  // Как-нибудь используем переменную.
-    static_cast<void>(data);  // Как-нибудь используем переменную.
+    pthread_mutex_lock(&q->mutex);
+    queue_push(&q->q, data);
+    pthread_mutex_unlock(&q->mutex);
 }
 
 bool threadsafe_queue_try_pop(ThreadsafeQueue *q, void **data) {
