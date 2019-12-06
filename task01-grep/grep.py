@@ -73,21 +73,24 @@ def main(args_str: List[str]):
     parser.add_argument('-L', dest='no_lines', action='store_true')
     args = parser.parse_args(args_str)
 
-    if not args.files:
-        all_lines = [sys.stdin.readlines()]
-        filenames = [None]
-    else:
+    if args.files:
         all_lines, filenames = [], []
         for filename in args.files:
             if os.path.isfile(filename):
                 filenames.append(filename)
+            else:
+                print('File not found')
         for filename in filenames:
             with open(filename, 'r') as input_file:
                 all_lines.append(input_file.readlines())
+    else:
+        all_lines = [sys.stdin.readlines()]
+        filenames = [None]
 
     for lines, filename in zip(all_lines, filenames):
         lines = strip_lines(lines)
-        print_result(grep_lines(lines, filename if len(args.files) > 1 else None,
+        prefix = filename if len(args.files) > 1 else None
+        print_result(grep_lines(lines, prefix,
                                 args.needle, args.regex, args.count, args.ignore,
                                 args.has_lines, args.no_lines, args.full_match, args.inverse))
 
