@@ -6,8 +6,8 @@ void threadsafe_queue_init(ThreadsafeQueue *q) {
 }
 
 void threadsafe_queue_destroy(ThreadsafeQueue *q) {
-    // TODO
-    static_cast<void>(q);  // Как-нибудь используем переменную.
+    pthread_mutex_destroy(&q->mutex);
+    queue_destroy(&q->q);
 }
 
 void threadsafe_queue_push(ThreadsafeQueue *q, void *data) {
