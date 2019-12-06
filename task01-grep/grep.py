@@ -14,54 +14,51 @@ def parse_args(args_str: List[str]) -> argparse.Namespace:
     return parser.parse_args(args_str)
 
 
-def print_in_files(amount: bool, file_name: str, line: str) -> None:
-    if amount:
+def print_in_files(print_filenames: bool, file_name: str, line: str) -> None:
+    if print_filenames:
         print(f'{file_name}:{line}')
     else:
         print(line)
 
 
-def working_with_stdin(pattern: str, regex: bool, count: bool) -> None:
+def working_with_stdin(pattern: str, count: bool) -> None:
     counter = 0
     for line in sys.stdin.readlines():
         line = line.rstrip('\n')
-        if (pattern in line or re.search(pattern, line)):
+        if re.search(pattern, line):
+            if not count:
+                print(line)
             counter += 1
-        if regex:
-            if re.search(pattern, line):
-                print(line)
-        if (not regex and not count):
-            if pattern in line:
-                print(line)
     if count:
         print(counter)
 
 
-def working_with_files(files: List[str], pattern: str, regex: bool, count: bool) -> None:
+def working_with_files(files: List[str], pattern: str, count: bool) -> None:
     for file_name in files:
         counter = 0
         with open(file_name, 'r') as file:
             for line in file.readlines():
                 line = line.rstrip('\n')
-                if (pattern in line or re.search(pattern, line)):
+                if re.search(pattern, line):
+                    if not count:
+                        print_in_files(len(files) > 1, file_name, line)
                     counter += 1
-                if regex:
-                    if re.search(pattern, line):
-                        print_in_files(bool(len(files) > 1), file_name, line)
-                if (not regex and not count):
-                    if pattern in line:
-                        print_in_files(bool(len(files) > 1), file_name, line)
             if count:
-                print_in_files(bool(len(files) > 1), file_name, str(counter))
+                print_in_files(len(files) > 1, file_name, str(counter))
 
 
 def main(args_str: List[str]) -> None:
     args = parse_args(args_str)
-    if args.files:
-        working_with_files(args.files, args.pattern, args.regex, args.count)
+    if args.regex:
+        pattern = args.pattern
     else:
-        working_with_stdin(args.pattern, args.regex, args.count)
+        pattern = re.escape(args.pattern)
+    if args.files:
+        working_with_files(args.files, pattern, args.count)
+    else:
+        working_with_stdin(pattern, args.count)
 
 
 if __name__ == '__main__':
     main(sys.argv[1:])
+

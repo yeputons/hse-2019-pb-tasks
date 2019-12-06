@@ -81,121 +81,62 @@ def test_print_in_files_zero(capsys):    # FILES = 0
     assert out == 'found\n'
 
 
-def test_working_with_one_file(tmp_path, monkeypatch, capsys):    # NOT (COUNTER AND REGEX)
+def test_working_with_one_file(tmp_path, monkeypatch, capsys):    # NOT COUNT
     pattern = 'needle'
     (tmp_path / 'a.txt').write_text('the needl\npref needle suf')
     monkeypatch.chdir(tmp_path)
     files = ['a.txt']
-    regex = 0
-    count = 0
-    grep.working_with_files(files, pattern, regex, count)
+    count = False
+    grep.working_with_files(files, pattern, count)
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'pref needle suf\n'
 
 
-def test_working_with_one_file_count(tmp_path, monkeypatch, capsys):    # COUNTER
+def test_working_with_one_file_count(tmp_path, monkeypatch, capsys):    # COUNT
     pattern = 'needle'
     (tmp_path / 'a.txt').write_text('the needl\npref needle suf')
     monkeypatch.chdir(tmp_path)
     files = ['a.txt']
-    regex = 0
-    count = 1
-    grep.working_with_files(files, pattern, regex, count)
+    count = True
+    grep.working_with_files(files, pattern, count)
     out, err = capsys.readouterr()
     assert err == ''
     assert out == '1\n'
 
 
-def test_working_with_one_file_regex(tmp_path, monkeypatch, capsys):    # REGEX
-    pattern = 'needle'
-    (tmp_path / 'a.txt').write_text('pref needle?\nneedle? suf\nthe needl\npref needle? suf')
-    monkeypatch.chdir(tmp_path)
-    files = ['a.txt']
-    regex = 1
-    count = 0
-    grep.working_with_files(files, pattern, regex, count)
-    out, err = capsys.readouterr()
-    assert err == ''
-    assert out == 'pref needle?\nneedle? suf\npref needle? suf\n'
-
-
-def test_working_with_one_file_count_regex(tmp_path, monkeypatch, capsys):    # REGEX AND COUNT
-    pattern = 'needle'
-    (tmp_path / 'a.txt').write_text('pref needle?\nneedle? suf\nthe needl\npref needle? suf')
-    monkeypatch.chdir(tmp_path)
-    files = ['a.txt']
-    regex = 1
-    count = 1
-    grep.working_with_files(files, pattern, regex, count)
-    out, err = capsys.readouterr()
-    assert err == ''
-    assert out == 'pref needle?\nneedle? suf\npref needle? suf\n3\n'
-
-
-def test_working_with_many_files(tmp_path, monkeypatch, capsys):    # NOT (COUNTER AND REDEX)
+def test_working_with_many_files(tmp_path, monkeypatch, capsys):    # NOT COUNT
     pattern = 'needle'
     (tmp_path / 'a.txt').write_text('pref needle\nneedle suf\n')
     (tmp_path / 'b.txt').write_text('the needl\npref needle suf')
     monkeypatch.chdir(tmp_path)
     files = ['a.txt', 'b.txt']
-    regex = 0
-    count = 0
-    grep.working_with_files(files, pattern, regex, count)
+    count = False
+    grep.working_with_files(files, pattern, count)
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'a.txt:pref needle\na.txt:needle suf\nb.txt:pref needle suf\n'
 
 
-def test_working_with_many_files_count(tmp_path, monkeypatch, capsys):    # COUNTER
+def test_working_with_many_files_count(tmp_path, monkeypatch, capsys):    # COUNT
     needle = 'needle'
     (tmp_path / 'a.txt').write_text('pref needle\nneedle suf\n')
     (tmp_path / 'b.txt').write_text('the needl\npref needle suf')
     monkeypatch.chdir(tmp_path)
     files = ['a.txt', 'b.txt']
-    regex = 0
-    count = 1
-    grep.working_with_files(files, needle, regex, count)
+    count = True
+    grep.working_with_files(files, needle, count)
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'a.txt:2\nb.txt:1\n'
 
 
-def test_working_with_many_files_regex(tmp_path, monkeypatch, capsys):    # REGEX
-    needle = 'needle'
-    (tmp_path / 'a.txt').write_text('pref needle?\nneedle? suf')
-    (tmp_path / 'b.txt').write_text('pref needle?')
-    monkeypatch.chdir(tmp_path)
-    files = ['a.txt', 'b.txt']
-    regex = 1
-    count = 0
-    grep.working_with_files(files, needle, regex, count)
-    out, err = capsys.readouterr()
-    assert err == ''
-    assert out == 'a.txt:pref needle?\na.txt:needle? suf\nb.txt:pref needle?\n'
-
-
-def test_working_with_many_files_regex_count(tmp_path, monkeypatch, capsys):    # REGEX AND COUNT
-    needle = 'needle'
-    (tmp_path / 'a.txt').write_text('pref needle?\nneedle?')
-    (tmp_path / 'b.txt').write_text('pref needle?')
-    monkeypatch.chdir(tmp_path)
-    files = ['a.txt', 'b.txt']
-    regex = 1
-    count = 1
-    grep.working_with_files(files, needle, regex, count)
-    out, err = capsys.readouterr()
-    assert err == ''
-    assert out == 'a.txt:pref needle?\na.txt:needle?\na.txt:2\nb.txt:pref needle?\nb.txt:1\n'
-
-
-def test_working_with_stdin(monkeypatch, capsys):    # NOT (REGEX AND COUNT)
+def test_working_with_stdin(monkeypatch, capsys):    # NOT COUNT
     needle = 'needle'
     monkeypatch.setattr('sys.stdin', io.StringIO(
         'pref needle?\nneedle? suf\nthe needl\npref needle? suf'))
-    count = 0
-    regex = 0
-    grep.working_with_stdin(needle, regex, count)
+    count = False
+    grep.working_with_stdin(needle, count)
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'pref needle?\nneedle? suf\npref needle? suf\n'
@@ -205,36 +146,11 @@ def test_working_with_stdin_count(monkeypatch, capsys):    # COUNT
     needle = 'needle'
     monkeypatch.setattr('sys.stdin', io.StringIO(
         'pref needle?\nneedle? suf\nthe needl\npref needle? suf'))
-    count = 1
-    regex = 0
-    grep.working_with_stdin(needle, regex, count)
+    count = True
+    grep.working_with_stdin(needle, count)
     out, err = capsys.readouterr()
     assert err == ''
     assert out == '3\n'
-
-
-def test_working_with_stdin_regex(monkeypatch, capsys):    # REGEX
-    needle = 'needle'
-    monkeypatch.setattr('sys.stdin', io.StringIO(
-        'pref needle?\nneedle? suf\npref needle? suf'))
-    count = 0
-    regex = 1
-    grep.working_with_stdin(needle, regex, count)
-    out, err = capsys.readouterr()
-    assert err == ''
-    assert out == 'pref needle?\nneedle? suf\npref needle? suf\n'
-
-
-def test_working_with_stdin_regex_count(monkeypatch, capsys):    # REGEX AND COUNT
-    needle = 'needle'
-    monkeypatch.setattr('sys.stdin', io.StringIO(
-        'pref needle?\nneedle? suf\nthe needl\npref needle? suf'))
-    count = 1
-    regex = 1
-    grep.working_with_stdin(needle, regex, count)
-    out, err = capsys.readouterr()
-    assert err == ''
-    assert out == 'pref needle?\nneedle? suf\npref needle? suf\n3\n'
 
 
 # UNIT TESTS END
