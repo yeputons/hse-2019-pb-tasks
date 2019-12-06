@@ -1,8 +1,8 @@
 #ifndef TSQUEUE_H_
 #define TSQUEUE_H_
 
-#include <pthread.h>
 #include "queue.h"
+#include <pthread.h>
 
 extern "C" {
 
