@@ -14,7 +14,7 @@ class TicTacToeUserHandler(UserHandler):
         if self.game is not None:
             datamess = message.rstrip('\n').split(' ')
             if len(datamess) != 3:
-                self.send_message("Invalid turn")
+                self.send_message('Invalid turn')
             else:
                 if datamess[0] == 'X':
                     player = Player.X
@@ -31,8 +31,8 @@ class TicTacToeUserHandler(UserHandler):
                     return
                 self.make_turn(player=player, row=row, col=col)
         else:
-            if message != "start":
-                self.send_message("Game is not started")
+            if message != 'start':
+                self.send_message('Game is not started')
             else:
                 self.start_game()
 
@@ -48,19 +48,19 @@ class TicTacToeUserHandler(UserHandler):
             self.send_field()
             if self.game.is_finished():
                 if self.game.winner() is None:
-                    self.send_message("Game is finished, draw")
+                    self.send_message('Game is finished, draw')
                     self.game = None
                 else:
-                    self.send_message(f"Game is finished, {str(self.game.winner()).split('.')[1]} wins")
+                    self.send_message(f'Game is finished, {str(self.game.winner())[7]} wins')
                     self.game = None
         else:
-            self.send_message("Invalid turn")
+            self.send_message('Invalid turn')
 
     def send_field(self) -> None:
         """Отправляет пользователю сообщение с текущим состоянием игры."""
         if self.game is not None:
             for line in self.game.field:
-                lineres = ""
+                lineres = ''
                 for el in range(0, 3):
                     if line[el] is not None:
                         lineres += (str(line[el]).split('.'))[1]
