@@ -18,10 +18,7 @@ class TicTacToeUserHandler(UserHandler):
             self.send_message('Game is not started')
         else:
             symbol, col, row = message.rstrip('\n').split(maxsplit=2)
-            if symbol == 'X':
-                player = Player.X
-            else:
-                player = Player.O
+            player = Player[symbol]
             self.make_turn(player, row=int(row), col=int(col))
 
     def start_game(self) -> None:
@@ -53,11 +50,6 @@ class TicTacToeUserHandler(UserHandler):
         field = ''
         for row in self.game.field:
             for col in row:
-                if col == Player.X:
-                    field += 'X'
-                elif col == Player.O:
-                    field += 'O'
-                else:
-                    field += '.'
+                field += col.name if col else '.'
             field += '\n'
         self.send_message(field.rstrip('\n'))
