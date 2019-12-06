@@ -4,7 +4,7 @@ from tictactoe import Player, TicTacToe
 
 
 class TicTacToeUserHandler(UserHandler):
-    """Реализация логики бота для игры в крестики-нолики с одним пользователем."""
+    """Реализация логики боты для игры в крестики-нолики с одним пользователем."""
 
     def __init__(self, send_message: Callable[[str], None]) -> None:
         super(TicTacToeUserHandler, self).__init__(send_message)
@@ -12,19 +12,22 @@ class TicTacToeUserHandler(UserHandler):
 
     def handle_message(self, message: str) -> None:
         """Обрабатывает очередное сообщение от пользователя."""
-        message = message.rstrip('\n')
         if message == 'start':
             self.start_game()
         elif not self.game:
             self.send_message('Game is not started')
         else:
             try:
-                character, col, row = message.split(maxsplit=2)
+                character, input_col, input_row = message.split(maxsplit=2)
+                col, row = int(input_col), int(input_row)
                 player = self.char_to_player(character)
-                if not player:
+                if not (player
+                        and 0 <= row < 3
+                        and 0 <= col < 3
+                        and self.game.can_make_turn(player, row=row, col=col)):
                     self.send_message('Invalid turn')
                     return
-                self.make_turn(Player(player), row=int(row), col=int(col))
+                self.make_turn(Player(player), row=row, col=col)
             except ValueError:
                 self.send_message('Invalid turn')
                 return
@@ -43,17 +46,13 @@ class TicTacToeUserHandler(UserHandler):
     def finish_game(self) -> None:
         assert self.game
         winner = self.game.winner()
-        message_end = f'{winner.name} wins' if winner else 'draw'
-        self.send_message(f'Game is finished, {message_end}')
+        message_end = '{} wins'.format(winner.name) if winner else 'draw'
+        self.send_message('Game is finished, {}'.format(message_end))
         self.game = None
 
     def make_turn(self, player: Player, *, row: int, col: int) -> None:
         """Обрабатывает ход игрока player в клетку (row, col)."""
         assert self.game
-        if not (0 <= row < 3 and 0 <= col < 3 and
-                self.game.can_make_turn(player, row=row, col=col)):
-            self.send_message('Invalid turn')
-            return
         self.game.make_turn(player, row=row, col=col)
         self.send_field()
         if self.game.is_finished():
@@ -62,10 +61,7 @@ class TicTacToeUserHandler(UserHandler):
     def send_field(self) -> None:
         """Отправляет пользователю сообщение с текущим состоянием игры."""
         assert self.game
-        str_field = ''
+        rows = []
         for row in self.game.field:
-            for cell in row:
-                character = cell.name if cell else '.'
-                str_field += character
-            str_field += '\n'
-        self.send_message(str_field[:11])
+            rows.append(''.join([cell.name if cell else '.' for cell in row]))
+        self.send_message('\n'.join(rows))
