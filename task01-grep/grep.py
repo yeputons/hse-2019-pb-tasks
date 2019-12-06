@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
+from functools import partial
 from typing import List
 from typing import Iterable
 from typing import Pattern
 from typing import Tuple
+from typing import Callable
 
 import sys
 import re
@@ -14,7 +16,12 @@ def parse_args(args_str: List[str]) -> argparse.Namespace:
     parser.add_argument('pattern', type=str)
     parser.add_argument('files', nargs='*')
     parser.add_argument('-c', dest='count', action='store_true')
+    parser.add_argument('-l', dest='name_file_only', action='store_true')
+    parser.add_argument('-L', dest='invert_name_file_only', action='store_true')
     parser.add_argument('-E', dest='regex', action='store_true')
+    parser.add_argument('-i', dest='ignore_case', action='store_true')
+    parser.add_argument('-v', dest='invert', action='store_true')
+    parser.add_argument('-x', dest='full_match', action='store_true')
     return parser.parse_args(args_str)
 
 
@@ -22,18 +29,25 @@ def strip_lines(file: Iterable) -> List[str]:
     return [line.rstrip('\n') for line in file]
 
 
-def get_re_pattern(pattern: str, regex_flag: bool) -> Pattern[str]:
+def get_re_pattern(pattern: str, regex_flag: bool, ignore_case: bool) -> Pattern[str]:
     if not regex_flag:
         pattern = re.escape(pattern)
-    return re.compile(pattern)
+    _flags = re.I if ignore_case else 0
+    return re.compile(pattern, flags=_flags)
 
 
-def filter_lines_by_re(lines: List[str], re_pattern: Pattern[str]) -> List[str]:
-    return [line for line in lines if re.search(re_pattern, line)]
+def get_find_function(re_pattern: Pattern[str], full_match: bool, invert: bool) -> Callable[[str], bool]:
+    find = re.fullmatch if full_match else re.search
+    find = partial(find, pattern=re_pattern)
+    return lambda line: bool(find(string=line)) ^ invert
 
 
-def filter_blocks(blocks: List[List[str]], re_pattern: Pattern[str]) -> List[List[str]]:
-    return [filter_lines_by_re(lines, re_pattern) for lines in blocks]
+def filter_lines_by_re(lines: List[str], find: Callable[[str], bool]) -> List[str]:
+    return [line for line in lines if find(line)]
+
+
+def filter_blocks(blocks: List[List[str]], find: Callable[[str], bool]) -> List[List[str]]:
+    return [filter_lines_by_re(lines, find) for lines in blocks]
 
 
 def map_blocks(blocks: List[List[str]]) -> List[List[str]]:
@@ -65,8 +79,9 @@ def main(args_str: List[str]):
     if not sources:
         sources = ['_stdin_']
 
-    re_pattern = get_re_pattern(args.pattern, args.regex)
-    blocks = filter_blocks(blocks, re_pattern)
+    re_pattern = get_re_pattern(args.pattern, args.regex, args.ignore_case)
+    find = get_find_function(re_pattern, args.full_match, args.invert)
+    blocks = filter_blocks(blocks, find)
 
     if args.count:
         blocks = map_blocks(blocks)

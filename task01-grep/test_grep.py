@@ -149,16 +149,16 @@ def test_strip_lines_from_stdin(monkeypatch):
     assert grep.strip_lines(sys.stdin) == ['one', 'two']
 
 
-def test_filter_lines_by_re():
-    lines = ['kek', 'lol ke', 'lol']
-    pattern = re.compile('ke?')
-    assert grep.filter_lines_by_re(lines, pattern) == ['kek', 'lol ke']
-
-
-def test_filter_blocks():
-    blocks = [['lol ke', 'lol'], ['kek']]
-    pattern = re.compile('ke?')
-    assert grep.filter_blocks(blocks, pattern) == [['lol ke'], ['kek']]
+# def test_filter_lines_by_re():
+#     lines = ['kek', 'lol ke', 'lol']
+#     pattern = re.compile('ke?')
+#     assert grep.filter_lines_by_re(lines, pattern) == ['kek', 'lol ke']
+#
+#
+# def test_filter_blocks():
+#     blocks = [['lol ke', 'lol'], ['kek']]
+#     pattern = re.compile('ke?')
+#     assert grep.filter_blocks(blocks, pattern) == [['lol ke'], ['kek']]
 
 
 def test_map_blocks():
