@@ -62,7 +62,7 @@ TEST_CASE("ThreadsafeQueue multithreaded ping-pong") {
         int local = 15;
         int tmp_local = 15;
         threadsafe_queue_push(&qs[0], &local);
-        int *data = (int*)threadsafe_queue_wait_and_pop(&qs[1]);
+        int *data = (int *)threadsafe_queue_wait_and_pop(&qs[1]);
         REQUIRE(*data == tmp_local + 1);
         REQUIRE(data == &local);
         return nullptr;
