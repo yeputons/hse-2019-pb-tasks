@@ -1,29 +1,38 @@
 #!/usr/bin/env python3
 
-from typing import List
+from typing import List, Iterable
 import sys
 import re
 import argparse
 
 
-def filter_strings_by_pattern(pattern: str, data: List[List[str]]) -> List[List[str]]:
-    result = []
-    for file in data:
-        result.append([line for line in file if re.search(pattern, line)])
-    return result
+def filter_strings_by_pattern(pattern: str,
+                              data: Iterable[Iterable[str]]) -> List[List[str]]:
+    return [[line for line in item if re.search(pattern, line)] for item in data]
 
 
-def count_filtered_strings(data: List[List[str]]) -> List[List[str]]:
-    return [[str(len(item))] for item in data]
+def count_filtered_strings(data: Iterable[Iterable[str]]) -> List[List[str]]:
+    return [[str(sum(1 for _ in item))] for item in data]
 
 
-def print_lines(files: List[str], data: List[List[str]], cond: bool):
-    for index, file in enumerate(files):
-        for string in data[index]:
-            line = string
-            if cond:
-                line = file + ':' + string
-            print(line)
+def format_output_string(name_file: str,
+                         line: str,
+                         cond: bool):
+    if cond:
+        return '{}:{}'.format(name_file, line)
+    return line
+
+
+def print_lines(files: Iterable[str],
+                data: Iterable[Iterable[str]],
+                cond: bool):
+    for name_file, item in zip(files, data):
+        for line in item:
+            print(format_output_string(name_file, line, cond))
+
+
+def strip_lines(lines: Iterable[str]) -> List[str]:
+    return [line.rstrip('\n') for line in lines]
 
 
 def main(args_str: List[str]):
@@ -43,16 +52,15 @@ def main(args_str: List[str]):
     input_data = []
     if files:
         for file in files:
-            with open(file, 'r') as in_file:
-                input_data.append([line.rstrip('\n') for line in in_file.readlines()])
+            with open(file, 'r') as input_file:
+                input_data.append(strip_lines(input_file.readlines()))
     else:
-        input_data.append([line.rstrip('\n') for line in sys.stdin.readlines()])
-        files = [None]
+        input_data.append(strip_lines(sys.stdin.readlines()))
+        files.append(None)
 
-    if regex:
-        pattern = re.compile(pattern)
-    else:
+    if not regex:
         pattern = re.escape(pattern)
+    pattern = re.compile(pattern)
 
     filtered_strings = filter_strings_by_pattern(pattern, input_data)
 
@@ -61,7 +69,7 @@ def main(args_str: List[str]):
     if count:
         output_data = count_filtered_strings(filtered_strings)
 
-    print_lines(files, output_data, bool(len(files) - 1))
+    print_lines(files, output_data, len(files) > 1)
 
 
 if __name__ == '__main__':
