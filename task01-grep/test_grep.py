@@ -57,3 +57,17 @@ def test_integrate_files_grep_count(tmp_path, monkeypatch, capsys):
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'b.txt:1\na.txt:2\n'
+
+def test_find_needle():
+    line = 'find something here'
+    assert grep.find(line, 'find', False)
+
+
+def test_regex_find():
+    line = 'find something here'
+    assert grep.find(line, 'f*', True)
+
+
+def test_do_not_find():
+    line = 'find something here'
+    assert not grep.find(line, 'no', False)
