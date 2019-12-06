@@ -22,10 +22,7 @@ void threadsafe_queue_push(ThreadsafeQueue *q, void *data) {
 bool threadsafe_queue_try_pop(ThreadsafeQueue *q, void **data) {
     bool ret;
     pthread_mutex_lock(&q->mutex);
-    if ((ret = !queue_empty(&q->q))) {
-        void *item = queue_pop(&q->q);
-        *data = item;
-    }
+    if ((ret = !queue_empty(&q->q))) *data = queue_pop(&q->q);
     pthread_mutex_unlock(&q->mutex);
     return ret;
 }
