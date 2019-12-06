@@ -33,6 +33,7 @@ class TicTacToeUserHandler(UserHandler):
 
     def make_turn(self, player: Player, *, row: int, col: int) -> None:
         """Обрабатывает ход игрока player в клетку (row, col)."""
+        assert self.game
         self.game.make_turn(player=player, row=row, col=col)
         if self.game.is_finished():
             if self.game.winner() is None:
@@ -50,11 +51,9 @@ class TicTacToeUserHandler(UserHandler):
         for col in range(3):
             message = ''
             for row in range(3):
-                if self.game.field[row][col] is Player.X:
-                    message += 'X'
-                elif self.game.field[row][col] is Player.O:
-                    message += 'O'
-                else:
+                if self.game.field[row][col] is None:
                     message += '.'
+                else:
+                    message += self.game.field[row][col].name
             game_field.append(message)
         self.send_message('\n'.join(game_field))
