@@ -71,11 +71,13 @@ TEST_CASE("ThreadsafeQueue multithreaded ping-pong") {
     // (в общем случае это лямбда-функции/замыкания, но нам это неважно).
     auto pinger = [](void *_qs) -> void * {
         auto *qs = static_cast<ThreadsafeQueue *>(_qs);
-        for(int i = 0; i < PING_PONGS; i++) {
-            const int base_value = i; //Just for it to take some different value each time
+        for (int i = 0; i < PING_PONGS; i++) {
+            const int base_value =
+                i;  // Just for it to take some different value each time
             int local_var = base_value;
             threadsafe_queue_push(&qs[0], &local_var);
-            int returned_var = *static_cast<int *>(threadsafe_queue_wait_and_pop(&qs[1]));
+            int returned_var =
+                *static_cast<int *>(threadsafe_queue_wait_and_pop(&qs[1]));
             CHECK(local_var == returned_var);
             CHECK(local_var == base_value + 1);
         }
@@ -85,7 +87,8 @@ TEST_CASE("ThreadsafeQueue multithreaded ping-pong") {
     auto ponger = [](void *_qs) -> void * {
         auto *qs = static_cast<ThreadsafeQueue *>(_qs);
         for (int i = 0; i < PING_PONGS; ++i) {
-            int *pinger_local = static_cast<int*>(threadsafe_queue_wait_and_pop(&qs[0]));
+            int *pinger_local =
+                static_cast<int *>(threadsafe_queue_wait_and_pop(&qs[0]));
             *pinger_local += 1;
             threadsafe_queue_push(&qs[1], pinger_local);
         }
