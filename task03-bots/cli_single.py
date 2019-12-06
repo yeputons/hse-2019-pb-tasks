@@ -3,7 +3,6 @@ import sys
 import traceback
 
 from alarm_user_handler import AlarmUserHandler
-from bot import UserIndependentBot
 
 
 def main() -> None:
