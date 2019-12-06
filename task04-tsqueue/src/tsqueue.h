@@ -12,7 +12,7 @@ extern "C" {
  */
 struct ThreadsafeQueue {
     Queue q;
-    // TODO
+    pthread_mutex_t mutex;
 };
 
 /**
@@ -59,3 +59,4 @@ void *threadsafe_queue_wait_and_pop(ThreadsafeQueue *q);
 }
 
 #endif
+
