@@ -70,43 +70,50 @@ def test_integrate_files_grep_count(tmp_path, monkeypatch, capsys):
 
 def test_unit_parse_args_files_count_regex():
     parsed_args = grep.parse_args(['-c', '-E', 'date', 'text.txt', 'hw.tex'])
-    assert parsed_args == grep.argparse.Namespace(count=True, files=['text.txt', 'hw.tex'],
-                                                  pattern='date', regex=True)
+    assert parsed_args.count
+    assert parsed_args.files == ['text.txt', 'hw.tex']
+    assert parsed_args.pattern == 'date'
+    assert parsed_args.regex
 
 
 def test_unit_parse_args_files_not_count_not_regex():
     parsed_args = grep.parse_args(['date', 'text.txt', 'hw.tex'])
-    assert parsed_args == grep.argparse.Namespace(count=False, files=['text.txt', 'hw.tex'],
-                                                  pattern='date', regex=False)
+    assert not parsed_args.count
+    assert parsed_args.files == ['text.txt', 'hw.tex']
+    assert parsed_args.pattern == 'date'
+    assert not parsed_args.regex
 
 
 def test_unit_parse_args_no_files():
     parsed_args = grep.parse_args(['-E', 'date'])
-    assert parsed_args == grep.argparse.Namespace(count=False, files=[],
-                                                  pattern='date', regex=True)
+    assert not parsed_args.count
+    assert parsed_args.files == []
+    assert parsed_args.pattern == 'date'
+    assert parsed_args.regex
 
 
 def test_unit_filter_matched_lines_regex():
-    lines = grep.filter_matched_lines(['b.cpp', 'a.c', 'mmmc'], '[a-z]+\\.cp*', True)
+    lines = grep.filter_matched_lines(['b.cpp', 'a.c', 'mmmc'],
+                                      grep.compile_pattern('[a-z]+\\.cp*', is_pattern_regex=True))
     assert lines == ['b.cpp', 'a.c']
 
 
 def test_unit_filter_matched_lines_not_regex():
-    lines = grep.filter_matched_lines(['hello world', 'CGSG_FOREVER_30', 'DF5'], 'F', False)
+    lines = grep.filter_matched_lines(['hello world', 'CGSG_FOREVER_30', 'DF5'],
+                                      grep.compile_pattern('F'))
     assert lines == ['CGSG_FOREVER_30', 'DF5']
 
 
 def test_unit_find_lines_from_grep_not_regex_not_count():
-    parsed_args = grep.parse_args(['needle?'])
     lines = grep.grep_from_lines(['pref needle?', 'needle? suf', 'the needl',
-                                  'pref needle? suf'], parsed_args.pattern,
-                                 parsed_args.regex, parsed_args.count)
+                                  'pref needle? suf'], grep.compile_pattern('needle?'),
+                                 False)
     assert lines == ['pref needle?', 'needle? suf', 'pref needle? suf']
 
 
 def test_unit_find_lines_from_grep_regex_count():
-    parsed_args = grep.parse_args(['-c', 'needle?', '-E'])
     result = grep.grep_from_lines(['pref needle?', 'needle? suf',
-                                   'the needl', 'pref needle? suf'], parsed_args.pattern,
-                                  parsed_args.regex, parsed_args.count)
+                                   'the needl', 'pref needle? suf'],
+                                  grep.compile_pattern('needle?', True),
+                                  True)
     assert result == [4]
