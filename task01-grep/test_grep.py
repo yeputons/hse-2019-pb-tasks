@@ -149,16 +149,20 @@ def test_strip_lines_from_stdin(monkeypatch):
     assert grep.strip_lines(sys.stdin) == ['one', 'two']
 
 
-# def test_filter_lines_by_re():
-#     lines = ['kek', 'lol ke', 'lol']
-#     pattern = re.compile('ke?')
-#     assert grep.filter_lines_by_re(lines, pattern) == ['kek', 'lol ke']
-#
-#
-# def test_filter_blocks():
-#     blocks = [['lol ke', 'lol'], ['kek']]
-#     pattern = re.compile('ke?')
-#     assert grep.filter_blocks(blocks, pattern) == [['lol ke'], ['kek']]
+def test_get_re_pattern():
+    assert re.compile('a\\.', re.IGNORECASE) == grep.get_re_pattern('a.', False, True)
+
+
+def test_get_find_function():
+    pattern = re.compile('.')
+    assert lambda line: bool(re.fullmatch(pattern, line)) ^ 1 == grep.get_find_function(pattern, True, True)
+
+
+def test_filter_blocks():
+    blocks = [['lol ke', 'lol'], ['kek']]
+    pattern = re.compile('ke?')
+    f = lambda line: bool(re.search(pattern, line)) ^ 0
+    assert grep.filter_blocks(blocks, f) == [['lol ke'], ['kek']]
 
 
 def test_map_blocks():
@@ -166,15 +170,19 @@ def test_map_blocks():
     assert grep.map_blocks(blocks) == [['2'], ['1']]
 
 
-def test_add_filename_prefix_to_lines():
+def test_add_filename_prefix():
     lines = ['boomer', 'or not']
     source = 'ok,'
-    assert grep.add_filename_prefix_to_lines((lines, source)) == ['ok,:boomer', 'ok,:or not']
+    assert grep.add_filename_prefix((lines, source)) == ['ok,:boomer', 'ok,:or not']
 
 
 def test_print_blocks(capsys):
     blocks = [['a', 'x'], ['b']]
-    grep.print_blocks(blocks)
+    grep.print_blocks(['1', '2'], blocks, False)
     out, err = capsys.readouterr()
     assert err == ''
-    assert out == 'a\nx\nb\n'
+    assert out == '1:a\n1:x\n2:b\n'
+    grep.print_blocks(['1', '2'], blocks, True)
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == '1:2\n2:1\n'

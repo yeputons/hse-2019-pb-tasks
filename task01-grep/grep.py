@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-from functools import partial
 from typing import List
 from typing import Iterable
 from typing import Pattern
@@ -16,8 +15,8 @@ def parse_args(args_str: List[str]) -> argparse.Namespace:
     parser.add_argument('pattern', type=str)
     parser.add_argument('files', nargs='*')
     parser.add_argument('-c', dest='count', action='store_true')
-    parser.add_argument('-l', dest='name_file_only', action='store_true')
-    parser.add_argument('-L', dest='invert_name_file_only', action='store_true')
+    parser.add_argument('-l', dest='file_name_only', action='store_true')
+    parser.add_argument('-L', dest='invert_file_name_only', action='store_true')
     parser.add_argument('-E', dest='regex', action='store_true')
     parser.add_argument('-i', dest='ignore_case', action='store_true')
     parser.add_argument('-v', dest='invert', action='store_true')
@@ -36,30 +35,36 @@ def get_re_pattern(pattern: str, regex_flag: bool, ignore_case: bool) -> Pattern
     return re.compile(pattern, flags=_flags)
 
 
-def get_find_function(re_pattern: Pattern[str], full_match: bool, invert: bool) -> Callable[[str], bool]:
+def get_find_function(re_pattern: Pattern[str],
+                      full_match: bool, invert: bool) -> Callable[[str], bool]:
     find = re.fullmatch if full_match else re.search
-    find = partial(find, pattern=re_pattern)
-    return lambda line: bool(find(string=line)) ^ invert
-
-
-def filter_lines_by_re(lines: List[str], find: Callable[[str], bool]) -> List[str]:
-    return [line for line in lines if find(line)]
+    return lambda line: bool(find(pattern=re_pattern, string=line)) ^ invert
 
 
 def filter_blocks(blocks: List[List[str]], find: Callable[[str], bool]) -> List[List[str]]:
-    return [filter_lines_by_re(lines, find) for lines in blocks]
+    return [list(filter(find, lines)) for lines in blocks]
 
 
-def map_blocks(blocks: List[List[str]]) -> List[List[str]]:
+def map_blocks(blocks: List[List[str]], ) -> List[List[str]]:
     return [[str(len(lines))] for lines in blocks]
 
 
-def add_filename_prefix_to_lines(lines_source_tuple: Tuple[List[str], str]) -> List[str]:
+def add_filename_prefix(lines_source_tuple: Tuple[List[str], str]) -> List[str]:
     lines, source = lines_source_tuple
     return [f'{source}:{line}' for line in lines]
 
 
-def print_blocks(blocks: list):
+def print_file_name_only(sources: List[str], blocks: List[List[str]], file_name_only: bool) -> None:
+    for src, lines in zip(sources, blocks):
+        if file_name_only ^ bool(len(lines) <= 0):
+            print(src)
+
+
+def print_blocks(sources: List[str], blocks: List[List[str]], count: bool) -> None:
+    if count:
+        blocks = map_blocks(blocks)
+    if len(sources) > 1:
+        blocks = list(map(add_filename_prefix, zip(blocks, sources)))
     for lines in blocks:
         for line in lines:
             print(line)
@@ -83,13 +88,10 @@ def main(args_str: List[str]):
     find = get_find_function(re_pattern, args.full_match, args.invert)
     blocks = filter_blocks(blocks, find)
 
-    if args.count:
-        blocks = map_blocks(blocks)
-
-    if len(sources) > 1:
-        blocks = list(map(add_filename_prefix_to_lines, zip(blocks, sources)))
-
-    print_blocks(blocks)
+    if args.file_name_only or args.invert_file_name_only:
+        print_file_name_only(sources, blocks, args.file_name_only)
+    else:
+        print_blocks(sources, blocks, args.count)
 
 
 if __name__ == '__main__':
