@@ -45,7 +45,7 @@ def grep_from_lines(read_lines: List[str], pattern, is_only_count=False,
     filtered_lines = filter_matched_lines(read_lines, pattern, full_match, inverse_answer)
     if is_only_count:
         cnt = len(filtered_lines)
-        return [cnt] if cnt or inverse_answer else []
+        return [cnt]
     return filtered_lines
 
 
@@ -66,7 +66,7 @@ def find_lines_from_grep_files(files: str, pattern, is_only_count=False, full_ma
                     if lines:
                         filtered_lines += ['{}'.format(file_name)]
                 elif inverse_only_files:
-                    if not lines or lines == ['0'] and is_only_count:
+                    if not lines or lines == [0] and is_only_count:
                         filtered_lines += ['{}'.format(file_name)]
                 else:
                     filtered_lines += ['{}{}'.format((file_name + ':') if len(files) > 1 else '',

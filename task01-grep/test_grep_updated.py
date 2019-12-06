@@ -20,7 +20,7 @@ def test_integrate_ignore_case_count_files_grep(tmp_path, monkeypatch, capsys):
     grep.main(['-ic', '-E', 'fo?o', 'b.txt', 'a.txt', 'c.txt'])
     out, err = capsys.readouterr()
     assert err == ''
-    assert out == 'b.txt:3\na.txt:2\n'
+    assert out == 'b.txt:3\na.txt:2\nc.txt:0\n'
 
 
 def test_integrate_inverse_answer_files_grep(tmp_path, monkeypatch, capsys):
