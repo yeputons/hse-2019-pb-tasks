@@ -4,12 +4,8 @@ import traceback
 from tictactoe_user_handler import TicTacToeUserHandler
 
 
-def send_message(message: str) -> None:
-    print(message)
-
-
 def main() -> None:
-    bot = TicTacToeUserHandler(send_message)
+    bot = TicTacToeUserHandler(print)
 
     for line in sys.stdin:
         try:

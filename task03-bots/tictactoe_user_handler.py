@@ -10,40 +10,44 @@ class TicTacToeUserHandler(UserHandler):
 
     def handle_message(self, message: str) -> None:
         if message == 'start':
-            self.start_game()
-        elif self.game is None:
+            self._start_game()
+            return
+        if self.game is None:
             self.send_message('Game is not started')
-        else:
-            player_char, row, col = message.split()
-            self.make_turn(
-                player=Player.X if player_char == 'X' else Player.O, col=int(col), row=int(row))
+            return
 
-    def start_game(self) -> None:
+        player_char, row, col = message.split()
+        player = Player.X if player_char == 'X' else Player.O
+        self.make_turn(player=player, col=int(col), row=int(row))
+
+    def _start_game(self) -> None:
         self.game = TicTacToe()
         self.send_field()
 
     def finish_game(self) -> None:
         assert self.game
         winner = self.game.winner()
+        self.game = None
         if winner:
             self.send_message(f'Game is finished, {winner.name} wins')
-        else:
-            self.send_message('Game is finished, draw')
-        self.game = None
+            return
+
+        self.send_message('Game is finished, draw')
 
     def make_turn(self, player: Player, *, row: int, col: int) -> None:
         assert self.game
-        if self.game.can_make_turn(player, row=row, col=col):
-            self.game.make_turn(player, row=row, col=col)
-            self.send_field()
-            if self.game.is_finished():
-                self.finish_game()
-        else:
+
+        if not self.game.can_make_turn(player, row=row, col=col):
             self.send_message('Invalid turn')
+            return
+        self.game.make_turn(player, row=row, col=col)
+        self.send_field()
+        if self.game.is_finished():
+            self.finish_game()
 
     def send_field(self) -> None:
         assert self.game
-        output = '\n'
+        output = ''
         for row in self.game.field:
             for c in row:
                 if c:
@@ -51,4 +55,4 @@ class TicTacToeUserHandler(UserHandler):
                 else:
                     output += '.'
             output += '\n'
-        self.send_message(output)
+        self.send_message(output.rstrip('\n'))

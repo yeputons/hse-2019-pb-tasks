@@ -47,7 +47,7 @@ def main() -> None:
     user_widgets: Dict[int, UserWidget] = {}
 
     bot = ChatBot(
-        send_message=lambda user_id, msg: user_widgets[user_id].received_message(msg))
+        send_message=lambda user_id, message: user_widgets[user_id].received_message(message))
 
     def handle_message(user_id: int, message: str) -> None:
         try:
