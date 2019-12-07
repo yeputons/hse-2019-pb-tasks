@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from typing import List, Dict
 import io
 import grep
 
@@ -22,34 +23,40 @@ def test_unit_read_stdin(monkeypatch):
 
 
 def test_unit_search():
-    assert grep.search('pyt', 'ptpyppytyp', False)
-    assert not grep.search('pyt', 'ptpypptyp', False)
-    assert grep.search('pyt', 'ptp!65/,`dsv>04pyt/-fjsw', False)
-    assert not grep.search('pyt', '', False)
+    search_flags: Dict[str, bool] = {'ignore_case': False, 'invert_ans': False,
+                                     'full_match': False, 'regex': False}
+    assert grep.search('pyt', 'ptpyppytyp', search_flags)
+    assert not grep.search('pyt', 'ptpypptyp', search_flags)
+    assert grep.search('pyt', 'ptp!65/,`dsv>04pyt/-fjsw', search_flags)
+    assert not grep.search('pyt', '', search_flags)
 
-    assert grep.search('[p,a]yt+', 'ayttt', True)
-    assert grep.search('(p{1,3}[Y,t,s][5-7])z+', 'pY6z', True)
-    assert grep.search('(p{1,3}[Y,t,s][5-7])z+', 'ppt5zzzz', True)
-    assert not grep.search('(p{1,3}[Y,t,s][5-7])z+', 'pppptt7zz', True)
-    assert not grep.search('(p{1,3}[Y,t,s][5-7])z+', '(p{1,3}[Y,t,s][5-7])z+', True)
-    assert not grep.search('(p{1,3}[Y,t,s][5-7])z+', '', True)
+    search_flags['regex'] = True
+    assert grep.search('[p,a]yt+', 'ayttt', search_flags)
+    assert grep.search('(p{1,3}[Y,t,s][5-7])z+', 'pY6z', search_flags)
+    assert grep.search('(p{1,3}[Y,t,s][5-7])z+', 'ppt5zzzz', search_flags)
+    assert not grep.search('(p{1,3}[Y,t,s][5-7])z+', 'pppptt7zz', search_flags)
+    assert not grep.search('(p{1,3}[Y,t,s][5-7])z+', '(p{1,3}[Y,t,s][5-7])z+', search_flags)
+    assert not grep.search('(p{1,3}[Y,t,s][5-7])z+', '', search_flags)
 
 
 def test_unit_search_in_lines():
+    search_flags: Dict[str, bool] = {'ignore_case': False, 'invert_ans': False,
+                                     'full_match': False, 'regex': False}
     input_lines = [['a', 'ptpyppytyp'],
                    ['a', 'ptpypptyp'],
                    ['a', 'pyt'],
                    ['', 'pt`dsv>04pyt/-f'],
                    ['d', ' ']]
     answer = {'a': ['ptpyppytyp', 'pyt'], '': ['pt`dsv>04pyt/-f'], 'd': []}
-    assert grep.search_in_lines('pyt', input_lines, False) == answer
+    assert grep.search_in_lines('pyt', input_lines, search_flags) == answer
 
+    search_flags['regex'] = True
     input_lines = [['a', 'pY6z'],
                    ['a', 'ptpypptyp'],
                    ['c', 'ppt5zzzz'],
                    ['d', '(p{1,3}[Y,t,s][5-7])z+']]
     answer = {'a': ['pY6z'], 'c': ['ppt5zzzz'], 'd': []}
-    assert grep.search_in_lines('(p{1,3}[Y,t,s][5-7])z+', input_lines, True) == answer
+    assert grep.search_in_lines('(p{1,3}[Y,t,s][5-7])z+', input_lines, search_flags) == answer
 
 
 def test_unit_print_ans_lines(capsys):
