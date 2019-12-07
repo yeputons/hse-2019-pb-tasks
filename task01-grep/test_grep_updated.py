@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 from typing import Dict
+import io
 import grep
 
 
@@ -132,6 +133,190 @@ def test_unit_print_ans_file_names(capsys):
     grep.print_ans_file_names({'a.txt': ['ptpyppytyp', 'pyt'],
                                'b.txt': ['pt`dsv>04pyt/-f'], 'c.txt': []},
                               ['a.txt', 'b.txt', 'c.txt'], False)
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'c.txt\n'
+
+
+def test_integrate_stdin_standard_grep(monkeypatch, capsys):
+    monkeypatch.setattr('sys.stdin', io.StringIO(
+        'pref needle?\nneeDLe? suf\nthe needl\npref Needle? suf'))
+    grep.main(['-i', 'Needle?'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'pref needle?\nneeDLe? suf\npref Needle? suf\n'
+
+    monkeypatch.setattr('sys.stdin', io.StringIO(
+        'pref needle?\nneedle?\nthe needle suf\nneedle?'))
+    grep.main(['-x', 'needle?'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'needle?\nneedle?\n'
+
+    monkeypatch.setattr('sys.stdin', io.StringIO(
+        'pref needle?\nneedle?\nthe needl\npref neeDLe? suf'))
+    grep.main(['-ivx', 'Needle?'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'pref needle?\nthe needl\npref neeDLe? suf\n'
+
+    monkeypatch.setattr('sys.stdin', io.StringIO(
+        'pref needle?\nneedle?\nthe needl\npref neeDLe? suf'))
+    grep.main(['-civx', 'Needle?'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == '3\n'
+
+
+def test_integrate_stdin_regex_grep(monkeypatch, capsys):
+    monkeypatch.setattr('sys.stdin', io.StringIO(
+        'pref needle?\nneeDLe? suf\nthe needl\npref Needle? suf'))
+    grep.main(['-i', '-E', 'Needle?'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'pref needle?\nneeDLe? suf\nthe needl\npref Needle? suf\n'
+
+    monkeypatch.setattr('sys.stdin', io.StringIO(
+        'pref needle?\nneedle?\nthe needle suf\nneedl'))
+    grep.main(['-x', '-E', 'needle?'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'needl\n'
+
+    monkeypatch.setattr('sys.stdin', io.StringIO(
+        'pref needle?\nneedle?\nneedl\npref neeDLe? suf'))
+    grep.main(['-ivx', '-E', 'Needle?'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'pref needle?\nneedle?\npref neeDLe? suf\n'
+
+    monkeypatch.setattr('sys.stdin', io.StringIO(
+        'pref needle?\nneedle?\nneedl\npref neeDLe? suf'))
+    grep.main(['-civx', '-E', 'Needle?'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == '3\n'
+
+
+def test_integrate_files_standard_grep(tmp_path, monkeypatch, capsys):
+    (tmp_path / 'a.txt').write_text('pref needle\nneedle suf\n')
+    (tmp_path / 'b.txt').write_text('the needl\npref nEEdle suf')
+    monkeypatch.chdir(tmp_path)
+    grep.main(['-i', 'Needle', 'b.txt', 'a.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'b.txt:pref nEEdle suf\na.txt:pref needle\na.txt:needle suf\n'
+
+    (tmp_path / 'a.txt').write_text('needle\nneedle suf\n')
+    (tmp_path / 'b.txt').write_text('the needl\npref needle suf')
+    monkeypatch.chdir(tmp_path)
+    grep.main(['-x', 'needle', 'b.txt', 'a.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'a.txt:needle\n'
+
+    (tmp_path / 'a.txt').write_text('pref needle\nneedle suf\n')
+    (tmp_path / 'b.txt').write_text('needLe\npref needle suf')
+    monkeypatch.chdir(tmp_path)
+    grep.main(['-civx', 'Needle', 'b.txt', 'a.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'b.txt:1\na.txt:2\n'
+
+    (tmp_path / 'a.txt').write_text('pref needle\nneedle suf\n')
+    (tmp_path / 'b.txt').write_text('the needl\npref needle suf')
+    (tmp_path / 'c.txt').write_text('the needl\npref eedle suf')
+    monkeypatch.chdir(tmp_path)
+    grep.main(['-l', 'needle', 'b.txt', 'a.txt', 'c.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'b.txt\na.txt\n'
+
+    (tmp_path / 'a.txt').write_text('pref needle\nneedle suf\n')
+    (tmp_path / 'b.txt').write_text('the needl\npref needle suf')
+    (tmp_path / 'c.txt').write_text('the needl\npref eedle suf')
+    monkeypatch.chdir(tmp_path)
+    grep.main(['-L', 'needle', 'b.txt', 'a.txt', 'c.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'c.txt\n'
+
+    (tmp_path / 'a.txt').write_text('pref needle\nneedle suf\n')
+    (tmp_path / 'b.txt').write_text('needLe\npref needle suf')
+    (tmp_path / 'c.txt').write_text('needLe\nneedle\n')
+    monkeypatch.chdir(tmp_path)
+    grep.main(['-livx', 'Needle', 'b.txt', 'a.txt', 'c.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'b.txt\na.txt\n'
+
+    (tmp_path / 'a.txt').write_text('pref needle\nneedle suf\n')
+    (tmp_path / 'b.txt').write_text('needLe\npref needle suf')
+    (tmp_path / 'c.txt').write_text('needLe\nneedle\n')
+    monkeypatch.chdir(tmp_path)
+    grep.main(['-Livx', 'Needle', 'b.txt', 'a.txt', 'c.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'c.txt\n'
+
+
+def test_integrate_files_regex_grep(tmp_path, monkeypatch, capsys):
+    (tmp_path / 'a.txt').write_text('neeedle\nneedle suf\n')
+    (tmp_path / 'b.txt').write_text('the needl\npref nEEdle suf')
+    monkeypatch.chdir(tmp_path)
+    grep.main(['-i', '-E', 'Needle?', 'b.txt', 'a.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'b.txt:the needl\nb.txt:pref nEEdle suf\na.txt:needle suf\n'
+
+    (tmp_path / 'a.txt').write_text('needl\nneedle suf\n')
+    (tmp_path / 'b.txt').write_text('the needl\npref needle suf')
+    monkeypatch.chdir(tmp_path)
+    grep.main(['-x', '-E', 'needle?', 'b.txt', 'a.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'a.txt:needl\n'
+
+    (tmp_path / 'a.txt').write_text('pref needle\nneedle suf\n')
+    (tmp_path / 'b.txt').write_text('needL\npref needle suf')
+    monkeypatch.chdir(tmp_path)
+    grep.main(['-civx', '-E', 'Needle?', 'b.txt', 'a.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'b.txt:1\na.txt:2\n'
+
+    (tmp_path / 'a.txt').write_text('pref needle\nneedle suf\n')
+    (tmp_path / 'b.txt').write_text('the needl\npref needle suf')
+    (tmp_path / 'c.txt').write_text('the needl\npref eedle suf')
+    monkeypatch.chdir(tmp_path)
+    grep.main(['-l', '-E', 'needle?', 'b.txt', 'a.txt', 'c.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'b.txt\na.txt\nc.txt\n'
+
+    (tmp_path / 'a.txt').write_text('pref needle\nneedle suf\n')
+    (tmp_path / 'b.txt').write_text('the needl\npref needl suf')
+    (tmp_path / 'c.txt').write_text('the nedle\npref eedle suf')
+    monkeypatch.chdir(tmp_path)
+    grep.main(['-L', '-E', 'needle?', 'b.txt', 'a.txt', 'c.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'c.txt\n'
+
+    (tmp_path / 'a.txt').write_text('pref needle\nneedle suf\n')
+    (tmp_path / 'b.txt').write_text('needLe\npref needle suf')
+    (tmp_path / 'c.txt').write_text('needLe\nneedl\n')
+    monkeypatch.chdir(tmp_path)
+    grep.main(['-livx', '-E', 'Needle?', 'b.txt', 'a.txt', 'c.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'b.txt\na.txt\n'
+
+    (tmp_path / 'a.txt').write_text('pref needle\nneedle suf\n')
+    (tmp_path / 'b.txt').write_text('needLe\npref needle suf')
+    (tmp_path / 'c.txt').write_text('needLe\nneedl\n')
+    monkeypatch.chdir(tmp_path)
+    grep.main(['-Livx', '-E', 'Needle?', 'b.txt', 'a.txt', 'c.txt'])
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'c.txt\n'
