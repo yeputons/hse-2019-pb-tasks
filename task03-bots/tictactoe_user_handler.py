@@ -14,18 +14,12 @@ class TicTacToeUserHandler(UserHandler):
         """Обрабатывает очередное сообщение от пользователя."""
         if message == 'start':
             self.start_game()
+            return
         elif self.game is None:
             self.send_message('Game is not started')
-        else:
-            player, col, row = message.split(maxsplit=2)
-            self.make_turn(player=Player[player], row=int(row), col=int(col))
-            if self.game.is_finished():
-                winner = self.game.winner()
-                if winner is None:
-                    self.send_message('Game is finished, draw')
-                else:
-                    self.send_message('Game is finished, {0} wins'.format(winner.name))
-                self.game = None
+            return
+        player, col, row = message.split(maxsplit=2)
+        self.make_turn(player=Player[player], row=int(row), col=int(col))
 
     def start_game(self) -> None:
         """Начинает новую игру в крестики-нолики и сообщает об этом пользователю."""
@@ -35,19 +29,29 @@ class TicTacToeUserHandler(UserHandler):
     def make_turn(self, player: Player, *, row: int, col: int) -> None:
         """Обрабатывает ход игрока player в клетку (row, col)."""
         assert self.game
-        if self.game.can_make_turn(player=player, row=row, col=col):
-            self.game.make_turn(player=player, row=row, col=col)
-            self.send_field()
-        else:
+        if not self.game.can_make_turn(player=player, row=row, col=col):
             self.send_message('Invalid turn')
+            return
+
+        self.game.make_turn(player=player, row=row, col=col)
+        self.send_field()
+
+        if not self.game.is_finished():
+            return
+        winner = self.game.winner()
+        if winner is None:
+            self.send_message('Game is finished, draw')
+        else:
+            self.send_message('Game is finished, {0} wins'.format(winner.name))
+        self.game = None
 
     def send_field(self) -> None:
         """Отправляет пользователю сообщение с текущим состоянием игры."""
         assert self.game
         message = ''
         for line in self.game.field:
-            for el in line:
-                message += el.name if el else '.'
+            for cel in line:
+                message += cel.name if cel else '.'
             message += '\n'
         message = message.rstrip('\n')
         self.send_message(message)
