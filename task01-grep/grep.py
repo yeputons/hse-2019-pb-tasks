@@ -30,8 +30,8 @@ def search(pattern: str, line: str, search_flags: Dict) -> bool:
         return not answer if search_flags['invert_ans'] else answer
     # standard mode
     if search_flags['ignore_case']:
-        pattern.lower()
-        line.lower()
+        pattern = pattern.lower()
+        line = line.lower()
     answer = pattern == line if search_flags['full_match'] else pattern in line
     return not answer if search_flags['invert_ans'] else answer
 
