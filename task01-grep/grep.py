@@ -18,16 +18,30 @@ def read_stdin() -> List:
     return [['', line.rstrip('\n')] for line in sys.stdin.readlines()]
 
 
-def search(pattern: str, line: str, regex: bool) -> bool:
-    return bool(re.search(pattern, line)) if regex else pattern in line
+def search(pattern: str, line: str, search_flags: Dict) -> bool:
+    answer: bool
+    # regex mode
+    if search_flags['regex']:
+        re_flags = re.IGNORECASE if search_flags['ignore_case'] else 0
+        if search_flags['full_match']:
+            answer = bool(re.fullmatch(pattern, line, flags=re_flags))
+        else:
+            answer = bool(re.search(pattern, line, flags=re_flags))
+        return not answer if search_flags['invert_ans'] else answer
+    # standard mode
+    if search_flags['ignore_case']:
+        pattern.lower()
+        line.lower()
+    answer = pattern == line if search_flags['full_match'] else pattern in line
+    return not answer if search_flags['invert_ans'] else answer
 
 
-def search_in_lines(pattern: str, input_lines: List[List], regex: bool) -> Dict:
+def search_in_lines(pattern: str, input_lines: List[List], search_flags: Dict) -> Dict:
     found: Dict[str, List] = {}  # {filename or '': List of lines with pattern}
     for [filename, line] in input_lines:
         if filename not in found:
             found[filename] = []
-        if search(pattern, line, regex):
+        if search(pattern, line, search_flags):
             found[filename].append(line)
     return found
 
@@ -48,6 +62,9 @@ def main(args_str: List[str]):
     parser.add_argument('needle', type=str)
     parser.add_argument('files', nargs='*')
     parser.add_argument('-c', dest='count_task', action='store_true')
+    parser.add_argument('-i', dest='ignore_case', action='store_true')
+    parser.add_argument('-v', dest='invert_ans', action='store_true')
+    parser.add_argument('-x', dest='full_match', action='store_true')
     parser.add_argument('-E', dest='regex', action='store_true')
     args = parser.parse_args(args_str)
 
@@ -57,8 +74,10 @@ def main(args_str: List[str]):
     else:
         input_lines = read_stdin()
 
+    search_flags: Dict[str, bool] = {'ignore_case': args.ignore_case, 'invert_ans': args.invert_ans,
+                                     'full_match': args.full_match, 'regex': args.regex}
     # find answer
-    found = search_in_lines(args.needle, input_lines, args.regex)
+    found = search_in_lines(args.needle, input_lines, search_flags)
 
     # print answer
     ans_format = '{0}:{1}' if len(args.files) > 1 else '{1}'
