@@ -1,4 +1,4 @@
-from typing import Callable, Optional
+from typing import Callable, Optional, List
 from bot import UserHandler
 from tictactoe import Player, TicTacToe
 
@@ -15,43 +15,35 @@ class TicTacToeUserHandler(UserHandler):
             self.send_message('Game is not started')
         else:
             who, col, row = message.split()
-            player = Player.X if who == 'X' else Player.O
-            self.make_turn(player=player, row=int(row), col=int(col))
+            self.make_turn(player=Player[who], row=int(row), col=int(col))
 
     def start_game(self) -> None:
         self.game = TicTacToe()
         self.send_field()
 
+    def finish_game(self) -> None:
+        assert self.game
+        winner = self.game.winner()
+        if winner:
+            self.send_message(f'Game is finished, {winner.name} wins')
+        else:
+            self.send_message('Game is finished, draw')
+        self.game = None
+
     def make_turn(self, player: Player, *, row: int, col: int) -> None:
-        if not self.game:
-            return
+        assert self.game
         if not self.game.can_make_turn(player=player, row=row, col=col):
             self.send_message('Invalid turn')
             return
         self.game.make_turn(player=player, row=row, col=col)
         self.send_field()
         if self.game.is_finished():
-            if self.game.winner() == Player.X:
-                result = 'Game is finished, X wins'
-            elif self.game.winner() == Player.O:
-                result = 'Game is finished, O wins'
-            else:
-                result = 'Game is finished, draw'
-            self.send_message(result)
-            self.game = None
+            self.finish_game()
 
     def send_field(self) -> None:
-        if not self.game:
-            return
-        output = ''
-        for rows in self.game.field:
-            for cell in rows:
-                if cell == Player.X:
-                    output += 'X'
-                elif cell == Player.O:
-                    output += 'O'
-                else:
-                    output += '.'
-            output += '\n'
-        output = output.rstrip('\n')
-        self.send_message(output)
+        assert self.game
+        field: List[str] = []
+        for row in self.game.field:
+            list_row = [cell.name if cell else '.' for cell in row]
+            field += [''.join(list_row)]
+        self.send_message('\n'.join(field))
