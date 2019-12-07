@@ -5,8 +5,8 @@ import re
 import argparse
 
 
-def substr_search(needle=str, line=str, flags=bool, full_match=bool):
-    if flags:
+def search_substring(needle: str, line: str, ignore_case: bool, full_match: bool) -> bool:
+    if ignore_case:
         needle = needle.lower()
         line = line.lower()
 
@@ -16,66 +16,71 @@ def substr_search(needle=str, line=str, flags=bool, full_match=bool):
     return needle in line
 
 
-def parse_lines(lines):
-    result = []
-    for line in lines:
-        line = line.rstrip('\n')
-        result.append(line)
+def parse_lines(lines: list) -> list:
+    result = [line.rstrip('\n') for line in lines]
     return result
 
 
-def match_string(needle=str, line=str, regex=bool, ignore_case=bool, reverse=bool, full_match=bool):
-    flags = False
-    if ignore_case:
-        flags = re.IGNORECASE
+def match_string(needle: str, line: str, regex: bool,
+                 ignore_case: bool, reverse: bool, full_match: bool) -> bool:
     if regex:
         if full_match:
-            return bool(re.fullmatch(needle, line, flags=flags)) ^ reverse
-        return bool(re.search(needle, line, flags=flags)) ^ reverse
+            result = bool(re.fullmatch(needle, line, flags=re.IGNORECASE * ignore_case))
+        else:
+            result = bool(re.search(needle, line, flags=re.IGNORECASE * ignore_case))
     else:
-        return substr_search(needle, line, flags=flags, full_match=full_match) ^ reverse
+        result = search_substring(needle, line, ignore_case=ignore_case, full_match=full_match)
+    return result ^ reverse
 
 
-def read_files(files):
-    lines = dict()
+def read_files(files: list) -> dict:
+    lines = {}
     for file in files:
         with open(file, 'r') as in_file:
             lines[file] = parse_lines(in_file.readlines())
     return lines
 
 
-def read_stdin():
-    lines = dict()
+def read_stdin() -> dict:
+    lines = {}
     lines[''] = parse_lines(sys.stdin.readlines())
     return lines
 
 
-def filter_lines(lines=dict, needle=str, regex=bool, ignore_case=bool, reverse=bool,
-                 full_match=bool):
-    result = dict()
-    for file in lines:
-        filtered_file = []
-        for line in lines[file]:
-            if match_string(needle, line, regex, ignore_case, reverse, full_match):
-                filtered_file.append(line)
-        result[file] = filtered_file
+def filter_lines(unfiltered_lists: dict, needle: str, regex: bool, ignore_case: bool, reverse: bool,
+                 full_match: bool, reverse_files: bool) -> dict:
+    result = {}
+    for lines_list in unfiltered_lists:
+        filtered_list = [line for line in unfiltered_lists[lines_list]
+                         if match_string(needle, line, regex, ignore_case, reverse, full_match)]
+        result[lines_list] = filtered_list
     return result
 
 
-def count_lines(lines=dict):
-    result = dict()
+def count_lines(lines: dict) -> dict:
+    result = {}
     for file in lines:
         result[file] = [len(lines[file])]
     return result
 
 
-def print_answer(filtered_lines):
-    for file in filtered_lines:
-        for line in filtered_lines[file]:
-            if len(filtered_lines) == 1:
-                print(line)
-            else:
-                print(f'{file}:{line}')
+def format_answer(filtered_lines: dict, mute_files: bool, reverse_files: bool):
+    selected_files = [file for file in filtered_lines]
+    result = ''
+    for file in selected_files:
+        if mute_files:
+            result += (file + '\n') * ((filtered_lines[file] != []) ^ reverse_files)
+        else:
+            for line in filtered_lines[file]:
+                if len(filtered_lines) == 1:
+                    result += str(line) + '\n'
+                else:
+                    result += f'{file}:{line}\n'
+    return result[:-1]
+
+
+def print_answer(answer: str):
+    print(answer)
 
 
 def main(args_str: List[str]):
@@ -90,15 +95,17 @@ def main(args_str: List[str]):
     parser.add_argument('-l', dest='mute_files', action='store_true')
     parser.add_argument('-L', dest='reverse_files', action='store_true')
     args = parser.parse_args(args_str)
+    if args.reverse_files:
+        args.mute_files = 1
     if args.files:
         lines = read_files(args.files)
     else:
         lines = read_stdin()
     filtered_lines = filter_lines(lines, args.needle, args.regex, args.ignore_case,
-                                  args.reverse, args.full_match)
+                                  args.reverse, args.full_match, args.reverse_files)
     if args.count:
         filtered_lines = count_lines(filtered_lines)
-    print_answer(filtered_lines)
+    print_answer(format_answer(filtered_lines, args.mute_files, args.reverse_files))
 
 
 if __name__ == '__main__':
