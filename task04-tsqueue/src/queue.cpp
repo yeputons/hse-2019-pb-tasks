@@ -10,7 +10,7 @@
 struct QueueNode {
     void *data;
     QueueNode *next;
-};
+}
 
 void queue_init(Queue *q) {
     q->head = nullptr;
