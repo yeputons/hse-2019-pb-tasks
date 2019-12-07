@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 """plug"""
-from typing import Pattern
 import io
 import re
 
@@ -257,15 +256,16 @@ def test_processing_result_lines():
     lines = ['algebra', 'minecraft', 'dota']
     is_match = False
     is_invert = True
-    assert grep.processing_result_lines(lines, pattern, is_invert, is_match) == ['minecraft', 'dota']
+    assert grep.processing_result_lines(lines, pattern, is_invert,
+                                        is_match) == ['minecraft', 'dota']
 
 
 def test_process_result_lines_more_interesting():
     lines = ['kEk', 'sdKEK', 'miu']
     is_invert = True
     is_match = True
-    assert grep.processing_result_lines(lines, re.compile('kek', flags=re.I), is_invert, is_match) == ['sdKEK',
-                                                                                                       'miu']
+    assert grep.processing_result_lines(lines, re.compile('kek', flags=re.I),
+                                        is_invert, is_match) == ['sdKEK', 'miu']
 
 
 def test_process_file_with_str_not_empty_lines():
