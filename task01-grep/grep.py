@@ -57,11 +57,21 @@ def print_ans_count(found: Dict, files: List, answer_format: str) -> None:
         print(answer_format.format(filename, len(found[filename])))
 
 
+def print_ans_file_names(found: Dict, files: List, with_found: bool) -> None:
+    for filename in files:
+        if with_found == len(found[filename]) > 0:
+            print(filename)
+
+
 def main(args_str: List[str]):
     parser = argparse.ArgumentParser()
     parser.add_argument('needle', type=str)
     parser.add_argument('files', nargs='*')
+    # output mode keys
     parser.add_argument('-c', dest='count_task', action='store_true')
+    parser.add_argument('-l', dest='only_file_names_with', action='store_true')
+    parser.add_argument('-L', dest='only_file_names_without', action='store_true')
+    # search mode keys
     parser.add_argument('-i', dest='ignore_case', action='store_true')
     parser.add_argument('-v', dest='invert_ans', action='store_true')
     parser.add_argument('-x', dest='full_match', action='store_true')
@@ -83,6 +93,13 @@ def main(args_str: List[str]):
     ans_format = '{0}:{1}' if len(args.files) > 1 else '{1}'
     if args.count_task:  # flag -c
         print_ans_count(found, args.files if args.files else [''], ans_format)
+
+    elif args.only_file_names_with:  # flag -l
+        print_ans_file_names(found, args.files, True)
+
+    elif args.only_file_names_with:  # flag -l
+        print_ans_file_names(found, args.files, False)
+
     else:  # print lines
         print_ans_lines(found, args.files if args.files else [''], ans_format)
 
