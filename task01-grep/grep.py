@@ -59,7 +59,7 @@ def print_ans_count(found: Dict, files: List, answer_format: str) -> None:
 
 def print_ans_file_names(found: Dict, files: List, with_found: bool) -> None:
     for filename in files:
-        if with_found == len(found[filename]) > 0:
+        if with_found == (len(found[filename]) > 0):
             print(filename)
 
 
@@ -97,7 +97,7 @@ def main(args_str: List[str]):
     elif args.only_file_names_with:  # flag -l
         print_ans_file_names(found, args.files, True)
 
-    elif args.only_file_names_with:  # flag -l
+    elif args.only_file_names_without:  # flag -L
         print_ans_file_names(found, args.files, False)
 
     else:  # print lines
