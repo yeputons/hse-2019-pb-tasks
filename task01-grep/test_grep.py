@@ -69,21 +69,22 @@ def test_integrate_files_regex_grep_count(tmp_path, monkeypatch, capsys):
     assert out == 'b.txt:1\na.txt:0\n'
 
 
-def test_unit_filter_strings_by_pattern_first():
+def test_unit_filter_strings_by_pattern_with_cond_first():
     pattern = 'a?lex?'
     pattern = re.compile(pattern)
     data = [['alex', '?', 'alex?', '????alex', 'ale', 'le'],
             ['alex?', 'ale', 'alex', 'ale'],
             ['hello'],
             ['alx?', '?alex?', '?ale', 'lex']]
-    ans = grep.filter_strings_by_pattern(pattern, data)
+    cond = False
+    ans = grep.filter_strings_by_pattern_with_cond(pattern, data, cond)
     assert ans == [['alex', 'alex?', '????alex', 'ale', 'le'],
                    ['alex?', 'ale', 'alex', 'ale'],
                    [],
                    ['?alex?', '?ale', 'lex']]
 
 
-def test_unit_filter_strings_by_pattern_second():
+def test_unit_filter_strings_by_pattern_with_cond_second():
     pattern = 'a+b*a?'
     pattern = re.compile(pattern)
     data = [['a', '', 'aa'],
@@ -91,7 +92,8 @@ def test_unit_filter_strings_by_pattern_second():
             [],
             ['abba', 'aba'],
             ['aaaaaa', 'baa']]
-    ans = grep.filter_strings_by_pattern(pattern, data)
+    cond = False
+    ans = grep.filter_strings_by_pattern_with_cond(pattern, data, cond)
     assert ans == [['a', 'aa'],
                    ['aaaaba'],
                    [],
@@ -99,14 +101,15 @@ def test_unit_filter_strings_by_pattern_second():
                    ['aaaaaa', 'baa']]
 
 
-def test_unit_filter_strings_by_pattern_third():
+def test_unit_filter_strings_by_pattern_with_cond_third():
     pattern = 'a?'
     pattern = re.compile(re.escape(pattern))
     data = [['a', 'aa'],
             ['a?', '?aa'],
             ['a?', 'a?', 'a?'],
             ['aaaaaaa']]
-    ans = grep.filter_strings_by_pattern(pattern, data)
+    cond = False
+    ans = grep.filter_strings_by_pattern_with_cond(pattern, data, cond)
     assert ans == [[],
                    ['a?'],
                    ['a?', 'a?', 'a?'],
