@@ -58,11 +58,11 @@ def processing_result_lines(lines: List[str], pattern: Pattern[str], is_invert: 
 
 
 def process_file_with_str(lines: List[str], file_name: str) -> List[str]:
-    return [file_name] if len(lines) else []
+    return [file_name] if bool(len(lines)) else []
 
 
 def process_file_without_str(lines: List[str], file_name: str) -> List[str]:
-    return [file_name] if not len(lines) else []
+    return [file_name] if not bool(len(lines)) else []
 
 
 def process_count(lines: List[str], stream_name: str) -> List[str]:
@@ -83,7 +83,7 @@ def processing_underprint_results(lines: List[str], stream_name: str, is_count: 
         lines = process_file_without_str(lines, stream_name)
     if is_count:
         lines = process_count(lines, stream_name)
-    if not (is_count | is_file_without_str | is_file_with_str):
+    if not is_count | is_file_without_str | is_file_with_str:
         lines = process_no_flags(lines, stream_name)
     return lines
 
