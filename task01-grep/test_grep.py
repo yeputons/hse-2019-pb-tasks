@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from typing import List, Dict
+from typing import Dict
 import io
 import grep
 
