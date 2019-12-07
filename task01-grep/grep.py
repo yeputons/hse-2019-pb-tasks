@@ -101,12 +101,11 @@ def main(args_str: List[str]):
     if args.files:
         stream_names = create_list_stream_names(args.files)
         lines_of_lines = create_lines_of_lines(stream_names)
+        if len(args.files) <= 1:
+            stream_names = ['None']
     else:
         lines_of_lines = [sys.stdin.readlines()]
-        stream_names = [None]
-
-    if len(args.files) <= 1:
-        stream_names = [None]
+        stream_names = ['None']
 
     for stream_name, lines in zip(stream_names, lines_of_lines):
         lines = strip_lines(lines)
