@@ -13,6 +13,10 @@ def test_tictactoe_user_handler_1(mocker: pytest_mock.MockFixture) -> None:
     user_handler.handle_message('O 0 1')
     user_handler.handle_message('O 0 0')
     user_handler.handle_message('start')
+    user_handler.handle_message('X 3 1')
+    user_handler.handle_message('X 1 1')
+    user_handler.handle_message('O 1 1')
+    user_handler.handle_message('O 0 1')
 
     assert send_message.call_args_list == [
         mocker.call('Game is not started'),
@@ -21,7 +25,11 @@ def test_tictactoe_user_handler_1(mocker: pytest_mock.MockFixture) -> None:
         mocker.call('...\n.X.\n...'),
         mocker.call('...\nOX.\n...'),
         mocker.call('Invalid turn'),
-        mocker.call('...\n...\n...')
+        mocker.call('...\n...\n...'),
+        mocker.call('Invalid turn'),
+        mocker.call('...\n.X.\n...'),
+        mocker.call('Invalid turn'),
+        mocker.call('...\nOX.\n...')
     ]
 
 
@@ -35,12 +43,14 @@ def test_tictactoe_user_handler_2(mocker: pytest_mock.MockFixture) -> None:
     user_handler.handle_message('X 0 2')
     user_handler.handle_message('O 1 0')
     user_handler.handle_message('X 0 0')
+    user_handler.handle_message('X 0 0')
     user_handler.handle_message('start')
     user_handler.handle_message('X 0 0')
     user_handler.handle_message('O 0 1')
     user_handler.handle_message('X 1 0')
     user_handler.handle_message('O 1 1')
     user_handler.handle_message('X 2 2')
+    user_handler.handle_message('O 2 1')
     user_handler.handle_message('O 2 1')
 
     assert send_message.call_args_list == [
@@ -51,6 +61,7 @@ def test_tictactoe_user_handler_2(mocker: pytest_mock.MockFixture) -> None:
         mocker.call('.O.\nXO.\nX..'),
         mocker.call('XO.\nXO.\nX..'),
         mocker.call('Game is finished, X wins'),
+        mocker.call('Game is not started'),
         mocker.call('...\n...\n...'),
         mocker.call('X..\n...\n...'),
         mocker.call('X..\nO..\n...'),
@@ -58,7 +69,8 @@ def test_tictactoe_user_handler_2(mocker: pytest_mock.MockFixture) -> None:
         mocker.call('XX.\nOO.\n...'),
         mocker.call('XX.\nOO.\n..X'),
         mocker.call('XX.\nOOO\n..X'),
-        mocker.call('Game is finished, O wins')
+        mocker.call('Game is finished, O wins'),
+        mocker.call('Game is not started')
     ]
 
 
@@ -76,6 +88,7 @@ def test_test_tictactoe_user_handler_3(mocker: pytest_mock.MockFixture) -> None:
     user_handler.handle_message('X 1 0')
     user_handler.handle_message('O 1 2')
     user_handler.handle_message('X 2 0')
+    user_handler.handle_message('X 2 0')
 
     assert send_message.call_args_list == [
         mocker.call('...\n...\n...'),
@@ -88,5 +101,6 @@ def test_test_tictactoe_user_handler_3(mocker: pytest_mock.MockFixture) -> None:
         mocker.call('OX.\nXXO\nO.X'),
         mocker.call('OX.\nXXO\nOOX'),
         mocker.call('OXX\nXXO\nOOX'),
-        mocker.call('Game is finished, draw')
+        mocker.call('Game is finished, draw'),
+        mocker.call('Game is not started')
     ]
