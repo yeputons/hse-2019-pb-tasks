@@ -1,13 +1,11 @@
 #!/usr/bin/env python3
-""" analog GREP to work with some flags """
-from typing import List
+from typing import List, Pattern
 import sys
 import re
 import argparse
 
 
 def init_arguments(args_str: List[str]) -> argparse.Namespace:
-    """initializaton of input arguments"""
     parser = argparse.ArgumentParser()
     parser.add_argument('pattern', type=str)
     parser.add_argument('files', nargs='*')
@@ -23,72 +21,99 @@ def init_arguments(args_str: List[str]) -> argparse.Namespace:
     return args
 
 
-def translate_str_to_re(pattern: str, is_regular: bool) -> str:
-    """translate str to regular expression and return it"""
-    return re.escape(pattern) if not is_regular else pattern
+def create_regex(pattern: str, is_regular: bool, is_ignore: bool) -> Pattern[str]:
+    if not is_regular:
+        pattern = re.escape(pattern)
+    return re.compile(pattern, flags=re.I) if is_ignore else re.compile(pattern)
 
 
-def filter_list(pattern: str, list_: List[str]) -> List[str]:
-    """find pattern in words of list and return list comprehension of them"""
-    return [word for word in list_ if re.search(pattern, word)]
-
-
-def strip(lines: List[str]) -> List[str]:
-    """delete '\n' in list and return it"""
+def strip_lines(lines: List[str]) -> List[str]:
     return [line.rstrip('\n') for line in lines]
 
 
-def process_flag_c(result: List[str]) -> List[str]:
-    """process flag '-c' and return changed list"""
-    return [str(len(result))]
+def create_list_stream_names(filenames: List[str]) -> List[str]:
+    stream_names = []
+    for file in filenames:
+        stream_names.append(file)
+    return stream_names
 
 
-def work_with_files(files: List[str], pattern: str, flags: dict) -> None:
-    """branch to work with files"""
+def create_lines_of_lines(files: List[str]) -> List[List[str]]:
+    lines_of_lines = []
     for file in files:
         with open(file, 'r') as input_file:
-            word_list = input_file.readlines()
-            result = full_processing_result(word_list, pattern, flags)
-            print_grep_results(result, file + ':' if len(files) > 1 else '')
+            lines_of_lines.append(input_file.readlines())
+    return lines_of_lines
 
 
-def work_with_stdin(pattern: str, flags: dict) -> None:
-    """branch to work with stdin"""
-    word_list = sys.stdin.readlines()
-    result = full_processing_result(word_list, pattern, flags)
-    # это не дублирование,а вызов основной функции
-    print_grep_results(result, '')
-    # так проще для 2 итерации
+def bool_match(line: str, pattern: Pattern[str], is_invert: bool,
+               is_match: bool) -> bool:
+    match_line = pattern.fullmatch(line) if is_match else pattern.search(line)
+    return is_invert if not bool(match_line) else not is_invert
 
 
-def full_processing_result(word_list: List[str], pattern: str, flags: dict) -> List[str]:
-    """full processing one file or stdin with returned result"""
-    result = strip(word_list)
-    result = filter_list(pattern, result)
-    if flags['c']:
-        result = process_flag_c(result)
-    return result
+def processing_result_lines(lines: List[str], pattern: Pattern[str], is_invert: bool,
+                            is_match: bool) -> List[str]:
+    return [line for line in lines if bool_match(line, pattern, is_invert, is_match)]
 
 
-def print_grep_results(result: List[str], output_format: str) -> None:
-    """print results in necessary format"""
+def process_file_with_str(lines: List[str], file_name: str) -> List[str]:
+    return [file_name] if len(lines) else []
+
+
+def process_file_without_str(lines: List[str], file_name: str) -> List[str]:
+    return [file_name] if not len(lines) else []
+
+
+def process_count(lines: List[str], stream_name: str) -> List[str]:
+    stream_name = '' if stream_name == 'None' else f'{stream_name}:'
+    lines = [str(len(lines))]
+    return [f'{stream_name}{line}' for line in lines]
+
+
+def process_no_flags(lines: List[str], stream_name: str) -> List[str]:
+    return [f'{stream_name}:{line}' if stream_name != 'None' else line for line in lines]
+
+
+def processing_underprint_results(lines: List[str], stream_name: str, is_count: bool,
+                                  is_file_with_str: bool, is_file_without_str: bool) -> List[str]:
+    if is_file_with_str:
+        lines = process_file_with_str(lines, stream_name)
+    if is_file_without_str:
+        lines = process_file_without_str(lines, stream_name)
+    if is_count:
+        lines = process_count(lines, stream_name)
+    if not (is_count | is_file_without_str | is_file_with_str):
+        lines = process_no_flags(lines, stream_name)
+    return lines
+
+
+def print_grep_results(result: List[str]) -> None:
     for word in result:
-        print(f'{output_format}{word}')
+        print(word)
 
 
 def main(args_str: List[str]):
-    """main function"""
     args = init_arguments(args_str)
 
-    pattern = translate_str_to_re(args.pattern, args.regex)
-
-    flags = {'c': args.count, 'i': args.ignore, 'v': args.invert,
-             'x': args.match, 'l': args.file_with_str, 'L': args.file_without_str}
+    pattern = create_regex(args.pattern, args.regex, args.ignore)
 
     if args.files:
-        work_with_files(args.files, pattern, flags)
+        stream_names = create_list_stream_names(args.files)
+        lines_of_lines = create_lines_of_lines(stream_names)
     else:
-        work_with_stdin(pattern, flags)
+        lines_of_lines = [sys.stdin.readlines()]
+        stream_names = [None]
+
+    if len(args.files) <= 1:
+        stream_names = [None]
+
+    for stream_name, lines in zip(stream_names, lines_of_lines):
+        lines = strip_lines(lines)
+        lines = processing_result_lines(lines, pattern, args.invert, args.match)
+        lines = processing_underprint_results(lines, str(stream_name), args.count,
+                                              args.file_with_str, args.file_without_str)
+        print_grep_results(lines)
 
 
 if __name__ == '__main__':
