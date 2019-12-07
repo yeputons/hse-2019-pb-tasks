@@ -37,12 +37,12 @@ class TicTacToeUserHandler(UserHandler):
             self.game.make_turn(player, row=row, col=col)
             self.send_field()
             if self.game.is_finished():
-                player = self.game.winner()
-                if player is None:
+                player_win: Optional[Player] = self.game.winner()
+                if player_win is None:
                     self.send_message('Game is finished, draw')
-                elif player == Player.X:
+                elif player_win == Player.X:
                     self.send_message('Game is finished, X wins')
-                elif player == Player.O:
+                elif player_win == Player.O:
                     self.send_message('Game is finished, O wins')
                 self.game = None
         else:
