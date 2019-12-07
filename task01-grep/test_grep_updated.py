@@ -119,3 +119,19 @@ def test_unit_search_in_lines_regex():
                    ['d', 'ayT']]
     answer = {'a': ['ptpypptyp'], '': ['pt`dsv>04pyt/-f'], 'd': []}
     assert grep.search_in_lines('[P,a]yT+', input_lines, search_flags) == answer
+
+
+def print_ans_file_names(capsys):
+    grep.print_ans_lines({'a.txt': ['ptpyppytyp', 'pyt'],
+                          'b.txt': ['pt`dsv>04pyt/-f'], 'c.txt': []},
+                         ['a.txt', 'b.txt', 'c.txt'], True)
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'a.txt\nb.txt\n'
+
+    grep.print_ans_lines({'a.txt': ['ptpyppytyp', 'pyt'],
+                          'b.txt': ['pt`dsv>04pyt/-f'], 'c.txt': []},
+                         ['a.txt', 'b.txt', 'c.txt'], False)
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'c.txt\n'
