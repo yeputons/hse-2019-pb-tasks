@@ -19,15 +19,12 @@ class TicTacToeUserHandler(UserHandler):
         if message == 'start':
             self.start_game()
             return
-        try:
-            marker, col, row = message.split()
-            if marker == 'X':
-                player = Player.X
-            else:
-                player = Player.O
-            self.make_turn(player, row=int(row), col=int(col))
-        except Exception:
-            print('Invalid turn')
+        marker, col, row = message.split()
+        if marker == 'X':
+            player = Player.X
+        else:
+            player = Player.O
+        self.make_turn(player, row=int(row), col=int(col))
 
     def start_game(self) -> None:
         """Начинает новую игру в крестики-нолики и сообщает об этом пользователю."""

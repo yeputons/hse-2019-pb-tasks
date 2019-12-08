@@ -1,13 +1,11 @@
 #!/usr/bin/env python3
-from alarm_user_handler import AlarmUserHandler
 import sys
 import traceback
+from alarm_user_handler import AlarmUserHandler
 
 
 def send_message(message: str) -> None:
-    print('==========')
     print(message)
-    print('==========')
 
 
 def main() -> None:
