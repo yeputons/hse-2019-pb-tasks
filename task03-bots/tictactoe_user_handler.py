@@ -26,19 +26,16 @@ class TicTacToeUserHandler(UserHandler):
         self.send_field()
 
     def make_turn(self, player: Player, *, row: int, col: int) -> None:
-        print(self.game.can_make_turn(player=player, row=row, col=col))
         if self.game.can_make_turn(player=player, row=row, col=col):
             self.game.make_turn(player=player, row=row, col=col)
             self.send_field()
             if self.game.is_finished():
                 winner = self.game.winner()
                 message = 'Game is finished, '
-                if winner == Player.X:
-                    message += 'X wins'
-                elif winner == Player.O:
-                    message += 'O wins'
-                else:
+                if winner == None:
                     message += 'draw'
+                else:
+                    message += winner.name + ' wins'
                 self.send_message(message)
                 self.game = None
         else:
@@ -46,14 +43,18 @@ class TicTacToeUserHandler(UserHandler):
 
     def send_field(self) -> None:
         message = ''
+        rows = []
         for row in range(3):
             for col in range(3):
                 if self.game.field[row][col]:
-                    if self.game.field[row][col] == Player.X:
-                        message += 'X'
-                    else:
-                        message += 'O'
+                    # if self.game.field[row][col] == Player.X:
+                    #     message += 'X'
+                    # else:
+                    #     message += 'O'
+                    message += self.game.field[row][col].name
                 else:
                     message += '.'
-            message += '\n'
+            rows.append(message)
+            message = ''
+        message = '\n'.join(rows)
         self.send_message(message)
