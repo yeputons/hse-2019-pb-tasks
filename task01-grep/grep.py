@@ -12,10 +12,10 @@ def re_search_modifier(line: str, needle: str, match: bool,
     if ignore_case:
         flags = re.IGNORECASE
     if match:
-        reg = re.fullmatch
+        find_function = re.fullmatch
     else:
-        reg = re.search
-    search_result = reg(needle, line, flags) is not None
+        find_function = re.search
+    search_result = find_function(needle, line, flags) is not None
     if inverse:
         return not search_result
     return search_result
