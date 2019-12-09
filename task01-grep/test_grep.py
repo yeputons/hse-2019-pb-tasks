@@ -5,7 +5,7 @@ import grep
 
 def test_integrate_stdin_grep(monkeypatch, capsys):
     monkeypatch.setattr('sys.stdin', io.StringIO(
-       'pref needle?\nneedle? suf\nthe needl\npref needle? suf'))
+        'pref needle?\nneedle? suf\nthe needl\npref needle? suf'))
     grep.main(['needle?'])
     out, err = capsys.readouterr()
     assert err == ''
@@ -23,7 +23,7 @@ def test_integrate_stdin_regex_grep(monkeypatch, capsys):
 
 def test_integrate_stdin_grep_count(monkeypatch, capsys):
     monkeypatch.setattr('sys.stdin', io.StringIO(
-         'pref needle\nneedle suf\nthe needl\npref needle suf'))
+        'pref needle\nneedle suf\nthe needl\npref needle suf'))
     grep.main(['-c', 'needle'])
     out, err = capsys.readouterr()
     assert err == ''
