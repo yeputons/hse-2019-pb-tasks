@@ -17,7 +17,7 @@ def main() -> None:
             message = line.rstrip('\n')
             bot.handle_message(message)
         except Exception:
-        traceback.print_exc()
+            traceback.print_exc()
 
 
 if __name__ == '__main__':
