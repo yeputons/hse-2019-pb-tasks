@@ -16,7 +16,7 @@ def main() -> None:
         try:
             message = line.rstrip('\n')
             bot.handle_message(message)
-        except Exception:
+        except Exception:  # pylint: disable=W0703
             traceback.print_exc()
 
 
