@@ -20,9 +20,9 @@ class TicTacToeUserHandler(UserHandler):
                     player = Player.O
                 self.make_turn(player, row=int(row), col=int(col))
             except ValueError:
-                self.send_message('Invalid turn\n')
+                self.send_message('Invalid turn')
         else:
-            self.send_message('Game is not started\n')
+            self.send_message('Game is not started')
 
     def start_game(self) -> None:
         self.game = TicTacToe()
@@ -36,12 +36,12 @@ class TicTacToeUserHandler(UserHandler):
             if self.game.is_finished():
                 winner = self.game.winner()
                 if winner is None:
-                    self.send_message('Game is finished, draw\n')
+                    self.send_message('Game is finished, draw')
                 else:
-                    self.send_message(f'Game is finished, {winner.name} wins\n')
+                    self.send_message(f'Game is finished, {winner.name} wins')
                 self.game = None
         else:
-            self.send_message('Invalid turn\n')
+            self.send_message('Invalid turn')
 
     def send_field(self) -> None:
         field = ''
@@ -55,4 +55,4 @@ class TicTacToeUserHandler(UserHandler):
                 elif dot == Player.O:
                     field += 'O'
             field += '\n'
-        self.send_message(field)
+        self.send_message(field[:11])
