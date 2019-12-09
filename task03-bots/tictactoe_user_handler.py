@@ -9,17 +9,17 @@ class TicTacToeUserHandler(UserHandler):
         self.game: Optional[TicTacToe] = None
 
     def handle_message(self, message: str) -> None:
-        message = message.rstrip('\n').split()
-        if message[0] == 'start':
+        message_bot = message.rstrip('\n').split()
+        if message_bot[0] == 'start':
             self.start_game()
         if not self.game:
             self.send_message('Game is not started')
         else:
             players = {'X': Player.X, 'O': Player.O}
             self.make_turn(
-                player=players[message[0]],
-                row=int(message[1]),
-                col=int(message[2]))
+                player=players[message_bot[0]],
+                row=int(message_bot[1]),
+                col=int(message_bot[2]))
 
     def start_game(self) -> None:
         self.game = TicTacToe()
@@ -50,6 +50,6 @@ class TicTacToeUserHandler(UserHandler):
                 if col:
                     field += col.name
                 else:
-                    self += '.'
+                    field += '.'
             field += '\n'
         self.send_message(field.rstrip('\n'))
