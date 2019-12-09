@@ -12,6 +12,8 @@ class TicTacToeUserHandler(UserHandler):
         message = message.rstrip('\n').split()
         if message[0] == 'start':
             self.start_game()
+        if not self.game:
+            self.send_message('Game is not started')
         else:
             players = {'X': Player.X, 'O': Player.O}
             self.make_turn(
