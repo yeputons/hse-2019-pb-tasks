@@ -192,13 +192,52 @@ def test_format_output():
     assert result == 'aaa:{}'
 
 
-def test_print_result(capsys):
+def test_print_result_1(capsys):
+    grep.print_result('{}', 'a.txt', ['1x\n', '1y\n'], True, False)
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'a.txt\n'
+
+
+def test_print_result_2(capsys):
+    grep.print_result('{}', 'a.txt', ['1x\n', '1y\n'], False, True)
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == ''
+
+
+def test_print_result_3(capsys):
     grep.print_result('{}', 'a.txt', ['1x\n', '1y\n'], False, False)
     out, err = capsys.readouterr()
     assert err == ''
     assert out == '1x\n\n1y\n\n'
 
 
-def test_find_pattern():
+def test_find_pattern_1():
+    result = grep.find_pattern(True, ['a', 'b', 'ac'], re.compile('[a-z]'), False, False)
+    assert result == ['3']
+
+
+def test_find_pattern_2():
+    result = grep.find_pattern(True, ['a', 'b', 'ac'], re.compile('[a-z]'), False, True)
+    assert result == ['0']
+
+
+def test_find_pattern_3():
+    result = grep.find_pattern(True, ['a', 'b', 'ac'], re.compile('[a-z]'), True, True)
+    assert result == ['1']
+
+
+def test_find_pattern_4():
+    result = grep.find_pattern(False, ['a', 'b', 'ac'], re.compile('[a-z]'), True, True)
+    assert result == ['ac']
+
+
+def test_find_pattern_5():
+    result = grep.find_pattern(False, ['a', 'b', 'ac'], re.compile('[a-z]'), True, False)
+    assert result == ['a', 'b']
+
+
+def test_find_pattern_6():
     result = grep.find_pattern(False, ['a', 'b', 'ac'], re.compile('[a-z]'), False, False)
     assert result == ['a', 'b', 'ac']
