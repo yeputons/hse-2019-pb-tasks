@@ -141,10 +141,10 @@ TEST_SUITE("ThreadsafeQueue pops from multiple threads") {
             }
 
             pthread_t t1, t2;
-                REQUIRE(pthread_create(&t1, nullptr, consumer_try, &q) == 0);
-                REQUIRE(pthread_create(&t2, nullptr, consumer_try, &q) == 0);
-                REQUIRE(pthread_join(t2, nullptr) == 0);
-                REQUIRE(pthread_join(t1, nullptr) == 0);
+            REQUIRE(pthread_create(&t1, nullptr, consumer_try, &q) == 0);
+            REQUIRE(pthread_create(&t2, nullptr, consumer_try, &q) == 0);
+            REQUIRE(pthread_join(t2, nullptr) == 0);
+            REQUIRE(pthread_join(t1, nullptr) == 0);
         }
 
         threadsafe_queue_destroy(&q);
