@@ -15,13 +15,13 @@ class TicTacToeUserHandler(UserHandler):
         elif not self.game:
             self.send_message('Game is not started')
         else:
-            p, c, r = message.split()
+            player_raw, col_raw, row_raw = message.split()
 
-            if p == 'X':
+            if player_raw == 'X':
                 player = Player.X
             else:
                 player = Player.O
-            col, row = int(c), int(r)
+            col, row = int(col_raw), int(row_raw)
             self.make_turn(player, col=col, row=row)
 
     def start_game(self) -> None:
