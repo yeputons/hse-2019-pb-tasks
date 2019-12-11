@@ -2,7 +2,7 @@ import pytest_mock
 from tictactoe_user_handler import TicTacToeUserHandler
 
 
-def test_O_wins(mocker: pytest_mock.MockFixture) -> None:
+def test_o_wins(mocker: pytest_mock.MockFixture) -> None:
     send_message = mocker.stub(name='send_message_stub')
     bot = TicTacToeUserHandler(send_message)
     # O wins
@@ -76,7 +76,7 @@ def test_game_start(mocker: pytest_mock.MockFixture) -> None:
     ]
 
 
-def test_X_wins(mocker: pytest_mock.MockFixture) -> None:
+def test_x_wins(mocker: pytest_mock.MockFixture) -> None:
     send_message = mocker.stub(name='send_message_stub')
     bot = TicTacToeUserHandler(send_message)
     # X wins
@@ -104,7 +104,7 @@ def test_X_wins(mocker: pytest_mock.MockFixture) -> None:
     ]
 
 
-def test_imapcient_X(mocker: pytest_mock.MockFixture) -> None:
+def test_imapcient_x(mocker: pytest_mock.MockFixture) -> None:
     send_message = mocker.stub(name='send_message_stub')
     bot = TicTacToeUserHandler(send_message)
     # Impacient X
