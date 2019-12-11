@@ -12,17 +12,19 @@ class TicTacToeUserHandler(UserHandler):
         if message == 'start':
             self.start_game()
             self.send_field()
-        elif not self.game:
+            return
+        if not self.game:
             self.send_message('Game is not started')
-        else:
-            player_raw, col_raw, row_raw = message.split()
+            return
 
-            if player_raw == 'X':
-                player = Player.X
-            else:
-                player = Player.O
-            col, row = int(col_raw), int(row_raw)
-            self.make_turn(player, col=col, row=row)
+        player_raw, col_raw, row_raw = message.split()
+
+        if player_raw == 'X':
+            player = Player.X
+        else:
+            player = Player.O
+        col, row = int(col_raw), int(row_raw)
+        self.make_turn(player, col=col, row=row)
 
     def start_game(self) -> None:
         self.game = TicTacToe()
