@@ -12,47 +12,40 @@ class TicTacToeUserHandler(UserHandler):
     def handle_message(self, message: str) -> None:
         if message == 'start':
             self.start_game()
-        else:
-            try:
-                if self.game is None:
-                    print('Game is not started')
-                else:
-                    player = message[0]
-                    row = int(message[2])
-                    col = int(message[4])
-                    if player == 'X':
-                        player = Player(1)
-                    else:
-                        player = Player(2)
-                    try:
-                        self.make_turn(player, row=int(row), col=int(col))
-                    except Exception:
-                        print('Invalid turn')
-            except Exception:
-                print('Game is not started')
-        if self.game is not None and self.game.winner():
-            print('Game is finished, {} wins'.format(self.game.winner()))
-            self. game = None
-        elif self.game is not None and self.game.is_finished():
-            print('Game is finished, draw')
-            self. game = None
+            return
+        elif self.game is None:
+            self.send_message('Game is not started')
+            return
+        player, col, row = message.split(maxsplit=2)
+        self.make_turn(player=Player[player], row=int(row), col=int(col))
 
     def start_game(self) -> None:
         self.game = TicTacToe()
         self.send_field()
 
     def make_turn(self, player: Player, *, row: int, col: int) -> None:
-        self.game.make_turn(player, row=row, col=col)
+        if not 0 <= row < 3 or not 0 <= col < 3:
+            self.send_message('Invalid turn')
+            return
+        if not self.game.can_make_turn(player=player, row=row, col=col):
+            self.send_message('Invalid turn')
+            return
+        self.game.make_turn(player=player, row=row, col=col)
         self.send_field()
+        if not self.game.is_finished():
+            return
+        winner = self.game.winner()
+        if winner is None:
+            self.send_message('Game is finished, draw')
+        else:
+            self.send_message('Game is finished, {0} wins'.format(winner.name))
+        self.game = None
 
     def send_field(self) -> None:
-        field = self.game.field
-        for col in range(3):
-            for row in range(3):
-                if field[row][col] is None:
-                    print('.', end='')
-                elif field[row][col] == Player(1):
-                    print('X', end='')
-                else:
-                    print('O', end='')
-            print()
+        field = ''
+        for line in self.game.field:
+            for col in line:
+                field += col.name if col else '.'
+            field += '\n'
+        field = field.rstrip('\n')
+        self.send_message(field)
