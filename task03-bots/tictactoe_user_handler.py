@@ -26,22 +26,25 @@ class TicTacToeUserHandler(UserHandler):
         self.send_field()
 
     def make_turn(self, player: Player, *, row: int, col: int) -> None:
-        assert self.game
+        assert self.game is not None
         if self.game.can_make_turn(player, row=row, col=col):
             self.game.make_turn(player, row=row, col=col)
             self.send_field()
         else:
-            self.send_message('Invalid turn')
+            self.send_message('iii')
             return
 
         if self.game.is_finished():
-            winner = self.game.winner()
-            if winner:
-                self.send_message(f'Game is finished, {winner} wins')
-                return
+            if self.game.winner() == Player.X:
+                winner = 'X'
+            elif self.game.winner() == Player.O:
+                winner = 'O'
             else:
                 self.send_message('Game is finished, draw')
                 return
+            self.send_message(f'Game is finished, {winner} wins')
+            self.game = None
+            return
 
     def send_field(self) -> None:
         if self.game is not None:
