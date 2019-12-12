@@ -89,25 +89,29 @@ def test_unit_read_input_stdin(monkeypatch):
 
 def test_unit_detect_lines_substring():
     input_lines = [['cry', "don't cry"], ['crack', 'hehe'], ['', 'rc']]
-    out = grep.detect_requested_lines('cr', input_lines, False)
+    detection_func = grep.get_detection_func('cr', False)
+    out = grep.detect_requested_lines(detection_func, input_lines)
     assert out == [['cry', "don't cry"], ['crack'], []]
 
 
 def test_unit_detect_lines_substring_strange():
     input_lines = [['cry', "don't cry"], ['crack', 'hehe'], ['', 'rc']]
-    out = grep.detect_requested_lines('', input_lines, False)
+    detection_func = grep.get_detection_func('', False)
+    out = grep.detect_requested_lines(detection_func, input_lines)
     assert out == input_lines
 
 
 def test_unit_detect_lines_regex():
     input_lines = [['cry', "don't cry"], ['crack', 'hehe'], ['', 'rc'], ['not here']]
-    out = grep.detect_requested_lines('cr?', input_lines, True)
+    detection_func = grep.get_detection_func('cr?', True)
+    out = grep.detect_requested_lines(detection_func, input_lines)
     assert out == [['cry', "don't cry"], ['crack'], ['rc'], []]
 
 
 def test_unit_detect_lines_regex_strange():
     input_lines = [['cry', "don't cry"], ['crack', 'hehe'], ['', 'rc'], ['not here']]
-    out = grep.detect_requested_lines('', input_lines, True)
+    detection_func = grep.get_detection_func('', True)
+    out = grep.detect_requested_lines(detection_func, input_lines)
     assert out == input_lines
 
 
