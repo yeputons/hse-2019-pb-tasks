@@ -49,7 +49,7 @@ class TicTacToeUserHandler(UserHandler):
                 else:
                     field_str += '.'
             field_str += '\n'
-        field_str = field_str.rstrip()
+        field_str = field_str.rstrip('\n')
         self.send_message(field_str)
 
     def send_winner(self) -> None:
