@@ -15,7 +15,7 @@ def main() -> None:
     bot = UserIndependentBot(send_message=send_message, user_handler=TicTacToeUserHandler)
     for line in sys.stdin:
         try:
-            user_id, message = line.rstrip('\n').split(' ', 1)
+            user_id, message = line.rstrip('\n').split(maxsplit=1)
             bot.handle_message(int(user_id), message)
         except Exception:  # pylint: disable=W0703
             traceback.print_exc()

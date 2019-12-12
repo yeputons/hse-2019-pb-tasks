@@ -31,11 +31,11 @@ def test_win_x(mocker: pytest_mock.MockFixture) -> None:
     bot.handle_message('X 2 2')
     assert send_message.call_args_list == [
         mocker.call('...\n...\n...'),
-        mocker.call('...\n...\nX..'),
-        mocker.call('...\nO..\nX..'),
-        mocker.call('...\nOX.\nX..'),
-        mocker.call('O..\nOX.\nX..'),
-        mocker.call('O.X\nOX.\nX..'),
+        mocker.call('X..\n...\n...'),
+        mocker.call('X..\nO..\n...'),
+        mocker.call('X..\nOX.\n...'),
+        mocker.call('X..\nOX.\nO..'),
+        mocker.call('X..\nOX.\nO.X'),
         mocker.call('Game is finished, X wins')
     ]
 
@@ -55,15 +55,15 @@ def test_draw(mocker: pytest_mock.MockFixture) -> None:
     bot.handle_message('X 1 2')
     assert send_message.call_args_list == [
         mocker.call('...\n...\n...'),
-        mocker.call('...\n...\nX..'),
-        mocker.call('...\n...\nXO.'),
-        mocker.call('...\n...\nXOX'),
-        mocker.call('...\n.O.\nXOX'),
-        mocker.call('...\nXO.\nXOX'),
-        mocker.call('O..\nXO.\nXOX'),
-        mocker.call('O..\nXOX\nXOX'),
-        mocker.call('O.O\nXOX\nXOX'),
-        mocker.call('OXO\nXOX\nXOX'),
+        mocker.call('X..\n...\n...'),
+        mocker.call('XO.\n...\n...'),
+        mocker.call('XOX\n...\n...'),
+        mocker.call('XOX\n.O.\n...'),
+        mocker.call('XOX\nXO.\n...'),
+        mocker.call('XOX\nXO.\nO..'),
+        mocker.call('XOX\nXOX\nO..'),
+        mocker.call('XOX\nXOX\nO.O'),
+        mocker.call('XOX\nXOX\nOXO'),
         mocker.call('Game is finished, draw')
     ]
 
@@ -79,10 +79,10 @@ def test_make_new(mocker: pytest_mock.MockFixture) -> None:
     bot.handle_message('start')
     assert send_message.call_args_list == [
         mocker.call('...\n...\n...'),
-        mocker.call('...\n...\nX..'),
-        mocker.call('...\n...\nXO.'),
-        mocker.call('...\n.X.\nXO.'),
-        mocker.call('...\n.X.\nXOO'),
+        mocker.call('X..\n...\n...'),
+        mocker.call('XO.\n...\n...'),
+        mocker.call('XO.\n.X.\n...'),
+        mocker.call('XOO\n.X.\n...'),
         mocker.call('...\n...\n...')
     ]
 
@@ -95,7 +95,7 @@ def test_invalid_move_in_same_cell(mocker: pytest_mock.MockFixture) -> None:
     bot.handle_message('O 0 0')
     assert send_message.call_args_list == [
         mocker.call('...\n...\n...'),
-        mocker.call('...\n...\nX..'),
+        mocker.call('X..\n...\n...'),
         mocker.call('Invalid turn')
     ]
 
@@ -108,7 +108,7 @@ def test_invalid_move_twice_same_player(mocker: pytest_mock.MockFixture) -> None
     bot.handle_message('X 0 1')
     assert send_message.call_args_list == [
         mocker.call('...\n...\n...'),
-        mocker.call('...\n...\nX..'),
+        mocker.call('X..\n...\n...'),
         mocker.call('Invalid turn')
     ]
 
@@ -125,11 +125,11 @@ def test_message_after_go(mocker: pytest_mock.MockFixture) -> None:
     bot.handle_message('wow')
     assert send_message.call_args_list == [
         mocker.call('...\n...\n...'),
-        mocker.call('...\n...\nX..'),
-        mocker.call('...\nO..\nX..'),
-        mocker.call('...\nOX.\nX..'),
-        mocker.call('O..\nOX.\nX..'),
-        mocker.call('O.X\nOX.\nX..'),
+        mocker.call('X..\n...\n...'),
+        mocker.call('X..\nO..\n...'),
+        mocker.call('X..\nOX.\n...'),
+        mocker.call('X..\nOX.\nO..'),
+        mocker.call('X..\nOX.\nO.X'),
         mocker.call('Game is finished, X wins'),
         mocker.call('Game is not started')
     ]
