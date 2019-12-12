@@ -7,6 +7,15 @@ import argparse
 fl_dict_type = Dict[str, List[str]]
 
 
+def create_output_line(files: bool, only_filenames: bool) -> str:
+    output_line = '{line}'
+    if files:
+        output_line = '{filename}:{line}'
+    if only_filenames:
+        output_line = '{filename}'
+    return output_line
+
+
 def does_line_match(line: str, regex: bool, needle: str,
                     ignore_case: bool = False, full_match: bool = False) -> bool:
     if not regex:
@@ -103,16 +112,10 @@ def main(args_str: List[str]):
     if args.output_count:
         lines_to_numbers(matching_elements)
 
-    output_line = '{line}'
-    if len(args.files) > 1:
-        output_line = '{filename}:{line}'
+    output_line = create_output_line(len(args.files) > 1, args.print_only_filenames)
 
-    by_line = True
-    if args.print_only_filenames:
-        output_line = '{filename}'
-        by_line = False
-
-    print_output_dict(matching_elements, output_line, by_line=by_line)
+    print_output_dict(matching_elements, output_line,
+                      by_line=not args.print_only_filenames)
 
 
 if __name__ == '__main__':

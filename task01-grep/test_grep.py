@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 from typing import List
 import io
+
+from more_itertools import only
+
 import grep
 
 
@@ -205,3 +208,11 @@ def test_unit_read_stdin(monkeypatch):
     assert result == {
         '': ['pref needle suf', 'ohlala', '']
     }
+
+
+def test_create_output_line():
+    func = grep.create_output_line
+    assert(func(files=False, only_filenames=False) == '{line}')
+    assert(func(files=True, only_filenames=False) == '{filename}:{line}')
+    assert(func(files=False, only_filenames=True) == '{filename}')
+    assert(func(files=True, only_filenames=True) == '{filename}')
