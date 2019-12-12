@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import sys
 import traceback
-from chat_bot import ChatBot
 from alarm_user_handler import AlarmUserHandler
 from bot import UserIndependentBot
 
