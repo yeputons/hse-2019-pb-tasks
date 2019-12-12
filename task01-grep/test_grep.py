@@ -3,6 +3,48 @@ import io
 import grep
 
 
+def test_parse_args():
+    args = grep.parse_args(['-E', '-c', 'ne?dle', 'a.txt', 'b.txt'])
+    assert args.regex
+    assert args.count
+    assert args.needle == 'ne?dle'
+    assert args.files == ['a.txt', 'b.txt']
+
+
+def test_get_matching_lines(tmp_path, monkeypatch):
+    needle = 'needle'
+    p = tmp_path / 'a.txt'
+    p.write_text('hello world\npref needle suf')
+    monkeypatch.chdir(tmp_path)
+    with p.open() as f:
+        lines = grep.get_matching_lines(needle, f)
+        assert lines == ['pref needle suf']
+
+
+def test_files_search(tmp_path, monkeypatch, capsys):
+    (tmp_path / 'a.txt').write_text('pref needle\nneedle suf\n')
+    (tmp_path / 'b.txt').write_text('the needl\npref needle suf')
+    monkeypatch.chdir(tmp_path)
+    files = ['b.txt', 'a.txt']
+    needle = 'needle'
+    count = False
+    grep.files_search(files, needle, count)
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'b.txt:pref needle suf\na.txt:pref needle\na.txt:needle suf\n'
+
+
+def test_stdin_search(monkeypatch, capsys):
+    monkeypatch.setattr('sys.stdin', io.StringIO(
+        'pref needle?\nneedle? suf\nthe needl\npref needle? suf'))
+    needle = 'needle'
+    count = False
+    grep.stdin_search(needle, count)
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'pref needle?\nneedle? suf\npref needle? suf\n'
+
+
 def test_integrate_stdin_grep(monkeypatch, capsys):
     monkeypatch.setattr('sys.stdin', io.StringIO(
         'pref needle?\nneedle? suf\nthe needl\npref needle? suf'))
@@ -76,13 +118,13 @@ def test_integrate_file_regex_grep_count(tmp_path, monkeypatch, capsys):
 
 
 def test_integrate_files_grep(tmp_path, monkeypatch, capsys):
-    (tmp_path / 'a.txt').write_text('needle\nneedle suf\n')
+    (tmp_path / 'a.txt').write_text('pref needle\nneedle suf\n')
     (tmp_path / 'b.txt').write_text('the needl\npref needle suf')
     monkeypatch.chdir(tmp_path)
     grep.main(['needle', 'b.txt', 'a.txt'])
     out, err = capsys.readouterr()
     assert err == ''
-    assert out == 'b.txt:pref needle suf\na.txt:needle\na.txt:needle suf\n'
+    assert out == 'b.txt:pref needle suf\na.txt:pref needle\na.txt:needle suf\n'
 
 
 def test_integrate_files_grep_count(tmp_path, monkeypatch, capsys):
@@ -107,7 +149,7 @@ def test_integrate_files_regex_grep(tmp_path, monkeypatch, capsys):
 
 def test_integrate_files_regex_grep_count(tmp_path, monkeypatch, capsys):
     (tmp_path / 'a.txt').write_text('do you need?\nhello\newkdokenned\n')
-    (tmp_path / 'b.txt').write_text('needle\ndo you need?\nhello\nned\n')
+    (tmp_path / 'b.txt').write_text('needle\ndo you need?\nhello\newkdokenned\n')
     monkeypatch.chdir(tmp_path)
     grep.main(['-c', '-E', 'n*ed', 'b.txt', 'a.txt'])
     out, err = capsys.readouterr()
