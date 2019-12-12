@@ -73,11 +73,10 @@ TEST_CASE("ThreadsafeQueue multithreaded ping-pong") {
         ThreadsafeQueue *qs = static_cast<ThreadsafeQueue *>(_qs);
         for (int i = 0; i < PING_PONGS; ++i) {
             int value = i + 123;
-            int old_value = value;
             threadsafe_queue_push(&qs[0], &value);
             int *data = (int *)threadsafe_queue_wait_and_pop(&qs[1]);
             CHECK(&value == data);
-            CHECK(old_value + 1 == value);
+            CHECK(i + 124 == value);
         }
         return nullptr;
     };
@@ -124,6 +123,7 @@ void *consumer_try(void *_q) {
     void *data;
     for (int i = 0; i < ELEMENTS_PER_THREAD; ++i) {
         REQUIRE(threadsafe_queue_try_pop(q, &data));
+        REQUIRE(data == nullptr);
     }
     return nullptr;
 }
