@@ -1,6 +1,6 @@
 #include "queue.h"
-#include <assert.h>
-#include <stdlib.h>
+#include <cassert>
+#include <cstdlib>
 
 /**
  * Очередь реализована как односвязный список.
