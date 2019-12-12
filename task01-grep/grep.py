@@ -5,23 +5,19 @@ import re
 import argparse
 
 
-def search_needle_in_line(line: str, args: argparse.Namespace) -> bool:
-    needle = args.needle
-
-    if not args.regex:
+def search_needle_in_line(line: str, needle='', regex=False, ignore=False, full_match=False,
+                          inverse=False) -> bool:
+    if not regex:
         needle = re.escape(needle)
 
-    ignore = re.IGNORECASE if args.ignore else 0
+    ignore = re.IGNORECASE if ignore else 0
 
-    if args.full_match:
+    if full_match:
         res = re.fullmatch(needle, line, flags=ignore) is not None
     else:
         res = re.search(needle, line, flags=ignore) is not None
 
-    # possibly double inverse
-    if args.no_lines:
-        res = not res
-    if args.inverse:
+    if inverse:
         res = not res
 
     return res
@@ -32,22 +28,34 @@ def find_in_file(file: TextIO, args: argparse.Namespace, filename: str = ''):
 
     for line in file.readlines():
         line = line.rstrip('\n')
-        if search_needle_in_line(line, args):
+        if search_needle_in_line(line, needle=args.needle, regex=args.regex, ignore=args.ignore,
+                                 full_match=args.full_match, inverse=args.inverse):
             line_list.append(line)
 
-    print_asked_string(line_list, args, filename)
+    print_asked_string(line_list, counter=args.counter, no_lines=args.no_lines,
+                       has_lines=args.has_lines, files=args.files, filename=filename)
 
 
-def print_asked_string(line_list: List[str], args: argparse.Namespace, filename: str):
-    if args.counter:
-        filename += ':' if len(args.files) > 0 else ''
-        print(f'{filename}{len(line_list)}')
-    elif line_list:
-        if args.has_lines or args.no_lines:
+def print_asked_string(line_list: List[str], counter=False,
+                       no_lines=False, has_lines=False, files=None, filename=''):
+    if files is None:
+        files = []
+    if counter:
+        if len(files) > 1:
+            print(f'{filename}:{len(line_list)}')
+        else:
+            print(len(line_list))
+        return
+    if no_lines:
+        if not line_list:
+            print(filename)
+        return
+    if line_list:
+        if has_lines:
             print(filename)
         else:
             for line in line_list:
-                print(f'{filename}:{line}' if len(args.files) > 1 else line)
+                print(f'{filename}:{line}' if len(files) > 1 else line)
 
 
 def read(args_str: List[str]) -> argparse.Namespace:
@@ -68,7 +76,7 @@ def read(args_str: List[str]) -> argparse.Namespace:
 def main(args_str: List[str]):
     args = read(args_str)
 
-    if args.files == []:
+    if not args.files:
         find_in_file(sys.stdin, args)
 
     for filename in args.files:
