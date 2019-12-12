@@ -32,7 +32,7 @@ TEST_SUITE("ThreadsafeQueue works like Queue in a single thread") {
         threadsafe_queue_destroy(&q);
     }
 
-    TEST_CASE("with threadsafe_queue_wait_and_pop") {  // TODO(2)
+    TEST_CASE("with threadsafe_queue_wait_and_pop") {
         ThreadsafeQueue q;
         threadsafe_queue_init(&q);
 
@@ -123,6 +123,7 @@ void *consumer_try(void *_q) {
     void *data = nullptr;
     for (int i = 0; i < ELEMENTS_PER_THREAD; i++) {
         REQUIRE(threadsafe_queue_try_pop(q, &data) == true);
+        REQUIRE(data == nullptr);
     }
     return nullptr;
 }
@@ -133,9 +134,8 @@ TEST_SUITE("ThreadsafeQueue pops from multiple threads") {
         threadsafe_queue_init(&q);
 
         for (int repeat = 0; repeat < REPEATS; repeat++) {
-            int x = 5;
             for (int i = 0; i < 2 * ELEMENTS_PER_THREAD; i++) {
-                threadsafe_queue_push(&q, &x);
+                threadsafe_queue_push(&q, nullptr);
             }
 
             pthread_t t1, t2;
