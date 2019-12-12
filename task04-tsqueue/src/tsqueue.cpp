@@ -1,8 +1,8 @@
 #include "tsqueue.h"
 
 void threadsafe_queue_init(ThreadsafeQueue *q) {
-    queue_init(&(q->q));
-    pthread_mutex_init(&(q->mutex), NULL);
+    // TODO
+    static_cast<void>(q);  // Как-нибудь используем переменную.
 }
 
 void threadsafe_queue_destroy(ThreadsafeQueue *q) {
