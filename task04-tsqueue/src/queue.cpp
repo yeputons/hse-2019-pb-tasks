@@ -8,43 +8,43 @@
  * начало, а удаляются из конца.
  */
 struct QueueNode {
-    void *data;
-    QueueNode *next;
+	void *data;
+	QueueNode *next;
 };
 
 void queue_init(Queue *q) {
-    q->head = nullptr;
-    q->last = nullptr;
+	q->head = nullptr;
+	q->last = nullptr;
 }
 
 void queue_destroy(Queue *q) {
-    assert(!q->head);
+	assert(!q->head);
 }
 
 bool queue_empty(Queue *q) {
-    return !q->head;
+	return !q->head;
 }
 
 void queue_push(Queue *q, void *data) {
-    QueueNode *node = static_cast<QueueNode *>(malloc(sizeof(QueueNode)));
-    node->data = data;
-    node->next = nullptr;
-    if (q->last) {
-        q->last->next = node;
-    } else {
-        q->head = node;
-    }
-    q->last = node;
+	QueueNode *node = static_cast<QueueNode *>(malloc(sizeof(QueueNode)));
+	node->data = data;
+	node->next = nullptr;
+	if (q->last) {
+		q->last->next = node;
+	} else {
+		q->head = node;
+	}
+	q->last = node;
 }
 
 void *queue_pop(Queue *q) {
-    QueueNode *node = q->head;
-    assert(node);
-    void *data = node->data;
-    q->head = node->next;
-    if (!q->head) {
-        q->last = nullptr;
-    }
-    free(node);
-    return data;
+	QueueNode *node = q->head;
+	assert(node);
+	void *data = node->data;
+	q->head = node->next;
+	if (!q->head) {
+		q->last = nullptr;
+	}
+	free(node);
+	return data;
 }
