@@ -7,6 +7,10 @@
  * Начало списка соответствует концу очереди, т.е. элементы добавляются в
  * начало, а удаляются из конца.
  */
+struct QueueNode {
+    void *data;
+    QueueNode *next;
+};
 
 void queue_init(Queue *q) {
     q->head = nullptr;

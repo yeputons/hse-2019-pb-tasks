@@ -3,10 +3,7 @@
 
 extern "C" {
 
-struct QueueNode {
-    void *data;
-    QueueNode *next;
-};
+struct QueueNode;
 
 /**
  * Opaque-структура, описывающая очередь: внутренности нельзя
