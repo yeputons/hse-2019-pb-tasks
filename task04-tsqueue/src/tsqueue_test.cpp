@@ -51,7 +51,7 @@ TEST_SUITE("ThreadsafeQueue works like Queue in a single thread") {
         threadsafe_queue_destroy(&q);
     }
 }
-
+const int PING_PONGS = 100;
 TEST_CASE("ThreadsafeQueue multithreaded ping-pong" *
           doctest::skip()) {  // TODO(2)
     ThreadsafeQueue qs[2];
@@ -67,7 +67,6 @@ TEST_CASE("ThreadsafeQueue multithreaded ping-pong" *
     //    единицу и отправляет результат обратно через `qs[1]`.
     // 3. Поток `pinger` проверяет, что пришёл правильный адрес
     //    и что локальная переменная была увеличена.
-    const int PING_PONGS = 100;
 
     // Специальный синтаксис для объявления функции внутри функции.
     // (в общем случае это лямбда-функции/замыкания, но нам это неважно).
@@ -109,8 +108,10 @@ void *consumer(void *_q) {
 
 void *consumer_try(void *_q) {
     ThreadsafeQueue *q = static_cast<ThreadsafeQueue *>(_q);
-    // TODO используется в тесте ниже.
-    static_cast<void>(q);
+    for (int i = 0; i < ELEMENTS_PER_THREAD; i++) {
+        void *data = nullptr;
+        REQUIRE(threadsafe_queue_try_pop(q, &data));
+    }
     return nullptr;
 }
 
@@ -118,10 +119,18 @@ TEST_SUITE("ThreadsafeQueue pops from multiple threads") {
     TEST_CASE("with threadsafe_queue_try_pop") {
         ThreadsafeQueue q;
         threadsafe_queue_init(&q);
-
-        // TODO: аналогично тесту ниже, но с threadsafe_queue_try_pop,
-        //       используемый в consumer_try выше.
-
+        
+        for (int repeat = 0; repeat < REPEATS; repeat++) {
+            for (int i = 0; i < 2 * ELEMENTS_PER_THREAD; i++) {
+                threadsafe_queue_push(&q, nullptr);
+            }
+            
+            pthread_t t1, t2;
+            REQUIRE(pthread_create(&t1, nullptr, consumer_try, &q) == 0);
+            REQUIRE(pthread_create(&t2, nullptr, consumer_try, &q) == 0);
+            REQUIRE(pthread_join(t2, nullptr) == 0);
+            REQUIRE(pthread_join(t1, nullptr) == 0);
+        }
         threadsafe_queue_destroy(&q);
     }
 
