@@ -5,7 +5,7 @@ from alarm_user_handler import AlarmUserHandler
 
 
 def main() -> None:
-    alarm_bot = AlarmUserHandler(print)
+    alarm_bot = AlarmUserHandler(send_message=print)
     for line in sys.stdin:
         try:
             message = line.rstrip('\n')
