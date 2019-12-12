@@ -26,8 +26,7 @@ def search_needle_in_file_line_dict(
         regex: bool = False,
         invert: bool = False,
         ignore_case: bool = False,
-        full_match: bool = False
-) -> fl_dict_type:
+        full_match: bool = False) -> fl_dict_type:
     matching_elements: fl_dict_type = {}
     for file in file_line_dict:
         matching_elements[file] = []
