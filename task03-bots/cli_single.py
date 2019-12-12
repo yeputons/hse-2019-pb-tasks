@@ -2,7 +2,6 @@
 import sys
 import traceback
 from tictactoe_user_handler import TicTacToeUserHandler
-#from alarm_user_handler import AlarmUserHandler
 
 
 def send_message(message: str) -> None:
