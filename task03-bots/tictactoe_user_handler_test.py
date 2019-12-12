@@ -15,14 +15,15 @@ def test_tictactoe_user_handler_part1(mocker: pytest_mock.MockFixture) -> None:
         'O 2 2',
         'X 2 0',
         'O 0 2',
-        'game 1 finish',
+        'X wins',
         'start',
         'X 1 2',
         'O 2 0',
         'O 1 0',
         'start',
         'O 0 0',
-        'X 0 0'
+        'X 0 0',
+        'O 0 0'
     ]
     for msg in message_sequence:
         handler.handle_message(msg)
@@ -45,6 +46,7 @@ def test_tictactoe_user_handler_part1(mocker: pytest_mock.MockFixture) -> None:
         mocker.call('...\n...\n...'),
         mocker.call('Invalid turn'),
         mocker.call('X..\n...\n...'),
+        mocker.call('Invalid turn')
     ]
 
 
