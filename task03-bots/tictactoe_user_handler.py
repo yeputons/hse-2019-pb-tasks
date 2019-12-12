@@ -43,9 +43,9 @@ class TicTacToeUserHandler(UserHandler):
         assert self.game
         field_str = ''
         for row in self.game.field:
-            for elem in row:
-                if elem:
-                    field_str += 'X' if elem == Player.X else 'O'
+            for cell in row:
+                if cell:
+                    field_str += 'X' if cell == Player.X else 'O'
                 else:
                     field_str += '.'
             field_str += '\n'
