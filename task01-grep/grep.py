@@ -9,22 +9,18 @@ fl_dict_type = Dict[str, List[str]]
 
 def does_line_match(line: str, regex: bool, needle: str,
                     ignore_case: bool = False, full_match: bool = False) -> bool:
-    if regex:
-        if ignore_case:
-            if full_match:
-                return bool(re.fullmatch(needle, line, flags=re.IGNORECASE))
-            else:
-                return bool(re.search(needle, line, flags=re.IGNORECASE))
+    if not regex:
+        re.escape(needle)
+    if ignore_case:
+        if full_match:
+            return bool(re.fullmatch(needle, line, flags=re.IGNORECASE))
         else:
-            if full_match:
-                return bool(re.fullmatch(needle, line))
-            else:
-                return bool(re.search(needle, line))
+            return bool(re.search(needle, line, flags=re.IGNORECASE))
     else:
-        if ignore_case:
-            return needle.lower() == line.lower() if full_match else needle.lower() in line.lower()
+        if full_match:
+            return bool(re.fullmatch(needle, line))
         else:
-            return needle == line if full_match else needle in line
+            return bool(re.search(needle, line))
 
 
 def search_needle_in_file_line_dict(
