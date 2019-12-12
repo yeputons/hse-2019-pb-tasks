@@ -70,3 +70,11 @@ def test_integrate_files_grep_full_match(tmp_path, monkeypatch, capsys):
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'b.txt:pref needle suf\n'
+
+
+def test_create_output_line():
+    func = grep.create_output_line
+    assert (func(files=False, only_filenames=False) == '{line}')
+    assert (func(files=True, only_filenames=False) == '{filename}:{line}')
+    assert (func(files=False, only_filenames=True) == '{filename}')
+    assert (func(files=True, only_filenames=True) == '{filename}')
