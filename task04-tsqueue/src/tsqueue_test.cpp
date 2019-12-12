@@ -132,8 +132,6 @@ TEST_SUITE("ThreadsafeQueue pops from multiple threads") {
             REQUIRE(pthread_join(t2, nullptr) == 0);
             REQUIRE(pthread_join(t1, nullptr) == 0);
         }
-
-        threadsafe_queue_destroy(&q);
         threadsafe_queue_destroy(&q);
     }
 
