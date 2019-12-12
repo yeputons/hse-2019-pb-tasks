@@ -6,14 +6,14 @@ void threadsafe_queue_init(ThreadsafeQueue *q) {
 }
 
 void threadsafe_queue_destroy(ThreadsafeQueue *q) {
-    pthread_mutex_destroy(&(q->mutex));
-    threadsafe_queue_destroy(&(q->q));
+    // TODO
+    static_cast<void>(q);  // Как-нибудь используем переменную.
 }
 
 void threadsafe_queue_push(ThreadsafeQueue *q, void *data) {
-    pthread_mutex_lock(&(q->mutex));
-    threadsafe_queue_push(&(q->q), data);
-    pthread_mutex_unlock(&(q->mutex));
+    // TODO
+    static_cast<void>(q);  // Как-нибудь используем переменную.
+    static_cast<void>(data);  // Как-нибудь используем переменную.
 }
 
 bool threadsafe_queue_try_pop(ThreadsafeQueue *q, void **data) {
