@@ -1,53 +1,42 @@
 #!/usr/bin/env python3
 import io
+import re
 import grep
 
 
 def test_find_in_string_first():
     needle = 'kud'
     check_list = 'kudkuda'
-    register = False
     full = False
     invert = False
-    miss = False
-    regex = False
-    ans_value = grep.find_in_string(register, full, invert, miss, regex, needle, check_list)
+    ans_value = grep.find_in_string(full, invert, needle, check_list)
     assert ans_value
 
 
 def test_find_in_string_second():
     needle = '[0-9]'
     check_list = 'ku12dkuda'
-    register = False
     full = False
     invert = False
-    miss = False
-    regex = True
-    ans_value = grep.find_in_string(register, full, invert, miss, regex, needle, check_list)
+    ans_value = grep.find_in_string(full, invert, needle, check_list)
     assert ans_value is not None
 
 
 def test_find_in_string_first_false():
     needle = 'kud'
     check_list = 'kuergkrgfuda'
-    register = False
     full = False
     invert = False
-    miss = False
-    regex = False
-    ans_value = grep.find_in_string(register, full, invert, miss, regex, needle, check_list)
+    ans_value = grep.find_in_string(full, invert, needle, check_list)
     assert not ans_value
 
 
 def test_find_in_string_second_false():
     needle = '[0-9]'
     check_list = 'kudkuda'
-    register = False
     full = False
     invert = False
-    miss = False
-    regex = True
-    ans_value = grep.find_in_string(register, full, invert, miss, regex, needle, check_list)
+    ans_value = grep.find_in_string(full, invert, needle, check_list)
     assert not ans_value
 
 
@@ -90,29 +79,23 @@ def test_action_count_second(capsys):
 
 
 def test_create_right_list_true():
-    register = False
     full = False
     invert = False
     miss = False
-    regex = True
     input_list = ['rbrb', '1', 'ejhbv43njev43bfr', 'rrrjnb789', '245', '342645654', 'rebrhrh']
-    right_list = []
     needle = '[0-9]'
-    grep.create_right_list(register, full, invert, miss, regex, input_list, needle, right_list)
+    right_list = grep.create_right_list(full, invert, miss, input_list, needle)
     assert right_list == ['1', 'ejhbv43njev43bfr', 'rrrjnb789', '245', '342645654']
 
 
 def test_create_right_list_false():
-    register = False
     full = False
     invert = False
     miss = False
-    regex = False
     input_list = ['rbrb', 'b1rb', 'ejhbv4brb3njev43bfr',
                   'rrrjnb789', '245', '34264brb5654', 'rebrhrbrbrbrbrbrbrrbrbh']
-    right_list = []
     needle = 'brb'
-    grep.create_right_list(register, full, invert, miss, regex, input_list, needle, right_list)
+    right_list = grep.create_right_list(full, invert, miss, input_list, needle)
     assert right_list == ['rbrb', 'ejhbv4brb3njev43bfr', '34264brb5654', 'rebrhrbrbrbrbrbrbrrbrbh']
 
 
@@ -279,3 +262,36 @@ def test_integrate_all_keys_count_files_grep(tmp_path, monkeypatch, capsys):
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'b.txt:3\na.txt:0\n'
+
+
+def test_create_needle_regex():
+    assert grep.create_needle('^a.*$', True, False) == re.compile('^a.*$')
+
+
+def test_create_needle_false():
+    assert grep.create_needle('^a.*$', False, False) == re.compile('\\^a\\.\\*\\$')
+
+
+def test_create_needle_register():
+    assert grep.create_needle('^a.*$', False, True) == re.compile('\\^a\\.\\*\\$', re.IGNORECASE)
+
+
+def test_format_print_length(capsys):
+    grep.format_print(1, False, True, ['er', 'erfye', 'erfieri'], 'taatt.txt')
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == '3\n'
+
+
+def test_format_print_is_one(capsys):
+    grep.format_print(2, True, False, ['er', 'erfye', 'erfieri'], 'taatt.txt')
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'taatt.txt\n'
+
+
+def test_format_print_false(capsys):
+    grep.format_print(2, False, False, ['er', 'erfye', 'erfieri'], 'taatt.txt')
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'taatt.txt:er\ntaatt.txt:erfye\ntaatt.txt:erfieri\n'
