@@ -29,7 +29,7 @@ class TicTacToeUserHandler(UserHandler):
     def make_turn(self, player: Player, *, row: int, col: int) -> None:
         """Обрабатывает ход игрока player в клетку (row, col)."""
         assert self.game
-        if player != self.game.current_player():
+        if not self.game.can_make_turn(player=player, row=row, col=col):
             self.send_message('Invalid turn')
         else:
             self.game.make_turn(player=player, row=row, col=col)
