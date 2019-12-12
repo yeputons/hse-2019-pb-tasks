@@ -14,7 +14,8 @@ class TicTacToeUserHandler(UserHandler):
         """Обрабатывает очередное сообщение от пользователя."""
         if message == 'start':
             self.start_game()
-        elif self.game is None or self.game.is_finished():
+            return
+        if self.game is None or self.game.is_finished():
             self.send_message('Game is not started')
         else:
             player, move_col, move_row = message.split(maxsplit=2)
@@ -35,6 +36,7 @@ class TicTacToeUserHandler(UserHandler):
             self.send_field()
             if self.game.is_finished():
                 self.send_winner()
+                self.game = None
 
     def send_field(self) -> None:
         """Отправляет пользователю сообщение с текущим состоянием игры."""
