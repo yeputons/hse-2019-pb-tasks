@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 from typing import List
 import io
-
-from more_itertools import only
-
 import grep
 
 
