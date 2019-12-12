@@ -49,18 +49,13 @@ def print_format(output_line: str, filename: str = '', line: str = '') -> None:
 
 
 def print_output_dict(output: fl_dict_type, output_format: str, by_line: bool) -> None:
-    is_any_output = False
     for file in output:
         if by_line:
             for line in output[file]:
                 print_format(output_line=output_format, filename=file, line=line)
-                is_any_output = True
         else:
             if output[file]:
                 print_format(output_line=output_format, filename=file)
-                is_any_output = True
-    if not is_any_output:
-        print()
 
 
 def read_files(files: List['str']) -> fl_dict_type:

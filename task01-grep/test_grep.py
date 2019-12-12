@@ -24,8 +24,8 @@ def test_integrate_stdin_grep_basic(monkeypatch, capsys):
     tests = [
         MyStdinTest('simple test\nabac cabac cabaca\nnext line is empty\n\nend',
                     ['e'], 'simple test\nnext line is empty\nend\n'),
-        MyStdinTest('no output\nexpected\n\n\nthis time\n', ['no such line'], '\n'),
-        MyStdinTest('', ['empty input'], '\n'),
+        MyStdinTest('no output\nexpected\n\n\nthis time\n', ['no such line'], ''),
+        MyStdinTest('', ['empty input'], ''),
         MyStdinTest('same\nsame\nsame\nsame\nline', ['am'], 'same\nsame\nsame\nsame\n')
     ]
     for test in tests:
@@ -37,8 +37,8 @@ def test_integrate_stdin_grep_regex(monkeypatch, capsys):
     tests = [
         MyStdinTest('simple test\ntabac cabac cabaca\nnext line is empty\n\nend',
                     ['-E', '\\b\\w{4}\\b'], 'simple test\nnext line is empty\n'),
-        MyStdinTest('no output\nexpected\n\n\nthis time\n', ['-E', '[A-Z]+'], '\n'),
-        MyStdinTest('', ['-E', '[empty input]+'], '\n'),
+        MyStdinTest('no output\nexpected\n\n\nthis time\n', ['-E', '[A-Z]+'], ''),
+        MyStdinTest('', ['-E', '[empty input]+'], ''),
         MyStdinTest('sAme\nsAme\nsAme\nsAme\nline', ['-E', '[A-Z]'], 'sAme\nsAme\nsAme\nsAme\n')
     ]
     for test in tests:
@@ -164,12 +164,12 @@ def test_unit_print_output_dict(capsys):
 
     func({'file': []}, '{line}', by_line=True)
     out, err = capsys.readouterr()
-    assert out == '\n'
+    assert out == ''
     assert err == ''
 
     func({'file': []}, '{line}', by_line=True)
     out, err = capsys.readouterr()
-    assert out == '\n'
+    assert out == ''
     assert err == ''
 
     func({'file1': ['basic test', 'second line'], 'file2': ['another line']},
