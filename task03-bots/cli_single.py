@@ -5,7 +5,7 @@ from tictactoe_user_handler import TicTacToeUserHandler
 
 
 def main() -> None:
-    bot = TicTacToeUserHandler(print)
+    bot = TicTacToeUserHandler(send_message=print)
 
     for line in sys.stdin:
         try:

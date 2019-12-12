@@ -10,21 +10,21 @@ class TicTacToeUserHandler(UserHandler):
 
     def handle_message(self, message: str) -> None:
         if message == 'start':
-            self._start_game()
+            self.start_game()
             return
         if self.game is None:
             self.send_message('Game is not started')
             return
 
-        player_char, row, col = message.split()
+        player_char, col, row = message.split()
         player = Player.X if player_char == 'X' else Player.O
         self.make_turn(player=player, col=int(col), row=int(row))
 
-    def _start_game(self) -> None:
+    def start_game(self) -> None:
         self.game = TicTacToe()
         self.send_field()
 
-    def finish_game(self) -> None:
+    def __finish_game(self) -> None:
         assert self.game
         winner = self.game.winner()
         self.game = None
@@ -43,7 +43,7 @@ class TicTacToeUserHandler(UserHandler):
         self.game.make_turn(player, row=row, col=col)
         self.send_field()
         if self.game.is_finished():
-            self.finish_game()
+            self.__finish_game()
 
     def send_field(self) -> None:
         assert self.game
