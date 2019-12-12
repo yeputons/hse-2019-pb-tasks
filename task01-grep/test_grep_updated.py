@@ -32,12 +32,12 @@ def test_integrate_files_grep_filenames_only_invert(tmp_path, monkeypatch, capsy
     grep.main(['-L', 'needle', 'b.txt', 'a.txt'])
     out, err = capsys.readouterr()
     assert err == ''
-    assert out == 'b.txt\n'
+    assert out == ''
 
     grep.main(['-Lv', 'needle', 'b.txt', 'a.txt'])
     out, err = capsys.readouterr()
     assert err == ''
-    assert out == 'b.txt\na.txt\n'
+    assert out == 'a.txt\n'
 
 
 def test_integrate_files_grep_ignore_case(tmp_path, monkeypatch, capsys):
@@ -74,7 +74,7 @@ def test_integrate_files_grep_full_match(tmp_path, monkeypatch, capsys):
 
 def test_create_output_line():
     func = grep.create_output_line
-    assert (func(files=False, only_filenames=False) == '{line}')
-    assert (func(files=True, only_filenames=False) == '{filename}:{line}')
-    assert (func(files=False, only_filenames=True) == '{filename}')
-    assert (func(files=True, only_filenames=True) == '{filename}')
+    assert func(files=False, only_filenames=False) == '{line}'
+    assert func(files=True, only_filenames=False) == '{filename}:{line}'
+    assert func(files=False, only_filenames=True) == '{filename}'
+    assert func(files=True, only_filenames=True) == '{filename}'

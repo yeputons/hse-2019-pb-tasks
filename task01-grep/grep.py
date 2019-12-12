@@ -56,13 +56,14 @@ def print_format(output_line: str, filename: str = '', line: str = '') -> None:
     print(output_line.format(line=line, filename=filename))
 
 
-def print_output_dict(output: fl_dict_type, output_format: str, by_line: bool) -> None:
+def print_output_dict(output: fl_dict_type, output_format: str, by_line: bool,
+                      file_invert: bool = False) -> None:
     for file in output:
         if by_line:
             for line in output[file]:
                 print_format(output_line=output_format, filename=file, line=line)
         else:
-            if output[file]:
+            if (len(output[file]) > 0) != file_invert:
                 print_format(output_line=output_format, filename=file)
 
 
@@ -96,18 +97,18 @@ def main(args_str: List[str]):
     parser.add_argument('-x', dest='full_match', action='store_true')
     args = parser.parse_args(args_str)
 
+    file_line_dict = read_files(args.files) if args.files else read_stdin()
+
     if args.print_only_filenames_invert:
         args.print_only_filenames = True
-        args.invert_results = not args.invert_results
-
-    file_line_dict = read_files(args.files) if args.files else read_stdin()
 
     matching_elements = search_needle_in_file_line_dict(
         file_line_dict,
         args.needle,
         args.regex,
         args.invert_results,
-        args.ignore_case, args.full_match
+        args.ignore_case,
+        args.full_match
     )
     if args.output_count:
         lines_to_numbers(matching_elements)
@@ -115,7 +116,7 @@ def main(args_str: List[str]):
     output_line = create_output_line(len(args.files) > 1, args.print_only_filenames)
 
     print_output_dict(matching_elements, output_line,
-                      by_line=not args.print_only_filenames)
+                      not args.print_only_filenames, file_invert=args.print_only_filenames_invert)
 
 
 if __name__ == '__main__':
