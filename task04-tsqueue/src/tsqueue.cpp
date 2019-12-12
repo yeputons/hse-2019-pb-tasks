@@ -4,20 +4,18 @@ void threadsafe_queue_init(ThreadsafeQueue *q) {
     queue_init(&q->q);
     pthread_mutex_init(&q->mutex, nullptr);
     pthread_cond_init(&q->cond, nullptr);
-    static_cast<void>(q);
 }
 
 void threadsafe_queue_destroy(ThreadsafeQueue *q) {
     queue_destroy(&q->q);
-    pthread_mutex_destroy(&q->mutex);
     pthread_cond_destroy(&q->cond);
-    static_cast<void>(q);
+    pthread_mutex_destroy(&q->mutex);
 }
 
 void threadsafe_queue_push(ThreadsafeQueue *q, void *data) {
     pthread_mutex_lock(&q->mutex);
     queue_push(&q->q, data);
-    pthread_cond_broadcast(&q->cond);
+    pthread_cond_signal(&q->cond);
     pthread_mutex_unlock(&q->mutex);
 }
 
