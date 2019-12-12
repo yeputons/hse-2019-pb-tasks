@@ -7,3 +7,5 @@ CMakeCache.txt
 *.exe
 queue_test
 tsqueue_test
+.idea
+cmake-build-debug
