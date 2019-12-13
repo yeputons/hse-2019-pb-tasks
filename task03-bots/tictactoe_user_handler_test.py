@@ -17,9 +17,9 @@ def test_game_not_started(mocker: MockFixture) -> None:
         'X 0 0'
     ])
     assert send_message.call_args_list == [
-        mocker.call('Game not started'),
-        mocker.call('Game not started'),
-        mocker.call('Game not started'),
+        mocker.call('Game is not started'),
+        mocker.call('Game is not started'),
+        mocker.call('Game is not started'),
         mocker.call('...\n...\n...'),
         mocker.call('X..\n...\n...')
     ]
