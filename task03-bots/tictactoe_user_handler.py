@@ -18,7 +18,7 @@ class TicTacToeUserHandler(UserHandler):
             self.start_game()
             return
         assert self.game
-        if not (message == 'start'):
+        if not message == 'start':
             tmpl: List[str] = message.split(' ')
             player: Player = Player[tmpl[0]]
             col = int(tmpl[1])
