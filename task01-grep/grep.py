@@ -71,6 +71,20 @@ def select_matcher(args: argparse.Namespace) -> Callable[[str, str], bool]:
     return match_function
 
 
+def select_printer(args: argparse.Namespace, is_single) -> Callable[[str, str], None]:
+    def print_function(filename: str, match: List[str]) -> None:
+        if args.print_count:
+            print_count(filename, match, is_single)
+        elif args.print_filenames:
+            print_filenames(filename, match, False)
+        elif args.print_filenames_without:
+            print_filenames(filename, match, True)
+        else:
+            print_all(filename, match, is_single)
+
+    return print_function
+
+
 def main(args_str: List[str]):
     parser = argparse.ArgumentParser(description='search for PATTERN in FILES')
     parser.add_argument('pattern', type=str)
@@ -132,19 +146,10 @@ def main(args_str: List[str]):
         for filename, strings in zip(filenames, files)
     ]
 
-    print_result_function = print_all
-    print_flag = len(filenames) == 1
-    if args.print_count:
-        print_result_function = print_count
-    elif args.print_filenames:
-        print_result_function = print_filenames
-        print_flag = False
-    elif args.print_filenames_without:
-        print_result_function = print_filenames
-        print_flag = True
+    print_result_function = select_printer(args, len(filenames) == 1)
 
     for filename, match in zip(filenames, matched_strings):
-        print_result_function(filename, match, print_flag)
+        print_result_function(filename, match)
 
 
 if __name__ == '__main__':
