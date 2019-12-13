@@ -77,8 +77,8 @@ TEST_CASE("ThreadsafeQueue multithreaded ping-pong") {
             (*gift)++;
             threadsafe_queue_push(&qs[1], gift);
         }
-    return nullptr;
-};
+        return nullptr;
+    };
 
     pthread_t t1, t2;
     REQUIRE(pthread_create(&t1, nullptr, pinger, qs) == 0);
@@ -120,16 +120,16 @@ TEST_SUITE("ThreadsafeQueue pops from multiple threads") {
         ThreadsafeQueue q;
         threadsafe_queue_init(&q);
 
-    for (int repeat = 0; repeat < REPEATS; repeat++) {
-        for (int i = 0; i < 2 * ELEMENTS_PER_THREAD; i++) {
-            threadsafe_queue_push(&q, nullptr);
+        for (int repeat = 0; repeat < REPEATS; repeat++) {
+            for (int i = 0; i < 2 * ELEMENTS_PER_THREAD; i++) {
+                threadsafe_queue_push(&q, nullptr);
+            }
+            pthread_t t1, t2;
+            REQUIRE(pthread_create(&t1, nullptr, consumer_try, &q) == 0);
+            REQUIRE(pthread_create(&t2, nullptr, consumer_try, &q) == 0);
+            REQUIRE(pthread_join(t2, nullptr) == 0);
+            REQUIRE(pthread_join(t1, nullptr) == 0);
         }
-        pthread_t t1, t2;
-        REQUIRE(pthread_create(&t1, nullptr, consumer_try, &q) == 0);
-        REQUIRE(pthread_create(&t2, nullptr, consumer_try, &q) == 0);
-        REQUIRE(pthread_join(t2, nullptr) == 0);
-        REQUIRE(pthread_join(t1, nullptr) == 0);
-    }
 
         threadsafe_queue_destroy(&q);
     }
