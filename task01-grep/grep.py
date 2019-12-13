@@ -77,7 +77,7 @@ def select_matcher(pattern_regex: bool,
 def select_printer(arg_print_filenames: bool,
                    arg_print_filenames_without: bool,
                    arg_print_count: bool,
-                   is_single: bool) -> Callable[[str, str], None]:
+                   is_single: bool) -> Callable[[str, List[str]], None]:
     def print_function(filename: str, match: List[str]) -> None:
         if arg_print_filenames:
             print_filenames(filename, match, False)

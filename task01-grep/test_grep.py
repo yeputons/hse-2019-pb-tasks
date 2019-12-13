@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import io
 import grep
-import argparse
 
 
 def test_unit_files_to_strings(tmp_path, monkeypatch, capsys):
