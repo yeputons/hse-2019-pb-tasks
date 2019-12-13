@@ -8,7 +8,7 @@ const int REPEATS = 3;
 
 TEST_SUITE("ThreadsafeQueue works like Queue in a single thread") {
     TEST_CASE("with threadsafe_queue_try_pop") {
-        ThreadsafeQueue q{};
+        ThreadsafeQueue q;
         threadsafe_queue_init(&q);
 
         int a = 0, b = 0, c = 0;
@@ -34,7 +34,7 @@ TEST_SUITE("ThreadsafeQueue works like Queue in a single thread") {
     }
 
     TEST_CASE("with threadsafe_queue_wait_and_pop") {
-        ThreadsafeQueue q{};
+        ThreadsafeQueue q;
         threadsafe_queue_init(&q);
 
         int a = 0, b = 0, c = 0;
@@ -65,7 +65,7 @@ TEST_CASE("ThreadsafeQueue multithreaded ping-pong") {
             int data = k;
             int rem = data;
             threadsafe_queue_push(&qs[0], &data);
-            CHECK(threadsafe_queue_wait_and_pop(&qs[1]) == &data);
+            REQUIRE(threadsafe_queue_wait_and_pop(&qs[1]) == &data);
             CHECK(data == rem + 1);
         }
         return nullptr;
@@ -120,7 +120,7 @@ void *consumer_try(void *_q) {
 
 TEST_SUITE("ThreadsafeQueue pops from multiple threads") {
     TEST_CASE("with threadsafe_queue_try_pop") {
-        ThreadsafeQueue q{};
+        ThreadsafeQueue q;
         threadsafe_queue_init(&q);
         for (int repeat = 0; repeat < REPEATS; repeat++) {
             for (int i = 0; i < 2 * ELEMENTS_PER_THREAD; i++) {
@@ -138,7 +138,7 @@ TEST_SUITE("ThreadsafeQueue pops from multiple threads") {
     }
 
     TEST_CASE("with threadsafe_queue_wait_and_pop") {
-        ThreadsafeQueue q{};
+        ThreadsafeQueue q;
         threadsafe_queue_init(&q);
 
         for (int repeat = 0; repeat < REPEATS; repeat++) {
@@ -158,7 +158,7 @@ TEST_SUITE("ThreadsafeQueue pops from multiple threads") {
 }
 
 TEST_CASE("ThreadsafeQueue pushes from multiple threads") {
-    ThreadsafeQueue q{};
+    ThreadsafeQueue q;
     threadsafe_queue_init(&q);
 
     for (int repeat = 0; repeat < REPEATS; repeat++) {
@@ -177,7 +177,7 @@ TEST_CASE("ThreadsafeQueue pushes from multiple threads") {
 }
 
 TEST_CASE("ThreadsafeQueue pops from multiple threads") {
-    ThreadsafeQueue q{};
+    ThreadsafeQueue q;
     threadsafe_queue_init(&q);
 
     for (int repeat = 0; repeat < REPEATS; repeat++) {
@@ -196,7 +196,7 @@ TEST_CASE("ThreadsafeQueue pops from multiple threads") {
 }
 
 TEST_CASE("ThreadsafeQueue pushes and pops from multiple threads") {
-    ThreadsafeQueue q{};
+    ThreadsafeQueue q;
     threadsafe_queue_init(&q);
 
     const int THREADS = 5;
