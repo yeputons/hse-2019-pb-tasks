@@ -11,8 +11,9 @@ extern "C" {
  * использовать напрямую, только при помощи функцией threadsafe_queue_*().
  */
 struct ThreadsafeQueue {
-    Queue q;
-    // TODO
+	Queue q_;
+	pthread_mutex_t mutex;
+	pthread_cond_t cond;
 };
 
 /**
@@ -55,7 +56,7 @@ bool threadsafe_queue_try_pop(ThreadsafeQueue *q, void **data);
  * пока элемент не будет добавлен при помощи `threadsafe_queue_push()`.
  * Эта операция может безопасно вызываться из нескольких потоков одновременно.
  */
-void *threadsafe_queue_wait_and_pop(ThreadsafeQueue *q);
+void* threadsafe_queue_wait_and_pop(ThreadsafeQueue *q);
 }
 
 #endif
