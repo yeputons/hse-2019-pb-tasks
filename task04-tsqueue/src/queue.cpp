@@ -1,6 +1,6 @@
 #include "queue.h"
-#include <assert.h>
-#include <stdlib.h>
+#include <cassert>
+#include <cstdlib>
 
 /**
  * Очередь реализована как односвязный список.
@@ -26,7 +26,7 @@ bool queue_empty(Queue *q) {
 }
 
 void queue_push(Queue *q, void *data) {
-    QueueNode *node = static_cast<QueueNode *>(malloc(sizeof(QueueNode)));
+    auto *node = static_cast<QueueNode *>(malloc(sizeof(QueueNode)));
     node->data = data;
     node->next = nullptr;
     if (q->last) {
