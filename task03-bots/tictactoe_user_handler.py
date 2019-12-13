@@ -49,3 +49,4 @@ class TicTacToeUserHandler(UserHandler):
         winner = self.game.winner()
         result: str = '{} wins'.format(winner.name) if winner else 'draw'
         self.send_message('Game is finished, {}'.format(result))
+        self.game = None
