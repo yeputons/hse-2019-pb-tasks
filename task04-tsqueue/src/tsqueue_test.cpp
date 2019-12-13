@@ -80,7 +80,7 @@ TEST_CASE("ThreadsafeQueue multithreaded ping-pong") {
     };
 
     pthread_t t1, t2;
-    REQUIRE(pthread_create(&t1, nullptr, ponger, qs) == 0);
+    REQUIRE(pthread_create(&t1, nullptr, pinger, qs) == 0);
     REQUIRE(pthread_create(&t2, nullptr, ponger, qs) == 0);
     
     REQUIRE(pthread_join(t1, nullptr) == 0);
