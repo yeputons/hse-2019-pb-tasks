@@ -43,8 +43,8 @@ def match_files_with_filtered_strings(files: Iterable[str],
     result = []
     for name_file, item in zip(files, data):
         if bool(item) ^ cond:
-            result.append([name_file])
-    return result
+            result.append(name_file)
+    return [result]
 
 
 def main(args_str: List[str]):

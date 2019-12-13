@@ -93,13 +93,13 @@ def test_integrate_all_keys_with_count(tmp_path, monkeypatch, capsys):
 
 
 def test_integrate_all_keys_with_print_files(tmp_path, monkeypatch, capsys):
-    (tmp_path / 'a.txt').write_text('aaa\nAAA\n')
+    (tmp_path / 'a.txt').write_text('ahaha\nA\nAAAA\naaa\nasdfj')
     (tmp_path / 'b.txt').write_text('ahaha\nA\nAAAA\naaa\nasdfj')
     monkeypatch.chdir(tmp_path)
-    grep.main(['-lvxi', 'aaa', 'b.txt', 'a.txt'])
+    grep.main(['-lvxi', 'aaa', 'b.txt', 'a.txt', 'b.txt'])
     out, err = capsys.readouterr()
     assert err == ''
-    assert out == 'b.txt\n'
+    assert out == 'b.txt\na.txt\nb.txt\n'
 
 
 def test_unit_match_files_with_filtered_strings():
@@ -110,4 +110,4 @@ def test_unit_match_files_with_filtered_strings():
             ['aa', 'a', 's adf ']]
     cond = False
     ans = grep.match_files_with_filtered_strings(files, data, cond)
-    assert ans == [['a.txt'], ['b.txt'], ['a.txt']]
+    assert ans == [['a.txt', 'b.txt', 'a.txt']]
