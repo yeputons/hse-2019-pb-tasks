@@ -10,7 +10,7 @@ def send_message(message: str) -> None:
 
 def main() -> None:
     bot = TicTacToeUserHandler(
-        send_message=send_message
+        send_message=print
     )
     for line in sys.stdin:
         try:
