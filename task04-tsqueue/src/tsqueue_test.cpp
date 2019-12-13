@@ -59,31 +59,31 @@ TEST_CASE("ThreadsafeQueue multithreaded ping-pong") {
 
     auto pinger = [](void *_qs) -> void * {
         ThreadsafeQueue *qs = static_cast<ThreadsafeQueue *>(_qs);
-        int local = 15;
-        int tmp_local = 15;
-        threadsafe_queue_push(&qs[0], &local);
-        int *data = (int *)threadsafe_queue_wait_and_pop(&qs[1]);
-        REQUIRE(*data == tmp_local + 1);
-        REQUIRE(data == &local);
+        for (int i = 0; i < PING_PONGS; i++) {
+            int local = 15;
+            threadsafe_queue_push(&qs[0], &local);
+            int *data = (int *)threadsafe_queue_wait_and_pop(&qs[1]);
+            REQUIRE(data == &local);
+            CHECK(*data == 16);
+        }
         return nullptr;
     };
 
     auto ponger = [](void *_qs) -> void * {
         ThreadsafeQueue *qs = static_cast<ThreadsafeQueue *>(_qs);
-        int *data = (int *)threadsafe_queue_wait_and_pop(&qs[0]);
-        (*data)++;
-        threadsafe_queue_push(&qs[1], data);
+        for (int i = 0; i < PING_PONGS; i++) {
+            int *data = (int *)threadsafe_queue_wait_and_pop(&qs[0]);
+            (*data)++;
+            threadsafe_queue_push(&qs[1], data);
+        }
         return nullptr;
     };
+    pthread_t t1, t2;
+    REQUIRE(pthread_create(&t1, nullptr, pinger, qs) == 0);
+    REQUIRE(pthread_create(&t2, nullptr, ponger, qs) == 0);
 
-    for (int i = 0; i < PING_PONGS; i++) {
-        pthread_t t1, t2;
-        REQUIRE(pthread_create(&t1, nullptr, pinger, qs) == 0);
-        REQUIRE(pthread_create(&t2, nullptr, ponger, qs) == 0);
-
-        REQUIRE(pthread_join(t1, nullptr) == 0);
-        REQUIRE(pthread_join(t2, nullptr) == 0);
-    }
+    REQUIRE(pthread_join(t2, nullptr) == 0);
+    REQUIRE(pthread_join(t1, nullptr) == 0);
 
     threadsafe_queue_destroy(&qs[1]);
     threadsafe_queue_destroy(&qs[0]);
@@ -110,7 +110,7 @@ void *consumer_try(void *_q) {
     for (int i = 0; i < ELEMENTS_PER_THREAD; i++) {
         void *data;
         REQUIRE(threadsafe_queue_try_pop(q, &data));
-        REQUIRE(data != nullptr);
+        REQUIRE(data == nullptr);
     }
     return nullptr;
 }
@@ -122,8 +122,7 @@ TEST_SUITE("ThreadsafeQueue pops from multiple threads") {
 
         for (int repeat = 0; repeat < REPEATS; repeat++) {
             for (int i = 0; i < 2 * ELEMENTS_PER_THREAD; i++) {
-                int data = i;
-                threadsafe_queue_push(&q, &data);
+                threadsafe_queue_push(&q, nullptr);
             }
 
             pthread_t t1, t2;
