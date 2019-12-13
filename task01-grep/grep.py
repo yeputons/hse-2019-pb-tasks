@@ -11,18 +11,17 @@ def parse_args(args_str: List[str]) -> argparse.Namespace:
     parser.add_argument('files', nargs='*')
     parser.add_argument('-E', dest='regex', action='store_true')
     parser.add_argument('-c', dest='count', action='store_true')
-    args = parser.parse_args(args_str)
-    return args
+    return parser.parse_args(args_str)
 
 
-def print_file(print_filenames: int, count: int, prefix: str, lines: List[str]) -> None:
+def print_file(print_filenames: bool, count: bool, prefix: str, lines: List[str]) -> None:
     if not print_filenames:
         prefix = ''
     if count:
         print(f'{prefix}{len(lines)}')
     else:
-        for lin in lines:
-            print(f'{prefix}{lin}')
+        for line in lines:
+            print(f'{prefix}{line}')
 
 
 def print_stdio(count: int, lines: List[str]) -> None:

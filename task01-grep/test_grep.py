@@ -106,29 +106,31 @@ def test_print_stdio(capsys):
     assert err == ''
 
 
-def test_search_right_string_file():
-    lines = ['ahaha', 'win', 'victory', 'ha']
+def test_search_right_string_file(tmp_path, monkeypatch):
     res = []
-    for line in lines:
-        grep.search_append('ha', line, res)
-    assert res == ['ahaha', 'ha']
+    (tmp_path / 'a.txt').write_text('ahaha\nwin victory ha\n')
+    monkeypatch.chdir(tmp_path)
+    with open('a.txt', 'r') as in_file:
+        grep.search_right_string_file('ha', in_file, res)
+    assert res == ['ahaha', 'win victory ha']
 
-    lines = ['ahaha', 'win', 'victory', 'ha']
     res = []
-    for line in lines:
-        grep.search_append('no', line, res)
+    (tmp_path / 'a.txt').write_text('ahaha\nwin victory ha\nvictory\n')
+    monkeypatch.chdir(tmp_path)
+    with open('a.txt', 'r') as in_file:
+        grep.search_right_string_file('noon', in_file, res)
     assert res == []
 
 
-def test_search_right_string_stdin():
-    lines = ['lalaalla', 'win', 'nope', 'lllllla']
+def test_search_right_string_stdin(monkeypatch):
+    monkeypatch.setattr('sys.stdin', io.StringIO(
+        'lalaalla\nwin\nnope\nlllllla'))
     res = []
-    for line in lines:
-        grep.search_append('la', line, res)
+    grep.search_right_string_stdin('la', res)
     assert res == ['lalaalla', 'lllllla']
 
-    lines = ['lalaalla', 'win', 'nope', 'lllllla']
+    monkeypatch.setattr('sys.stdin', io.StringIO(
+        'lalaalla\nwin\nnope\nlllllla'))
     res = []
-    for line in lines:
-        grep.search_append('grep', line, res)
+    grep.search_right_string_stdin('ahahahhahahhaha', res)
     assert res == []
