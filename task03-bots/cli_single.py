@@ -8,7 +8,7 @@ def main() -> None:
     bot = TicTacToeUserHandler(send_message=print)
     for line in sys.stdin:
         try:
-            bot.handle_message(message=line)
+            bot.handle_message(message=line.rstrip('\n'))
         except Exception:  # pylint: disable=W0703
             traceback.print_exc()
 
