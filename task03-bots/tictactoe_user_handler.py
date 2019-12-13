@@ -44,5 +44,5 @@ class TicTacToeUserHandler(UserHandler):
         assert self.game
         field: List[str] = []
         for row in self.game.field:
-            field.append(''.join(cell.name if cell else '.' for cell in row))
+            field.append(''.join([cell.name if cell else '.' for cell in row]))
         self.send_message('\n'.join(field))
