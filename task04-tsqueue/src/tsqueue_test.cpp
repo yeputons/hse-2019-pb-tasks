@@ -5,9 +5,6 @@
 const int ELEMENTS_PER_THREAD = 100 * 1000;
 const int REPEATS = 3;
 
-void main () {
-
-}
 TEST_SUITE("ThreadsafeQueue works like Queue in a single thread") {
     TEST_CASE("with threadsafe_queue_try_pop") {
         ThreadsafeQueue q;
