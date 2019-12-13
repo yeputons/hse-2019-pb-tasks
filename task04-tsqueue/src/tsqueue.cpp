@@ -10,8 +10,8 @@ void threadsafe_queue_init(ThreadsafeQueue *q) {
 }
 
 void threadsafe_queue_destroy(ThreadsafeQueue *q) {
-    assert(queue_empty(&q->q));
     pthread_mutex_lock(&q->mutex);
+    assert(queue_empty(&q->q));
     queue_destroy(&q->q);
     pthread_mutex_unlock(&q->mutex);
     pthread_cond_destroy(&q->cond);
