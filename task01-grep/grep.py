@@ -45,31 +45,31 @@ def search_in_lines(pattern: str, input_lines: List[List], search_flags: Dict) -
 def print_answer(found: Dict, files: List, output_flags: Dict) -> None:
     ans_format = '{0}:{1}' if len(files) > 1 else '{1}'
     if output_flags['count_task']:  # flag -c
-        print_ans_count(found, files if files else [''], ans_format)
+        print_ans_count(found, ans_format)
 
     elif output_flags['only_file_names_with']:  # flag -l
-        print_ans_file_names(found, files, True)
+        print_ans_file_names(found, True)
 
     elif output_flags['only_file_names_without']:  # flag -L
-        print_ans_file_names(found, files, False)
+        print_ans_file_names(found, False)
 
     else:  # print lines
-        print_ans_lines(found, files if files else [''], ans_format)
+        print_ans_lines(found, ans_format)
 
 
-def print_ans_lines(found: Dict, files: List, answer_format: str) -> None:
-    for filename in files:  # filename = '' as stdin
+def print_ans_lines(found: Dict, answer_format: str) -> None:
+    for filename in found:
         for line in found[filename]:
             print(answer_format.format(filename, line))
 
 
-def print_ans_count(found: Dict, files: List, answer_format: str) -> None:
-    for filename in files:
+def print_ans_count(found: Dict, answer_format: str) -> None:
+    for filename in found:
         print(answer_format.format(filename, len(found[filename])))
 
 
-def print_ans_file_names(found: Dict, files: List, with_found: bool) -> None:
-    for filename in files:
+def print_ans_file_names(found: Dict, with_found: bool) -> None:
+    for filename in found:
         if with_found == (len(found[filename]) > 0):
             print(filename)
 
