@@ -70,15 +70,15 @@ TEST_CASE("ThreadsafeQueue multithreaded ping-pong") {
     // Специальный синтаксис для объявления функции внутри функции.
     // (в общем случае это лямбда-функции/замыкания, но нам это неважно).
     auto pinger = [](void *_qs) -> void * {
-        auto *qs = static_cast<ThreadsafeQueue *>(_qs);
+        ThreadsafeQueue *qs = static_cast<ThreadsafeQueue *>(_qs);
         for (int i = 0; i < PING_PONGS; i++) {
             const int base_value =
                 i;  // Just for it to take some different value each time
             int local_var = base_value;
             threadsafe_queue_push(&qs[0], &local_var);
-            int returned_var =
-                *static_cast<int *>(threadsafe_queue_wait_and_pop(&qs[1]));
-            CHECK(local_var == returned_var);
+            int *returned_var_pointer =
+                static_cast<int *>(threadsafe_queue_wait_and_pop(&qs[1]));
+            CHECK(&local_var == returned_var_pointer);
             CHECK(local_var == base_value + 1);
         }
         return nullptr;
@@ -123,8 +123,8 @@ void *consumer(void *_q) {
 
 void *consumer_try(void *_q) {
     auto *q = static_cast<ThreadsafeQueue *>(_q);
-    void *res;
     for (int i = 0; i < ELEMENTS_PER_THREAD; i++) {
+        void *res;
         REQUIRE(threadsafe_queue_try_pop(q, &res));
         CHECK(res == nullptr);
     }
