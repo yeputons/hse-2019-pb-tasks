@@ -9,7 +9,7 @@ import argparse
 
 
 def read_files(name_files: List[str]) -> List[Tuple[str, List[str]]]:
-    
+
     def get_lines_of_file(current_stream: TextIO) -> List[str]:
         return [line.rstrip('\n') for line in current_stream.readlines()]
 
@@ -24,17 +24,20 @@ def read_files(name_files: List[str]) -> List[Tuple[str, List[str]]]:
 
 
 def check_entry_generator(
-        pattern: str, is_regex: bool, rev: bool, full_match: bool, case_ignore: bool
-                         ) -> Callable[[str], bool]:
+        pattern: str, is_regex: bool, rev: bool,
+        full_match: bool, case_ignore: bool) -> Callable[[str], bool]:
     pattern = (pattern if is_regex else re.escape(pattern))
     searcher = (re.fullmatch if full_match else re.search)
     flags = (re.IGNORECASE if case_ignore else 0)
+
     def check_entry(line: str):
         return bool(searcher(pattern, line, flags=flags)) ^ rev
+
     return check_entry
 
 
-def search_in_file(name_file: str, check_entry: Callable[[str], bool], lines: List[str], fmt: str) -> bool:
+def search_in_file(
+        name_file: str, check_entry: Callable[[str], bool], lines: List[str], fmt: str) -> bool:
     entry = 0
     for line in lines:
         if check_entry(line):
@@ -99,8 +102,7 @@ def main(args_str: List[str]):
         fmt = '{1}'
 
     check_entry = check_entry_generator(
-            args.needle, args.regex, args.rev, args.full_match, args.case_ignore
-                                       )
+        args.needle, args.regex, args.rev, args.full_match, args.case_ignore)
 
     read_data = read_files(args.files)
 

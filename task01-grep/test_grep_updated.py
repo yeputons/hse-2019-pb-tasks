@@ -3,7 +3,7 @@ import grep
 
 
 def test_integrate_format_files_grep(tmp_path, monkeypatch, capsys):
-    (tmp_path / 'a.txt').write_text('needle\ntrash\ni wan\'t to pass ALGEBRA\n')
+    (tmp_path / 'a.txt').write_text('needle\ntrash\ni want to pass ALGEBRA\n')
     (tmp_path / 'b.txt').write_text('ALGeBRAAA\nI hate algebra?\nI love algebra?\n')
     monkeypatch.chdir(tmp_path)
     grep.main(['-li', 'algebra', 'a.txt', 'b.txt'])
