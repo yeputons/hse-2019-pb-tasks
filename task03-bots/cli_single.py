@@ -2,10 +2,11 @@
 import sys
 import traceback
 from alarm_user_handler import AlarmUserHandler
+from tictactoe_user_handler import TicTacToeUserHandler
 
 
 def main() -> None:
-    bot = AlarmUserHandler(send_message=print)
+    bot = TicTacToeUserHandler(send_message=print)
     for line in sys.stdin:
         try:
             message = line.rstrip('\n')
