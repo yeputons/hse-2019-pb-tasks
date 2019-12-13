@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6"/>
+	<Project>
+		<Option title="task09"/>
+		<Option makefile_is_custom="1"/>
+		<Option compiler="gcc"/>
+		<Option virtualFolders="CMake Files\;"/>
+		<Build>
+			<Target title="all">
+				<Option working_dir="/home/alexandr/Рабочий стол/laba/hse-2019-pb-tasks/task04-tsqueue/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/alexandr/Рабочий\ стол/laba/hse-2019-pb-tasks/task04-tsqueue/cmake-build-debug/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/alexandr/Рабочий\ стол/laba/hse-2019-pb-tasks/task04-tsqueue/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/alexandr/Рабочий\ стол/laba/hse-2019-pb-tasks/task04-tsqueue/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/alexandr/Рабочий\ стол/laba/hse-2019-pb-tasks/task04-tsqueue/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="rebuild_cache">
+				<Option working_dir="/home/alexandr/Рабочий стол/laba/hse-2019-pb-tasks/task04-tsqueue/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/alexandr/Рабочий\ стол/laba/hse-2019-pb-tasks/task04-tsqueue/cmake-build-debug/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/alexandr/Рабочий\ стол/laba/hse-2019-pb-tasks/task04-tsqueue/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/alexandr/Рабочий\ стол/laba/hse-2019-pb-tasks/task04-tsqueue/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/alexandr/Рабочий\ стол/laba/hse-2019-pb-tasks/task04-tsqueue/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="edit_cache">
+				<Option working_dir="/home/alexandr/Рабочий стол/laba/hse-2019-pb-tasks/task04-tsqueue/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/alexandr/Рабочий\ стол/laba/hse-2019-pb-tasks/task04-tsqueue/cmake-build-debug/Makefile&quot;  VERBOSE=1 edit_cache"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/alexandr/Рабочий\ стол/laba/hse-2019-pb-tasks/task04-tsqueue/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/alexandr/Рабочий\ стол/laba/hse-2019-pb-tasks/task04-tsqueue/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/alexandr/Рабочий\ стол/laba/hse-2019-pb-tasks/task04-tsqueue/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="tsqueue_test">
+				<Option output="/home/alexandr/Рабочий стол/laba/hse-2019-pb-tasks/task04-tsqueue/cmake-build-debug/tsqueue_test" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/alexandr/Рабочий стол/laba/hse-2019-pb-tasks/task04-tsqueue/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/alexandr/Рабочий стол/laba/hse-2019-pb-tasks/task04-tsqueue/src"/>
+					<Add directory="/home/alexandr/Рабочий стол/laba/hse-2019-pb-tasks/task04-tsqueue/doctest"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/alexandr/Рабочий\ стол/laba/hse-2019-pb-tasks/task04-tsqueue/cmake-build-debug/Makefile&quot;  VERBOSE=1 tsqueue_test"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/alexandr/Рабочий\ стол/laba/hse-2019-pb-tasks/task04-tsqueue/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/alexandr/Рабочий\ стол/laba/hse-2019-pb-tasks/task04-tsqueue/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/alexandr/Рабочий\ стол/laba/hse-2019-pb-tasks/task04-tsqueue/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="tsqueue_test/fast">
+				<Option output="/home/alexandr/Рабочий стол/laba/hse-2019-pb-tasks/task04-tsqueue/cmake-build-debug/tsqueue_test" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/alexandr/Рабочий стол/laba/hse-2019-pb-tasks/task04-tsqueue/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/alexandr/Рабочий стол/laba/hse-2019-pb-tasks/task04-tsqueue/src"/>
+					<Add directory="/home/alexandr/Рабочий стол/laba/hse-2019-pb-tasks/task04-tsqueue/doctest"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/alexandr/Рабочий\ стол/laba/hse-2019-pb-tasks/task04-tsqueue/cmake-build-debug/Makefile&quot;  VERBOSE=1 tsqueue_test/fast"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/alexandr/Рабочий\ стол/laba/hse-2019-pb-tasks/task04-tsqueue/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/alexandr/Рабочий\ стол/laba/hse-2019-pb-tasks/task04-tsqueue/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/alexandr/Рабочий\ стол/laba/hse-2019-pb-tasks/task04-tsqueue/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="queue_test">
+				<Option output="/home/alexandr/Рабочий стол/laba/hse-2019-pb-tasks/task04-tsqueue/cmake-build-debug/queue_test" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/alexandr/Рабочий стол/laba/hse-2019-pb-tasks/task04-tsqueue/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/alexandr/Рабочий стол/laba/hse-2019-pb-tasks/task04-tsqueue/src"/>
+					<Add directory="/home/alexandr/Рабочий стол/laba/hse-2019-pb-tasks/task04-tsqueue/doctest"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/alexandr/Рабочий\ стол/laba/hse-2019-pb-tasks/task04-tsqueue/cmake-build-debug/Makefile&quot;  VERBOSE=1 queue_test"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/alexandr/Рабочий\ стол/laba/hse-2019-pb-tasks/task04-tsqueue/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/alexandr/Рабочий\ стол/laba/hse-2019-pb-tasks/task04-tsqueue/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/alexandr/Рабочий\ стол/laba/hse-2019-pb-tasks/task04-tsqueue/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="queue_test/fast">
+				<Option output="/home/alexandr/Рабочий стол/laba/hse-2019-pb-tasks/task04-tsqueue/cmake-build-debug/queue_test" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/alexandr/Рабочий стол/laba/hse-2019-pb-tasks/task04-tsqueue/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/alexandr/Рабочий стол/laba/hse-2019-pb-tasks/task04-tsqueue/src"/>
+					<Add directory="/home/alexandr/Рабочий стол/laba/hse-2019-pb-tasks/task04-tsqueue/doctest"/>
+					<Add directory="/usr/include/c++/7"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/7"/>
+					<Add directory="/usr/include/c++/7/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/7/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/alexandr/Рабочий\ стол/laba/hse-2019-pb-tasks/task04-tsqueue/cmake-build-debug/Makefile&quot;  VERBOSE=1 queue_test/fast"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/alexandr/Рабочий\ стол/laba/hse-2019-pb-tasks/task04-tsqueue/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/alexandr/Рабочий\ стол/laba/hse-2019-pb-tasks/task04-tsqueue/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/alexandr/Рабочий\ стол/laba/hse-2019-pb-tasks/task04-tsqueue/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Unit filename="/home/alexandr/Рабочий стол/laba/hse-2019-pb-tasks/task04-tsqueue/src/queue.cpp">
+			<Option target="tsqueue_test"/>
+			<Option target="queue_test"/>
+		</Unit>
+		<Unit filename="/home/alexandr/Рабочий стол/laba/hse-2019-pb-tasks/task04-tsqueue/src/queue.h">
+			<Option target="tsqueue_test"/>
+			<Option target="queue_test"/>
+		</Unit>
+		<Unit filename="/home/alexandr/Рабочий стол/laba/hse-2019-pb-tasks/task04-tsqueue/src/queue_test.cpp">
+			<Option target="queue_test"/>
+		</Unit>
+		<Unit filename="/home/alexandr/Рабочий стол/laba/hse-2019-pb-tasks/task04-tsqueue/src/tsqueue.cpp">
+			<Option target="tsqueue_test"/>
+		</Unit>
+		<Unit filename="/home/alexandr/Рабочий стол/laba/hse-2019-pb-tasks/task04-tsqueue/src/tsqueue.h">
+			<Option target="tsqueue_test"/>
+		</Unit>
+		<Unit filename="/home/alexandr/Рабочий стол/laba/hse-2019-pb-tasks/task04-tsqueue/src/tsqueue_test.cpp">
+			<Option target="tsqueue_test"/>
+		</Unit>
+		<Unit filename="/home/alexandr/Рабочий стол/laba/hse-2019-pb-tasks/task04-tsqueue/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+	</Project>
+</CodeBlocks_project_file>
