@@ -9,8 +9,8 @@ void threadsafe_queue_init(ThreadsafeQueue *q) {
 }
 
 void threadsafe_queue_destroy(ThreadsafeQueue *q) {
-    pthread_mutex_destroy(&q->m);
     pthread_cond_destroy(&q->cond_push);
+    pthread_mutex_destroy(&q->m);
     queue_destroy(&(q->q));
 }
 
@@ -22,22 +22,20 @@ void threadsafe_queue_push(ThreadsafeQueue *q, void *data) {
 }
 
 bool threadsafe_queue_try_pop(ThreadsafeQueue *q, void **data) {
-    bool attempt = false;
     pthread_mutex_lock(&q->m);
+    bool success = !queue_empty(&(q->q));
     if (!queue_empty(&(q->q))) {
         *data = queue_pop(&(q->q));
-        attempt = true;
     }
     pthread_mutex_unlock(&q->m);
-    return attempt;
+    return success;
 }
 
 void *threadsafe_queue_wait_and_pop(ThreadsafeQueue *q) {
     pthread_mutex_lock(&q->m);
-    void *data;
     while (queue_empty(&(q->q)))
         pthread_cond_wait(&q->cond_push, &q->m);
-    data = queue_pop(&q->q);
+    void *data = queue_pop(&q->q);
     pthread_mutex_unlock(&q->m);
     return data;
 }
