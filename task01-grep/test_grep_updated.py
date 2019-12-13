@@ -51,6 +51,7 @@ def test_integrate_key_v_grep(tmp_path, monkeypatch, capsys):
     assert err == ''
     assert out == 'a.txt:fO\na.txt:FO\na.txt:FoO\n'
 
+
 def test_integrate_key_i_grep(tmp_path, monkeypatch, capsys):
     (tmp_path / 'a.txt').write_text('fO\nFO\nFoO\n')
     (tmp_path / 'b.txt').write_text('hello fo?o world\nxfooyfoz\nfooo\n')
@@ -58,7 +59,8 @@ def test_integrate_key_i_grep(tmp_path, monkeypatch, capsys):
     grep.main(['-i', '-E', 'fo?o', 'b.txt', 'a.txt'])
     out, err = capsys.readouterr()
     assert err == ''
-    assert out == 'b.txt:hello fo?o world\nb.txt:xfooyfoz\nb.txt:fooo\na.txt:fO\na.txt:FO\na.txt:FoO\n'
+    assert out == 'b.txt:hello fo?o world\nb.txt:xfooyfoz\n' \
+                  'b.txt:fooo\na.txt:fO\na.txt:FO\na.txt:FoO\n'
 
 
 def test_integrate_key_x_grep(tmp_path, monkeypatch, capsys):
@@ -72,14 +74,12 @@ def test_integrate_key_x_grep(tmp_path, monkeypatch, capsys):
     assert out == 'b.txt:fooo\n'
 
 
-def test_integrate_key_L_grep(tmp_path, monkeypatch, capsys):
+def test_integrate_key_l_grep(tmp_path, monkeypatch, capsys):
     (tmp_path / 'a.txt').write_text('fO\nFO\nFoO\n')
     (tmp_path / 'b.txt').write_text('hello fo?o world\nxfooyfoz\nfooo\n')
     monkeypatch.chdir(tmp_path)
-    grep.main(['-L', '-E', 'fooo', 'b.txt', 'a.txt'])
+    grep.main(['-l', '-E', 'fooo', 'b.txt', 'a.txt'])
     out, err = capsys.readouterr()
     print(out)
     assert err == ''
-    assert out == 'a.txt\n'
-
-
+    assert out == 'b.txt\n'
