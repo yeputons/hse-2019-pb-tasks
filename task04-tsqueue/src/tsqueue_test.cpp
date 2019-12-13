@@ -32,8 +32,7 @@ TEST_SUITE("ThreadsafeQueue works like Queue in a single thread") {
         threadsafe_queue_destroy(&q);
     }
 
-    TEST_CASE("with threadsafe_queue_wait_and_pop" *
-              doctest::skip()) {  // TODO(2)
+    TEST_CASE("with threadsafe_queue_wait_and_pop") {
         ThreadsafeQueue q;
         threadsafe_queue_init(&q);
 
@@ -52,8 +51,7 @@ TEST_SUITE("ThreadsafeQueue works like Queue in a single thread") {
     }
 }
 
-TEST_CASE("ThreadsafeQueue multithreaded ping-pong" *
-          doctest::skip()) {  // TODO(2)
+TEST_CASE("ThreadsafeQueue multithreaded ping-pong") {
     ThreadsafeQueue qs[2];
     threadsafe_queue_init(&qs[0]);
     threadsafe_queue_init(&qs[1]);
