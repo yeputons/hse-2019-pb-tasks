@@ -1,115 +1,254 @@
-from pytest_mock import MockFixture
+import pytest_mock
 from tictactoe_user_handler import TicTacToeUserHandler
 
 
-def test_draw(mocker: MockFixture):
+def test_x_wins(mocker: pytest_mock.MockFixture):
     send_message = mocker.stub(name='send_message_stub')
     handler = TicTacToeUserHandler(send_message)
-    handler.handle_message('start\n')
-    handler.handle_message('X 1 0\n')
-    handler.handle_message('O 1 1\n')
-    handler.handle_message('X 1 2\n')
-    handler.handle_message('O 2 0\n')
-    handler.handle_message('X 2 1\n')
-    handler.handle_message('O 2 2\n')
-    handler.handle_message('X 0 0\n')
-    handler.handle_message('O 0 1\n')
-    handler.handle_message('X 0 2\n')
-
+    handler.handle_message('start')
+    handler.handle_message('X 0 2')
+    handler.handle_message('O 1 1')
+    handler.handle_message('X 0 1')
+    handler.handle_message('O 1 0')
+    handler.handle_message('X 2 2')
+    handler.handle_message('O 0 0')
+    handler.handle_message('X 1 2')
     assert send_message.call_args_list == [
-        mocker.call('...\n...\n...'),
-        mocker.call('.X.\n...\n...'),
-        mocker.call('.X.\n.O.\n...'),
-        mocker.call('.X.\n.O.\n.X.'),
-        mocker.call('.XO\n.O.\n.X.'),
-        mocker.call('.XO\n.OX\n.X.'),
-        mocker.call('.XO\n.OX\n.XO'),
-        mocker.call('XXO\n.OX\n.XO'),
-        mocker.call('XXO\nOOX\n.XO'),
-        mocker.call('XXO\nOOX\nXXO'),
-        mocker.call('Game is finished, draw')
+        mocker.call('...\n'
+                    '...\n'
+                    '...'),
+        mocker.call('...\n'
+                    '...\n'
+                    'X..'),
+        mocker.call('...\n'
+                    '.O.\n'
+                    'X..'),
+        mocker.call('...\n'
+                    'XO.\n'
+                    'X..'),
+        mocker.call('.O.\n'
+                    'XO.\n'
+                    'X..'),
+        mocker.call('.O.\n'
+                    'XO.\n'
+                    'X.X'),
+        mocker.call('OO.\n'
+                    'XO.\n'
+                    'X.X'),
+        mocker.call('OO.\n'
+                    'XO.\n'
+                    'XXX'),
+        mocker.call('Game is finished, X wins'),
     ]
     assert handler.game is None
 
 
-def test_o_win(mocker: MockFixture):
+def test_o_wins(mocker: pytest_mock.MockFixture):
     send_message = mocker.stub(name='send_message_stub')
     handler = TicTacToeUserHandler(send_message)
-    handler.handle_message('start\n')
-    handler.handle_message('X 0 0\n')
-    handler.handle_message('O 2 2\n')
-    handler.handle_message('X 1 0\n')
-    handler.handle_message('O 1 2\n')
-    handler.handle_message('X 2 1\n')
-    handler.handle_message('O 0 2\n')
-
+    handler.handle_message('start')
+    handler.handle_message('X 2 2')
+    handler.handle_message('O 0 0')
+    handler.handle_message('X 0 2')
+    handler.handle_message('O 1 0')
+    handler.handle_message('X 0 1')
+    handler.handle_message('O 1 1')
+    handler.handle_message('X 2 1')
+    handler.handle_message('O 1 2')
     assert send_message.call_args_list == [
-        mocker.call('...\n...\n...'),
-        mocker.call('X..\n...\n...'),
-        mocker.call('X..\n...\n..O'),
-        mocker.call('XX.\n...\n..O'),
-        mocker.call('XX.\n...\n.OO'),
-        mocker.call('XX.\n..X\n.OO'),
-        mocker.call('XX.\n..X\nOOO'),
-        mocker.call('Game is finished, O wins')
+        mocker.call('...\n'
+                    '...\n'
+                    '...'),
+        mocker.call('...\n'
+                    '...\n'
+                    '..X'),
+        mocker.call('O..\n'
+                    '...\n'
+                    '..X'),
+        mocker.call('O..\n'
+                    '...\n'
+                    'X.X'),
+        mocker.call('OO.\n'
+                    '...\n'
+                    'X.X'),
+        mocker.call('OO.\n'
+                    'X..\n'
+                    'X.X'),
+        mocker.call('OO.\n'
+                    'XO.\n'
+                    'X.X'),
+        mocker.call('OO.\n'
+                    'XOX\n'
+                    'X.X'),
+        mocker.call('OO.\n'
+                    'XOX\n'
+                    'XOX'),
+        mocker.call('Game is finished, O wins'),
     ]
     assert handler.game is None
 
 
-def test_x_win(mocker: MockFixture):
+def test_draw(mocker: pytest_mock.MockFixture):
     send_message = mocker.stub(name='send_message_stub')
     handler = TicTacToeUserHandler(send_message)
-    handler.handle_message('start\n')
-    handler.handle_message('X 0 0\n')
-    handler.handle_message('O 0 2\n')
-    handler.handle_message('X 1 0\n')
-    handler.handle_message('O 2 2\n')
-    handler.handle_message('X 2 0\n')
-
+    handler.handle_message('start')
+    handler.handle_message('X 0 1')
+    handler.handle_message('O 1 1')
+    handler.handle_message('X 0 2')
+    handler.handle_message('O 0 0')
+    handler.handle_message('X 2 2')
+    handler.handle_message('O 1 2')
+    handler.handle_message('X 2 1')
+    handler.handle_message('O 2 0')
+    handler.handle_message('X 1 0')
     assert send_message.call_args_list == [
-        mocker.call('...\n...\n...'),
-        mocker.call('X..\n...\n...'),
-        mocker.call('X..\n...\nO..'),
-        mocker.call('XX.\n...\nO..'),
-        mocker.call('XX.\n...\nO.O'),
-        mocker.call('XXX\n...\nO.O'),
-        mocker.call('Game is finished, X wins')
+        mocker.call('...\n'
+                    '...\n'
+                    '...'),
+        mocker.call('...\n'
+                    'X..\n'
+                    '...'),
+        mocker.call('...\n'
+                    'XO.\n'
+                    '...'),
+        mocker.call('...\n'
+                    'XO.\n'
+                    'X..'),
+        mocker.call('O..\n'
+                    'XO.\n'
+                    'X..'),
+        mocker.call('O..\n'
+                    'XO.\n'
+                    'X.X'),
+        mocker.call('O..\n'
+                    'XO.\n'
+                    'XOX'),
+        mocker.call('O..\n'
+                    'XOX\n'
+                    'XOX'),
+        mocker.call('O.O\n'
+                    'XOX\n'
+                    'XOX'),
+        mocker.call('OXO\n'
+                    'XOX\n'
+                    'XOX'),
+        mocker.call('Game is finished, draw'),
     ]
     assert handler.game is None
 
 
-def test_other_commands(mocker: MockFixture):
+def test_incorrect_commands(mocker: pytest_mock.MockFixture):
     send_message = mocker.stub(name='send_message_stub')
     handler = TicTacToeUserHandler(send_message)
-    handler.handle_message('X 0 0\n')
-    handler.handle_message('start\n')
-    handler.handle_message('X 1 0\n')
-    handler.handle_message('X 1 0\n')
-    handler.handle_message('O 1 1\n')
-    handler.handle_message('O 1 1\n')
-    handler.handle_message('X 1 2\n')
-    handler.handle_message('O 2 0\n')
-    handler.handle_message('X 2 1\n')
-    handler.handle_message('O 2 2\n')
-    handler.handle_message('X 0 0\n')
-    handler.handle_message('O 0 1\n')
-    handler.handle_message('X 0 2\n')
-    handler.handle_message('X 0 2\n')
-
+    handler.handle_message('Start')
+    handler.handle_message('Krab')
+    handler.handle_message('369')
+    handler.handle_message('X 0 0')
+    handler.handle_message('\n')
+    handler.handle_message('X')
+    handler.handle_message('Y')
     assert send_message.call_args_list == [
         mocker.call('Game is not started'),
-        mocker.call('...\n...\n...'),
-        mocker.call('.X.\n...\n...'),
+        mocker.call('Game is not started'),
+        mocker.call('Game is not started'),
+        mocker.call('Game is not started'),
+        mocker.call('Game is not started'),
+        mocker.call('Game is not started'),
+        mocker.call('Game is not started')
+    ]
+    assert handler.game is None
+
+
+def test_invalid_turn(mocker: pytest_mock.MockFixture):
+    send_message = mocker.stub(name='send_message_stub')
+    handler = TicTacToeUserHandler(send_message)
+    handler.handle_message('start')
+    handler.handle_message('X 1 0')
+    handler.handle_message('X 1 2')
+    handler.handle_message('O 1 0')
+    handler.handle_message('O 1 2')
+    handler.handle_message('O 1 2')
+    handler.handle_message('O 1 1')
+
+    assert send_message.call_args_list == [
+        mocker.call('...\n'
+                    '...\n'
+                    '...'),
+        mocker.call('.X.\n'
+                    '...\n'
+                    '...'),
         mocker.call('Invalid turn'),
-        mocker.call('.X.\n.O.\n...'),
         mocker.call('Invalid turn'),
-        mocker.call('.X.\n.O.\n.X.'),
-        mocker.call('.XO\n.O.\n.X.'),
-        mocker.call('.XO\n.OX\n.X.'),
-        mocker.call('.XO\n.OX\n.XO'),
-        mocker.call('XXO\n.OX\n.XO'),
-        mocker.call('XXO\nOOX\n.XO'),
-        mocker.call('XXO\nOOX\nXXO'),
+        mocker.call('.X.\n'
+                    '...\n'
+                    '.O.'),
+        mocker.call('Invalid turn'),
+        mocker.call('Invalid turn')
+    ]
+    assert handler.game is not None
+
+
+def test_all_commands(mocker: pytest_mock.MockFixture):
+    send_message = mocker.stub(name='send_message_stub')
+    handler = TicTacToeUserHandler(send_message)
+    handler.handle_message('Start')
+    handler.handle_message('start')
+    handler.handle_message('X 1 0')
+    handler.handle_message('\n')
+    handler.handle_message('start')
+    handler.handle_message('start')
+    handler.handle_message('X 0 1')
+    handler.handle_message('O 1 1')
+    handler.handle_message('X 0 2')
+    handler.handle_message('O 0 0')
+    handler.handle_message('X 2 2')
+    handler.handle_message('O 1 2')
+    handler.handle_message('X 2 1')
+    handler.handle_message('O 2 0')
+    handler.handle_message('X 1 0')
+    handler.handle_message('X 0 0')
+    assert send_message.call_args_list == [
+        mocker.call('Game is not started'),
+        mocker.call('...\n'
+                    '...\n'
+                    '...'),
+        mocker.call('.X.\n'
+                    '...\n'
+                    '...'),
+        mocker.call('Invalid turn'),
+        mocker.call('...\n'
+                    '...\n'
+                    '...'),
+        mocker.call('...\n'
+                    '...\n'
+                    '...'),
+        mocker.call('...\n'
+                    'X..\n'
+                    '...'),
+        mocker.call('...\n'
+                    'XO.\n'
+                    '...'),
+        mocker.call('...\n'
+                    'XO.\n'
+                    'X..'),
+        mocker.call('O..\n'
+                    'XO.\n'
+                    'X..'),
+        mocker.call('O..\n'
+                    'XO.\n'
+                    'X.X'),
+        mocker.call('O..\n'
+                    'XO.\n'
+                    'XOX'),
+        mocker.call('O..\n'
+                    'XOX\n'
+                    'XOX'),
+        mocker.call('O.O\n'
+                    'XOX\n'
+                    'XOX'),
+        mocker.call('OXO\n'
+                    'XOX\n'
+                    'XOX'),
         mocker.call('Game is finished, draw'),
         mocker.call('Game is not started')
     ]

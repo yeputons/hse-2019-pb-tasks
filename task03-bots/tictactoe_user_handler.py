@@ -1,4 +1,3 @@
-import traceback
 from typing import Callable, Optional
 from bot import UserHandler
 from tictactoe import Player, TicTacToe
@@ -13,50 +12,52 @@ class TicTacToeUserHandler(UserHandler):
     def handle_message(self, message: str) -> None:
         if message == 'start':
             self.start_game()
-        else:
-            if self.game:
-                how, id_column, id_line = message.split()
-                if how == 'X':
+            return
+        if self.game:
+            try:
+                player_str, id_column, id_line = message.rstrip(' ').split(maxsplit=2)
+                if player_str == 'X':
                     player = Player.X
                 else:
                     player = Player.O
                 self.make_turn(player, row=int(id_line), col=int(id_column))
-            else:
-                self.send_message('Game is not started')
+            except ValueError:
+                self.send_message('Invalid turn')
+            return
+        self.send_message('Game is not started')
 
     def start_game(self) -> None:
         self.game = TicTacToe()
         self.send_field()
 
     def make_turn(self, player: Player, *, row: int, col: int) -> None:
-        assert self.game is not none
-        if self.game.can_make_turn(player, row=row, col=col):
-            self.game.make_turn(player, row=row, col=col)
-            self.send_field()
-            if self.game.is_finished():
-                if self.game.winner():
-                    if self.game.winner() == Player.X:
-                        winner = 'X'
-                    else:
-                        winner = 'O'
-                    self.send_message(f'Game is finished, {winner} wins')
-                else:
-                    self.send_message('Game is finished, draw')
-                self.game = None
-        else:
+        assert self.game
+        if not self.game.can_make_turn(player, row=row, col=col):
             self.send_message('Invalid turn')
+            return
+        self.game.make_turn(player, row=row, col=col)
+        self.send_field()
+        if self.game.is_finished():
+            if self.game.winner():
+                if self.game.winner() == Player.X:
+                    winner = 'X'
+                else:
+                    winner = 'O'
+                self.send_message(f'Game is finished, {winner} wins')
+            else:
+                self.send_message('Game is finished, draw')
+            self.game = None
 
     def send_field(self) -> None:
-        assert self.game is not none
+        assert self.game
         message = ''
         for line in self.game.field:
             for symbol in line:
                 if symbol == Player.X:
                     message += 'X'
+                elif symbol == Player.O:
+                    message += 'O'
                 else:
-                    if symbol == Player.O:
-                        message += 'O'
-                    else:
-                        message += '.'
+                    message += '.'
             message += '\n'
-        self.send_message(field[:len(field) - 1])
+        self.send_message(message[:-1])
