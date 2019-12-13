@@ -5,9 +5,7 @@ from alarm_user_handler import AlarmUserHandler
 
 
 def send_message(message: str) -> None:
-    print(f'===== Message =====')
     print(message)
-    print('==========')
 
 
 def main() -> None:
