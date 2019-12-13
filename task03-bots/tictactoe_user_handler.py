@@ -36,10 +36,12 @@ class TicTacToeUserHandler(UserHandler):
         assert self.game
         self.game.make_turn(player=player, row=row, col=col)
         if self.game.is_finished():
-            if self.game.winner() is None:
+            winner = self.game.winner()
+            assert winner
+            if winner is None:
                 self.send_message('Game is finished, draw')
             else:
-                self.send_message(f'Game is finished, {self.game.winner().name} wins')
+                self.send_message(f'Game is finished, {winner.name} wins')
             self.game = None
             return
         else:
@@ -48,12 +50,17 @@ class TicTacToeUserHandler(UserHandler):
     def send_field(self) -> None:
         """Отправляет пользователю сообщение с текущим состоянием игры."""
         game_field = []
+        assert self.game
+        field = self.game.field
+        assert field
         for col in range(3):
             message = ''
             for row in range(3):
-                if self.game.field[row][col] is None:
+                cell = field[row][col]
+                if cell is None:
                     message += '.'
                 else:
-                    message += self.game.field[row][col].name
+                    assert cell
+                    message += cell.name
             game_field.append(message)
         self.send_message('\n'.join(game_field))
