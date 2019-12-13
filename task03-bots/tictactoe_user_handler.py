@@ -11,7 +11,6 @@ class TicTacToeUserHandler(UserHandler):
     def handle_message(self, message: str) -> None:
         if message == 'start':
             self.start_game()
-            self.send_field()
             return
         if not self.game:
             self.send_message('Game is not started')
@@ -28,6 +27,7 @@ class TicTacToeUserHandler(UserHandler):
 
     def start_game(self) -> None:
         self.game = TicTacToe()
+        self.send_field()
 
     def make_turn(self, player: Player, *, row: int, col: int) -> None:
         assert isinstance(self.game, TicTacToe)
