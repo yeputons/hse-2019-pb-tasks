@@ -149,8 +149,8 @@ def test_strip_lines_from_stdin(monkeypatch):
     assert grep.strip_lines(sys.stdin) == ['one', 'two']
 
 
-def test_get_re_pattern():
-    assert re.compile('a\\.', re.IGNORECASE) == grep.get_re_pattern('a.', False, True)
+def test_compile_pattern():
+    assert re.compile('a\\.', re.IGNORECASE) == grep.compile_pattern('a.', False, True)
 
 
 def test_get_find_function():

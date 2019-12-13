@@ -24,18 +24,18 @@ def parse_args(args_str: List[str]) -> argparse.Namespace:
     return parser.parse_args(args_str)
 
 
-def strip_lines(file: Iterable) -> List[str]:
-    return [line.rstrip('\n') for line in file]
+def strip_lines(lines: Iterable) -> List[str]:
+    return [line.rstrip('\n') for line in lines]
 
 
-def get_re_pattern(pattern: str, regex_flag: bool, ignore_case: bool) -> Pattern[str]:
+def compile_pattern(pattern: str, regex_flag: bool, ignore_case: bool) -> Pattern:
     if not regex_flag:
         pattern = re.escape(pattern)
-    _flags = re.I if ignore_case else 0
-    return re.compile(pattern, flags=_flags)
+    flags = re.I if ignore_case else 0
+    return re.compile(pattern, flags=flags)
 
 
-def get_find_function(re_pattern: Pattern[str],
+def get_find_function(re_pattern: Pattern,
                       full_match: bool, invert: bool) -> Callable[[str], bool]:
     find = re.fullmatch if full_match else re.search
     return lambda line: bool(find(pattern=re_pattern, string=line)) ^ invert
@@ -45,7 +45,7 @@ def filter_blocks(blocks: List[List[str]], find: Callable[[str], bool]) -> List[
     return [list(filter(find, lines)) for lines in blocks]
 
 
-def map_blocks(blocks: List[List[str]], ) -> List[List[str]]:
+def map_blocks(blocks: List[List[str]]) -> List[List[str]]:
     return [[str(len(lines))] for lines in blocks]
 
 
@@ -56,7 +56,7 @@ def add_filename_prefix(lines_source_tuple: Tuple[List[str], str]) -> List[str]:
 
 def print_file_name_only(sources: List[str], blocks: List[List[str]], file_name_only: bool) -> None:
     for src, lines in zip(sources, blocks):
-        if file_name_only ^ bool(len(lines) <= 0):
+        if file_name_only ^ (len(lines) <= 0):
             print(src)
 
 
@@ -84,7 +84,7 @@ def main(args_str: List[str]):
     if not sources:
         sources = ['_stdin_']
 
-    re_pattern = get_re_pattern(args.pattern, args.regex, args.ignore_case)
+    re_pattern = compile_pattern(args.pattern, args.regex, args.ignore_case)
     find = get_find_function(re_pattern, args.full_match, args.invert)
     blocks = filter_blocks(blocks, find)
 
