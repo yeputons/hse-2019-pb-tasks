@@ -40,6 +40,25 @@ def test_unit_filter_matching_lines():
     assert result == ['test', 'test', 'also test']
 
 
+def test_fullmatch_not_regex(monkeypatch, capsys):
+    monkeypatch.setattr('sys.stdin', io.StringIO(
+        'fooo\n\n\n\n\n\nf\no\nf\nffo foo foo\nfoo\nfo\nfoo\n\naafooaaa\n foo\nfoo foo'))
+    grep.main(['-x', '-E', 'fo?o'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'foo\nfo\nfoo\n'
+
+
+def test_fullmatch_regex(monkeypatch, capsys):
+    monkeypatch.setattr('sys.stdin', io.StringIO(
+        'text\n\n\nttt\n\n\ntex\ntext text text\n sdfas '
+        'text dsag\ntext\ntext\ntexttext\ntetx\n\nxxxx\n '))
+    grep.main(['-x', 'text'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'text\ntext\ntext\n'
+
+
 def test_unit_print_lines(capsys):
     input_ = ['Print it', 'Print it too', '\n']
     grep.print_lines(input_)
@@ -73,18 +92,6 @@ def test_unit_add_prefix():
     prefix = 'title'
     lines = grep.add_prefix(prefix, lines, chars_between=')')
     assert lines == ['title) <- prefix', 'title)The str need a prefix', 'title)']
-
-
-def test_unit_get_difference():
-    first = ['alone', '', 1, 2, 3, True, '...']
-    second = ['', '', 10, 2, 3, False, True, '3 dots']
-    assert grep.get_difference(first, second) == ['alone', 1, '...']
-
-
-def test_unit_get_difference_empty():
-    first = []
-    second = []
-    assert grep.get_difference(first, second) == []
 
 
 def test_integrate_with_l_i_files(tmp_path, monkeypatch, capsys):
@@ -122,7 +129,7 @@ def test_integrate_big_l_with_stdin(monkeypatch, capsys):
     grep.main(['-L', 'None'])
     out, err = capsys.readouterr()
     assert err == ''
-    assert out == 'None \n'
+    assert out == '\n'
 
 
 def test_integrate_empty_stdin(monkeypatch, capsys):

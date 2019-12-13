@@ -5,8 +5,8 @@ import argparse
 import re
 
 
-def filter_matching_lines(pattern: Pattern, lines: Iterable[str]) -> List[str]:
-    return [line for line in lines if re.search(pattern, line)]
+def filter_matching_lines(pattern: Pattern, lines: Iterable[str], is_invert=False) -> List[str]:
+    return [line for line in lines if is_invert ^ bool(re.search(pattern, line))]
 
 
 def print_lines(lines: Iterable[str]) -> None:
@@ -14,8 +14,9 @@ def print_lines(lines: Iterable[str]) -> None:
         print(line)
 
 
-def build_pattern(string: str, is_regex=False, is_ignore_case=False, is_full_match=False) \
-                                                                                        -> Pattern:
+def build_pattern(string: str, is_regex=False,
+                  is_ignore_case=False,
+                  is_full_match=False) -> Pattern:
     ignore_case = re.IGNORECASE if is_ignore_case else 0
     if not is_regex:
         string = re.escape(string)
@@ -36,14 +37,6 @@ def add_prefix(prefix: str, lines: Iterable, chars_between='') -> List[str]:
     return ['{}{}{}'.format(prefix, chars_between, line) for line in lines]
 
 
-def get_difference(set_a: List[Any], set_b: List[Any]) -> List[Any]:
-    # A\B
-    for item in set_b:
-        if item in set_a:
-            set_a.remove(item)
-    return set_a
-
-
 def main(args_str: List[str]):
     parser = argparse.ArgumentParser()
     format_group = parser.add_mutually_exclusive_group()
@@ -60,24 +53,16 @@ def main(args_str: List[str]):
 
     pattern = build_pattern(args.needle, args.regex, args.ignore_case, args.line_regex)
 
-    result = []
+    collected_lines = []
 
     for file_name in args.files:
         with open(file_name, 'r') as file:
-            result.append(rstrip_lines(file.readlines()))
+            collected_lines.append(rstrip_lines(file.readlines()))
 
     if not args.files:
-        result.append(rstrip_lines(sys.stdin.readlines()))
+        collected_lines.append(rstrip_lines(sys.stdin.readlines()))
 
-    temp_result = [filter_matching_lines(pattern, lines) for lines in result]
-
-    # Flag: -v
-
-    if args.invert_match:
-        for i, matches in enumerate(temp_result):
-            result[i] = get_difference(result[i], matches)
-    else:
-        result = temp_result
+    result = [filter_matching_lines(pattern, lines, args.invert_match) for lines in collected_lines]
 
     # Flag: -c
 
@@ -89,12 +74,10 @@ def main(args_str: List[str]):
     output_only_files = args.files_with_matches or args.files_without_match
 
     if output_only_files:
+        if len(args.files) == 0:
+            result = [['']]
         for i, file_name in enumerate(args.files):
-            result[i] = [file_name] if result[i] else []
-
-    if args.files_without_match:
-        for i, file_name in enumerate(args.files):
-            result[i] = get_difference([file_name], result[i])
+            result[i] = [file_name] if args.files_without_match ^ bool(result[i]) else []
 
     if len(args.files) > 1 and not output_only_files:
         for i, file_name in enumerate(args.files):
