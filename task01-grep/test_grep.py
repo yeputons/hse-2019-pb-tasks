@@ -60,28 +60,26 @@ def test_unit_search_in_lines():
 
 
 def test_unit_print_ans_lines(capsys):
-    grep.print_ans_lines({'a': ['ptpyppytyp', 'pyt', 'pt`dsv>04pyt/-f']}, ['a'], '{1}')
+    grep.print_ans_lines({'a': ['ptpyppytyp', 'pyt', 'pt`dsv>04pyt/-f']}, '{1}')
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'ptpyppytyp\npyt\npt`dsv>04pyt/-f\n'
 
     grep.print_ans_lines({'a.txt': ['ptpyppytyp', 'pyt'],
-                          'b.txt': ['pt`dsv>04pyt/-f'], 'c.txt': []},
-                         ['a.txt', 'b.txt', 'c.txt'], '{0}:{1}')
+                          'b.txt': ['pt`dsv>04pyt/-f'], 'c.txt': []}, '{0}:{1}')
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'a.txt:ptpyppytyp\na.txt:pyt\nb.txt:pt`dsv>04pyt/-f\n'
 
 
 def test_unit_print_ans_count(capsys):
-    grep.print_ans_count({'': ['ptpyppytyp', 'pyt', 'pt`dsv>04pyt/-f']}, [''], '{1}')
+    grep.print_ans_count({'': ['ptpyppytyp', 'pyt', 'pt`dsv>04pyt/-f']}, '{1}')
     out, err = capsys.readouterr()
     assert err == ''
     assert out == '3\n'
 
     grep.print_ans_count({'a.txt': ['ptpyppytyp', 'pyt'],
-                          'b.txt': ['pt`dsv>04pyt/-f'], 'c.txt': []},
-                         ['a.txt', 'b.txt', 'c.txt'], '{0}:{1}')
+                          'b.txt': ['pt`dsv>04pyt/-f'], 'c.txt': []}, '{0}:{1}')
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'a.txt:2\nb.txt:1\nc.txt:0\n'
