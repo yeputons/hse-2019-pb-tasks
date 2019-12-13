@@ -22,7 +22,7 @@ bool threadsafe_queue_try_pop(ThreadsafeQueue *q, void **data) {
     pthread_mutex_lock(&q->mutex_que);
     bool flag = false;
     *data = nullptr;
-    if(!queue_empty(&q->q)) {
+    if (!queue_empty(&q->q)) {
         *data = queue_pop(&q->q);
         flag = true;
     }

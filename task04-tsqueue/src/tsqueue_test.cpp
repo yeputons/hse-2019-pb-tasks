@@ -1,4 +1,5 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+
 #include "tsqueue.h"
 #include "doctest.h"
 
@@ -33,7 +34,10 @@ TEST_SUITE("ThreadsafeQueue works like Queue in a single thread") {
     }
 
     TEST_CASE("with threadsafe_queue_wait_and_pop" *
-              doctest::skip()) {  // TODO(2)
+
+              doctest::skip()
+
+    ) {  // TODO(2)
         ThreadsafeQueue q;
         threadsafe_queue_init(&q);
 
@@ -51,6 +55,7 @@ TEST_SUITE("ThreadsafeQueue works like Queue in a single thread") {
         threadsafe_queue_destroy(&q);
     }
 }
+
 /* in process
 TEST_CASE("ThreadsafeQueue multithreaded ping-pong" *
           doctest::skip()) {  // TODO(2)
@@ -127,7 +132,10 @@ TEST_SUITE("ThreadsafeQueue pops from multiple threads") {
     }
 
     TEST_CASE("with threadsafe_queue_wait_and_pop" *
-              doctest::skip()) {  // TODO(2)
+
+              doctest::skip()
+
+    ) {  // TODO(2)
         ThreadsafeQueue q;
         threadsafe_queue_init(&q);
 
@@ -148,7 +156,10 @@ TEST_SUITE("ThreadsafeQueue pops from multiple threads") {
 }
 
 TEST_CASE("ThreadsafeQueue pushes from multiple threads" *
-          doctest::skip()) {  // TODO(2)
+
+          doctest::skip()
+
+) {  // TODO(2)
     ThreadsafeQueue q;
     threadsafe_queue_init(&q);
 
@@ -168,7 +179,10 @@ TEST_CASE("ThreadsafeQueue pushes from multiple threads" *
 }
 
 TEST_CASE("ThreadsafeQueue pops from multiple threads" *
-          doctest::skip()) {  // TODO(2)
+
+          doctest::skip()
+
+) {  // TODO(2)
     ThreadsafeQueue q;
     threadsafe_queue_init(&q);
 
@@ -188,7 +202,10 @@ TEST_CASE("ThreadsafeQueue pops from multiple threads" *
 }
 
 TEST_CASE("ThreadsafeQueue pushes and pops from multiple threads" *
-          doctest::skip()) {  // TODO(2)
+
+          doctest::skip()
+
+) {  // TODO(2)
     ThreadsafeQueue q;
     threadsafe_queue_init(&q);
 

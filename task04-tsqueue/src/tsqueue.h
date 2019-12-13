@@ -12,7 +12,7 @@ extern "C" {
  */
 struct ThreadsafeQueue {
     Queue q;
-    pthread_mutex_t mutex_que; //init destoy?
+    pthread_mutex_t mutex_que;  // init destoy?
     pthread_cond_t cond_que;
 };
 
