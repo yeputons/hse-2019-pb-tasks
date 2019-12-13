@@ -19,7 +19,7 @@ def create_output_line(files: bool, only_filenames: bool) -> str:
 def does_line_match(line: str, regex: bool, needle: str,
                     ignore_case: bool = False, full_match: bool = False) -> bool:
     if not regex:
-        re.escape(needle)
+        needle = re.escape(needle)
     ignore_case_flags = 0
     if ignore_case:
         ignore_case_flags = re.IGNORECASE

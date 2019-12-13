@@ -78,3 +78,20 @@ def test_create_output_line():
     assert func(files=True, only_filenames=False) == '{filename}:{line}'
     assert func(files=False, only_filenames=True) == '{filename}'
     assert func(files=True, only_filenames=True) == '{filename}'
+
+
+def test_does_line_match():
+    func = grep.does_line_match
+    line = '\t line inline (line) \\i\\n\\l\\i\\n\\e \t\n\n line'
+    assert func(line, regex=False, needle='line')
+    assert not func(line, regex=False, needle='LINE')
+    assert func(line, regex=False, needle='LINE', ignore_case=True)
+    assert not func(line, regex=False, needle='wax')
+    assert func(line, regex=False, needle='\\l\\i\\n\\e')
+    assert not func(line, regex=False, needle='line', full_match=True)
+    assert func("full", regex=False, needle='FULL', ignore_case=True)
+    assert func(line, regex=True, needle='l*e')
+    assert not func(line, regex=True, needle='(l.?e)')
+    assert func(line, regex=True, needle='(L.*E)', ignore_case = True)
+    assert func('full', regex=True, needle='ful*l', full_match=True)
+    assert func('', regex=False, needle='')
