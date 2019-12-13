@@ -85,7 +85,7 @@ TEST_CASE("ThreadsafeQueue multithreaded ping-pong") {
     };
 
     auto ponger = [](void *_qs) -> void * {
-        auto *qs = static_cast<ThreadsafeQueue *>(_qs);
+        ThreadsafeQueue *qs = static_cast<ThreadsafeQueue *>(_qs);
         for (int i = 0; i < PING_PONGS; ++i) {
             int *pinger_local =
                 static_cast<int *>(threadsafe_queue_wait_and_pop(&qs[0]));
@@ -106,7 +106,7 @@ TEST_CASE("ThreadsafeQueue multithreaded ping-pong") {
 }
 
 void *producer(void *_q) {
-    auto *q = static_cast<ThreadsafeQueue *>(_q);
+    ThreadsafeQueue *q = static_cast<ThreadsafeQueue *>(_q);
     for (int i = 0; i < ELEMENTS_PER_THREAD; i++) {
         threadsafe_queue_push(q, nullptr);
     }
@@ -114,7 +114,7 @@ void *producer(void *_q) {
 }
 
 void *consumer(void *_q) {
-    auto *q = static_cast<ThreadsafeQueue *>(_q);
+    ThreadsafeQueue *q = static_cast<ThreadsafeQueue *>(_q);
     for (int i = 0; i < ELEMENTS_PER_THREAD; i++) {
         REQUIRE(threadsafe_queue_wait_and_pop(q) == nullptr);
     }
@@ -122,7 +122,7 @@ void *consumer(void *_q) {
 }
 
 void *consumer_try(void *_q) {
-    auto *q = static_cast<ThreadsafeQueue *>(_q);
+    ThreadsafeQueue *q = static_cast<ThreadsafeQueue *>(_q);
     for (int i = 0; i < ELEMENTS_PER_THREAD; i++) {
         void *res;
         REQUIRE(threadsafe_queue_try_pop(q, &res));
