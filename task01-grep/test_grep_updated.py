@@ -148,3 +148,33 @@ def test_unit_detect_lines_regex_full_match():
                                              ignore_register=True, need_full_match=True)
     out = grep.detect_requested_lines(detection_func, input_lines)
     assert out == [['Cry'], ['cRack'], ['car'], [], []]
+
+
+def test_unit_detect_lines_substring_register_full_match():
+    input_lines = [['Cry', "don't cry"], ['cRack', 'hehe', ''], ['car', 'rC', 'cR']]
+    detection_func = grep.get_detection_func('cR', need_full_match=True)
+    out = grep.detect_requested_lines(detection_func, input_lines)
+    assert out == [[], [], ['cR']]
+
+
+def test_unit_detect_lines_regex_register():
+    input_lines = [['Cry', "don't cry"], ['cRack', 'hehe'], ['car', 'rC', ''], [], ['rrc']]
+    detection_func = grep.get_detection_func('c.', need_regex=True)
+    out = grep.detect_requested_lines(detection_func, input_lines)
+    assert out == [["don't cry"], ['cRack'], ['car'], [], []]
+
+
+def test_unit_detect_lines_regex_register_invert():
+    input_lines = [['Cry', "don't cry"], ['cRack', 'hehe'], ['car', 'rC', ''], [], ['rrc', 'same']]
+    detection_func = grep.get_detection_func('.c', need_regex=True, invert_detection=True)
+    out = grep.detect_requested_lines(detection_func, input_lines)
+    assert out == [['Cry'], ['hehe'], ['car', 'rC', ''], [], ['same']]
+
+
+def test_unit_detect_lines_substring_register_full_match_invert():
+    input_lines = [['Cry', "don't cry"], ['cRack', 'hehe', '', 'Cr'],
+                   ['car', 'rC', 'cR'], [''], [], ['cR']]
+    detection_func = grep.get_detection_func('cR', need_full_match=True, invert_detection=True)
+    out = grep.detect_requested_lines(detection_func, input_lines)
+    assert out == [['Cry', "don't cry"], ['cRack', 'hehe', '', 'Cr'],
+                   ['car', 'rC'], [''], [], []]
