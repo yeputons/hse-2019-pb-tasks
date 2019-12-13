@@ -8,24 +8,11 @@ import argparse
 
 def has_needle(line: str, needle: str, regex: bool,
                ignore_case: bool, inverted: bool, full_match: bool) -> bool:
-    if regex:
-        if ignore_case:
-            re_needle = re.compile(needle, re.IGNORECASE)
-        else:
-            re_needle = re.compile(needle)
-        if full_match:
-            search = re.fullmatch
-        else:
-            search = re.search
-        result = search(re_needle, line) is not None
-    else:
-        if ignore_case:
-            needle = needle.lower()
-            line = line.lower()
-        if full_match:
-            result = needle == line
-        else:
-            result = needle in line
+    if not regex:
+        needle = re.escape(needle)
+    re_needle = re.compile(needle, re.IGNORECASE if ignore_case else 0)
+    search = re.fullmatch if full_match else re.search
+    result = search(re_needle, line) is not None
     return result ^ inverted
 
 
@@ -39,9 +26,13 @@ def find_in_file(lines: List[str], needle: str, regex: bool, ignore_case: bool,
     return result
 
 
-def print_res(result: List[Tuple[str, List[str]]], count: bool, only_files: bool, is_stdin: bool):
+def is_found(found: List[str], need_count: bool, need_not_find: bool) -> bool:
+    return need_count or (found and not need_not_find) or (not found and need_not_find)
+
+
+def print_res(result: List[Tuple[str, List[str]]], count: bool, only_files: bool, one_file: bool):
     for file_name, lines in result:
-        if not is_stdin and not only_files and len(result) > 1:
+        if not one_file and not only_files:
             file_name += ':'
         if count:
             print(file_name, len(lines), sep='')
@@ -50,6 +41,20 @@ def print_res(result: List[Tuple[str, List[str]]], count: bool, only_files: bool
         else:
             for line in lines:
                 print(file_name, line, sep='')
+
+
+def read_input(files: List[str]) -> Tuple[List[Tuple[str, List[str]]], bool]:
+    lines = []
+    num_files = len(files)
+    one_file = num_files <= 1
+    if num_files == 0:
+        lines.append(('', sys.stdin.readlines()))
+    else:
+        for file in files:
+            with open(file, 'r') as in_file:
+                file_name = '' if one_file else file
+                lines.append((file_name, in_file.readlines()))
+    return lines, one_file
 
 
 def parse_arguments(args_str: List[str]) -> argparse.Namespace:
@@ -68,26 +73,14 @@ def parse_arguments(args_str: List[str]) -> argparse.Namespace:
 
 def main(args_str: List[str]):
     args = parse_arguments(args_str)
-    num_files = len(args.files)
-    if num_files == 0:
-        lines = sys.stdin.readlines()
-        found = find_in_file(lines, args.needle, args.regex, args.ignore_case,
-                             args.inverted, args.full_match)
-        result = [('', found)]
-        print_res(result, args.count, False, True)
-    else:
-        result = []
-        for file in args.files:
-            with open(file, 'r') as in_file:
-                file_name = '' if num_files == 1 else file
-                lines = in_file.readlines()
-                found = find_in_file(lines, args.needle, args.regex,
-                                     args.ignore_case, args.inverted, args.full_match)
-                if found and not args.only_not_files:
-                    result.append((file_name, found))
-                if not found and not args.only_files:
-                    result.append((file_name, found))
-        print_res(result, args.count, args.only_files or args.only_not_files, False)
+    lines, one_file = read_input(args.files)
+    result = []
+    for file_name, line in lines:
+        found = find_in_file(line, args.needle, args.regex,
+                             args.ignore_case, args.inverted, args.full_match)
+        if is_found(found, args.count, args.only_not_files):
+            result.append((file_name, found))
+    print_res(result, args.count, args.only_files or args.only_not_files, one_file)
 
 
 if __name__ == '__main__':
