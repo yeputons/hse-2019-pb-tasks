@@ -133,38 +133,38 @@ TEST_SUITE("ThreadsafeQueue pops from multiple threads") {
         threadsafe_queue_init(&q);
 
         for (int repeat = 0; repeat < REPEATS; repeat++) {
-        for (int i = 0; i < 2 * ELEMENTS_PER_THREAD; i++) {
-            threadsafe_queue_push(&q, nullptr);
-        }
+            for (int i = 0; i < 2 * ELEMENTS_PER_THREAD; i++) {
+                threadsafe_queue_push(&q, nullptr);
+            }
 
-        pthread_t t1, t2;
-        REQUIRE(pthread_create(&t1, nullptr, consumer_try, &q) == 0);
-        REQUIRE(pthread_create(&t2, nullptr, consumer_try, &q) == 0);
-        REQUIRE(pthread_join(t2, nullptr) == 0);
-        REQUIRE(pthread_join(t1, nullptr) == 0);
-        }
+            pthread_t t1, t2;
+            REQUIRE(pthread_create(&t1, nullptr, consumer_try, &q) == 0);
+            REQUIRE(pthread_create(&t2, nullptr, consumer_try, &q) == 0);
+            REQUIRE(pthread_join(t2, nullptr) == 0);
+            REQUIRE(pthread_join(t1, nullptr) == 0);
+            }
 
         threadsafe_queue_destroy(&q);
-}
+    }
 
     TEST_CASE("with threadsafe_queue_wait_and_pop" *
         ThreadsafeQueue q;
         threadsafe_queue_init(&q);
 
         for (int repeat = 0; repeat < REPEATS; repeat++) {
-            for (int i = 0; i < 2 * ELEMENTS_PER_THREAD; i++) {
-                threadsafe_queue_push(&q, nullptr);
-            }
+        for (int i = 0; i < 2 * ELEMENTS_PER_THREAD; i++) {
+            threadsafe_queue_push(&q, nullptr);
+        }
 
-            pthread_t t1, t2;
-            REQUIRE(pthread_create(&t1, nullptr, consumer, &q) == 0);
-            REQUIRE(pthread_create(&t2, nullptr, consumer, &q) == 0);
-            REQUIRE(pthread_join(t2, nullptr) == 0);
-            REQUIRE(pthread_join(t1, nullptr) == 0);
+        pthread_t t1, t2;
+        REQUIRE(pthread_create(&t1, nullptr, consumer, &q) == 0);
+        REQUIRE(pthread_create(&t2, nullptr, consumer, &q) == 0);
+        REQUIRE(pthread_join(t2, nullptr) == 0);
+        REQUIRE(pthread_join(t1, nullptr) == 0);
         }
 
         threadsafe_queue_destroy(&q);
-    }
+}
 }
 
 TEST_CASE("ThreadsafeQueue pushes from multiple threads" *
