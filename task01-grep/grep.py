@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 from typing import List
+from typing import Pattern
 import sys
 import re
 import argparse
@@ -22,26 +23,24 @@ def parse_args(args_str: List[str]) -> argparse.Namespace:
     return args
 
 
-def compile_pattern(pattern: str, is_pattern_regex=False, ignore_case=False):
-    if not is_pattern_regex:
-        pattern = re.escape(pattern)
-    return re.compile(pattern, flags=re.IGNORECASE) if ignore_case else re.compile(pattern)
+def compile_pattern(pattern: str, is_pattern_regex: bool = False,
+                    ignore_case: bool = False) -> Pattern:
+    return re.compile(pattern if is_pattern_regex else re.escape(pattern),
+                      flags=re.IGNORECASE if ignore_case else 0)
 
 
-def find_pattern_in_line(line: str, pattern: str, full_match=False) -> bool:
-    if full_match:
-        return bool(re.fullmatch(pattern, line))
-    return bool(re.search(pattern, line))
+def find_pattern_in_line(line: str, pattern: Pattern, full_match: bool = False) -> bool:
+    return bool(re.fullmatch(pattern, line) if full_match else re.search(pattern, line))
 
 
-def filter_matched_lines(lines: List[str], pattern, full_match=False,
-                         inverse_answer=False) -> List[str]:
+def filter_matched_lines(lines: List[str], pattern: Pattern, full_match: bool = False,
+                         inverse_answer: bool = False) -> List[str]:
     return [line for line in lines
             if inverse_answer ^ find_pattern_in_line(line, pattern, full_match)]
 
 
-def grep_from_lines(read_lines: List[str], pattern, is_only_count=False,
-                    full_match=False, inverse_answer=False) -> List:
+def grep_from_lines(read_lines: List[str], pattern: Pattern, is_only_count: bool = False,
+                    full_match: bool = False, inverse_answer: bool = False) -> List:
     filtered_lines = filter_matched_lines(read_lines, pattern, full_match, inverse_answer)
     if is_only_count:
         cnt = len(filtered_lines)
@@ -53,9 +52,10 @@ def strip_lines(lines: List[str]) -> List[str]:
     return [line.rstrip() for line in lines]
 
 
-def find_lines_from_grep_files(files: str, pattern, is_only_count=False, full_match=False,
-                               inverse_answer=False, only_files=False,
-                               inverse_only_files=False) -> List[str]:
+def find_lines_from_grep_files(files: str, pattern: Pattern, is_only_count: bool = False,
+                               full_match: bool = False, inverse_answer: bool = False,
+                               only_files: bool = False,
+                               inverse_only_files: bool = False) -> List[str]:
     filtered_lines: List[str] = []
     for file_name in files:
         try:
@@ -76,8 +76,9 @@ def find_lines_from_grep_files(files: str, pattern, is_only_count=False, full_ma
     return filtered_lines
 
 
-def find_lines_from_grep_stdin(pattern, is_only_count=False, full_match=False,
-                               inverse_answer=False) -> List[str]:
+def find_lines_from_grep_stdin(pattern: Pattern, is_only_count: bool = False,
+                               full_match: bool = False,
+                               inverse_answer: bool = False) -> List[str]:
     return grep_from_lines(strip_lines(sys.stdin.readlines()),
                            pattern, is_only_count, full_match, inverse_answer)
 
