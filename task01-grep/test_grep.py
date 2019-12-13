@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 import io
-import grep
+import grep_updated
 
 
 def test_integrate_stdin_grep(monkeypatch, capsys):
     monkeypatch.setattr('sys.stdin', io.StringIO(
         'pref needle?\nneedle? suf\nthe needl\npref needle? suf'))
-    grep.main(['needle?'])
+    grep_updated.main(['needle?'])
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'pref needle?\nneedle? suf\npref needle? suf\n'
@@ -15,7 +15,7 @@ def test_integrate_stdin_grep(monkeypatch, capsys):
 def test_integrate_stdin_regex_grep(monkeypatch, capsys):
     monkeypatch.setattr('sys.stdin', io.StringIO(
         'pref needle?\nneedle? suf\nthe needl\npref needle? suf'))
-    grep.main(['-E', 'needle?'])
+    grep_updated.main(['-E', 'needle?'])
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'pref needle?\nneedle? suf\nthe needl\npref needle? suf\n'
@@ -24,16 +24,43 @@ def test_integrate_stdin_regex_grep(monkeypatch, capsys):
 def test_integrate_stdin_grep_count(monkeypatch, capsys):
     monkeypatch.setattr('sys.stdin', io.StringIO(
         'pref needle\nneedle suf\nthe needl\npref needle suf'))
-    grep.main(['-c', 'needle'])
+    grep_updated.main(['-c', 'needle'])
     out, err = capsys.readouterr()
     assert err == ''
     assert out == '3\n'
 
 
+def test_integrate_stdin_grep_xc(monkeypatch, capsys):
+    monkeypatch.setattr('sys.stdin', io.StringIO(
+        'pref needle\nneedle suf\nthe needl\npref needle suf\nneedle\nneedle\nneed'))
+    grep_updated.main(['-xc', 'needle'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == '2\n'
+
+
+def test_integrate_stdin_grep_lix_regex(monkeypatch, capsys):
+    monkeypatch.setattr('sys.stdin', io.StringIO(
+        'fooooooooooo\nfo\nfoo\nFOo\nFO'))
+    grep_updated.main(['-lix', '-E', 'fo?o'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'fo\nfoo\nFOo\nFO\n'
+
+
+def test_integrate_stdin_grep_xiv(monkeypatch, capsys):
+    monkeypatch.setattr('sys.stdin', io.StringIO(
+        'WWWWWWOWWWWWWWW\nWOW\nwow\nwowowowoww'))
+    grep_updated.main(['-xiv', 'WOW'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'WWWWWWOWWWWWWWW\nwowowowoww\n'
+
+
 def test_integrate_file_grep(tmp_path, monkeypatch, capsys):
     (tmp_path / 'a.txt').write_text('the needl\npref needle suf')
     monkeypatch.chdir(tmp_path)
-    grep.main(['needle', 'a.txt'])
+    grep_updated.main(['needle', 'a.txt'])
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'pref needle suf\n'
@@ -43,7 +70,7 @@ def test_integrate_files_grep(tmp_path, monkeypatch, capsys):
     (tmp_path / 'a.txt').write_text('pref needle\nneedle suf\n')
     (tmp_path / 'b.txt').write_text('the needl\npref needle suf')
     monkeypatch.chdir(tmp_path)
-    grep.main(['needle', 'b.txt', 'a.txt'])
+    grep_updated.main(['needle', 'b.txt', 'a.txt'])
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'b.txt:pref needle suf\na.txt:pref needle\na.txt:needle suf\n'
@@ -53,22 +80,40 @@ def test_integrate_files_grep_count(tmp_path, monkeypatch, capsys):
     (tmp_path / 'a.txt').write_text('pref needle\nneedle suf\n')
     (tmp_path / 'b.txt').write_text('the needl\npref needle suf')
     monkeypatch.chdir(tmp_path)
-    grep.main(['-c', 'needle', 'b.txt', 'a.txt'])
+    grep_updated.main(['-c', 'needle', 'b.txt', 'a.txt'])
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'b.txt:1\na.txt:2\n'
 
 
-def test_find_needle():
-    line = 'find something here'
-    assert grep.find(line, 'find', False)
+def test_integrate_files_grep_lowercase_filenames_only(tmp_path, monkeypatch, capsys):
+    (tmp_path / 'a.txt').write_text('woooooooooow\nWow\nWWWWOWWWW')
+    (tmp_path / 'b.txt').write_text('ababa\nababab\nbabbbb')
+    (tmp_path / 'c.txt').write_text('Wow\nWow\nWow')
+    monkeypatch.chdir(tmp_path)
+    grep_updated.main(['-il', 'WOW', 'a.txt', 'b.txt', 'c.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'a.txt\nc.txt\n'
 
 
-def test_regex_find():
-    line = 'find something here'
-    assert grep.find(line, 'f*', True)
+def test_integrate_files_grep_count_invert(tmp_path, monkeypatch, capsys):
+    (tmp_path / 'a.txt').write_text('woooooooooow\nWow\nWWWWOWWWW')
+    (tmp_path / 'b.txt').write_text('ababa\nababab\nbabbbb')
+    (tmp_path / 'c.txt').write_text('Wow\nWow\nWow')
+    monkeypatch.chdir(tmp_path)
+    grep_updated.main(['-vc', 'Wow', 'a.txt', 'b.txt', 'c.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'a.txt:2\nb.txt:3\nc.txt:0\n'
 
 
-def test_do_not_find():
-    line = 'find something here'
-    assert not grep.find(line, 'no', False)
+def test_integrate_files_grep_invert_files_invert(tmp_path, monkeypatch, capsys):
+    (tmp_path / 'a.txt').write_text('woooooooooow\nWow\nWWWWOWWWW')
+    (tmp_path / 'b.txt').write_text('ababa\nababab\nbabbbb')
+    (tmp_path / 'c.txt').write_text('Wow\nWow\nWow')
+    monkeypatch.chdir(tmp_path)
+    grep_updated.main(['-vL', 'Wow', 'a.txt', 'b.txt', 'c.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'c.txt\n'
