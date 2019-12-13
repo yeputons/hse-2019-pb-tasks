@@ -14,14 +14,14 @@ class TicTacToeUserHandler(UserHandler):
             return
         if self.game:
             player, coord_y, coord_x = message.split(' ')
+            x = int(coord_x)
+            y = int(coord_y)
             players = {'X': Player.X, 'O': Player.O}
-            if self.game.can_make_turn(player=players[player], row=int(coord_x), col=int(coord_y)):
-                self.make_turn(players[player], row=int(coord_x), col=int(coord_y))
+            if self.game.can_make_turn(player=players[player], row=x, col=y):
+                self.make_turn(players[player], row=x, col=y)
                 return
-            if not self.game.can_make_turn(player=players[player], row=int(coord_x),
-                                           col=int(coord_y)):
-                self.send_message('Invalid turn')
-                return
+            self.send_message('Invalid turn')
+            return
         else:
             self.send_message('Game is not started')
             return
@@ -32,14 +32,10 @@ class TicTacToeUserHandler(UserHandler):
 
     def make_turn(self, player: Player, *, row: int, col: int) -> None:
         assert self.game
-        game_winner = ''
         self.game.make_turn(player, row=row, col=col)
         self.send_field()
         if self.game.is_finished():
-            if self.game.winner() == Player.X:
-                game_winner = 'X wins'
-            if self.game.winner() == Player.O:
-                game_winner = 'O wins'
+            game_winner = f'{player.name} wins'
             if self.game.winner() is None:
                 game_winner = 'draw'
             self.send_message(f'Game is finished, {game_winner}')
@@ -48,14 +44,6 @@ class TicTacToeUserHandler(UserHandler):
     def send_field(self) -> None:
         assert self.game
         field = []
-        for i in range(3):
-            s = ''
-            for j in range(3):
-                if not self.game.field[i][j]:
-                    s = s + '.'
-                if self.game.field[i][j] == Player.X:
-                    s = s + 'X'
-                if self.game.field[i][j] == Player.O:
-                    s = s + 'O'
-            field.append(s)
+        for row in self.game.field:
+            field.append(''.join([col.name if col else '.' for col in row]))
         self.send_message('\n'.join(field))
