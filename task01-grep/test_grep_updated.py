@@ -2,6 +2,20 @@
 import grep
 
 
+def test_integrate_format_files_grep(tmp_path, monkeypatch, capsys):
+    (tmp_path / 'a.txt').write_text('needle\ntrash\ni wan\'t to pass ALGEBRA\n')
+    (tmp_path / 'b.txt').write_text('ALGeBRAAA\nI hate algebra?\nI love algebra?\n')
+    monkeypatch.chdir(tmp_path)
+    grep.main(['-li', 'algebra', 'a.txt', 'b.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'a.txt\nb.txt\n'
+    grep.main(['-Lx', 'ALGEBRA', 'a.txt', 'b.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'a.txt\nb.txt\n'
+
+
 def test_integrate_all_keys_print_files_grep(tmp_path, monkeypatch, capsys):
     (tmp_path / 'a.txt').write_text('fO\nFO\nFoO\n')
     (tmp_path / 'b.txt').write_text('hello fo?o world\nxfooyfoz\nfooo\n')

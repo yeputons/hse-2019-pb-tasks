@@ -2,81 +2,76 @@
 from typing import List
 from typing import Tuple
 from typing import TextIO
+from typing import Callable
 import sys
 import re
 import argparse
 
 
-def get_lines_of_file(current_stream: TextIO) -> List[str]:
-    return [line.rstrip('\n') for line in current_stream.readlines()]
+def read_files(name_files: List[str]) -> List[Tuple[str, List[str]]]:
+    
+    def get_lines_of_file(current_stream: TextIO) -> List[str]:
+        return [line.rstrip('\n') for line in current_stream.readlines()]
 
-
-def parse_files(files: List[Tuple[str, TextIO]]) -> List[Tuple[str, List[str]]]:
-    return [(current_file, get_lines_of_file(stream)) for current_file, stream in files]
-
-
-def check_entry(
-        line: str, pattern: str, is_regex: bool, rev: bool, full_match: bool,
-        case_ignore: bool) -> bool:
-    if is_regex:
-        searcher = re.search
-        if full_match:
-            searcher = re.fullmatch
-        if case_ignore:
-            return bool(searcher(pattern, line, flags=re.IGNORECASE)) ^ rev
-        return bool(searcher(pattern, line)) ^ rev
+    data = []
+    if len(name_files) > 0:
+        for current_file in name_files:
+            with open(current_file, 'r') as f:
+                data.append((current_file, get_lines_of_file(f)))
     else:
-        if case_ignore:
-            pattern = pattern.casefold()
-            line = line.casefold()
-        if full_match:
-            return (pattern == line) ^ rev
-        return (pattern in line) ^ rev
+        data.append(('sys.stdin', get_lines_of_file(sys.stdin)))
+    return data
 
 
-def search_in_file(
-        name_file: str, is_regex: bool, rev: bool, full_match: bool, case_ignore: bool,
-        lines: List[str], pattern: str, fmt: str) -> bool:
+def check_entry_generator(
+        pattern: str, is_regex: bool, rev: bool, full_match: bool, case_ignore: bool
+                         ) -> Callable[[str], bool]:
+    pattern = (pattern if is_regex else re.escape(pattern))
+    searcher = (re.fullmatch if full_match else re.search)
+    flags = (re.IGNORECASE if case_ignore else 0)
+    def check_entry(line: str):
+        return bool(searcher(pattern, line, flags=flags)) ^ rev
+    return check_entry
+
+
+def search_in_file(name_file: str, check_entry: Callable[[str], bool], lines: List[str], fmt: str) -> bool:
     entry = 0
     for line in lines:
-        if check_entry(line, pattern, is_regex, rev, full_match, case_ignore):
+        if check_entry(line):
             entry = 1
             if fmt != '{0}':
                 print(fmt.format(name_file, line))
     return bool(entry)
 
 
-def count_in_lines(
-        lines: List[str], is_regex: bool, rev: bool, full_match: bool,
-        case_ignore: bool, pattern: str) -> int:
+def count_in_lines(lines: List[str], check_entry: Callable[[str], bool]) -> int:
     res = 0
     for line in lines:
-        res += check_entry(line, pattern, is_regex, rev, full_match, case_ignore)
+        res += check_entry(line)
     return res
 
 
 def search_in_files(
-        parse_data: List[Tuple[str, List[str]]], regex_flag: bool,
-        rev: bool, full_match: bool, case_ignore: bool, pattern: str,
-        count_output: bool, fmt: str):
+        parse_data: List[Tuple[str, List[str]]], check_entry: Callable[[str], bool],
+        count_output: bool, fmt: str, rev_names: bool):
     files_with_entry = []
+    files_without_entry = []
     for current_file, lines_of_file in parse_data:
         if count_output:
-            print(fmt.format(
-                current_file, count_in_lines(
-                    lines_of_file, regex_flag, rev, full_match, case_ignore, pattern
-                    )
-                ))
+            print(fmt.format(current_file, count_in_lines(lines_of_file, check_entry)))
         else:
-            entry = search_in_file(
-                current_file, regex_flag, rev, full_match, case_ignore,
-                lines_of_file, pattern, fmt
-            )
+            entry = search_in_file(current_file, check_entry, lines_of_file, fmt)
             if entry:
                 files_with_entry.append(current_file)
+            else:
+                files_without_entry.append(current_file)
     if fmt == '{0}':
-        for current_file in files_with_entry:
-            print(fmt.format(current_file, ''))
+        if rev_names:
+            for current_file in files_without_entry:
+                print(fmt.format(current_file, ''))
+        else:
+            for current_file in files_with_entry:
+                print(fmt.format(current_file, ''))
 
 
 def main(args_str: List[str]):
@@ -97,25 +92,19 @@ def main(args_str: List[str]):
 
     fmt = ''
     if args.names or args.rev_names:
-        if args.rev_names:
-            args.rev ^= 1
         fmt = '{0}'
     elif len(args.files) > 1:
         fmt = '{0}:{1}'
     else:
         fmt = '{1}'
 
-    files = []
-    if len(args.files) > 0:
-        for current_file in args.files:
-            files.append((current_file, open(current_file, 'r')))
-    else:
-        files = [('sys.stdin', sys.stdin)]
-    parse_data = parse_files(files)
-    search_in_files(
-        parse_data, args.regex, args.rev, args.full_match, args.case_ignore,
-        args.needle, args.count, fmt
-    )
+    check_entry = check_entry_generator(
+            args.needle, args.regex, args.rev, args.full_match, args.case_ignore
+                                       )
+
+    read_data = read_files(args.files)
+
+    search_in_files(read_data, check_entry, args.count, fmt, args.rev_names)
 
 
 if __name__ == '__main__':
