@@ -20,8 +20,12 @@ void threadsafe_queue_push(ThreadsafeQueue *q, void *data) {
 }
 
 bool threadsafe_queue_try_pop(ThreadsafeQueue *q, void **data) {
-    pthread_mutex_lock(&(q->mutex));
     bool flag_queue_is_empty = queue_empty(&(q->q));
+    if (flag_queue_is_empty) {
+        return false;
+    }
+    pthread_mutex_lock(&(q->mutex));
+    flag_queue_is_empty = queue_empty(&(q->q));
     if (!flag_queue_is_empty) {
         *data = queue_pop(&(q->q));
     }
