@@ -7,6 +7,7 @@ from chat_bot import ChatBot
 
 class UserWidget(tkinter.LabelFrame):
     """Класс, реализующий графический интерфейс для работы с одним пользователем."""
+
     def __init__(self,
                  text: str,
                  send_message_cb: Callable[[str], None],
