@@ -34,7 +34,7 @@ bool threadsafe_queue_try_pop(ThreadsafeQueue *q, void **data) {
 void *threadsafe_queue_wait_and_pop(ThreadsafeQueue *q) {
     pthread_mutex_lock(&q->base_mutex);
     while (queue_empty(&q->q)) {
-            pthread_cond_wait(&q->not_empty_cond, &q->base_mutex);
+        pthread_cond_wait(&q->not_empty_cond, &q->base_mutex);
     }
 
     void *data_to_return = queue_pop(&q->q);
