@@ -12,15 +12,14 @@ class TicTacToeUserHandler(UserHandler):
         if message == 'start':
             self.start_game()
             return
-        else:
-            if not self.game:
-                self.send_message('Game is not started')
-                return
-            tokens = message.split()
-            assert len(tokens) == 3
-            char, col, row = tokens[0], int(tokens[1]), int(tokens[2])
-            player = Player.X if char == 'X' else Player.O
-            self.make_turn(player, row=row, col=col)
+        if not self.game:
+            self.send_message('Game is not started')
+            return
+        tokens = message.split()
+        assert len(tokens) == 3
+        char, col, row = tokens[0], int(tokens[1]), int(tokens[2])
+        player = Player.X if char == 'X' else Player.O
+        self.make_turn(player, row=row, col=col)
 
     def start_game(self) -> None:
         self.game = TicTacToe()
@@ -32,16 +31,16 @@ class TicTacToeUserHandler(UserHandler):
             self.send_message('Invalid turn')
             return
         self.game.make_turn(player, row=row, col=col)
+        self.send_field()
         if self.game.is_finished():
-            if self.game.winner() == Player.X:
+            winner = self.game.winner()
+            if winner == Player.X:
                 self.send_message('Game is finished, X wins')
-            elif self.game.winner() == Player.O:
+            elif winner == Player.O:
                 self.send_message('Game is finished, O wins')
             else:
                 self.send_message('Game is finished, draw')
             self.game = None
-        else:
-            self.send_field()
 
     def send_field(self) -> None:
         assert self.game
