@@ -25,7 +25,6 @@ class TicTacToeUserHandler(UserHandler):
             self.make_turn(player=Player[player], row=int(row), col=int(col))
         except ValueError:
             self.send_message('Invalid turn')
-            return
 
     def start_game(self) -> None:
         """Начинает новую игру в крестики-нолики и сообщает об этом пользователю."""
