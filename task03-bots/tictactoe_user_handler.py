@@ -53,8 +53,8 @@ class TicTacToeUserHandler(UserHandler):
         assert self.game
         message = ''
         for line in self.game.field:
-            for cel in line:
-                message += cel.name if cel else '.'
+            for cell in line:
+                message += cell.name if cell else '.'
             message += '\n'
         message = message.rstrip('\n')
         self.send_message(message)
