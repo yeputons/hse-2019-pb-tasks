@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import io
 import grep
+import argparse
 
 
 def test_unit_files_to_strings(tmp_path, monkeypatch, capsys):
@@ -23,20 +24,22 @@ def test_unit_stdin_files_to_strings(monkeypatch, capsys):
 
 
 def test_unit_match_regex():
-    assert grep.match_regex('abchelloasdf', 'hello')
-    assert grep.match_regex('hello', 'hello')
-    assert not grep.match_regex('', 'hello')
-    assert not grep.match_regex('ab', 'abc')
-    assert grep.match_regex('hello', '')
-    assert grep.match_regex('hello', '[b-y][a-z1-2]')
+    r_matcher = grep.select_matcher(True, False, False, False)
+    assert r_matcher('abchelloasdf', 'hello')
+    assert r_matcher('hello', 'hello')
+    assert not r_matcher('', 'hello')
+    assert not r_matcher('ab', 'abc')
+    assert r_matcher('hello', '')
+    assert r_matcher('hello', '[b-y][a-z1-2]')
 
 
 def test_unit_match_substr():
-    assert grep.match_substr('hello', 'hello')
-    assert grep.match_substr('abchelloasdf', 'hello')
-    assert not grep.match_substr('', 'hello')
-    assert not grep.match_substr('ab', 'abc')
-    assert grep.match_substr('hello', '')
+    sub_matcher = grep.select_matcher(False, False, False, False)
+    assert sub_matcher('hello', 'hello')
+    assert sub_matcher('abchelloasdf', 'hello')
+    assert not sub_matcher('', 'hello')
+    assert not sub_matcher('ab', 'abc')
+    assert sub_matcher('hello', '')
 
 
 def test_unit_print_all(capsys):
@@ -62,20 +65,22 @@ def test_unit_print_count(capsys):
 
 
 def test_integrate_get_matched_strings(capsys):
+    r_matcher = grep.select_matcher(True, False, False, False)
+    sub_matcher = grep.select_matcher(False, False, False, False)
     matched_strings = grep.get_matched_strings(['hello', 'hi', '1hello1'],
-                                               'hello', grep.match_substr)
+                                               'hello', sub_matcher)
     _, err = capsys.readouterr()
     assert err == ''
     assert matched_strings == ['hello', '1hello1']
 
     matched_strings = grep.get_matched_strings(['h', 'hi', '1hello1'],
-                                               'h', grep.match_substr)
+                                               'h', sub_matcher)
     _, err = capsys.readouterr()
     assert err == ''
     assert matched_strings == ['h', 'hi', '1hello1']
 
     matched_strings = grep.get_matched_strings(['h', 'hi', '11'],
-                                               '[a-z]', grep.match_regex)
+                                               '[a-z]', r_matcher)
     _, err = capsys.readouterr()
     assert err == ''
     assert matched_strings == ['h', 'hi']

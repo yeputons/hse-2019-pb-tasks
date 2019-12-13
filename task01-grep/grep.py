@@ -56,29 +56,35 @@ def get_matched_strings(
         ))
 
 
-def select_matcher(args: argparse.Namespace) -> Callable[[str, str], bool]:
+def select_matcher(pattern_regex: bool,
+                   pattern_ignore_case: bool,
+                   pattern_full_match: bool,
+                   pattern_reverse_result: bool) -> Callable[[str, str], bool]:
     def match_function(string: str, pattern: str) -> bool:
-        pattern = pattern if args.pattern_regex else re.escape(pattern)
-        ignore_case = re.IGNORECASE if args.pattern_ignore_case else False
-        if args.pattern_full_match:
+        pattern = pattern if pattern_regex else re.escape(pattern)
+        ignore_case = re.IGNORECASE if pattern_ignore_case else False
+        if pattern_full_match:
             result = bool(re.fullmatch(pattern, string, flags=ignore_case))
         else:
             result = bool(re.search(pattern, string, flags=ignore_case))
-        if args.pattern_reverse_result:
+        if pattern_reverse_result:
             return not result
         return result
 
     return match_function
 
 
-def select_printer(args: argparse.Namespace, is_single) -> Callable[[str, str], None]:
+def select_printer(arg_print_filenames: bool,
+                   arg_print_filenames_without: bool,
+                   arg_print_count: bool,
+                   is_single: bool) -> Callable[[str, str], None]:
     def print_function(filename: str, match: List[str]) -> None:
-        if args.print_count:
-            print_count(filename, match, is_single)
-        elif args.print_filenames:
+        if arg_print_filenames:
             print_filenames(filename, match, False)
-        elif args.print_filenames_without:
+        elif arg_print_filenames_without:
             print_filenames(filename, match, True)
+        elif arg_print_count:
+            print_count(filename, match, is_single)
         else:
             print_all(filename, match, is_single)
 
@@ -130,14 +136,16 @@ def main(args_str: List[str]):
         help='print names of files without any matches')
     parser.add_argument('files', metavar='file', type=str, nargs='*')
     args = parser.parse_args(args_str)
-
     filenames = args.files
     files = files_to_strings(filenames)
     if not files:
         filenames = ['sys.stdin']
         files = stdin_to_strings()
 
-    match_function = select_matcher(args)
+    match_function = select_matcher(args.pattern_regex,
+                                    args.pattern_ignore_case,
+                                    args.pattern_full_match,
+                                    args.pattern_reverse_result)
 
     matched_strings = [
         get_matched_strings(strings,
@@ -146,7 +154,10 @@ def main(args_str: List[str]):
         for filename, strings in zip(filenames, files)
     ]
 
-    print_result_function = select_printer(args, len(filenames) == 1)
+    print_result_function = select_printer(args.print_filenames,
+                                           args.print_filenames_without,
+                                           args.print_count,
+                                           len(filenames) == 1)
 
     for filename, match in zip(filenames, matched_strings):
         print_result_function(filename, match)
