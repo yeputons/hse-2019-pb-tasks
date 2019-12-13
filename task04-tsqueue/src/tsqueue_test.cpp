@@ -47,10 +47,10 @@ TEST_SUITE("ThreadsafeQueue works like Queue in a single thread") {
         CHECK(threadsafe_queue_wait_and_pop(&q) == &c);
         CHECK(threadsafe_queue_wait_and_pop(&q) == &b);
         threadsafe_queue_destroy(&q);
-    } 
+    }
 }
 
-TEST_CASE("ThreadsafeQueue multithreaded ping-pong") {  
+TEST_CASE("ThreadsafeQueue multithreaded ping-pong") {
     ThreadsafeQueue qs[2];
     threadsafe_queue_init(&qs[0]);
     threadsafe_queue_init(&qs[1]);
@@ -81,7 +81,8 @@ TEST_CASE("ThreadsafeQueue multithreaded ping-pong") {
     auto ponger = [](void *_qs) -> void * {
         ThreadsafeQueue *qs = static_cast<ThreadsafeQueue *>(_qs);
         for (int i = 0; i < PING_PONGS; i++) {
-            int * data = static_cast<int *>(threadsafe_queue_wait_and_pop(&qs[0]));
+            int *data =
+                static_cast<int *>(threadsafe_queue_wait_and_pop(&qs[0]));
             ++(*data);
             threadsafe_queue_push(&qs[1], data);
         }
@@ -96,14 +97,14 @@ TEST_CASE("ThreadsafeQueue multithreaded ping-pong") {
 
     threadsafe_queue_destroy(&qs[1]);
     threadsafe_queue_destroy(&qs[0]);
-} 
+}
 
 void *producer(void *_q) {
     ThreadsafeQueue *q = static_cast<ThreadsafeQueue *>(_q);
     for (int i = 0; i < ELEMENTS_PER_THREAD; i++) {
         threadsafe_queue_push(q, nullptr);
     }
-    
+
     return nullptr;
 }
 
@@ -112,18 +113,18 @@ void *consumer(void *_q) {
     for (int i = 0; i < ELEMENTS_PER_THREAD; i++) {
         REQUIRE(threadsafe_queue_wait_and_pop(q) == nullptr);
     }
-    
+
     return nullptr;
 }
 
 void *consumer_try(void *_q) {
     ThreadsafeQueue *q = static_cast<ThreadsafeQueue *>(_q);
     for (int i = 0; i < ELEMENTS_PER_THREAD; i++) {
-        void * data;
+        void *data;
         REQUIRE(threadsafe_queue_try_pop(q, &data));
         REQUIRE(data == nullptr);
     }
-    
+
     return nullptr;
 }
 
@@ -147,7 +148,7 @@ TEST_SUITE("ThreadsafeQueue pops from multiple threads") {
         threadsafe_queue_destroy(&q);
     }
 
-    TEST_CASE("with threadsafe_queue_wait_and_pop" ) {
+    TEST_CASE("with threadsafe_queue_wait_and_pop") {
         ThreadsafeQueue q;
         threadsafe_queue_init(&q);
 
@@ -167,7 +168,7 @@ TEST_SUITE("ThreadsafeQueue pops from multiple threads") {
     }
 }
 
-TEST_CASE("ThreadsafeQueue pushes from multiple threads" ) {
+TEST_CASE("ThreadsafeQueue pushes from multiple threads") {
     ThreadsafeQueue q;
     threadsafe_queue_init(&q);
 
