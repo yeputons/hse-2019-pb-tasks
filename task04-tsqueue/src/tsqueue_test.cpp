@@ -83,7 +83,8 @@ TEST_CASE("ThreadsafeQueue multithreaded ping-pong") {
     auto ponger = [](void *_qs) -> void * {
         ThreadsafeQueue *qs = static_cast<ThreadsafeQueue *>(_qs);
         for (int i = 0; i < PING_PONGS; i++) {
-            int *tmp = static_cast<int *>(threadsafe_queue_wait_and_pop(&qs[0]));
+            int *tmp =
+                    static_cast<int *>(threadsafe_queue_wait_and_pop(&qs[0]));
             (*tmp)++;
             threadsafe_queue_push(&qs[1], tmp);
         }
@@ -171,7 +172,7 @@ TEST_CASE("ThreadsafeQueue pushes from multiple threads") {
     ThreadsafeQueue q;
     threadsafe_queue_init(&q);
 
-        for (int repeat = 0; repeat < REPEATS; repeat++) {
+    for (int repeat = 0; repeat < REPEATS; repeat++) {
         pthread_t t1, t2;
         REQUIRE(pthread_create(&t1, nullptr, producer, &q) == 0);
         REQUIRE(pthread_create(&t2, nullptr, producer, &q) == 0);
