@@ -1,15 +1,14 @@
-#!/usr/bin/env python3
 import sys
 import traceback
-from alarm_user_handler import AlarmUserHandler
+from tictactoe_user_handler import TicTacToeUserHandler
 
 
 def main() -> None:
-    bot = AlarmUserHandler(send_message=print)
+    user_handler = TicTacToeUserHandler(send_message=print)
     for line in sys.stdin:
         try:
-            line.rstrip('\n')
-            bot.handle_message(message=line)
+            message = line.rstrip('\n')
+            user_handler.handle_message(message)
         except Exception:  # pylint: disable=W0703
             traceback.print_exc()
 
