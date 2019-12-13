@@ -54,17 +54,14 @@ def add_filename_prefix(lines_source_tuple: Tuple[List[str], str]) -> List[str]:
     return [f'{source}:{line}' for line in lines]
 
 
-def print_file_name_only(sources: List[str], blocks: List[List[str]], file_name_only: bool) -> None:
-    for src, lines in zip(sources, blocks):
+def print_file_name_only(blocks_and_sources_list: Iterable, file_name_only: bool) -> None:
+    for lines_source_tuple in blocks_and_sources_list:
+        lines, source = lines_source_tuple
         if file_name_only ^ (len(lines) <= 0):
-            print(src)
+            print(source)
 
 
-def print_blocks(sources: List[str], blocks: List[List[str]], count: bool) -> None:
-    if count:
-        blocks = map_blocks(blocks)
-    if len(sources) > 1:
-        blocks = list(map(add_filename_prefix, zip(blocks, sources)))
+def print_blocks(blocks: List[List[str]]) -> None:
     for lines in blocks:
         for line in lines:
             print(line)
@@ -88,10 +85,15 @@ def main(args_str: List[str]):
     find = get_find_function(re_pattern, args.full_match, args.invert)
     blocks = filter_blocks(blocks, find)
 
+    if args.count:
+        blocks = map_blocks(blocks)
+    if len(sources) > 1:
+        blocks = list(map(add_filename_prefix, zip(blocks, sources)))
+
     if args.file_name_only or args.invert_file_name_only:
-        print_file_name_only(sources, blocks, args.file_name_only)
+        print_file_name_only(zip(blocks, sources), args.file_name_only)
     else:
-        print_blocks(sources, blocks, args.count)
+        print_blocks(blocks)
 
 
 if __name__ == '__main__':

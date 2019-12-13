@@ -154,14 +154,22 @@ def test_compile_pattern():
 
 
 def test_get_find_function():
-    pattern = re.compile('.')
-    assert lambda line: bool(re.fullmatch(pattern, line)) ^ 1 == grep.get_find_function(pattern, True, True)
+    pattern = re.compile('ab')
+
+    def f_test(line):
+        return bool(re.fullmatch(pattern, line)) ^ 1
+
+    f_correct = grep.get_find_function(pattern, True, True)
+    assert f_test('a') == f_correct('b')
 
 
 def test_filter_blocks():
     blocks = [['lol ke', 'lol'], ['kek']]
     pattern = re.compile('ke?')
-    f = lambda line: bool(re.search(pattern, line)) ^ 0
+
+    def f(line):
+        return bool(re.search(pattern, line)) ^ 0
+
     assert grep.filter_blocks(blocks, f) == [['lol ke'], ['kek']]
 
 
@@ -178,11 +186,7 @@ def test_add_filename_prefix():
 
 def test_print_blocks(capsys):
     blocks = [['a', 'x'], ['b']]
-    grep.print_blocks(['1', '2'], blocks, False)
+    grep.print_blocks(blocks)
     out, err = capsys.readouterr()
     assert err == ''
-    assert out == '1:a\n1:x\n2:b\n'
-    grep.print_blocks(['1', '2'], blocks, True)
-    out, err = capsys.readouterr()
-    assert err == ''
-    assert out == '1:2\n2:1\n'
+    assert out == 'a\nx\nb\n'
