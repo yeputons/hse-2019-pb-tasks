@@ -16,12 +16,9 @@ class TicTacToeUserHandler(UserHandler):
         elif not self.game:
             self.send_message('Game is not started')
         else:
-            chips, col, row = message.split()
-            if chips == 'X':
-                player = Player.X
-            else:
-                player = Player.O
-            self.make_turn(player, row=int(row), col=int(col))
+            tic_or_tac, cell, row = message.split()
+            player = Player[tic_or_tac]
+            self.make_turn(player, row=int(row), col=int(cell))
 
     def start_game(self) -> None:
         self.game = TicTacToe()
@@ -38,7 +35,7 @@ class TicTacToeUserHandler(UserHandler):
                 if not turn:
                     self.send_message('Game is finished, draw')
                 else:
-                    if turn == Player.O:
+                    if turn.name == 'O':
                         win = 'X'
                     else:
                         win = 'O'
@@ -49,9 +46,9 @@ class TicTacToeUserHandler(UserHandler):
         assert isinstance(self.game, TicTacToe)
         board = ''
         for row in self.game.field:
-            for col in row:
-                if col:
-                    board += col.name
+            for cell in row:
+                if cell:
+                    board += cell.name
                 else:
                     board += '.'
             board += '\n'
