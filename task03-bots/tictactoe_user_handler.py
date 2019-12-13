@@ -13,7 +13,7 @@ class TicTacToeUserHandler(UserHandler):
             self.start_game()
         elif self.game is not None:
             try:
-                char, row, col = message.split()
+                char, col, row = message.split()
                 if char == 'X':
                     player = Player.X
                 else:
