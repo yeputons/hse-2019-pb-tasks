@@ -7,8 +7,8 @@ const int REPEATS = 3;
 
 TEST_SUITE("ThreadsafeQueue works like Queue in a single thread") {
     TEST_CASE("with threadsafe_queue_try_pop") {
-        ThreadsafeQueue q{};
-        threadsafe_queue_init(&q);
+		ThreadsafeQueue q{};
+		threadsafe_queue_init(&q);
 
         int a = 0;
         int b = 0;
