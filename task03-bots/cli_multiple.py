@@ -2,6 +2,13 @@
 import sys
 from alarm_user_handler import AlarmUserHandler
 import traceback
+from bot import UserIndependentBot
+
+
+bot = UserIndependentBot(
+      send_message=lambda user_id, message: user_widgets[user_id].received_message(message),
+      user_handler=AlarmUserHandler
+    )
 
 
 def send_message(to_user_id: int, message: str) -> None:
@@ -12,7 +19,10 @@ def send_message(to_user_id: int, message: str) -> None:
 
 def main() -> None:
     """Пример работы с ботом через консоль."""
-    bot = AlarmUserHandler(send_message=send_message)
+    bot = UserIndependentBot(
+        send_message=send_message,
+        user_handler=AlarmUserHandler
+        )
     for line in sys.stdin:
         try:
             user_id, message = line.rstrip('\n').split(maxsplit=1)
