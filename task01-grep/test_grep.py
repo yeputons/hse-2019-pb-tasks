@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-"""plug"""
 import io
 import re
 
@@ -7,7 +6,6 @@ import grep
 
 
 def test_integrate_stdin_grep(monkeypatch, capsys):
-    """plug"""
     monkeypatch.setattr('sys.stdin', io.StringIO(
         'pref needle?\nneedle? suf\nthe needl\npref needle? suf'))
     grep.main(['needle?'])
@@ -17,7 +15,6 @@ def test_integrate_stdin_grep(monkeypatch, capsys):
 
 
 def test_integrate_stdin_regex_grep(monkeypatch, capsys):
-    """plug"""
     monkeypatch.setattr('sys.stdin', io.StringIO(
         'pref needle?\nneedle? suf\nthe needl\npref needle? suf'))
     grep.main(['-E', 'needle?'])
@@ -27,7 +24,6 @@ def test_integrate_stdin_regex_grep(monkeypatch, capsys):
 
 
 def test_integrate_stdin_grep_count(monkeypatch, capsys):
-    """plug"""
     monkeypatch.setattr('sys.stdin', io.StringIO(
         'pref needle\nneedle suf\nthe needl\npref needle suf'))
     grep.main(['-c', 'needle'])
@@ -37,7 +33,6 @@ def test_integrate_stdin_grep_count(monkeypatch, capsys):
 
 
 def test_integrate_stdin_grep_regex_count(monkeypatch, capsys):
-    """plug"""
     monkeypatch.setattr('sys.stdin', io.StringIO(
         '112\nWWW\nSU35\nF'))
     grep.main(['-c', '-E', '[0-9]'])
@@ -47,7 +42,6 @@ def test_integrate_stdin_grep_regex_count(monkeypatch, capsys):
 
 
 def test_integrate_file_grep(tmp_path, monkeypatch, capsys):
-    """plug"""
     (tmp_path / 'a.txt').write_text('the needl\npref needle suf')
     monkeypatch.chdir(tmp_path)
     grep.main(['needle', 'a.txt'])
@@ -57,7 +51,6 @@ def test_integrate_file_grep(tmp_path, monkeypatch, capsys):
 
 
 def test_integrate_files_grep(tmp_path, monkeypatch, capsys):
-    """plug"""
     (tmp_path / 'a.txt').write_text('pref needle\nneedle suf\n')
     (tmp_path / 'b.txt').write_text('the needl\npref needle suf')
     monkeypatch.chdir(tmp_path)
@@ -68,7 +61,6 @@ def test_integrate_files_grep(tmp_path, monkeypatch, capsys):
 
 
 def test_integrate_files_grep_count(tmp_path, monkeypatch, capsys):
-    """plug"""
     (tmp_path / 'a.txt').write_text('pref needle\nneedle suf\n')
     (tmp_path / 'b.txt').write_text('the needl\npref needle suf')
     monkeypatch.chdir(tmp_path)
@@ -79,7 +71,6 @@ def test_integrate_files_grep_count(tmp_path, monkeypatch, capsys):
 
 
 def test_integrate_file_grep_count(tmp_path, monkeypatch, capsys):
-    """plug"""
     (tmp_path / 'a.txt').write_text('pref needle\nneedle suf\n')
     monkeypatch.chdir(tmp_path)
     grep.main(['-c', 'needle', 'a.txt'])
@@ -89,7 +80,6 @@ def test_integrate_file_grep_count(tmp_path, monkeypatch, capsys):
 
 
 def test_integrate_files_regex_grep(tmp_path, monkeypatch, capsys):
-    """plug"""
     (tmp_path / 'a.txt').write_text('112\nmiu\n')
     (tmp_path / 'b.txt').write_text('one-two-three\n123')
     monkeypatch.chdir(tmp_path)
@@ -100,7 +90,6 @@ def test_integrate_files_regex_grep(tmp_path, monkeypatch, capsys):
 
 
 def test_integrate_file_regex_grep(tmp_path, monkeypatch, capsys):
-    """plug"""
     (tmp_path / 'a.txt').write_text('wronganswer4\njunkz\npython')
     monkeypatch.chdir(tmp_path)
     grep.main(['-E', '[0-9]', 'a.txt'])
@@ -110,7 +99,6 @@ def test_integrate_file_regex_grep(tmp_path, monkeypatch, capsys):
 
 
 def test_integrate_file_count_regex_grep(tmp_path, monkeypatch, capsys):
-    """plug"""
     (tmp_path / 'a.txt').write_text('wronganswer4\njunkz\npython')
     monkeypatch.chdir(tmp_path)
     grep.main(['-c', '-E', '[0-9]', 'a.txt'])
@@ -120,7 +108,6 @@ def test_integrate_file_count_regex_grep(tmp_path, monkeypatch, capsys):
 
 
 def test_integrate_files_count_regex_grep(tmp_path, monkeypatch, capsys):
-    """plug"""
     (tmp_path / 'a.txt').write_text('wronganswer4\njunkz\npython')
     (tmp_path / 'b.txt').write_text('LeBron\nJames\n')
     monkeypatch.chdir(tmp_path)
@@ -161,7 +148,6 @@ def test_integrate_all_keys_count_files_grep(tmp_path, monkeypatch, capsys):
 
 
 def test_init_arguments():
-    """plug"""
     args = grep.init_arguments(['task', 'input.txt', '-E', '-c'])
     assert args.pattern == 'task'
     assert args.files == ['input.txt']
@@ -170,59 +156,48 @@ def test_init_arguments():
 
 
 def test_create_regex_e_i():
-    """plug"""
     test_string = '.'
     is_regular = True
     is_ignore = True
-    result_string = grep.create_regex(test_string, is_regular, is_ignore)
+    result_string = grep.compile_pattern(test_string, is_regular, is_ignore)
     assert result_string == re.compile('.', re.IGNORECASE)
 
 
 def test_create_regex_e():
-    """plug"""
     test_string = '[0-9]\\d'
     is_regular = True
     is_ignore = False
-    result_string = grep.create_regex(test_string, is_regular, is_ignore)
+    result_string = grep.compile_pattern(test_string, is_regular, is_ignore)
     assert result_string == re.compile('[0-9]\\d')
 
 
 def test_create_regex_i():
-    """plug"""
     test_string = 'master'
     is_regular = False
     is_ignore = True
-    result_string = grep.create_regex(test_string, is_regular, is_ignore)
+    result_string = grep.compile_pattern(test_string, is_regular, is_ignore)
     assert result_string == re.compile('master', re.IGNORECASE)
 
 
 def test_create_regex():
-    """plug"""
     test_string = 'master'
     is_regular = False
     is_ignore = False
-    result_string = grep.create_regex(test_string, is_regular, is_ignore)
+    result_string = grep.compile_pattern(test_string, is_regular, is_ignore)
     assert result_string == re.compile('master')
 
 
 def test_strip_lines():
-    """plug"""
     list_ = ['plov\n', 'lavash\n', 'pomidor\n']
     result_list = grep.strip_lines(list_)
     assert result_list == ['plov', 'lavash', 'pomidor']
-
-
-def test_create_list_filenames():
-    file_names = ['a.txt', 'b.txt', 'c.txt']
-    result = grep.create_list_stream_names(file_names)
-    assert result == file_names
 
 
 def test_create_all_lines(tmp_path, monkeypatch):
     (tmp_path / 'a.txt').write_text('mem\nory\n')
     (tmp_path / 'b.txt').write_text('lim\nit\n')
     monkeypatch.chdir(tmp_path)
-    read = grep.create_lines_of_lines(['a.txt', 'b.txt'])
+    read = grep.read_files(['a.txt', 'b.txt'])
     assert read == [['mem\n', 'ory\n'],
                     ['lim\n', 'it\n']]
 
@@ -271,30 +246,34 @@ def test_process_result_lines_more_interesting():
 def test_process_file_with_str_not_empty_lines():
     lines = ['a', 'b', 'c']
     file_name = 'a.txt'
-    assert grep.process_file_with_str(lines, file_name) == ['a.txt']
+    is_without = False
+    assert grep.process_file_with_str_or_without_str(lines, file_name, is_without) == ['a.txt']
 
 
 def test_process_file_with_str_empty_lines():
     lines = []
     file_name = 'a.txt'
-    assert grep.process_file_with_str(lines, file_name) == []
+    is_without = False
+    assert grep.process_file_with_str_or_without_str(lines, file_name, is_without) == []
 
 
 def test_process_file_without_str_empty_lines():
     lines = []
     file_name = 'a.txt'
-    assert grep.process_file_without_str(lines, file_name) == ['a.txt']
+    is_without = True
+    assert grep.process_file_with_str_or_without_str(lines, file_name, is_without) == ['a.txt']
 
 
 def test_process_file_without_str_not_empty_lines():
     lines = ['a', 'b', 'c']
     file_name = 'a.txt'
-    assert grep.process_file_without_str(lines, file_name) == []
+    is_without = True
+    assert grep.process_file_with_str_or_without_str(lines, file_name, is_without) == []
 
 
 def test_process_count_std_input_or_one_file():
     lines = ['a', 'b', 'c']
-    stream_name = 'None'
+    stream_name = None
     assert grep.process_count(lines, stream_name) == ['3']
 
 
@@ -306,7 +285,7 @@ def test_process_count_many_file_input():
 
 def test_process_no_flags_stdin_or_one_file():
     lines = ['a', 'b', 'c']
-    stream_name = 'None'
+    stream_name = None
     assert grep.process_no_flags(lines, stream_name) == ['a', 'b', 'c']
 
 
