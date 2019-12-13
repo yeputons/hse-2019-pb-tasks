@@ -21,7 +21,7 @@ class TicTacToeUserHandler(UserHandler):
             if self.game is None:
                 self.send_message('Game is not started')
                 return
-            player_sign, row, column = message.split()
+            player_sign, column, row = message.split()
             self.make_turn(players_signs[player_sign], row=int(row), col=int(column))
 
         except Exception:  # pylint: disable=W0703
@@ -34,6 +34,7 @@ class TicTacToeUserHandler(UserHandler):
 
     def make_turn(self, player: Player, *, row: int, col: int) -> None:
         """Обрабатывает ход игрока player в клетку (row, col)."""
+        inverse_player_signs = {Player.O: 'O', Player.X: 'X'}
         assert self.game
         if self.game.can_make_turn(player, row=row, col=col):
             self.game.make_turn(player, row=row, col=col)
@@ -43,8 +44,7 @@ class TicTacToeUserHandler(UserHandler):
                 if winner is None:
                     self.send_message('Game is finished, draw')
                 else:
-                    self.send_message(f'Game is finished, {winner} wins')
-                return
+                    self.send_message(f'Game is finished, {inverse_player_signs[winner]} wins')
             return
         self.send_message('Invalid turn')
         return
