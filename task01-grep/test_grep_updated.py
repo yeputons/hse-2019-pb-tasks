@@ -89,7 +89,7 @@ def test_does_line_match():
     assert not func(line, regex=False, needle='wax')
     assert func(line, regex=False, needle='\\l\\i\\n\\e')
     assert not func(line, regex=False, needle='line', full_match=True)
-    assert func("full", regex=False, needle='FULL', ignore_case=True)
+    assert func('full', regex=False, needle='FULL', ignore_case=True)
     assert func(line, regex=True, needle='l*e')
     assert not func(line, regex=True, needle='(l.?e)')
     assert func(line, regex=True, needle='(L.*E)', ignore_case=True)
