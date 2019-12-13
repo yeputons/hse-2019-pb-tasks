@@ -1,6 +1,5 @@
 #include "tsqueue.h"
 
-
 void threadsafe_queue_init(ThreadsafeQueue *q) {
     queue_init(&q->q);
     pthread_mutex_init(&q->mutex, nullptr);
