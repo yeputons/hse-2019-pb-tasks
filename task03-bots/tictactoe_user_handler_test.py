@@ -81,7 +81,7 @@ def test_ticktactoe_user_hadler_draw(mocker: pytest_mock.MockFixture) -> None:
     ]
 
 
-def test_ticktactoe_user_hadler_O_wins(mocker: pytest_mock.MockFixture
+def test_ticktactoe_user_hadler_o_wins(mocker: pytest_mock.MockFixture
                                        ) -> None:
     send_message = mocker.stub(name='send_message_stub')
     bot = TicTacToeUserHandler(send_message)
