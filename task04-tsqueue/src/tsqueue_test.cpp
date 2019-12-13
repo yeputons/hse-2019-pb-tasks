@@ -32,8 +32,7 @@ TEST_SUITE("ThreadsafeQueue works like Queue in a single thread") {
 		threadsafe_queue_destroy(&q);
 	}
 
-	TEST_CASE("with threadsafe_queue_wait_and_pop" *
-			doctest::skip()) {  // TODO(2)
+	TEST_CASE("with threadsafe_queue_wait_and_pop") {
 		ThreadsafeQueue q;
 		threadsafe_queue_init(&q);
 
@@ -52,8 +51,7 @@ TEST_SUITE("ThreadsafeQueue works like Queue in a single thread") {
 	}
 }
 
-TEST_CASE("ThreadsafeQueue multithreaded ping-pong" *
-		doctest::skip()) {  // TODO(2)
+TEST_CASE("ThreadsafeQueue multithreaded ping-pong") {
 	ThreadsafeQueue qs[2];
 	threadsafe_queue_init(&qs[0]);
 	threadsafe_queue_init(&qs[1]);
@@ -71,20 +69,32 @@ TEST_CASE("ThreadsafeQueue multithreaded ping-pong" *
 
 	// Специальный синтаксис для объявления функции внутри функции.
 	// (в общем случае это лямбда-функции/замыкания, но нам это неважно).
-	auto pinger = [](void *_qs) -> void * {
-		ThreadsafeQueue *qs = static_cast<ThreadsafeQueue *>(_qs);
-		// TODO(2)
-		static_cast<void>(qs);// Используем переменную как-нибудь.
-		static_cast<void>(PING_PONGS);// Используем переменную как-нибудь.
+	auto pinger = [](void *_qs) -> void* {
+		ThreadsafeQueue *qs = static_cast<ThreadsafeQueue*>(_qs);
+		for (int i = 0; i < PING_PONGS; i++) {
+			int ball = i * 65;
+			threadsafe_queue_push(&qs[0], &ball);
+			int *ball_back = (int*) threadsafe_queue_wait_and_pop(&qs[1]);
+			CHECK(*ball_back == i * 65 + 1);
+			CHECK(ball_back == &ball);
+		}
 		return nullptr;
 	};
 
-	// TODO(2)
+	auto ponger = [](void *_qs) -> void* {
+		ThreadsafeQueue *qs = static_cast<ThreadsafeQueue*>(_qs);
+		for (int i = 0; i < PING_PONGS; i++) {
+			int *ball = (int*) threadsafe_queue_wait_and_pop(&qs[0]);
+			(*ball)++;
+			threadsafe_queue_push(&qs[1], ball);
+		}
+		return nullptr;
+	};
 
 	pthread_t t1, t2;
 	REQUIRE(pthread_create(&t1, nullptr, pinger, qs) == 0);
-	// TODO(2)
-	static_cast<void>(t2);
+	REQUIRE(pthread_create(&t2, nullptr, ponger, qs) == 0);
+	REQUIRE(pthread_join(t2, nullptr) == 0);
 	REQUIRE(pthread_join(t1, nullptr) == 0);
 
 	threadsafe_queue_destroy(&qs[1]);
@@ -137,8 +147,7 @@ TEST_SUITE("ThreadsafeQueue pops from multiple threads") {
 		threadsafe_queue_destroy(&q);
 	}
 
-	TEST_CASE("with threadsafe_queue_wait_and_pop" *
-			doctest::skip()) {  // TODO(2)
+	TEST_CASE("with threadsafe_queue_wait_and_pop") {
 		ThreadsafeQueue q;
 		threadsafe_queue_init(&q);
 
@@ -158,8 +167,7 @@ TEST_SUITE("ThreadsafeQueue pops from multiple threads") {
 	}
 }
 
-TEST_CASE("ThreadsafeQueue pushes from multiple threads" *
-		doctest::skip()) {  // TODO(2)
+TEST_CASE("ThreadsafeQueue pushes from multiple threads") {
 	ThreadsafeQueue q;
 	threadsafe_queue_init(&q);
 
@@ -178,8 +186,7 @@ TEST_CASE("ThreadsafeQueue pushes from multiple threads" *
 	threadsafe_queue_destroy(&q);
 }
 
-TEST_CASE("ThreadsafeQueue pops from multiple threads" *
-		doctest::skip()) {  // TODO(2)
+TEST_CASE("ThreadsafeQueue pops from multiple threads") {
 	ThreadsafeQueue q;
 	threadsafe_queue_init(&q);
 
@@ -198,8 +205,7 @@ TEST_CASE("ThreadsafeQueue pops from multiple threads" *
 	threadsafe_queue_destroy(&q);
 }
 
-TEST_CASE("ThreadsafeQueue pushes and pops from multiple threads" *
-		doctest::skip()) {  // TODO(2)
+TEST_CASE("ThreadsafeQueue pushes and pops from multiple threads") {
 	ThreadsafeQueue q;
 	threadsafe_queue_init(&q);
 
