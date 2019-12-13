@@ -24,7 +24,7 @@ def test_tictactoe_user_handler_game_start(mocker: pytest_mock.MockFixture) -> N
     ]
 
 
-def test_tictactoe_user_handler_X_turn(mocker: pytest_mock.MockFixture) -> None:
+def test_tictactoe_user_handler_x_turn(mocker: pytest_mock.MockFixture) -> None:
     send_message = mocker.stub(name='send_message_stub')
     bot = TicTacToeUserHandler(send_message)
     bot.handle_message('hello')
@@ -37,7 +37,7 @@ def test_tictactoe_user_handler_X_turn(mocker: pytest_mock.MockFixture) -> None:
     ]
 
 
-def test_tictactoe_user_handler_O_turn(mocker: pytest_mock.MockFixture) -> None:
+def test_tictactoe_user_handler_o_turn(mocker: pytest_mock.MockFixture) -> None:
     send_message = mocker.stub(name='send_message_stub')
     bot = TicTacToeUserHandler(send_message)
     bot.handle_message('hello')
