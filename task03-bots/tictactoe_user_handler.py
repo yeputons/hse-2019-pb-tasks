@@ -4,7 +4,6 @@ from tictactoe import Player, TicTacToe
 
 
 class TicTacToeUserHandler(UserHandler):
-
     def __init__(self, send_message: Callable[[str], None]) -> None:
         super(TicTacToeUserHandler, self).__init__(send_message)
         self.game: Optional[TicTacToe] = None
@@ -16,7 +15,7 @@ class TicTacToeUserHandler(UserHandler):
             self.send_message('Game is not started')
         else:
             player_by_symbol, col, row = message.split()
-            self.make_turn(player=Player[player_by_symbol], row=int(row), col=int(col))
+            self.try_make_turn(player=Player[player_by_symbol], row=int(row), col=int(col))
 
     def start_game(self) -> None:
         self.game = TicTacToe()
@@ -31,15 +30,15 @@ class TicTacToeUserHandler(UserHandler):
             self.send_message('Game is finished, draw')
         self.game = None
 
-    def make_turn(self, player: Player, *, row: int, col: int) -> None:
+    def try_make_turn(self, player: Player, *, row: int, col: int) -> None:
         assert self.game
-        if self.game.can_make_turn(player, row=row, col=col):
+        if not self.game.can_make_turn(player, row=row, col=col):
+            self.send_message('Invalid turn')
+        else:
             self.game.make_turn(player, row=row, col=col)
             self.send_field()
             if self.game.is_finished():
                 self.finish_game()
-        else:
-            self.send_message('Invalid turn')
 
     def send_field(self) -> None:
         assert self.game
