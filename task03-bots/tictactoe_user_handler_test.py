@@ -33,8 +33,6 @@ def test_many_invalid_turns(mocker: pytest_mock.MockFixture) -> None:
         'start', 'O 0 0', 'X 1 1', 'X 1 1', 'O 1 1',
         'O 0 1', 'X 0 0', 'X 2 2', 'O 0 0'
     ])
-    with open('a.txt', 'w') as file:
-        print(type(mocker.call('a')), file=file)
     assert send_message.call_args_list == create_list_of_calls(mocker, [
         '...\n...\n...', 'Invalid turn', '...\n.X.\n...',
         'Invalid turn', 'Invalid turn', '...\nOX.\n...',
