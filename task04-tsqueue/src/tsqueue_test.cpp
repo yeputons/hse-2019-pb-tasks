@@ -109,10 +109,8 @@ void *producer(void *_q) {
 
 void *consumer(void *_q) {
     ThreadsafeQueue *q = static_cast<ThreadsafeQueue *>(_q);
-    void *data;
     for (int i = 0; i < ELEMENTS_PER_THREAD; i++) {
-        REQUIRE(threadsafe_queue_try_pop(q, &data));
-        REQUIRE(data == nullptr);
+        REQUIRE(threadsafe_queue_wait_and_pop(q) == nullptr);
     }
     return nullptr;
 }
@@ -195,14 +193,12 @@ TEST_CASE("ThreadsafeQueue pops from multiple threads") {
         for (int i = 0; i < 2 * ELEMENTS_PER_THREAD; i++) {
             threadsafe_queue_push(&q, nullptr);
         }
-
         pthread_t t1, t2;
-        REQUIRE(pthread_create(&t1, nullptr, consumer_try, &q) == 0);
-        REQUIRE(pthread_create(&t2, nullptr, consumer_try, &q) == 0);
+        REQUIRE(pthread_create(&t1, nullptr, consumer, &q) == 0);
+        REQUIRE(pthread_create(&t2, nullptr, consumer, &q) == 0);
         REQUIRE(pthread_join(t2, nullptr) == 0);
         REQUIRE(pthread_join(t1, nullptr) == 0);
     }
-
     threadsafe_queue_destroy(&q);
 }
 
