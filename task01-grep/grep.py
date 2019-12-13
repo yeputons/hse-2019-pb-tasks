@@ -22,7 +22,8 @@ def pattern_format(pattern: str, is_regex: bool, full_matches: bool) -> str:
     return pattern
 
 
-def check_if_line_in_answer(line: str, pattern: str, is_ignore_case: bool, invert_result: bool) -> bool:
+def check_if_line_in_answer(line: str, pattern: str, is_ignore_case: bool,
+                            invert_result: bool) -> bool:
     result = False
     if is_ignore_case and re.search(re.compile(pattern.lower()), line.lower()):
         result = True
@@ -42,7 +43,8 @@ def format_strings_with_text_flags(lines: List[str], pattern: str, is_ignore_cas
 
 def format_lines_with_print_flags(lines: List[str], source: str,
                                   number_of_files: bool, count_mode: bool,
-                                  filenames_matches_exist: bool, filenames_matches_not_exist: bool) -> List[str]:
+                                  filenames_matches_exist: bool,
+                                  filenames_matches_not_exist: bool) -> List[str]:
     if count_mode:
         lines = [str(len(lines))]
     if number_of_files:
