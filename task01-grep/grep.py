@@ -20,19 +20,15 @@ def read_stdin() -> List:
 
 def search(pattern: str, line: str, search_flags: Dict) -> bool:
     answer: bool
+    # make regex out of standard mode pattern
+    if not search_flags['regex']:
+        pattern = re.escape(pattern)
     # regex mode
-    if search_flags['regex']:
-        re_flags = re.IGNORECASE if search_flags['ignore_case'] else 0
-        if search_flags['full_match']:
-            answer = bool(re.fullmatch(pattern, line, flags=re_flags))
-        else:
-            answer = bool(re.search(pattern, line, flags=re_flags))
-        return not answer if search_flags['invert_ans'] else answer
-    # standard mode
-    if search_flags['ignore_case']:
-        pattern = pattern.lower()
-        line = line.lower()
-    answer = pattern == line if search_flags['full_match'] else pattern in line
+    re_flags = re.IGNORECASE if search_flags['ignore_case'] else 0
+    if search_flags['full_match']:
+        answer = bool(re.fullmatch(pattern, line, flags=re_flags))
+    else:
+        answer = bool(re.search(pattern, line, flags=re_flags))
     return not answer if search_flags['invert_ans'] else answer
 
 
