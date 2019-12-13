@@ -1,14 +1,8 @@
 #!/usr/bin/env python3
 import sys
-from alarm_user_handler import AlarmUserHandler
 import traceback
+from alarm_user_handler import AlarmUserHandler
 from bot import UserIndependentBot
-
-
-bot = UserIndependentBot(
-      send_message=lambda user_id, message: user_widgets[user_id].received_message(message),
-      user_handler=AlarmUserHandler
-    )
 
 
 def send_message(to_user_id: int, message: str) -> None:
