@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from typing import List
 from typing import Iterable
+from typing import Iterator
 from typing import Pattern
 from typing import Tuple
 from typing import Callable
@@ -54,7 +55,8 @@ def add_filename_prefix(lines_source_tuple: Tuple[List[str], str]) -> List[str]:
     return [f'{source}:{line}' for line in lines]
 
 
-def print_file_name_only(blocks_and_sources_list: Iterable, file_name_only: bool) -> None:
+def print_file_name_only(blocks_and_sources_list: Iterator[Tuple[List[str], str]],
+                         file_name_only: bool) -> None:
     for lines_source_tuple in blocks_and_sources_list:
         lines, source = lines_source_tuple
         if file_name_only ^ (len(lines) <= 0):
@@ -70,14 +72,14 @@ def print_blocks(blocks: List[List[str]]) -> None:
 def main(args_str: List[str]):
     args = parse_args(args_str)
 
-    blocks = []
+    blocks: List[List[str]] = []
     for file_name in args.files:
         with open(file_name, 'r') as file:
             blocks.append(strip_lines(file))
     if not args.files:
         blocks.append(strip_lines(sys.stdin))
 
-    sources = args.files
+    sources: List[str] = args.files
     if not sources:
         sources = ['_stdin_']
 
