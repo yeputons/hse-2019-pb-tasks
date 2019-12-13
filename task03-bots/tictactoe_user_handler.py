@@ -17,9 +17,9 @@ class TicTacToeUserHandler(UserHandler):
             return
         if self.game is None or self.game.is_finished():
             self.send_message('Game is not started')
-        else:
-            player, move_col, move_row = message.split(maxsplit=2)
-            self.make_turn(player=Player[player], row=int(move_row), col=int(move_col))
+            return
+        player, move_col, move_row = message.split(maxsplit=2)
+        self.make_turn(player=Player[player], row=int(move_row), col=int(move_col))
 
     def start_game(self) -> None:
         """Начинает новую игру в крестики-нолики и сообщает об этом пользователю."""
