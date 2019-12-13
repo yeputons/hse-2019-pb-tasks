@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 import pytest_mock
 from tictactoe_user_handler import TicTacToeUserHandler
 

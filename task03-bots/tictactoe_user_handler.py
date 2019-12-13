@@ -13,18 +13,18 @@ class TicTacToeUserHandler(UserHandler):
         """Обрабатывает очередное сообщение от пользователя."""
         if not (message == 'start') and self.game is None:
             self.send_message('Game is not started')
+            return
         if message == 'start':
             self.start_game()
-        if not (message == 'start') and self.game is not None:
+            return
+        assert self.game
+        if not (message == 'start'):
             tmpl: List[str] = message.split(' ')
-            player: Player = Player.X
-            if tmpl[0] == 'X':
-                player = Player.X
-            if tmpl[0] == 'O':
-                player = Player.O
+            player: Player = Player[tmpl[0]]
             col = int(tmpl[1])
             row = int(tmpl[2])
             self.make_turn(player, row=row, col=col)
+            return
 
     def start_game(self) -> None:
         """Начинает новую игру в крестики-нолики и сообщает об этом пользователю."""
@@ -33,7 +33,8 @@ class TicTacToeUserHandler(UserHandler):
 
     def make_turn(self, player: Player, *, row: int, col: int) -> None:
         """Обрабатывает ход игрока player в клетку (row, col)."""
-        if self.game is not None and self.game.can_make_turn(player, row=row, col=col):
+        assert self.game
+        if self.game.can_make_turn(player, row=row, col=col):
             self.game.make_turn(player, row=row, col=col)
             self.send_field()
             if self.game.is_finished():
@@ -50,16 +51,16 @@ class TicTacToeUserHandler(UserHandler):
 
     def send_field(self) -> None:
         """Отправляет пользователю сообщение с текущим состоянием игры."""
-        answ: str = ''
-        if self.game is not None:
-            for row in self.game.field:
-                for place in row:
-                    if place is None:
-                        answ += '.'
-                    elif place == Player.X:
-                        answ += 'X'
-                    elif place == Player.O:
-                        answ += 'O'
-                answ += '\n'
-            answ = answ.rstrip('\n')
-            self.send_message(answ)
+        answer: str = ''
+        assert self.game
+        for row in self.game.field:
+            for element in row:
+                if element is None:
+                    answer += '.'
+                elif element == Player.X:
+                    answer += 'X'
+                elif element == Player.O:
+                    answer += 'O'
+            answer += '\n'
+        answer = answer.rstrip('\n')
+        self.send_message(answer)
