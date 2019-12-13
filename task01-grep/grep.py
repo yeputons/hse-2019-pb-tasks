@@ -40,15 +40,7 @@ def get_detection_func(pattern: str, need_regex: bool = False,
 
 def detect_requested_lines(detection_func: Callable[[str], bool],
                            inp_lines: List[List[str]]) -> List[List[str]]:
-    return [detect_lines_by_function(detection_func, lines_in_one) for lines_in_one in inp_lines]
-
-
-def detect_lines_by_function(detection_func: Callable[[str], bool], lines: List[str]) -> List[str]:
-    out = []
-    for line in lines:
-        if detection_func(line):
-            out.append(line)
-    return out
+    return [[line for line in lines_in_one if detection_func(line)] for lines_in_one in inp_lines]
 
 
 def prepare_output(detected_lines: List[List[str]], need_count: bool = False) -> List[List[str]]:

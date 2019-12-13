@@ -141,18 +141,6 @@ def test_unit_split_into_lines(monkeypatch):
     assert out == ['pref need?', 'needle? suf', 'the needl', 'pref suf', 'it is not needle', ' ']
 
 
-def test_unit_detect_lines_by_function_strange():
-    input_lines = ['one', 'two', 'three', '   ', ' ']
-    out = grep.detect_lines_by_function(lambda s: len(s) == 3, input_lines)
-    assert out == ['one', 'two', '   ']
-
-
-def test_unit_detect_lines_by_function():
-    input_lines = ['one', 'two', 'three', '   ', ' ', 'totoro']
-    out = grep.detect_lines_by_function(lambda s: 't' in s, input_lines)
-    assert out == ['two', 'three', 'totoro']
-
-
 def test_unit_output(capsys):
     input_lines = [['oh', 'my', 'god', '', ' ', 'end']]
     grep.output([], input_lines)
