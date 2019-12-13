@@ -56,29 +56,16 @@ TEST_CASE("ThreadsafeQueue multithreaded ping-pong") {
     threadsafe_queue_init(&qs[0]);
     threadsafe_queue_init(&qs[1]);
 
-    // 0. Создаются два потока: `pinger` и `ponger`
-    //    (независимые от основного потока теста).
-    //    После этого `PING_PONGS` раз должно произойти следующее:
-    // 1. Поток `pinger` отправляет через `qs[0]` потоку `ponger`
-    //    указатель на локальную переменную типа `int`.
-    // 2. Поток `ponger` увеличивает полученную переменную на
-    //    единицу и отправляет результат обратно через `qs[1]`.
-    // 3. Поток `pinger` проверяет, что пришёл правильный адрес
-    //    и что локальная переменная была увеличена.
     const int PING_PONGS = 100;
 
-    // Специальный синтаксис для объявления функции внутри функции.
-    // (в общем случае это лямбда-функции/замыкания, но нам это неважно).
     auto pinger = [](void *_qs) -> void * {
         ThreadsafeQueue *qs = static_cast<ThreadsafeQueue *>(_qs);
 
-        int num = 0;
-
         for (int i = 0; i < PING_PONGS; i++) {
-            int prev = num;
+            const int prev = i;
+            int num = i;
 
             threadsafe_queue_push(&qs[0], &num);
-
             void *obj = threadsafe_queue_wait_and_pop(&qs[1]);
 
             REQUIRE(obj == &num);
@@ -103,8 +90,8 @@ TEST_CASE("ThreadsafeQueue multithreaded ping-pong") {
     REQUIRE(pthread_create(&t1, nullptr, pinger, qs) == 0);
     REQUIRE(pthread_create(&t2, nullptr, ponger, qs) == 0);
 
-    REQUIRE(pthread_join(t1, nullptr) == 0);
     REQUIRE(pthread_join(t2, nullptr) == 0);
+    REQUIRE(pthread_join(t1, nullptr) == 0);
 
     threadsafe_queue_destroy(&qs[1]);
     threadsafe_queue_destroy(&qs[0]);
@@ -128,9 +115,10 @@ void *consumer(void *_q) {
 
 void *consumer_try(void *_q) {
     ThreadsafeQueue *q = static_cast<ThreadsafeQueue *>(_q);
+    void *data;
     for (int i = 0; i < ELEMENTS_PER_THREAD; i++) {
-        void *data;
         REQUIRE(threadsafe_queue_try_pop(q, &data) == true);
+        REQUIRE(data == nullptr);
     }
     return nullptr;
 }

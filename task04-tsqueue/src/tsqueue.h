@@ -13,7 +13,7 @@ extern "C" {
 struct ThreadsafeQueue {
     Queue q;
     pthread_mutex_t mutex;
-    pthread_cond_t cond_flag_changed;
+    pthread_cond_t has_element;
 };
 
 /**
