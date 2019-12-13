@@ -59,11 +59,13 @@ class TicTacToeUserHandler(UserHandler):
     def send_field(self) -> None:
         """Отправляет пользователю сообщение с текущим состоянием игры."""
         if self.game is not None:
+            lineres = ''
             for line in self.game.field:
-                lineres = ''
                 for el in range(0, 3):
                     if line[el] is not None:
                         lineres += (str(line[el]).split('.'))[1]
                     else:
                         lineres += '.'
-                self.send_message(lineres)
+                lineres += '\n'
+            lineres = lineres.rstrip('\n')
+            self.send_message(lineres)
