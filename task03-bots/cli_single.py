@@ -5,7 +5,7 @@ from alarm_user_handler import AlarmUserHandler
 
 
 def main() -> None:
-    #raise NotImplementedError
+    # raise NotImplementedError
     """Пример работы с ботом через консоль."""
     bot = AlarmUserHandler(send_message=print)
     for line in sys.stdin:
