@@ -20,27 +20,27 @@ void threadsafe_queue_push(ThreadsafeQueue *q, void *data) {
 }
 
 bool threadsafe_queue_try_pop(ThreadsafeQueue *q, void **data) {
-    void *poped_data;
+    void *popped_data;
     if (queue_empty(&q->q)) {
         return false;
     }
     pthread_mutex_lock(&q->mutex);
-    poped_data = queue_pop(&q->q);
+    popped_data = queue_pop(&q->q);
     pthread_mutex_unlock(&q->mutex);
     if (data != nullptr)
-        *data = poped_data;
+        *data = popped_data;
 
     return true;
 }
 
 void *threadsafe_queue_wait_and_pop(ThreadsafeQueue *q) {
-    void *poped_data;
+    void *popped_data;
     pthread_mutex_lock(&q->mutex);
     while (queue_empty(&q->q)) {
         pthread_cond_wait(&q->cond, &q->mutex);
     }
-    poped_data = queue_pop(&q->q);
+    popped_data = queue_pop(&q->q);
     pthread_mutex_unlock(&q->mutex);
 
-    return poped_data;
+    return popped_data;
 }
