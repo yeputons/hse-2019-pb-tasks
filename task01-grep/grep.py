@@ -21,10 +21,10 @@ def init_arguments(args_str: List[str]) -> argparse.Namespace:
     return args
 
 
-def compile_pattern(pattern: str, is_regular: bool, is_ignore: bool) -> Pattern[str]:
+def compile_pattern(pattern: str, is_regular: bool, ignored: bool) -> Pattern[str]:
     if not is_regular:
         pattern = re.escape(pattern)
-    return re.compile(pattern, flags=re.IGNORECASE if is_ignore else 0)
+    return re.compile(pattern, flags=re.IGNORECASE if ignored else 0)
 
 
 def strip_lines(lines: List[str]) -> List[str]:
@@ -32,51 +32,37 @@ def strip_lines(lines: List[str]) -> List[str]:
 
 
 def read_files(files: List[str]) -> List[List[str]]:
-    lines_of_lines = []
+    all_lines = []
     for file in files:
         with open(file, 'r') as input_file:
-            lines_of_lines.append(input_file.readlines())
-    return lines_of_lines
+            all_lines.append(input_file.readlines())
+    return all_lines
 
 
-def bool_match(line: str, pattern: Pattern[str], is_invert: bool,
-               is_match: bool) -> bool:
-    match_line = pattern.fullmatch(line) if is_match else pattern.search(line)
-    return is_invert ^ bool(match_line)
+def bool_match(line: str, pattern: Pattern[str], inverted: bool,
+               matched: bool) -> bool:
+    match_line = pattern.fullmatch(line) if matched else pattern.search(line)
+    return inverted ^ bool(match_line)
 
 
-def processing_result_lines(lines: List[str], pattern: Pattern[str], is_invert: bool,
-                            is_match: bool) -> List[str]:
-    return [line for line in lines if bool_match(line, pattern, is_invert, is_match)]
+def filter_lines(lines: List[str], pattern: Pattern[str], inverted: bool,
+                 matched: bool) -> List[str]:
+    return [line for line in lines if bool_match(line, pattern, inverted, matched)]
 
 
-def process_file_with_str_or_without_str(lines: List[str],
-                                         source: str, is_without: bool) -> List[str]:
-    return [source] if bool(lines) ^ is_without else []
-
-
-def process_count(lines: List[str], stream_name: Optional[str]) -> List[str]:
-    stream_name = f'{stream_name}:' if stream_name else ''
-    lines = [str(len(lines))]
-    return [f'{stream_name}{line}' for line in lines]
-
-
-def process_no_flags(lines: List[str], stream_name: Optional[str]) -> List[str]:
-    return [f'{stream_name}:{line}' if stream_name else line for line in lines]
-
-
-def processing_underprint_results(lines: List[str], stream_name: str, is_count: bool,
-                                  is_file_with_str: bool, is_file_without_str: bool) -> List[str]:
-    if is_file_with_str or is_file_without_str:
-        lines = process_file_with_str_or_without_str(lines, stream_name, is_file_without_str)
-    if is_count:
-        lines = process_count(lines, stream_name)
-    if not is_count | is_file_without_str | is_file_with_str:
-        lines = process_no_flags(lines, stream_name)
+def parse_output_results(lines: List[str], source: str, counted: bool,
+                         file_with_str: bool, file_without_str: bool) -> List[str]:
+    if file_with_str or file_without_str:
+        lines = [source] if bool(lines) ^ file_without_str else []
+    else:
+        filename_prefix = f'{source}:' if source else ''
+        if counted:
+            lines = [str(len(lines))]
+        lines = [f'{filename_prefix}{line}' for line in lines]
     return lines
 
 
-def print_grep_results(result: List[str]) -> None:
+def print_output_results(result: List[str]) -> None:
     for word in result:
         print(word)
 
@@ -89,18 +75,19 @@ def main(args_str: List[str]):
     if args.files:
         stream_names = args.files
         lines_of_lines = read_files(stream_names)
-        if len(args.files) <= 1:
-            stream_names = [None]
     else:
         lines_of_lines = [sys.stdin.readlines()]
         stream_names = [None]
 
+    if len(args.files) == 1 and not args.file_with_str and not args.file_without_str:
+        stream_names = [None]
+
     for stream_name, lines in zip(stream_names, lines_of_lines):
         lines = strip_lines(lines)
-        lines = processing_result_lines(lines, pattern, args.invert, args.match)
-        lines = processing_underprint_results(lines, stream_name, args.count,
-                                              args.file_with_str, args.file_without_str)
-        print_grep_results(lines)
+        lines = filter_lines(lines, pattern, args.invert, args.match)
+        lines = parse_output_results(lines, stream_name, args.count,
+                                     args.file_with_str, args.file_without_str)
+        print_output_results(lines)
 
 
 if __name__ == '__main__':
