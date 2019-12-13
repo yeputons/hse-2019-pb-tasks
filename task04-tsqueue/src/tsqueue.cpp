@@ -43,15 +43,14 @@ bool threadsafe_queue_try_pop(ThreadsafeQueue *q, void **data) {
 }
 
 void *threadsafe_queue_wait_and_pop(ThreadsafeQueue *q) {
-		assert(q);
-
-//		pthread_mutex_lock(&(q->mutex));
-//		while(queue_empty(&(q->q))){
-//			pthread_cond_wait(&(q->cond_empty), &(q->mutex));
-//		}
-
-
-    // TODO(2)
-    static_cast<void>(q);  // Как-нибудь используем переменную.
-    return nullptr;
+	assert(q);
+	
+	pthread_mutex_lock(&(q->mutex));
+	while(queue_empty(&(q->q))){
+		pthread_cond_wait(&(q->cond_empty), &(q->mutex));
+	}
+	void* ans = queue_pop(&(q->q));
+	pthread_mutex_unlock(&(q->mutex));
+	
+	return ans;
 }
