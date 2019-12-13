@@ -18,3 +18,9 @@ script:
 - find task??-* -iname '*.py' | xargs flake8 --max-line-length=100 --show-source
 - find task??-* -iname '*.py' | xargs pylint --max-line-length=100 --disable=invalid-name,missing-docstring,global-statement,too-many-lines,R --enable=simplifiable-if-statement,redefined-variable-type
 - find task??-* -iname '*.py' | xargs mypy --ignore-missing-imports
+- pushd task04-tsqueue/
+- diff -u <(cat src/*) <(clang-format -style=file src/*)
+- cmake . && make
+- valgrind --tool=memcheck --leak-check=full --error-exitcode=1 ./queue_test
+- valgrind --tool=memcheck --leak-check=full --error-exitcode=1 ./tsqueue_test
+- popd
