@@ -26,7 +26,7 @@ bool threadsafe_queue_try_pop(ThreadsafeQueue *q, void **data) {
         *data = queue_pop(&q->q);
     }
     pthread_mutex_unlock(&q->mutex);
-    return is_empty;
+    return !is_empty;
 }
 
 void *threadsafe_queue_wait_and_pop(ThreadsafeQueue *q) {
