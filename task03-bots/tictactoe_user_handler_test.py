@@ -12,20 +12,6 @@ def test_game_not_started(mocker: pytest_mock.MockFixture) -> None:
         mocker.call('Game is not started')]
 
 
-def test_game_many_starts(mocker: pytest_mock.MockFixture) -> None:
-    send_message = mocker.stub(name='send_message_stub')
-    bot = TicTacToeUserHandler(send_message)
-    bot.handle_message('start')
-    bot.handle_message('start')
-    bot.handle_message('start')
-    bot.handle_message('start')
-    assert send_message.call_args_list == [
-        mocker.call('...\n...\n...'),
-        mocker.call('...\n...\n...'),
-        mocker.call('...\n...\n...'),
-        mocker.call('...\n...\n...')]
-
-
 def test_x_wins(mocker: pytest_mock.MockFixture) -> None:
     send_message = mocker.stub(name='send_message_stub')
     bot = TicTacToeUserHandler(send_message)
@@ -116,18 +102,4 @@ def test_many_invalid_turns(mocker: pytest_mock.MockFixture) -> None:
         mocker.call('...\n.X.\n...'),
         mocker.call('Invalid turn'),
         mocker.call('O..\n.X.\n...'),
-        mocker.call('Invalid turn')]
-
-
-def test_wrong_symbols(mocker: pytest_mock.MockFixture) -> None:
-    send_message = mocker.stub(name='send_message_stub')
-    bot = TicTacToeUserHandler(send_message)
-    bot.handle_message('start')
-    bot.handle_message('X 0 0')
-    bot.handle_message('A 1 1')
-    bot.handle_message('B 2 2')
-    assert send_message.call_args_list == [
-        mocker.call('...\n...\n...'),
-        mocker.call('X..\n...\n...'),
-        mocker.call('Invalid turn'),
         mocker.call('Invalid turn')]

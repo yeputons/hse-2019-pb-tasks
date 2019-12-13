@@ -4,7 +4,6 @@ from tictactoe import Player, TicTacToe
 
 
 class TicTacToeUserHandler(UserHandler):
-    """Реализация логики бота для игры в крестики-нолики с одним пользователем."""
     def __init__(self, send_message: Callable[[str], None]) -> None:
         super(TicTacToeUserHandler, self).__init__(send_message)
         self.game: Optional[TicTacToe] = None
@@ -15,13 +14,10 @@ class TicTacToeUserHandler(UserHandler):
         elif not self.game:
             self.send_message('Game is not started')
         else:
-            mark, col, row = message.split()
-            player = {'X': Player.X, 'O': Player.O}.get(mark)
-            if mark != 'X' and mark != 'O':
-                self.send_message('Invalid turn')
-            else:
-                assert player
-                self.make_turn(player, row=int(row), col=int(col))
+            symbol, col, row = message.split()
+            player = {'X': Player.X, 'O': Player.O}[symbol]
+            assert player
+            self.make_turn(player, row=int(row), col=int(col))
 
     def start_game(self) -> None:
         self.game = TicTacToe()
@@ -35,9 +31,9 @@ class TicTacToeUserHandler(UserHandler):
             self.game.make_turn(player, row=row, col=col)
             self.send_field()
             if self.game.is_finished():
-                self.send_message(
-                    'Game is finished, {}'.format({None: 'draw', Player.X: 'X wins',
-                                                   Player.O: 'O wins'}.get(self.game.winner())))
+                who_wins = {None: 'draw', Player.X: 'X wins',
+                            Player.O: 'O wins'}[self.game.winner()]
+                self.send_message('Game is finished, {}'.format(who_wins))
                 self.game = None
 
     def send_field(self) -> None:
