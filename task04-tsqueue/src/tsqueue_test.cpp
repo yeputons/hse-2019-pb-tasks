@@ -32,11 +32,11 @@ TEST_SUITE("ThreadsafeQueue works like Queue in a single thread") {
         threadsafe_queue_destroy(&q);
     }
 
-    TEST_CASE("with threadsafe_queue_wait_and_pop" ) {
+    TEST_CASE("with threadsafe_queue_wait_and_pop") {
         ThreadsafeQueue q;
         threadsafe_queue_init(&q);
 
-        int a = 0, b = 0, c =    0;
+        int a = 0, b = 0, c = 0;
 
         threadsafe_queue_push(&q, &a);
         threadsafe_queue_push(&q, &b);
@@ -48,7 +48,7 @@ TEST_SUITE("ThreadsafeQueue works like Queue in a single thread") {
         CHECK(threadsafe_queue_wait_and_pop(&q) == &c);
         CHECK(threadsafe_queue_wait_and_pop(&q) == &b);
         threadsafe_queue_destroy(&q);
-}
+    }
 }
 
 TEST_CASE("ThreadsafeQueue multithreaded ping-pong") {
