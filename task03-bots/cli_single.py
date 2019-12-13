@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
 import sys
 import traceback
-from alarm_user_handler import AlarmUserHandler
+from tictactoe_user_handler import TicTacToeUserHandler
+
+
+def send_message(message: str) -> None:
+    print('======', message, '======')
 
 
 def main() -> None:
-    # raise NotImplementedError
     """Пример работы с ботом через консоль."""
-    bot = AlarmUserHandler(send_message=print)
+    bot = TicTacToeUserHandler(send_message=print)
     for line in sys.stdin:
         try:
             message = line.rstrip('\n')
