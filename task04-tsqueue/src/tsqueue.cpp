@@ -21,7 +21,7 @@ void threadsafe_queue_push(ThreadsafeQueue *q, void *data) {
 
 bool threadsafe_queue_try_pop(ThreadsafeQueue *q, void **data) {
     void *poped_data;
-    if (queue_empty(&q->q)){
+    if (queue_empty(&q->q)) {
         return false;
     }
     pthread_mutex_lock(&q->mutex);
