@@ -68,7 +68,7 @@ def main(args_str: List[str]):
                 list_of_lines = get_list(args.regx, args.inv,
                                          args.sub, args.ignore, args.print_found,
                                          args.print_not_found, file_name, args.needle, fin)
-                if type(list_of_lines) == str and (args.print_found or args.print_not_found):
+                if isinstance(list_of_lines, str) and (args.print_found or args.print_not_found):
                     print(list_of_lines)
                 elif list_of_lines:
                     prefix = file_name + ':' if num_of_files > 1 else ''
