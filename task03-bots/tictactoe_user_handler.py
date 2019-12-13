@@ -19,7 +19,11 @@ class TicTacToeUserHandler(UserHandler):
             else:
                 self.start_game()
                 return
-        data_message = message.rstrip('\n').split(' ')
+        data_message = message.rstrip('\n')
+        if data_message == 'start':
+            self.start_game()
+            return
+        data_message = data_message.split(' ')
         if len(data_message) != 3:
             self.send_message('Invalid turn')
         else:
