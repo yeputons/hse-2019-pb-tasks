@@ -43,6 +43,7 @@ def format_output(lines: List[str], counting_mode: bool,
                   with_files: bool = False, with_files_invert: bool = False,
                   source: str = None) -> List[str]:
     if with_files or with_files_invert:
+        assert source
         return [source] if with_files_invert ^ bool(lines) else []
     if counting_mode:
         lines = [str(len(lines))]
