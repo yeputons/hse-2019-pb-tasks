@@ -5,7 +5,6 @@ from tictactoe import Player, TicTacToe
 
 class TicTacToeUserHandler(UserHandler):
     """Реализация логики бота для игры в крестики-нолики с одним пользователем."""
-
     def __init__(self, send_message: Callable[[str], None]) -> None:
         super(TicTacToeUserHandler, self).__init__(send_message)
         self.game: Optional[TicTacToe] = None
@@ -20,8 +19,8 @@ class TicTacToeUserHandler(UserHandler):
                 self.send_message('Game is not started')
                 return
             players = {'X': Player.X, 'O': Player.O}
-            player_sign, column, row = message.split()
-            self.make_turn(players[player_sign], col=int(column), row=int(row))
+            player_sgn, column, row = message.split()
+            self.make_turn(players[player_sgn], col=int(column), row=int(row))
         except Exception:  # pylint: disable=W0703
             self.send_message('Invalid turn')
 
@@ -32,6 +31,7 @@ class TicTacToeUserHandler(UserHandler):
 
     def make_turn(self, player: Player, *, row: int, col: int) -> None:
         """Обрабатывает ход игрока player в клетку (row, col)."""
+        player_sgn = {Player.X: 'X', Player.O: 'O'}
         assert self.game
         if self.game.can_make_turn(player, row=row, col=col):
             self.game.make_turn(player, row=row, col=col)
@@ -41,7 +41,8 @@ class TicTacToeUserHandler(UserHandler):
                 if winner is None:
                     self.send_message('Game is finished, draw')
                 else:
-                    self.send_message(f'Game is finished, {winner} wins')
+                    self.send_message(f'Game is finished, {player_sgn[winner]} wins')
+                self.game = None
         else:
             self.send_message('Invalid turn')
 
@@ -49,9 +50,9 @@ class TicTacToeUserHandler(UserHandler):
         """Отправляет пользователю сообщение с текущим состоянием игры."""
         assert self.game
         player_sgn: Dict[Optional[Player], str] = {None: '.', Player.X: 'X', Player.O: 'O'}
-        stringfield = ''
+        string_field = ''
         for i in range(3):
             for j in range(3):
-                stringfield += player_sgn[self.game.field[i][j]]
-            stringfield += '\n'
-        self.send_message(stringfield[:-1])
+                string_field += player_sgn[self.game.field[i][j]]
+            string_field += '\n'
+        self.send_message(string_field[:-1])
