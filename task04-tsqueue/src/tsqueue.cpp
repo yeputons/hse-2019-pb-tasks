@@ -4,44 +4,43 @@
 void threadsafe_queue_init(ThreadsafeQueue *q) {
     assert(q);
     queue_init(&q->q);
-    pthread_mutex_init(&q->mtx, nullptr);
-    pthread_cond_init(&q->cnd, nullptr);
+    pthread_mutex_init(&q->mutex, nullptr);
+    pthread_cond_init(&q->cond, nullptr);
 }
 
 void threadsafe_queue_destroy(ThreadsafeQueue *q) {
     assert(q);
     assert(queue_empty(&q->q));
+    pthread_cond_destroy(&q->cond);
+    pthread_mutex_destroy(&q->mutex);
     queue_destroy(&q->q);
-    pthread_cond_destroy(&q->cnd);
-    pthread_mutex_destroy(&q->mtx);
 }
 
 void threadsafe_queue_push(ThreadsafeQueue *q, void *data) {
     assert(q);
-    pthread_mutex_lock(&q->mtx);
+    pthread_mutex_lock(&q->mutex);
     queue_push(&q->q, data);
-    pthread_cond_signal(&q->cnd);
-    pthread_mutex_unlock(&q->mtx);
+    pthread_cond_signal(&q->cond);
+    pthread_mutex_unlock(&q->mutex);
 }
 
 bool threadsafe_queue_try_pop(ThreadsafeQueue *q, void **data) {
     assert(q);
-    pthread_mutex_lock(&q->mtx);
+    pthread_mutex_lock(&q->mutex);
     bool is_empty = queue_empty(&q->q);
     if (!is_empty)
         *data = queue_pop(&q->q);
-    pthread_mutex_unlock(&q->mtx);
+    pthread_mutex_unlock(&q->mutex);
     return !is_empty;
 }
 
 void *threadsafe_queue_wait_and_pop(ThreadsafeQueue *q) {
     assert(q);
-    void *ans = 0;
-    pthread_mutex_lock(&q->mtx);
+    pthread_mutex_lock(&q->mutex);
     while (queue_empty(&q->q)) {
-        pthread_cond_wait(&q->cnd, &q->mtx);
+        pthread_cond_wait(&q->cond, &q->mutex);
     }
-    ans = queue_pop(&q->q);
-    pthread_mutex_unlock(&q->mtx);
-    return ans;
+    void *recieved_data = queue_pop(&q->q);
+    pthread_mutex_unlock(&q->mutex);
+    return recieved_data;
 }
