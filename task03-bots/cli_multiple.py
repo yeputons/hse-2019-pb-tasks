@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import sys
 import traceback
+from bot import UserIndependentBot
 from alarm_user_handler import AlarmUserHandler
 
 
@@ -11,7 +12,7 @@ def send_message(to_user_id: int, message: str) -> None:
 
 
 def main() -> None:
-    bot = AlarmUserHandler(send_message=send_message)
+    bot = UserIndependentBot(send_message, AlarmUserHandler)
     for line in sys.stdin:
         try:
             user_id, message = line.rstrip('\n').split(maxsplit=1)

@@ -42,7 +42,7 @@ def test_multiple_start_and_start(mocker: pytest_mock.MockFixture) -> None:
     ]
 
 
-def test_win_X(mocker: pytest_mock.MockFixture) -> None:
+def test_win_x(mocker: pytest_mock.MockFixture) -> None:
     send_message = mocker.stub(name='send_message_stub')
     handler = TicTacToeUserHandler(send_message)
     handler.handle_message('start')
@@ -62,7 +62,7 @@ def test_win_X(mocker: pytest_mock.MockFixture) -> None:
     ]
 
 
-def test_win_O(mocker: pytest_mock.MockFixture) -> None:
+def test_win_o(mocker: pytest_mock.MockFixture) -> None:
     send_message = mocker.stub(name='send_message_stub')
     handler = TicTacToeUserHandler(send_message)
     handler.handle_message('start')
