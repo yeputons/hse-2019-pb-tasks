@@ -83,8 +83,8 @@ TEST_CASE("ThreadsafeQueue multithreaded ping-pong") {
     REQUIRE(pthread_create(&t1, nullptr, pinger, qs) == 0);
     REQUIRE(pthread_create(&t2, nullptr, ponger, qs) == 0);
 
-    REQUIRE(pthread_join(t1, nullptr) == 0);
     REQUIRE(pthread_join(t2, nullptr) == 0);
+    REQUIRE(pthread_join(t1, nullptr) == 0);
 
     threadsafe_queue_destroy(&qs[1]);
     threadsafe_queue_destroy(&qs[0]);
@@ -108,8 +108,8 @@ void *consumer(void *_q) {
 
 void *consumer_try(void *_q) {
     ThreadsafeQueue *q = static_cast<ThreadsafeQueue *>(_q);
-    void *data = nullptr;
     for (int i = 0; i < ELEMENTS_PER_THREAD; i++) {
+        void *data;
         REQUIRE(threadsafe_queue_try_pop(q, &data));
         REQUIRE(data == nullptr);
     }
