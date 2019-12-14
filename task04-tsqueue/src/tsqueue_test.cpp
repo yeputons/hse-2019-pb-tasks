@@ -33,7 +33,7 @@ TEST_SUITE("ThreadsafeQueue works like Queue in a single thread") {
     }
 
     TEST_CASE("with threadsafe_queue_wait_and_pop") {
-        ThreadsafeQueue q{};
+        ThreadsafeQueue q;
         threadsafe_queue_init(&q);
 
         int a = 0, b = 0, c = 0;
