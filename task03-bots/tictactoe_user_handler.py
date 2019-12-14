@@ -13,18 +13,18 @@ class TicTacToeUserHandler(UserHandler):
         if message == 'start':
             self.start_game()
             return
-        if self.game:
-            try:
-                player_str, id_column, id_line = message.rstrip(' ').split(maxsplit=2)
-                if player_str == 'X':
-                    player = Player.X
-                else:
-                    player = Player.O
-                self.make_turn(player, row=int(id_line), col=int(id_column))
-            except ValueError:
-                self.send_message('Invalid turn')
+        if not self.game:
+            self.send_message('Game is not started')
             return
-        self.send_message('Game is not started')
+        try:
+            player_str, id_column, id_row = message.rstrip(' ').split(maxsplit=2)
+            if player_str == 'X':
+                player = Player.X
+            else:
+                player = Player.O
+            self.make_turn(player, row=int(id_row), col=int(id_column))
+        except ValueError:
+            self.send_message('Invalid turn')
 
     def start_game(self) -> None:
         self.game = TicTacToe()
