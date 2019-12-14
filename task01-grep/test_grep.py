@@ -2,76 +2,50 @@ import io
 import grep
 
 
-def test_filter_lines_0():
-    assert grep.filter_lines(['line', 'lion', 'life', 'wolf'], 'li') == ['line', 'lion', 'life']
+def test_format_output_line_with_filename():
+    assert grep.format_output_line('papers', 'please') == 'papers:please'
 
 
-def test_filter_lines_1():
-    assert grep.filter_lines(['line', 'lion', 'life', 'wolf'], '..', True) ==\
-        ['line', 'lion', 'life', 'wolf']
-
-
-def test_filter_lines_2():
-    assert grep.filter_lines(['line', 'lion', 'life', 'wolf'], '..') == []
-
-
-def test_filter_lines_3():
-    assert grep.filter_lines(['line', 'lion', 'wolf'], '..', True) == ['line', 'lion', 'wolf']
-
-
-def test_filter_lines_4():
-    assert grep.filter_lines(['lion', 'wolf'], 'on') == ['lion']
-
-
-def test_filter_lines_5():
-    assert grep.filter_lines(['lion', 'wolf'], 'on', True) == ['lion']
-
-# Не, ну ты их разнёс на разные функции, конечно, а остальные комментарии проигнорировал.
-# Тесты не должны зваться *_число. Ещё раз. Мораль такая: Хочется по назвнию теста чётко понимать, о чём он и почему.
-# Например, в твоих случаях: test_filter_lines_0 можно бы назвать test_filter_lines_no_regex_key,
-# а test_filter_lines_2 назвать test_filter_lines_no_regex_key_regex_like_needle, чтобы было понятно, а зачем они.
-# И опять же. тесты 1 и 3 чем отличаются вообще? А тесты 0 и 4? Это whitebox тесты. Там ты знаешь,
-# как изнутри работает код. Если хочешь тестировать на префиксы и суффиксы, сделай, например,
-# ['lion', 'io', 'ion', 'radio'], 'io' и всё.
-# А писал бы нормальные имена, заметил бы, что пишешь одно и то же.
+def test_format_output_line_without_filename():
+    assert grep.format_output_line(None, 'please') == 'None:please'
 
 
 def test_format_output_lines():
-    assert grep.format_output_lines(['cat', 'dog'], 'src.txt') == ['src.txt:cat', 'src.txt:dog']
+    assert grep.format_output_lines(['one', 'two', 'three'], 'src') ==\
+           ['src:one', 'src:two', 'src:three']
 
 
-def test_format_output_line():
-    assert grep.format_output_line('gg.txt', 'GGWP') == 'gg.txt:GGWP'
+def test_invert_inclusions():
+    assert grep.invert_inclusions(['1', '228', '1337'], ['1', '2', '3', '228', '1337']) ==\
+           ['2', '3']
 
 
-def test_exec_grep_0():
-    assert grep.exec_grep(['line', 'lion', 'life', 'wolf'], 'li') == ['line', 'lion', 'life']
+def test_get_striped_lines():
+    assert grep.get_striped_lines(['line\n', 'another line', 'line\n\n\n\n']) ==\
+           ['line', 'another line', 'line']
 
 
-def test_exec_grep_1():
-    assert grep.exec_grep(['line', 'lion', 'life', 'wolf'], '..', True) ==\
-        ['line', 'lion', 'life', 'wolf']
+def test_filter_lines_without_smth():
+    assert grep.filter_lines(['aba', 'bbb', 'cc'], 'b') == ['aba', 'bbb']
 
 
-def test_exec_grep_2():
-    assert grep.exec_grep(['line', 'lion', 'life', 'wolf'], '..') == []
+def test_filter_lines_with_regex():
+    assert grep.filter_lines(['caba', 'bbb', 'cc'], 'c*b', is_regex=True) == ['caba', 'bbb']
 
 
-def test_exec_grep_3():
-    assert grep.exec_grep(['line, lion, life', 'wolf'], '..', False, True, 'src.txt') ==\
-        ['src.txt:0']
+def test_exec_grep_without_smth():
+    assert grep.exec_grep(['abbbb', 'file', 'main.cpp', 'main.cpp'], 'main.cpp') ==\
+           ['main.cpp', 'main.cpp']
 
 
-def test_exec_grep_4():
-    assert grep.exec_grep(['line', 'lion', 'wolf'], '..', True, True) == ['3']
+def test_exec_grep_with_counting_mode():
+    assert grep.exec_grep(['abbbb', 'file', 'main.cpp', 'main.cpp'], 'main.cpp',
+                          counting_mode=True) == ['2']
 
 
-def test_exec_grep_5():
-    assert grep.exec_grep(['lion', 'wolf'], 'on') == ['lion']
-
-
-def test_exec_grep_6():
-    assert grep.exec_grep(['lion', 'wolf'], 'on', True) == ['lion']
+def test_exec_grep_with_source():
+    assert grep.exec_grep(['abbbb', 'file', 'main.cpp', 'main.cpp'], 'main.cpp', source='gcc') ==\
+           ['gcc:main.cpp', 'gcc:main.cpp']
 
 
 def check_output(capsys, expected_output):
@@ -80,19 +54,32 @@ def check_output(capsys, expected_output):
     assert out == expected_output
 
 
-def test_print_result_0(capsys):
+def test_print_result_without_filenames(capsys):
     grep.print_result(['one', 'two', 'four', 'three'])
     check_output(capsys, 'one\ntwo\nfour\nthree\n')
 
 
-def test_print_result_1(capsys):
+def test_print_result_with_filenames(capsys):
     grep.print_result(['one.txt:one', 'two.txt:two', 'three.txt:four', 'four.txt:three'])
     check_output(capsys, 'one.txt:one\ntwo.txt:two\nthree.txt:four\nfour.txt:three\n')
 
 
-def test_get_striped_lines():
-    assert grep.get_striped_lines(['line\n', 'another line', 'line\n\n\n\n']) ==\
-        ['line', 'another line', 'line']
+def test_integrate_output_matched_files(tmp_path, monkeypatch, capsys):
+    (tmp_path / 'a.txt').write_text('pref needle\nneedle suf\n')
+    (tmp_path / 'b.txt').write_text('the needl\npref needle suf')
+    monkeypatch.chdir(tmp_path)
+    grep.main(['-l', 'needle', 'b.txt', 'a.txt'])
+    check_output(capsys, 'b.txt\na.txt\n')
+
+
+def test_integrate_output_unmatched_files(tmp_path, monkeypatch, capsys):
+    (tmp_path / 'a.txt').write_text('pref needle\nneedle suf\n')
+    (tmp_path / 'b.txt').write_text('the needl\npref needle suf')
+    (tmp_path / 'badfile.txt').write_text('texttexttexttext\nndleee\n\n\nF')
+
+    monkeypatch.chdir(tmp_path)
+    grep.main(['-L', 'needle', 'b.txt', 'a.txt', 'badfile.txt'])
+    check_output(capsys, 'badfile.txt\n')
 
 
 def test_integrate_stdin_grep(monkeypatch, capsys):
