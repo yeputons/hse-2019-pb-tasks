@@ -75,20 +75,22 @@ def print_answer(result: List[str]) -> None:
 
 def main(args_str: List[str]):
     args: ap.Namespace = parse_args(args_str)
+    result: List[str] = []
     pattern: Pattern[str] = compile_pattern(args.pattern, args.regex, args.ignore)
-    for file in args.files:
-        with open(file, 'r') as input_file:
-            result = grep_from_raw(input_file.readlines(), pattern,
-                                   args.counting_mode, args.with_files, args.with_files_invert,
-                                   args.full_match, args.inverse,
-                                   file if len(args.files) > 1 else None)
-            print_answer(result)
+    if args.files:
+        for file in args.files:
+            with open(file, 'r') as input_file:
+                file_: str = file if len(args.files) > 1 or args.with_files \
+                                     or args.with_files_invert else None
+                result += grep_from_raw(input_file, pattern,
+                                        args.counting_mode, args.with_files, args.with_files_invert,
+                                        args.full_match, args.inverse, file_)
 
-    if not args.files:
-        result = grep_from_raw(sys.stdin.readlines(), pattern,
+    else:
+        result = grep_from_raw(sys.stdin, pattern,
                                args.counting_mode, args.with_files, args.with_files_invert,
                                args.full_match, args.inverse)
-        print_answer(result)
+    print_answer(result)
 
 
 if __name__ == '__main__':
