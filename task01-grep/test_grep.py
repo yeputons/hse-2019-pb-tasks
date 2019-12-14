@@ -1,21 +1,8 @@
 #!/usr/bin/env python3
+from typing import List
 import io
+import re
 import grep
-
-
-def test_is_matching_str():
-    assert grep.is_matching('abcdef', pattern='abcd', is_inverse=False, is_full_match=False)
-
-
-def test_is_matching_regex():
-    assert grep.is_matching('abcd', pattern='a*', is_inverse=False, is_full_match=False)
-
-
-def test_filter_matching_lines():
-    # непредсказуемый тест
-    assert grep.filter_matching_lines(['failfail', 'dfsbfs'], 'f*', is_full_match=False,
-                                      is_inverse=False) \
-           == ['failfail', 'dfsbfs']
 
 
 def test_format_output():
@@ -24,9 +11,9 @@ def test_format_output():
 
 
 def test_grep_from_raw():
-    assert grep.grep_from_raw(['Wee want to sleep', 'Slepp? Are you sure?'],
-                              'sle?p', False, False,
-                              False, False, False, None) == []
+    data: List[str] = ['pref needle?', 'needle? suf\n', 'the needl', 'pref needle? suf']
+    assert grep.grep_from_raw(data, re.compile(re.escape('needle?')),
+                              False) == ['pref needle?', 'needle? suf', 'pref needle? suf']
 
 
 def test_strip_lines():

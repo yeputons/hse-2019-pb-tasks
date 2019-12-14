@@ -1,6 +1,22 @@
 #!/usr/bin/env python3
+from typing import List
+import argparse as ap
 import re
 import grep
+
+
+def test_parse_args():
+    args_str: List[str] = ['-c', '-Evx', 'needle', 'a.txt']
+    args: ap.Namespace = grep.parse_args(args_str)
+    assert args.counting_mode
+    assert args.regex
+    assert args.inverse
+    assert args.full_match
+    assert not args.ignore
+    assert not args.with_files
+    assert not args.with_files_invert
+    assert args.pattern == 'needle'
+    assert args.files == ['a.txt']
 
 
 def test_compile_pattern_regex():
@@ -20,38 +36,38 @@ def test_compile_pattern_is_ignore():
 
 def test_is_matching_regex():
     assert grep.is_matching('affc', re.compile('a+f?'),
-                            is_inverse=False, is_full_match=False)
+                            inverse=False, full_match=False)
 
 
 def test_is_matching_inverse():
     assert grep.is_matching('affc', re.compile(re.escape('a+f?')),
-                            is_inverse=True, is_full_match=False)
+                            inverse=True, full_match=False)
 
 
 def test_is_matching_full_match():
     assert not grep.is_matching('affc', re.compile(re.escape('ff')),
-                                is_inverse=False, is_full_match=True)
+                                inverse=False, full_match=True)
 
 
 def test_filter_matching_lines_inverse():
     test = ['PMI', 'a+f?', 'HSE', 'AU']
     assert grep.filter_matching_lines(test, re.compile(re.escape('a+f?')),
-                                      is_inverse=True, is_full_match=False) == ['PMI', 'HSE', 'AU']
+                                      inverse=True, full_match=False) == ['PMI', 'HSE', 'AU']
 
 
 def test_format_output_no_is_lines_no_is_no_lines():
-    assert grep.format_output('q', counting_mode=False, is_lines=False,
-                              is_no_lines=False, source='a.txt') == ['a.txt:q']
+    assert grep.format_output(['q'], counting_mode=False, with_files=False,
+                              with_files_invert=False, source='a.txt') == ['a.txt:q']
 
 
 def test_format_output_is_lines_no_is_no_lines():
-    assert grep.format_output('q', counting_mode=False, is_lines=True,
-                              is_no_lines=False, source='a.txt') == ['a.txt']
+    assert grep.format_output(['q'], counting_mode=False, with_files=True,
+                              with_files_invert=False, source='a.txt') == ['a.txt']
 
 
 def test_format_output_is_lines_is_no_lines():
-    assert grep.format_output('q', counting_mode=False, is_lines=True,
-                              is_no_lines=True, source='a.txt') == []
+    assert grep.format_output(['q'], counting_mode=False, with_files=True,
+                              with_files_invert=True, source='a.txt') == []
 
 
 def test_integrate_all_keys_print_files_grep(tmp_path, monkeypatch, capsys):
