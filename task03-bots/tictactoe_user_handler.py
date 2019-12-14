@@ -14,17 +14,12 @@ class TicTacToeUserHandler(UserHandler):
             return
         if self.game:
             player, coord_y, coord_x = message.split(' ')
-            x = int(coord_x)
-            y = int(coord_y)
-            players = {'X': Player.X, 'O': Player.O}
-            if self.game.can_make_turn(player=players[player], row=x, col=y):
-                self.make_turn(players[player], row=x, col=y)
+            if self.game.can_make_turn(player=Player[player], row=int(coord_x), col=int(coord_y)):
+                self.make_turn(Player[player], row=int(coord_x), col=int(coord_y))
                 return
             self.send_message('Invalid turn')
             return
-        else:
-            self.send_message('Game is not started')
-            return
+        self.send_message('Game is not started')
 
     def start_game(self) -> None:
         self.game = TicTacToe()
@@ -43,7 +38,5 @@ class TicTacToeUserHandler(UserHandler):
 
     def send_field(self) -> None:
         assert self.game
-        field = []
-        for row in self.game.field:
-            field.append(''.join([col.name if col else '.' for col in row]))
+        field = [''.join([col.name if col else '.' for col in row]) for row in self.game.field]
         self.send_message('\n'.join(field))
