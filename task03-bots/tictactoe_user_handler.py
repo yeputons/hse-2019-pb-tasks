@@ -33,6 +33,7 @@ class TicTacToeUserHandler(UserHandler):
 
     def make_turn(self, player: Player, *, row: int, col: int) -> None:
         """Обрабатывает ход игрока player в клетку (row, col)."""
+        assert self.game
         if self.game.can_make_turn(player, row=row, col=col):
             self.game.make_turn(player, row=row, col=col)
             self.send_field()
@@ -50,6 +51,7 @@ class TicTacToeUserHandler(UserHandler):
 
     def send_field(self) -> None:
         """Отправляет пользователю сообщение с текущим состоянием игры."""
+        assert self.game
         field = ''
         for row in self.game.field:
             for col in row:
