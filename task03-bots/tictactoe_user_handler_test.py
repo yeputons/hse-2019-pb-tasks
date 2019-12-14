@@ -19,9 +19,9 @@ def test_handle_message(mocker: pytest_mock.MockFixture) -> None:
         'X 0 0',
         'X 0 0',
         'O 2 2',
-        'O 2 1',
+        'O 1 2',
         'start',
-        'O 2 1'
+        'O 1 2'
     ]
     handle_all_messages(handler, messages)
     assert send_message.call_args_list == [
@@ -52,9 +52,9 @@ def test_make_turn(mocker: pytest_mock.MockFixture) -> None:
         'X 0 0',
         'X 0 0',
         'O 0 0',
-        'O 0 1',
-        'X 0 1',
-        'X 0 2'
+        'O 1 0',
+        'X 1 0',
+        'X 2 0'
     ]
     handle_all_messages(handler, messages)
     assert send_message.call_args_list == [
@@ -75,12 +75,12 @@ def test_send_field(mocker: pytest_mock.MockFixture) -> None:
         'start',
         'X 1 1',
         'O 0 0',
-        'X 0 2',
-        'O 2 0',
-        'X 1 0',
-        'O 1 2',
-        'X 2 1',
-        'O 0 1'
+        'X 2 0',
+        'O 0 2',
+        'X 0 1',
+        'O 2 1',
+        'X 1 2',
+        'O 1 0'
     ]
     handle_all_messages(handler, messages)
     assert send_message.call_args_list == [
@@ -102,9 +102,9 @@ def test_win_x(mocker: pytest_mock.MockFixture) -> None:
     messages = [
         'start',
         'X 0 0',
-        'O 0 1',
+        'O 1 0',
         'X 1 1',
-        'O 0 2',
+        'O 2 0',
         'X 2 2'
     ]
     handle_all_messages(handler, messages)
@@ -124,12 +124,12 @@ def test_win_o(mocker: pytest_mock.MockFixture) -> None:
     handler = TicTacToeUserHandler(send_message)
     messages = [
         'start',
-        'X 2 0',
+        'X 0 2',
         'O 0 0',
-        'X 2 1',
-        'O 0 1',
+        'X 1 2',
+        'O 1 0',
         'X 1 1',
-        'O 0 2'
+        'O 2 0'
     ]
     handle_all_messages(handler, messages)
     assert send_message.call_args_list == [
@@ -151,12 +151,12 @@ def test_draw(mocker: pytest_mock.MockFixture) -> None:
         'start',
         'X 1 1',
         'O 0 0',
-        'X 0 2',
-        'O 2 0',
-        'X 1 0',
-        'O 1 2',
-        'X 2 1',
-        'O 0 1',
+        'X 2 0',
+        'O 0 2',
+        'X 0 1',
+        'O 2 1',
+        'X 1 2',
+        'O 1 0',
         'X 2 2'
     ]
     handle_all_messages(handler, messages)
