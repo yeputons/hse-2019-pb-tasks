@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 
-from typing import List
-from typing import Optional
-from typing import Iterable
+from typing import List, Optional, Iterable, Any
 
 import sys
 import re
@@ -21,10 +19,7 @@ def filter_lines(lines: List[str],
     if not is_regex:
         pattern = re.escape(pattern)
 
-    if is_ignorecase:
-        regular_expression = re.compile(pattern, re.IGNORECASE)
-    else:
-        regular_expression = re.compile(pattern)
+    regular_expression = re.compile(pattern, re.IGNORECASE if is_ignorecase else 0)
 
     search_function = regular_expression.fullmatch if is_fullmatch else regular_expression.search
     return [line for line in lines if search_function(line)]
@@ -34,7 +29,7 @@ def format_output_lines(lines: List[str], source: Optional[str]) -> List[str]:
     return [format_output_line(source, line) for line in lines]
 
 
-def invert_inclusions(temp_inclusion: Iterable, full_list: Iterable):
+def invert_inclusions(temp_inclusion: Iterable[Any], full_list: Iterable[Any]):
     return [line for line in full_list if line not in temp_inclusion]
 
 
@@ -65,7 +60,7 @@ def print_result(result: List[str]) -> None:
         print(line)
 
 
-def get_striped_lines(lines: Iterable) -> List[str]:
+def get_striped_lines(lines: Iterable[str]) -> List[str]:
     return [line.rstrip('\n') for line in lines]
 
 
@@ -87,11 +82,7 @@ def main(args_str: List[str]):
     files = [open(file, 'r') for file in args.filenames]
 
     if not args.filenames:
-        lines = get_striped_lines(sys.stdin)
-        result = exec_grep(lines, args.pattern, args.is_regex, args.counting_mode,
-                           args.is_ignorecase, args.is_fullmatch, args.is_invert)
-
-        print_result(result)
+        files.append(sys.stdin)
 
     source_printing_mode = len(args.filenames) > 1
 
@@ -111,7 +102,7 @@ def main(args_str: List[str]):
 
     if args.unmached_files_printing_mode:
         filenames_for_print = invert_inclusions(filenames_for_print,
-                                                list(map(lambda file: file.name, files)))
+                                                [file.name for file in files])
 
     print_result(filenames_for_print)
 
