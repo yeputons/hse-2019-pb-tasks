@@ -64,7 +64,7 @@ TEST_CASE("ThreadsafeQueue multithreaded ping-pong"){
             int old_value = i;
             threadsafe_queue_push(&qs[0], &old_value);
             int *value =
-                    static_cast<int *>(threadsafe_queue_wait_and_pop(&qs[1]));
+                static_cast<int *>(threadsafe_queue_wait_and_pop(&qs[1]));
             REQUIRE(value == &old_value);
             REQUIRE(i + 1 == old_value);
         }
@@ -75,7 +75,7 @@ TEST_CASE("ThreadsafeQueue multithreaded ping-pong"){
         ThreadsafeQueue *qs = static_cast<ThreadsafeQueue *>(_qs);
         for (int i = 0; i < PING_PONGS; i++) {
             int *value =
-                    static_cast<int *>(threadsafe_queue_wait_and_pop(&(qs[0])));
+                static_cast<int *>(threadsafe_queue_wait_and_pop(&(qs[0])));
             (*value)++;
             threadsafe_queue_push(&(qs[1]), value);
         }
@@ -139,7 +139,7 @@ TEST_SUITE("ThreadsafeQueue pops from multiple threads") {
         threadsafe_queue_destroy(&q);
     }
 
-    TEST_CASE("with threadsafe_queue_wait_and_pop"){
+    TEST_CASE("with threadsafe_queue_wait_and_pop") {
         ThreadsafeQueue q;
         threadsafe_queue_init(&q);
 
@@ -159,7 +159,7 @@ TEST_SUITE("ThreadsafeQueue pops from multiple threads") {
     }
 }
 
-TEST_CASE("ThreadsafeQueue pushes from multiple threads"){
+TEST_CASE("ThreadsafeQueue pushes from multiple threads") {
     ThreadsafeQueue q;
     threadsafe_queue_init(&q);
 
@@ -178,7 +178,7 @@ TEST_CASE("ThreadsafeQueue pushes from multiple threads"){
     threadsafe_queue_destroy(&q);
 }
 
-TEST_CASE("ThreadsafeQueue pops from multiple threads"){
+TEST_CASE("ThreadsafeQueue pops from multiple threads") {
     ThreadsafeQueue q;
     threadsafe_queue_init(&q);
 
@@ -197,7 +197,7 @@ TEST_CASE("ThreadsafeQueue pops from multiple threads"){
     threadsafe_queue_destroy(&q);
 }
 
-TEST_CASE("ThreadsafeQueue pushes and pops from multiple threads"){
+TEST_CASE("ThreadsafeQueue pushes and pops from multiple threads") {
     ThreadsafeQueue q;
     threadsafe_queue_init(&q);
 
