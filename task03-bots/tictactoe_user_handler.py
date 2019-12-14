@@ -3,6 +3,8 @@ from typing import Callable, Optional
 from bot import UserHandler
 from tictactoe import Player, TicTacToe
 
+players = {'X': Player.X, 'O': Player.O}
+
 
 class TicTacToeUserHandler(UserHandler):
     def __init__(self, send_message: Callable[[str], None]) -> None:
@@ -18,12 +20,7 @@ class TicTacToeUserHandler(UserHandler):
             return
         try:
             player, col, row = message.split(maxsplit=2)
-            if player == 'X':
-                self.make_turn(Player.X, row=int(row), col=int(col))
-            elif player == 'O':
-                self.make_turn(Player.O, row=int(row), col=int(col))
-            else:
-                print('Invalid turn')
+            self.make_turn(players[player], row=int(row), col=int(col))
         except Exception:
             print('Invalid turn')
 
@@ -35,30 +32,31 @@ class TicTacToeUserHandler(UserHandler):
             traceback.print_exc()
 
     def make_turn(self, player: Player, *, row: int, col: int) -> None:
-        if self.game.can_make_turn(player, row=row, col=col):
-            self.game.make_turn(player, row=row, col=col)
-            self.send_field()
-            if self.game.is_finished():
-                if self.game.winner() is None:
-                    self.send_message('Game is finished, draw')
-                    return
-                if self.game.winner() == Player.X:
-                    self.send_message('Game is finished, X wins')
-                    return
-                if self.game.winner() == Player.O:
-                    self.send_message('Game is finished, O wins')
-                    return
-        else:
+        if not self.game.can_make_turn(player, row=row, col=col):
             self.send_message('Invalid turn')
+            return
+
+        self.game.make_turn(player, row=row, col=col)
+        self.send_field()
+        if self.game.is_finished():
+            if self.game.winner() is None:
+                self.send_message('Game is finished, draw')
+                return
+            if self.game.winner() == Player.X:
+                self.send_message('Game is finished, X wins')
+                return
+            if self.game.winner() == Player.O:
+                self.send_message('Game is finished, O wins')
+                return
 
     def send_field(self) -> None:
         try:
+            result_line = ''
             for line in self.game.field:
-                result_line = ''
-                for i in line:
-                    if i == Player.X:
+                for val in line:
+                    if val == Player.X:
                         result_line += 'X'
-                    elif i == Player.O:
+                    elif val == Player.O:
                         result_line += 'O'
                     else:
                         result_line += '.'

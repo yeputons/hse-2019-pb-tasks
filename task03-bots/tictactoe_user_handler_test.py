@@ -56,7 +56,8 @@ def test_win_X(mocker: pytest_mock.MockFixture) -> None:
         mocker.call('X..\n...\n...'),
         mocker.call('X..\n.O.\n...'),
         mocker.call('X..\nXO.\n...'),
-        mocker.call('X..\nXO.\n.O.'),
+        mocker.call('X..\nXOO\n...'),
+        mocker.call('X..\nXOO\nX..'),
         mocker.call('Game is finished, X wins'),
     ]
 
@@ -68,9 +69,9 @@ def test_win_O(mocker: pytest_mock.MockFixture) -> None:
     handler.handle_message('X 0 0')
     handler.handle_message('O 1 1')
     handler.handle_message('X 0 1')
-    handler.handle_message('O 2 1')
+    handler.handle_message('O 1 2')
     handler.handle_message('X 2 2')
-    handler.handle_message('O 0 1')
+    handler.handle_message('O 1 0')
     assert send_message.call_args_list == [
         mocker.call('...\n...\n...'),
         mocker.call('X..\n...\n...'),
@@ -78,6 +79,7 @@ def test_win_O(mocker: pytest_mock.MockFixture) -> None:
         mocker.call('X..\nXO.\n...'),
         mocker.call('X..\nXO.\n.O.'),
         mocker.call('X..\nXO.\n.OX'),
+        mocker.call('XO.\nXO.\n.OX'),
         mocker.call('Game is finished, O wins'),
     ]
 
@@ -88,13 +90,13 @@ def test_win_draw(mocker: pytest_mock.MockFixture) -> None:
     handler.handle_message('start')
     handler.handle_message('X 0 0')
     handler.handle_message('O 1 1')
-    handler.handle_message('X 0 2')
-    handler.handle_message('O 0 1')
-    handler.handle_message('X 1 2')
-    handler.handle_message('O 2 2')
-    handler.handle_message('X 1 0')
-    handler.handle_message('O 2 0')
+    handler.handle_message('X 2 0')
+    handler.handle_message('O 1 0')
     handler.handle_message('X 2 1')
+    handler.handle_message('O 2 2')
+    handler.handle_message('X 0 1')
+    handler.handle_message('O 0 2')
+    handler.handle_message('X 1 2')
 
     handler.handle_message('X 2 1')
     handler.handle_message('asd')
