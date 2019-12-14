@@ -13,8 +13,20 @@ def create_needle(needle: str, is_regex: bool, is_register: bool) -> Pattern:
 
 def find_in_string(is_full: bool, is_invert: bool,
                    needle: Pattern[str], line: str) -> bool:
-    return is_invert ^ bool(re.fullmatch(needle, line)
-                            if is_full else re.search(needle, line))
+    if is_full:
+        return is_invert ^ bool(re.fullmatch(needle, line))
+    return is_invert ^ bool(re.search(needle, line))
+
+
+def action_count(right_list: list, file_name: str) -> None:
+    print(file_name, len(right_list), sep='')
+
+
+def print_screen(right_list: list, file_name: str):
+    for line in right_list:
+        print(file_name, line, sep='')
+    if len(right_list) == 0:
+        print()
 
 
 def print_answer(is_count: bool, right_list: list, file_name: str) -> None:
@@ -24,8 +36,15 @@ def print_answer(is_count: bool, right_list: list, file_name: str) -> None:
         print_screen(right_list, file_name)
 
 
-def action_count(right_list: list, file_name: str) -> None:
-    print(file_name, len(right_list), sep='')
+def format_print(length: int, is_one: bool, is_count: bool, right_list: list, file_name: str):
+    if length == 1 and not is_one:
+        print_answer(is_count, right_list, '')
+    else:
+        if is_one:
+            if len(right_list) > 0:
+                print_answer(is_count, [''], file_name)
+        else:
+            print_answer(is_count, right_list, file_name + ':')
 
 
 def create_right_list(is_full: bool, is_invert: bool, is_miss: bool,
@@ -38,23 +57,9 @@ def create_right_list(is_full: bool, is_invert: bool, is_miss: bool,
         elif is_miss:
             right_list.clear()
             break
+    if is_miss and ((needle == '') ^ (input_list == [])):
+        right_list = ['1']
     return right_list
-
-
-def print_screen(right_list: list, file_name: str):
-    for line in right_list:
-        print(file_name, line, sep='')
-
-
-def format_print(length: int, is_one: bool, is_count: bool, right_list: list, file_name: str):
-    if length == 1:
-        print_answer(is_count, right_list, '')
-    else:
-        if is_one:
-            if len(right_list) > 0:
-                print_answer(is_count, [''], file_name)
-        else:
-            print_answer(is_count, right_list, file_name + ':')
 
 
 def main(args_str: List[str]):
