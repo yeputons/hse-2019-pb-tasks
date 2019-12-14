@@ -8,7 +8,8 @@ def test_unit_print_formatted_lines_count(monkeypatch, tmp_path, capsys):
     monkeypatch.chdir(tmp_path)
     f = open('a.txt', 'r')
     grep.print_formatted_lines(['She loves the coat.',
-                                'Shes got a red coat with a hood.'], f, 1, False, False, True)
+                                'Shes got a red coat with a hood.'],
+                               f, 1, False, False, True)
     out, err = capsys.readouterr()
     assert err == ''
     assert out == '2\n'
