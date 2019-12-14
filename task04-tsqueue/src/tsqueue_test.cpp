@@ -51,7 +51,7 @@ TEST_SUITE("ThreadsafeQueue works like Queue in a single thread") {
     }
 }
 
-TEST_CASE("ThreadsafeQueue multithreaded ping-pong"){
+TEST_CASE("ThreadsafeQueue multithreaded ping-pong") {
     ThreadsafeQueue qs[2];
     threadsafe_queue_init(&qs[0]);
     threadsafe_queue_init(&qs[1]);
