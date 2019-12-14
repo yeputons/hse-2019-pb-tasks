@@ -15,8 +15,7 @@ class UserWidget(tkinter.LabelFrame):
         self.create_widgets()
 
     def create_widgets(self) -> None:
-        self.lines = tkinter.Text(
-            self, wrap='word', state=tkinter.DISABLED, width=1, height=1)
+        self.lines = tkinter.Text(self, wrap='word', state=tkinter.DISABLED, width=1, height=1)
         self.lines.pack(expand=1, fill=tkinter.BOTH, padx=4, pady=4)
 
         self.send_frame = tkinter.Frame(self, pady=4)
@@ -24,11 +23,9 @@ class UserWidget(tkinter.LabelFrame):
 
         self.new_command = tkinter.Entry(self.send_frame, width=1)
         self.new_command.bind('<Return>', lambda event: self.send_message())
-        self.new_command.pack(side=tkinter.LEFT, expand=1,
-                              fill=tkinter.X, padx=4)
+        self.new_command.pack(side=tkinter.LEFT, expand=1, fill=tkinter.X, padx=4)
 
-        self.send_button = tkinter.Button(
-            self.send_frame, text='Send', command=self.send_message)
+        self.send_button = tkinter.Button(self.send_frame, text='Send', command=self.send_message)
         self.send_button.pack(side=tkinter.RIGHT, padx=4)
 
     def received_message(self, message: str) -> None:
