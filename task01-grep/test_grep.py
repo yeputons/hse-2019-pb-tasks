@@ -129,38 +129,20 @@ def test_integrate_files_grep_regex_count(tmp_path, monkeypatch, capsys):
 # --------------------------------------------UNIT------------------------------------------
 
 
-def test_unit_parse_args():
-    ans = grep.parse_args(['-E', 'needle?', 'b.txt', 'a.txt'])
-    assert ans.regex is True
-    assert ans.count is False
-    assert ans.pattern == 'needle?'
-    assert ans.files == ['b.txt', 'a.txt']
-
-
-def test_strip_lines_from_file(tmp_path, monkeypatch):
+def test_rstrip_lines_from_file(tmp_path, monkeypatch):
     (tmp_path / 'a.txt').write_text('one\ntwo\n')
     monkeypatch.chdir(tmp_path)
     with open('a.txt', 'r') as file:
-        assert grep.strip_lines(file) == ['one', 'two']
+        assert grep.rstrip_lines(file) == ['one', 'two']
 
 
-def test_strip_lines_from_stdin(monkeypatch):
+def test_rstrip_lines_from_stdin(monkeypatch):
     monkeypatch.setattr('sys.stdin', io.StringIO('one\ntwo\n'))
-    assert grep.strip_lines(sys.stdin) == ['one', 'two']
+    assert grep.rstrip_lines(sys.stdin) == ['one', 'two']
 
 
 def test_compile_pattern():
-    assert re.compile('a\\.', re.IGNORECASE) == grep.compile_pattern('a.', False, True)
-
-
-def test_get_find_function():
-    pattern = re.compile('ab')
-
-    def f_test(line):
-        return bool(re.fullmatch(pattern, line)) ^ 1
-
-    f_correct = grep.get_find_function(pattern, True, True)
-    assert f_test('a') == f_correct('b')
+    assert re.compile('a\\.') == grep.compile_pattern('a.', False, False)
 
 
 def test_filter_blocks():
@@ -173,9 +155,9 @@ def test_filter_blocks():
     assert grep.filter_blocks(blocks, f) == [['lol ke'], ['kek']]
 
 
-def test_map_blocks():
+def test_count_lines():
     blocks = [['lol ke', 'lol'], ['kek']]
-    assert grep.map_blocks(blocks) == [['2'], ['1']]
+    assert grep.count_lines(blocks) == [['2'], ['1']]
 
 
 def test_add_filename_prefix():

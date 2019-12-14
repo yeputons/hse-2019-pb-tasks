@@ -1,31 +1,14 @@
 #!/usr/bin/env python3
-from typing import List
-from typing import Iterable
-from typing import Iterator
-from typing import Pattern
-from typing import Tuple
-from typing import Callable
+from typing import List, Iterable, Tuple
+from typing import Iterator, Pattern, Callable
+
 
 import sys
 import re
 import argparse
 
 
-def parse_args(args_str: List[str]) -> argparse.Namespace:
-    parser = argparse.ArgumentParser()
-    parser.add_argument('pattern', type=str)
-    parser.add_argument('files', nargs='*')
-    parser.add_argument('-c', dest='count', action='store_true')
-    parser.add_argument('-l', dest='file_name_only', action='store_true')
-    parser.add_argument('-L', dest='invert_file_name_only', action='store_true')
-    parser.add_argument('-E', dest='regex', action='store_true')
-    parser.add_argument('-i', dest='ignore_case', action='store_true')
-    parser.add_argument('-v', dest='invert', action='store_true')
-    parser.add_argument('-x', dest='full_match', action='store_true')
-    return parser.parse_args(args_str)
-
-
-def strip_lines(lines: Iterable) -> List[str]:
+def rstrip_lines(lines: Iterable[str]) -> List[str]:
     return [line.rstrip('\n') for line in lines]
 
 
@@ -46,7 +29,7 @@ def filter_blocks(blocks: List[List[str]], find: Callable[[str], bool]) -> List[
     return [list(filter(find, lines)) for lines in blocks]
 
 
-def map_blocks(blocks: List[List[str]]) -> List[List[str]]:
+def count_lines(blocks: List[List[str]]) -> List[List[str]]:
     return [[str(len(lines))] for lines in blocks]
 
 
@@ -70,14 +53,24 @@ def print_blocks(blocks: List[List[str]]) -> None:
 
 
 def main(args_str: List[str]):
-    args = parse_args(args_str)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('pattern', type=str)
+    parser.add_argument('files', nargs='*')
+    parser.add_argument('-c', dest='count', action='store_true')
+    parser.add_argument('-l', dest='file_name_only', action='store_true')
+    parser.add_argument('-L', dest='invert_file_name_only', action='store_true')
+    parser.add_argument('-E', dest='regex', action='store_true')
+    parser.add_argument('-i', dest='ignore_case', action='store_true')
+    parser.add_argument('-v', dest='invert', action='store_true')
+    parser.add_argument('-x', dest='full_match', action='store_true')
+    args = parser.parse_args(args_str)
 
     blocks: List[List[str]] = []
     for file_name in args.files:
         with open(file_name, 'r') as file:
-            blocks.append(strip_lines(file))
+            blocks.append(rstrip_lines(file))
     if not args.files:
-        blocks.append(strip_lines(sys.stdin))
+        blocks.append(rstrip_lines(sys.stdin))
 
     sources: List[str] = args.files
     if not sources:
@@ -88,7 +81,7 @@ def main(args_str: List[str]):
     blocks = filter_blocks(blocks, find)
 
     if args.count:
-        blocks = map_blocks(blocks)
+        blocks = count_lines(blocks)
     if len(sources) > 1:
         blocks = list(map(add_filename_prefix, zip(blocks, sources)))
 
