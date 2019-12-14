@@ -9,7 +9,6 @@ class TicTacToeUserHandler(UserHandler):
         self.game: Optional[TicTacToe] = None
 
     def handle_message(self, message: str) -> None:
-        message = message.strip()
         if message == 'start':
             self.start_game()
             return
@@ -42,14 +41,6 @@ class TicTacToeUserHandler(UserHandler):
 
     def send_field(self) -> None:
         assert self.game is not None
-        field = ''
-        for col in self.game.field:
-            for row in col:
-                if row is None:
-                    field += '.'
-                if row == Player.X:
-                    field += 'X'
-                if row == Player.O:
-                    field += 'O'
-            field += '\n'
+        field = '\n'.join([''.join([pos.name if pos else '.' for pos in row])
+                           for row in self.game.field])
         self.send_message(field.strip('\n'))
