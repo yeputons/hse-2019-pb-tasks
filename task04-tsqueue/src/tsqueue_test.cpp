@@ -72,8 +72,7 @@ TEST_CASE("ThreadsafeQueue multithreaded ping-pong") {
     auto ponger = [](void *_qs) -> void * {
         ThreadsafeQueue *qs = static_cast<ThreadsafeQueue *>(_qs);
         for (int i = 0; i < PING_PONGS; i++) {
-            int *pong;
-            pong = (int *)threadsafe_queue_wait_and_pop(&qs[0]);
+            int *pong = (int *)threadsafe_queue_wait_and_pop(&qs[0]);
             REQUIRE(*pong == i);
             *pong += 1;
             threadsafe_queue_push(&qs[1], pong);
@@ -111,7 +110,7 @@ void *consumer_try(void *_q) {
     ThreadsafeQueue *q = (ThreadsafeQueue *)_q;
     for (int i = 0; i < ELEMENTS_PER_THREAD; i++) {
         void *data;
-        REQUIRE(threadsafe_queue_try_pop(q, &data) == true);
+        REQUIRE(threadsafe_queue_try_pop(q, &data));
         REQUIRE(data == nullptr);
     }
     return nullptr;
