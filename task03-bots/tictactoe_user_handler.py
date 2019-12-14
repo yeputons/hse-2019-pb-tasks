@@ -48,7 +48,7 @@ class TicTacToeUserHandler(UserHandler):
 
     def send_field(self) -> None:
         try:
-            result_line = ""
+            result_line = ''
             for row in self.game.field:
                 for val in row:
                     result_line += '' + val.name if val else '.'
