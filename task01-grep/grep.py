@@ -2,14 +2,12 @@
 from typing import Iterable, List, Pattern
 import sys
 import re
-import os
 import argparse
 
 
 def print_result(result: Iterable) -> None:
     for line in result:
-        if line:
-            print(line)
+        print(line)
 
 
 def compile_pattern(pattern: str, is_regex: bool, ignore_mode: bool):
@@ -28,16 +26,16 @@ def filter_lines(pattern: Pattern[str], lines: Iterable, full_match: bool,
     return [line for line in lines if match_pattern(pattern, line, full_match, inverse_mode)]
 
 
-def grep_lines(lines: Iterable, filename: str, pattern: Pattern[str],
+def grep_lines(lines: Iterable, prefix: str, pattern: Pattern[str],
                counting_mode: bool, only_files_mode: bool, only_not_files_mode: bool,
                full_match: bool, inverse_mode: bool) -> List[str]:
     result = filter_lines(pattern, lines, full_match, inverse_mode)
     if only_files_mode or only_not_files_mode:
-        return [filename] if only_not_files_mode ^ bool(result) else []
+        return [prefix] if only_not_files_mode ^ bool(result) else []
     if counting_mode:
         result = [str(len(result))]
-    if filename:
-        return [f'{filename}:{line}' for line in result]
+    if prefix:
+        return [f'{prefix}:{line}' for line in result]
     else:
         return result
 
@@ -62,21 +60,19 @@ def main(args_str: List[str]):
     if args.files:
         all_lines, filenames = [], []
         for filename in args.files:
-            if os.path.isfile(filename):
-                filenames.append(filename)
-            else:
-                print('File not found')
+            filenames.append(filename)
         for filename in filenames:
             with open(filename, 'r') as input_file:
                 all_lines.append(input_file.readlines())
+                all_lines = [strip_lines(line) for line in all_lines]
     else:
         all_lines = [sys.stdin.readlines()]
+        all_lines = [strip_lines(line) for line in all_lines]
         filenames = [None]
 
     pattern = compile_pattern(args.needle, args.regex, args.ignore)
 
     for lines, filename in zip(all_lines, filenames):
-        lines = strip_lines(lines)
         prefix = filename if len(args.files) > 1 else None
         print_result(grep_lines(lines, prefix, pattern, args.count, args.only_files,
                                 args.only_not_files, args.full_match, args.inverse))

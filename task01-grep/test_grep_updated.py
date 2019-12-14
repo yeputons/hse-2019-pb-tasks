@@ -132,3 +132,18 @@ def test_filter_lines_v_regex():
     lines = ['ABC?', 'abc?', 'AbC', 'ab', 'c', 'abC??']
     pattern = re.compile('ab?')
     assert grep.filter_lines(pattern, lines, True, False) == ['ab']
+
+
+def test_match_pattern_regex():
+    assert grep.match_pattern(re.compile('ab+fb?'), 'abfb',
+                              full_match=False, inverse_mode=False, )
+
+
+def test_match_pattern_with_inverse():
+    assert grep.match_pattern(re.compile(re.escape('ab+fb?')), 'abffb',
+                              full_match=False, inverse_mode=True, )
+
+
+def test_matching_pattern_with_full_match():
+    assert not grep.match_pattern(re.compile(re.escape('ff')), 'afffffc',
+                                  full_match=True, inverse_mode=False)
