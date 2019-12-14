@@ -40,7 +40,7 @@ class TicTacToeUserHandler(UserHandler):
             self.game = None
 
     def send_field(self) -> None:
-        assert self.game is not None
+        assert self.game
         field = ''
         for row in self.game.field:
             for player in row:
