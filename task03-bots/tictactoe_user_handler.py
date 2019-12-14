@@ -25,9 +25,10 @@ class TicTacToeUserHandler(UserHandler):
         assert self.game
         winner = self.game.winner()
         if winner:
-            self.send_message(f'Game is finished, {winner.name} wins')
+            result = f'{winner.name} wins'
         else:
-            self.send_message('Game is finished, draw')
+            result = 'draw'
+        self.send_message('Game is finished, ' + result)
         self.game = None
 
     def make_turn(self, player: Player, *, row: int, col: int) -> None:
