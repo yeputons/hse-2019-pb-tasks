@@ -65,8 +65,8 @@ TEST_CASE("ThreadsafeQueue multithreaded ping-pong") {
             threadsafe_queue_push(&qs[0], &old_value);
             int *value =
                 static_cast<int *>(threadsafe_queue_wait_and_pop(&qs[1]));
-            REQUIRE(value == &old_value);
-            REQUIRE(i + 1 == old_value);
+            CHECK(value == &old_value);
+            CHECK(i + 1 == old_value);
         }
         return nullptr;
     };
