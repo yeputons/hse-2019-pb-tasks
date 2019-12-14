@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from typing import List, Pattern, Optional
+from typing import List, Pattern
 import sys
 import re
 import argparse
@@ -79,7 +79,7 @@ def main(args_str: List[str]):
         lines_of_lines = [sys.stdin.readlines()]
         stream_names = [None]
 
-    if len(args.files) == 1 and not args.file_with_str and not args.file_without_str:
+    if len(args.files) == 1 and not (args.file_with_str and args.file_without_str):
         stream_names = [None]
 
     for stream_name, lines in zip(stream_names, lines_of_lines):

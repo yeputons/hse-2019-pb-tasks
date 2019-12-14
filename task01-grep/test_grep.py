@@ -159,12 +159,12 @@ def test_integrate_all_keys(tmp_path, monkeypatch, capsys):
 
 def test_integrate_key_i(tmp_path, monkeypatch, capsys):
     (tmp_path / 'a.txt').write_text('fO\nFO\nFoO\n')
-    (tmp_path / 'b.txt').write_text('hello fo?o world\nxfooyfoz\nfooo\n')
+    (tmp_path / 'b.txt').write_text('hello fo?o world\nfooo\n')
     monkeypatch.chdir(tmp_path)
     grep.main(['-i', '-E', 'fo?o', 'b.txt', 'a.txt'])
     out, err = capsys.readouterr()
     assert err == ''
-    assert out == 'b.txt:hello fo?o world\nb.txt:xfooyfoz\nb.txt:fooo\na.txt:fO\na.txt:FO\na.txt:FoO\n'
+    assert out == 'b.txt:hello fo?o world\nb.txt:fooo\na.txt:fO\na.txt:FO\na.txt:FoO\n'
 
 
 def test_integrate_key_v(tmp_path, monkeypatch, capsys):
@@ -311,7 +311,7 @@ def test_filter_lines_more_interesting():
                              inverted, matched) == ['sdKEK', 'miu']
 
 
-def test_process_underprint_results_random_flag():
+def test_process_underprint_results_flag_l():
     lines = ['a', 'ab', 'ac', 'bc', 'abc']
     source = 'file.txt'
     file_with_str = True
@@ -319,6 +319,37 @@ def test_process_underprint_results_random_flag():
     counted = False
     assert grep.parse_output_results(lines, source, counted,
                                      file_with_str, file_without_str) == ['file.txt']
+
+
+def test_process_underprint_results_flag_big_l():
+    lines = ['a', 'ab', 'ac', 'bc', 'abc']
+    source = 'file.txt'
+    file_with_str = False
+    file_without_str = True
+    counted = False
+    assert grep.parse_output_results(lines, source, counted,
+                                     file_with_str, file_without_str) == []
+
+
+def test_process_underprint_results_flag_c():
+    lines = ['a', 'ab', 'ac', 'bc', 'abc']
+    source = 'file.txt'
+    file_with_str = False
+    file_without_str = False
+    counted = True
+    assert grep.parse_output_results(lines, source, counted,
+                                     file_with_str, file_without_str) == ['file.txt:5']
+
+
+def test_process_underprint_results_no_flags():
+    lines = ['a', 'ab', 'ac', 'bc', 'abc']
+    source = 'file.txt'
+    file_with_str = False
+    file_without_str = False
+    counted = False
+    answer = ['file.txt:a', 'file.txt:ab', 'file.txt:ac', 'file.txt:bc', 'file.txt:abc']
+    assert grep.parse_output_results(lines, source, counted,
+                                     file_with_str, file_without_str) == answer
 
 
 def test_print_grep_results(capsys):
