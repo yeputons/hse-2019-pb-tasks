@@ -21,7 +21,7 @@ def parse_args(args_str: List[str]) -> ap.Namespace:
     return parser.parse_args(args_str)
 
 
-def compile_pattern(pattern: str, is_regex: bool, is_ignore: bool) -> Pattern:
+def compile_pattern(pattern: str, is_regex: bool, is_ignore: bool = False) -> Pattern:
     if not is_regex:
         pattern = re.escape(pattern)
     return re.compile(pattern, flags=re.IGNORECASE) if is_ignore else re.compile(pattern)
@@ -43,7 +43,6 @@ def format_output(lines: List[str], counting_mode: bool,
                   with_files: bool = False, with_files_invert: bool = False,
                   source: str = None) -> List[str]:
     if with_files or with_files_invert:
-        assert source
         return [source] if with_files_invert ^ bool(lines) else []
     if counting_mode:
         lines = [str(len(lines))]
@@ -70,8 +69,7 @@ def grep_from_raw(raw_lines: Iterable, pattern: Pattern[str],
 
 def print_answer(result: List[str]) -> None:
     for line in result:
-        if line:
-            print(line)
+        print(line)
 
 
 def main(args_str: List[str]):
@@ -88,7 +86,7 @@ def main(args_str: List[str]):
     if not args.files:
         result = grep_from_raw(sys.stdin.readlines(), pattern,
                                args.counting_mode, args.with_files, args.with_files_invert,
-                               args.full_match, args.inverse, '')
+                               args.full_match, args.inverse)
         print_answer(result)
 
 
