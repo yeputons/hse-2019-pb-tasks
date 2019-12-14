@@ -109,65 +109,54 @@ def test_strip_lines():
 
 def test_filter_lines_without_regex_with_substring():
     assert grep.filter_lines('b', ['aba', 'bcd', 'banana'],
-                             is_regex=False, is_ignore=False, is_full_match=False,
-                             is_inverse=False) == ['aba', 'bcd', 'banana']
+                             full_match=False, inverse_mode=False) == ['aba', 'bcd', 'banana']
 
 
 def test_filter_lines_with_regex_with_regular_expression():
     assert grep.filter_lines('a*b', ['aba', 'bcd', 'banana'],
-                             is_regex=True, is_ignore=False, is_full_match=False,
-                             is_inverse=False) == ['aba', 'bcd', 'banana']
-
-
-def test_filter_lines_without_regex_with_regular_expression():
-    assert grep.filter_lines('a*b', ['aba', 'bcd', 'banana'], is_regex=False, is_ignore=False,
-                             is_full_match=False, is_inverse=False) == []
+                             full_match=False, inverse_mode=False) == ['aba', 'bcd', 'banana']
 
 
 def test_filter_lines_with_regex_with_substring():
-    assert grep.filter_lines('a', ['aba', 'bcd', 'banana'], is_regex=True, is_ignore=False,
-                             is_full_match=False, is_inverse=False) == ['aba', 'banana']
+    assert grep.filter_lines('a', ['aba', 'bcd', 'banana'],
+                             full_match=False, inverse_mode=False) == ['aba', 'banana']
 
 
 def test_grep_lines_without_regex_without_counting_mode():
-    assert grep.grep_lines(['abc'], 'file.txt', 'a', is_regex=False, counting_mode=False,
-                           is_ignore=False, is_has_lines=False, is_no_lines=False,
-                           is_full_match=False, is_inverse=False) == ['file.txt:abc']
+    assert grep.grep_lines(['abc'], 'file.txt', 'a',
+                           counting_mode=False, only_files_mode=False, only_not_files_mode=False,
+                           full_match=False, inverse_mode=False) == ['file.txt:abc']
 
 
 def test_grep_lines_without_regex_with_counting_mode():
     assert grep.grep_lines(['abc'], 'file.txt', 'a',
-                           is_regex=False, counting_mode=True, is_ignore=False,
-                           is_has_lines=False, is_no_lines=False, is_full_match=False,
-                           is_inverse=False) == ['file.txt:1']
+                           counting_mode=True, only_files_mode=False, only_not_files_mode=False,
+                           full_match=False, inverse_mode=False) == ['file.txt:1']
 
 
 def test_grep_lines_with_regex_with_counting_mode():
-    assert grep.grep_lines(['abc'], 'file.txt', 'a',
-                           is_regex=True, counting_mode=True, is_ignore=False,
-                           is_has_lines=False, is_no_lines=False, is_full_match=False,
-                           is_inverse=False) == ['file.txt:1']
+    assert grep.grep_lines(['abc'], 'file.txt', 'a', counting_mode=True,
+                           only_files_mode=False, only_not_files_mode=False, full_match=False,
+                           inverse_mode=False) == ['file.txt:1']
 
 
 def test_grep_lines_with_regex_without_counting_mode():
-    assert grep.grep_lines(['abc'], 'file.txt', 'a',
-                           is_regex=True, counting_mode=False, is_ignore=False,
-                           is_has_lines=False, is_no_lines=False,
-                           is_full_match=False, is_inverse=False) == ['file.txt:abc']
+    assert grep.grep_lines(['abc'], 'file.txt', 'a', counting_mode=False,
+                           only_files_mode=False, only_not_files_mode=False,
+                           full_match=False, inverse_mode=False) == ['file.txt:abc']
 
 
 def test_match_pattern_without_regex_with_substring():
-    assert grep.match_pattern('Ma', 'Masha', is_regex=False, is_ignore=False, is_full_match=False)
+    assert grep.match_pattern('Ma', 'Masha', full_match=False, inverse_mode=False)
 
 
 def test_match_pattern_with_regex_with_regular_expression():
-    assert grep.match_pattern('a*', 'Masha', is_regex=True, is_ignore=False, is_full_match=False)
+    assert grep.match_pattern('a*', 'Masha', full_match=False, inverse_mode=False)
 
 
 def test_match_pattern_with_regex_with_substring():
-    assert grep.match_pattern('Ma', 'Masha', is_regex=True, is_ignore=False, is_full_match=False)
+    assert grep.match_pattern('Ma', 'Masha', full_match=False, inverse_mode=False)
 
 
 def test_match_pattern_without_regex_with_regular_expression():
-    assert not grep.match_pattern('a*', 'Masha', is_regex=False, is_ignore=False,
-                                  is_full_match=False)
+    assert grep.match_pattern('a*', 'Masha', full_match=False, inverse_mode=False)
