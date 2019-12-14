@@ -5,7 +5,7 @@ import re
 import argparse
 
 
-def init_arguments(args_str: List[str]) -> argparse.Namespace:
+def parse_arguments(args_str: List[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument('pattern', type=str)
     parser.add_argument('files', nargs='*')
@@ -21,13 +21,13 @@ def init_arguments(args_str: List[str]) -> argparse.Namespace:
     return args
 
 
-def compile_pattern(pattern: str, is_regular: bool, ignored: bool) -> Pattern[str]:
-    if not is_regular:
+def compile_pattern(pattern: str, is_regex: bool, ignored_case: bool) -> Pattern[str]:
+    if not is_regex:
         pattern = re.escape(pattern)
-    return re.compile(pattern, flags=re.IGNORECASE if ignored else 0)
+    return re.compile(pattern, flags=re.IGNORECASE if ignored_case else 0)
 
 
-def strip_lines(lines: List[str]) -> List[str]:
+def rstrip_lines(lines: List[str]) -> List[str]:
     return [line.rstrip('\n') for line in lines]
 
 
@@ -39,24 +39,26 @@ def read_files(files: List[str]) -> List[List[str]]:
     return all_lines
 
 
-def bool_match(line: str, pattern: Pattern[str], inverted: bool,
+def is_matched(line: str, pattern: Pattern[str], inverted: bool,
                matched: bool) -> bool:
     match_line = pattern.fullmatch(line) if matched else pattern.search(line)
     return inverted ^ bool(match_line)
 
 
 def filter_lines(lines: List[str], pattern: Pattern[str], inverted: bool,
-                 matched: bool) -> List[str]:
-    return [line for line in lines if bool_match(line, pattern, inverted, matched)]
+                 full_match: bool) -> List[str]:
+    return [line for line in lines if is_matched(line, pattern, inverted, full_match)]
 
 
-def parse_output_results(lines: List[str], source: str, counted: bool,
-                         file_with_str: bool, file_without_str: bool) -> List[str]:
-    if file_with_str or file_without_str:
-        lines = [source] if bool(lines) ^ file_without_str else []
+def prepare_output_results(lines: List[str], source_name: str, flag_count: bool,
+                           file_with_str: bool, file_without_str: bool) -> List[str]:
+    if file_with_str:
+        lines = [source_name] if bool(lines) else []
+    elif file_without_str:
+        lines = [source_name] if not bool(lines) else []
     else:
-        filename_prefix = f'{source}:' if source else ''
-        if counted:
+        filename_prefix = f'{source_name}:' if source_name else ''
+        if flag_count:
             lines = [str(len(lines))]
         lines = [f'{filename_prefix}{line}' for line in lines]
     return lines
@@ -68,25 +70,25 @@ def print_output_results(result: List[str]) -> None:
 
 
 def main(args_str: List[str]):
-    args = init_arguments(args_str)
+    args = parse_arguments(args_str)
 
     pattern = compile_pattern(args.pattern, args.regex, args.ignore)
 
     if args.files:
-        stream_names = args.files
-        lines_of_lines = read_files(stream_names)
+        sources = args.files
+        lines_of_lines = read_files(sources)
     else:
+        sources = [None]
         lines_of_lines = [sys.stdin.readlines()]
-        stream_names = [None]
 
-    if len(args.files) == 1 and not (args.file_with_str and args.file_without_str):
-        stream_names = [None]
+    if len(args.files) == 1 and not args.file_with_str and not args.file_without_str:
+        sources = [None]
 
-    for stream_name, lines in zip(stream_names, lines_of_lines):
-        lines = strip_lines(lines)
+    for stream_name, lines in zip(sources, lines_of_lines):
+        lines = rstrip_lines(lines)
         lines = filter_lines(lines, pattern, args.invert, args.match)
-        lines = parse_output_results(lines, stream_name, args.count,
-                                     args.file_with_str, args.file_without_str)
+        lines = prepare_output_results(lines, stream_name, args.count,
+                                       args.file_with_str, args.file_without_str)
         print_output_results(lines)
 
 

@@ -207,8 +207,8 @@ def test_integrate_key_l(tmp_path, monkeypatch, capsys):
     assert out == 'b.txt\n'
 
 
-def test_init_arguments():
-    args = grep.init_arguments(['task', 'input.txt', '-E', '-c'])
+def test_parse_arguments():
+    args = grep.parse_arguments(['task', 'input.txt', '-E', '-c'])
     assert args.pattern == 'task'
     assert args.files == ['input.txt']
     assert args.regex
@@ -216,41 +216,35 @@ def test_init_arguments():
 
 
 def test_compile_pattern_regex_and_ignored():
-    test_string = '.'
-    is_regular = True
-    ignored = True
-    result_string = grep.compile_pattern(test_string, is_regular, ignored)
+    result_string = grep.compile_pattern(pattern='.', is_regex=True, ignored_case=True)
     assert result_string == re.compile('.', re.IGNORECASE)
 
 
 def test_compile_pattern_only_regex():
-    test_string = '[0-9]\\d'
-    is_regular = True
-    ignored = False
-    result_string = grep.compile_pattern(test_string, is_regular, ignored)
+    result_string = grep.compile_pattern(pattern='[0-9]\\d', is_regex=True, ignored_case=False)
     assert result_string == re.compile('[0-9]\\d')
 
 
 def test_compile_pattern_only_ignored():
-    test_string = 'master'
-    is_regular = False
-    ignored = True
-    result_string = grep.compile_pattern(test_string, is_regular, ignored)
+    result_string = grep.compile_pattern(pattern='master', is_regex=False, ignored_case=True)
     assert result_string == re.compile('master', re.IGNORECASE)
 
 
 def test_compile_pattern_no_regex_no_ignored():
-    test_string = 'master'
-    is_regular = False
-    ignored = False
-    result_string = grep.compile_pattern(test_string, is_regular, ignored)
+    result_string = grep.compile_pattern(pattern='master', is_regex=False, ignored_case=False)
     assert result_string == re.compile('master')
 
 
-def test_strip_lines():
+def test_rstrip_lines_right():
     lines = ['plov\n', 'lavash\n', 'pomidor\n']
-    result_list = grep.strip_lines(lines)
+    result_list = grep.rstrip_lines(lines)
     assert result_list == ['plov', 'lavash', 'pomidor']
+
+
+def test_rstrip_lines_left():
+    lines = ['\nplov', '\nlavash', '\npomidor']
+    result_list = grep.rstrip_lines(lines)
+    assert result_list == ['\nplov', '\nlavash', '\npomidor']
 
 
 def test_read_files(tmp_path, monkeypatch):
@@ -262,94 +256,61 @@ def test_read_files(tmp_path, monkeypatch):
                     ['lim\n', 'it\n']]
 
 
-def test_bool_match_with_matched_and_inverted():
-    matched = True
-    inverted = True
-    line = 'kek'
-    pattern = re.compile('kek')
-    assert not grep.bool_match(line, pattern, inverted, matched)
+def test_is_matched_with_matched_and_inverted():
+    assert not grep.is_matched(line='kek', pattern=re.compile('kek'), inverted=True, matched=True)
 
 
-def test_bool_match_with_only_inverted():
-    matched = False
-    inverted = True
-    line = 'kekek'
-    pattern = re.compile('kek')
-    assert not grep.bool_match(line, pattern, inverted, matched)
+def test_is_matched_with_only_inverted():
+    assert not grep.is_matched(line='kekek', pattern=re.compile('kek'),
+                               inverted=True, matched=False)
 
 
-def test_bool_match_with_only_matched():
-    matched = True
-    inverted = False
-    line = 'kekek'
-    pattern = re.compile('kek')
-    assert not grep.bool_match(line, pattern, inverted, matched)
+def test_is_matched_with_only_matched():
+    assert not grep.is_matched(line='kekek', pattern=re.compile('kek'),
+                               inverted=False, matched=True)
 
 
-def test_bool_match_not_matched_not_inverted():
-    matched = False
-    inverted = False
-    line = 'kekek'
-    pattern = re.compile('kek')
-    assert grep.bool_match(line, pattern, inverted, matched)
+def test_is_matched_not_matched_not_inverted():
+    assert grep.is_matched(line='kekek', pattern=re.compile('kek'),
+                           inverted=False, matched=False)
 
 
 def test_filter_lines():
-    pattern = re.compile('alg')
-    lines = ['algebra', 'minecraft', 'dota']
-    matched = False
-    inverted = True
-    assert grep.filter_lines(lines, pattern, inverted,
-                             matched) == ['minecraft', 'dota']
+    assert grep.filter_lines(lines=['algebra', 'minecraft', 'dota'],
+                             pattern=re.compile('alg'), inverted=True,
+                             full_match=False) == ['minecraft', 'dota']
 
 
 def test_filter_lines_more_interesting():
-    lines = ['kEk', 'sdKEK', 'miu']
-    inverted = True
-    matched = True
-    assert grep.filter_lines(lines, re.compile('kek', flags=re.I),
-                             inverted, matched) == ['sdKEK', 'miu']
+    assert grep.filter_lines(lines=['kEk', 'sdKEK', 'miu'], pattern=re.compile('kek', flags=re.I),
+                             inverted=True, full_match=True) == ['sdKEK', 'miu']
 
 
 def test_process_underprint_results_flag_l():
-    lines = ['a', 'ab', 'ac', 'bc', 'abc']
-    source = 'file.txt'
-    file_with_str = True
-    file_without_str = False
-    counted = False
-    assert grep.parse_output_results(lines, source, counted,
-                                     file_with_str, file_without_str) == ['file.txt']
+    assert grep.prepare_output_results(lines=['a', 'ab', 'ac', 'bc', 'abc'],
+                                       source_name='file.txt', flag_count=False,
+                                       file_with_str=True, file_without_str=False) == ['file.txt']
 
 
 def test_process_underprint_results_flag_big_l():
-    lines = ['a', 'ab', 'ac', 'bc', 'abc']
-    source = 'file.txt'
-    file_with_str = False
-    file_without_str = True
-    counted = False
-    assert grep.parse_output_results(lines, source, counted,
-                                     file_with_str, file_without_str) == []
+    assert grep.prepare_output_results(lines=['a', 'ab', 'ac', 'bc', 'abc'],
+                                       source_name='file.txt', flag_count=False,
+                                       file_with_str=False, file_without_str=True) == []
 
 
 def test_process_underprint_results_flag_c():
-    lines = ['a', 'ab', 'ac', 'bc', 'abc']
-    source = 'file.txt'
-    file_with_str = False
-    file_without_str = False
-    counted = True
-    assert grep.parse_output_results(lines, source, counted,
-                                     file_with_str, file_without_str) == ['file.txt:5']
+    assert grep.prepare_output_results(lines=['a', 'ab', 'ac', 'bc', 'abc'],
+                                       source_name='file.txt', flag_count=True,
+                                       file_with_str=False, file_without_str=False) \
+                                        == ['file.txt:5']
 
 
 def test_process_underprint_results_no_flags():
-    lines = ['a', 'ab', 'ac', 'bc', 'abc']
-    source = 'file.txt'
-    file_with_str = False
-    file_without_str = False
-    counted = False
-    answer = ['file.txt:a', 'file.txt:ab', 'file.txt:ac', 'file.txt:bc', 'file.txt:abc']
-    assert grep.parse_output_results(lines, source, counted,
-                                     file_with_str, file_without_str) == answer
+    assert grep.prepare_output_results(lines=['a', 'ab', 'ac', 'bc', 'abc'],
+                                       source_name='file.txt', flag_count=False,
+                                       file_with_str=False, file_without_str=False)\
+                                        == ['file.txt:a', 'file.txt:ab', 'file.txt:ac',
+                                            'file.txt:bc', 'file.txt:abc']
 
 
 def test_print_grep_results(capsys):
