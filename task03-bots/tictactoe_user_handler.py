@@ -15,9 +15,7 @@ class TicTacToeUserHandler(UserHandler):
             self.send_message('Game is not started')
         else:
             symbol, col, row = message.split()
-            player = {'X': Player.X, 'O': Player.O}[symbol]
-            assert player
-            self.make_turn(player, row=int(row), col=int(col))
+            self.make_turn(Player[symbol], row=int(row), col=int(col))
 
     def start_game(self) -> None:
         self.game = TicTacToe()
