@@ -10,11 +10,11 @@ class TicTacToeUserHandler(UserHandler):
 
     def handle_message(self, message: str) -> None:
         message = message.strip()
-        if message != 'start' and not self.game:
-            self.send_message('Game is not started')
-            return
         if message == 'start':
             self.start_game()
+            return
+        if not self.game:
+            self.send_message('Game is not started')
             return
         sym, col, row = message.split()
         player = Player.X if sym == 'X' else Player.O
@@ -26,8 +26,7 @@ class TicTacToeUserHandler(UserHandler):
 
     def make_turn(self, player: Player, *, row: int, col: int) -> None:
         assert self.game is not None
-        if self.game.current_player() is not player \
-                or not self.game.can_make_turn(player, row=row, col=col):
+        if not self.game.can_make_turn(player, row=row, col=col):
             self.send_message('Invalid turn')
             return
         self.game.make_turn(player, row=row, col=col)
@@ -44,13 +43,13 @@ class TicTacToeUserHandler(UserHandler):
     def send_field(self) -> None:
         assert self.game is not None
         field = ''
-        for y in self.game.field:
-            for x in y:
-                if x is None:
+        for col in self.game.field:
+            for row in col:
+                if row is None:
                     field += '.'
-                if x == Player.X:
+                if row == Player.X:
                     field += 'X'
-                if x == Player.O:
+                if row == Player.O:
                     field += 'O'
             field += '\n'
         self.send_message(field.strip('\n'))

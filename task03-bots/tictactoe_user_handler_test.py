@@ -40,6 +40,28 @@ def test_win_x(mocker: pytest_mock.MockFixture) -> None:
     ]
 
 
+def test_win_o(mocker: pytest_mock.MockFixture) -> None:
+    send_message = mocker.stub(name='send_message_stub')
+    bot = TicTacToeUserHandler(send_message)
+    bot.handle_message('start')
+    bot.handle_message('X 0 0')
+    bot.handle_message('O 1 0')
+    bot.handle_message('X 0 1')
+    bot.handle_message('O 1 1')
+    bot.handle_message('X 2 2')
+    bot.handle_message('O 1 2')
+    assert send_message.call_args_list == [
+        mocker.call('...\n...\n...'),
+        mocker.call('X..\n...\n...'),
+        mocker.call('XO.\n...\n...'),
+        mocker.call('XO.\nX..\n...'),
+        mocker.call('XO.\nXO.\n...'),
+        mocker.call('XO.\nXO.\n..X'),
+        mocker.call('XO.\nXO.\n.OX'),
+        mocker.call('Game is finished, O wins')
+    ]
+
+
 def test_draw(mocker: pytest_mock.MockFixture) -> None:
     send_message = mocker.stub(name='send_message_stub')
     bot = TicTacToeUserHandler(send_message)
@@ -68,7 +90,7 @@ def test_draw(mocker: pytest_mock.MockFixture) -> None:
     ]
 
 
-def test_make_new(mocker: pytest_mock.MockFixture) -> None:
+def test_start_new_game(mocker: pytest_mock.MockFixture) -> None:
     send_message = mocker.stub(name='send_message_stub')
     bot = TicTacToeUserHandler(send_message)
     bot.handle_message('start')
@@ -113,7 +135,7 @@ def test_invalid_move_twice_same_player(mocker: pytest_mock.MockFixture) -> None
     ]
 
 
-def test_message_after_go(mocker: pytest_mock.MockFixture) -> None:
+def test_message_after_game_is_over(mocker: pytest_mock.MockFixture) -> None:
     send_message = mocker.stub(name='send_message_stub')
     bot = TicTacToeUserHandler(send_message)
     bot.handle_message('start')
