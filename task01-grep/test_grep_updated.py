@@ -120,8 +120,8 @@ def test_integrate_files_grep_invert_files_invert(tmp_path, monkeypatch, capsys)
 
 
 def test_needle_full_match_find():
-    line = 'find something here, ffind, Find_here!'
-    assert grep.find(line, 'find', False, False, True)
+    line = 'find\n something here, ffind, Find_here!'
+    assert not grep.find(line, 'find', False, False, True)
 
 
 def test_regex_lowercase_find():
