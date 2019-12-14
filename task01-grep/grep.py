@@ -101,7 +101,7 @@ def main(args_str: List[str]):
                          args.regex, args.whole_line, args.iflag, args.inversion,
                          args.files_without_lines, args.only_names_of_files, args.cflag)
     for file in args.files:
-        file.close
+        file.close()
 
 
 if __name__ == '__main__':
