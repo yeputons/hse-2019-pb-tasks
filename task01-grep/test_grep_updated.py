@@ -59,6 +59,16 @@ def test_fullmatch_regex(monkeypatch, capsys):
     assert out == 'text\ntext\ntext\n'
 
 
+def test_unit_search():
+    string = 'begin string end'
+    string_full_match = 'string'
+    pattern = re.compile(re.escape('string'))
+    assert not grep.search(pattern, string, is_fullmatch=True)
+    assert grep.search(pattern, string, is_fullmatch=False)
+    assert grep.search(pattern, string_full_match, is_fullmatch=False)
+    assert grep.search(pattern, string_full_match, is_fullmatch=True)
+
+
 def test_unit_print_lines(capsys):
     input_ = ['Print it', 'Print it too', '\n']
     grep.print_lines(input_)
@@ -71,8 +81,8 @@ def test_unit_print_lines(capsys):
 
 
 def test_unit_build_pattern():
-    result = grep.build_pattern('fo?o', is_regex=True, is_full_match=True)
-    assert result == re.compile('^fo?o$')
+    result = grep.build_pattern('fo?o', is_regex=True)
+    assert result == re.compile('fo?o')
 
 
 def test_unit_rstrip_lines():

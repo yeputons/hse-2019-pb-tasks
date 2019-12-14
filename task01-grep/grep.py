@@ -5,8 +5,16 @@ import argparse
 import re
 
 
-def filter_matching_lines(pattern: Pattern, lines: Iterable[str], is_invert=False) -> List[str]:
-    return [line for line in lines if is_invert ^ bool(re.search(pattern, line))]
+def search(pattern: Pattern, line: str, is_fullmatch=False) -> bool:
+    if is_fullmatch:
+        return bool(re.fullmatch(pattern, line))
+    return bool(re.search(pattern, line))
+
+
+def filter_matching_lines(pattern: Pattern, lines: Iterable[str],
+                          is_invert=False,
+                          is_fullmatch=False) -> List[str]:
+    return [line for line in lines if is_invert ^ bool(search(pattern, line, is_fullmatch))]
 
 
 def print_lines(lines: Iterable[str]) -> None:
@@ -15,13 +23,10 @@ def print_lines(lines: Iterable[str]) -> None:
 
 
 def build_pattern(string: str, is_regex=False,
-                  is_ignore_case=False,
-                  is_full_match=False) -> Pattern:
+                  is_ignore_case=False) -> Pattern:
     ignore_case = re.IGNORECASE if is_ignore_case else 0
     if not is_regex:
         string = re.escape(string)
-    if is_full_match:
-        string = '^{}$'.format(string)
     return re.compile(string, flags=ignore_case)
 
 
@@ -51,9 +56,9 @@ def main(args_str: List[str]):
     parser.add_argument('-v', dest='invert_match', action='store_true')
     args = parser.parse_args(args_str)
 
-    pattern = build_pattern(args.needle, args.regex, args.ignore_case, args.line_regex)
+    pattern = build_pattern(args.needle, args.regex, args.ignore_case)
 
-    collected_lines = []
+    collected_lines: List[List[str]] = []
 
     for file_name in args.files:
         with open(file_name, 'r') as file:
@@ -62,7 +67,10 @@ def main(args_str: List[str]):
     if not args.files:
         collected_lines.append(rstrip_lines(sys.stdin.readlines()))
 
-    result = [filter_matching_lines(pattern, lines, args.invert_match) for lines in collected_lines]
+    result: List[List[str]] = []
+
+    for lines in collected_lines:
+        result.append(filter_matching_lines(pattern, lines, args.invert_match, args.line_regex))
 
     # Flag: -c
 
