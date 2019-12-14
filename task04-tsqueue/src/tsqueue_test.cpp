@@ -121,7 +121,7 @@ void *consumer(void *_q) {
 void *consumer_try(void *_q) {
     ThreadsafeQueue *q = static_cast<ThreadsafeQueue *>(_q);
     for (int i = 0; i < ELEMENTS_PER_THREAD; i++) {
-        void *result = nullptr;
+        void *result;
         CHECK(threadsafe_queue_try_pop(q, &result));
         REQUIRE(result == nullptr);
     }
