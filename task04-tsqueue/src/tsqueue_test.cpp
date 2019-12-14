@@ -6,7 +6,7 @@ const int ELEMENTS_PER_THREAD = 100 * 1000;
 const int REPEATS = 3;
 
 TEST_SUITE("ThreadsafeQueue works like Queue in a single thread") {
-    TEST_CASE ("with threadsafe_queue_try_pop") {
+    TEST_CASE("with threadsafe_queue_try_pop") {
         ThreadsafeQueue q;
         threadsafe_queue_init(&q);
 
@@ -15,24 +15,24 @@ TEST_SUITE("ThreadsafeQueue works like Queue in a single thread") {
 
         threadsafe_queue_push(&q, &a);
         threadsafe_queue_push(&q, &b);
-                CHECK(threadsafe_queue_try_pop(&q, &result));
-                CHECK(result == &a);
-                CHECK(threadsafe_queue_try_pop(&q, &result));
-                CHECK(result == &b);
-                CHECK(!threadsafe_queue_try_pop(&q, &result));
+        CHECK(threadsafe_queue_try_pop(&q, &result));
+        CHECK(result == &a);
+        CHECK(threadsafe_queue_try_pop(&q, &result));
+        CHECK(result == &b);
+        CHECK(!threadsafe_queue_try_pop(&q, &result));
 
         threadsafe_queue_push(&q, &c);
         threadsafe_queue_push(&q, &b);
-                CHECK(threadsafe_queue_try_pop(&q, &result));
-                CHECK(result == &c);
-                CHECK(threadsafe_queue_try_pop(&q, &result));
-                CHECK(result == &b);
-                CHECK(!threadsafe_queue_try_pop(&q, &result));
+        CHECK(threadsafe_queue_try_pop(&q, &result));
+        CHECK(result == &c);
+        CHECK(threadsafe_queue_try_pop(&q, &result));
+        CHECK(result == &b);
+        CHECK(!threadsafe_queue_try_pop(&q, &result));
 
         threadsafe_queue_destroy(&q);
     }
 
-    TEST_CASE ("with threadsafe_queue_wait_and_pop") {
+    TEST_CASE("with threadsafe_queue_wait_and_pop") {
         ThreadsafeQueue q;
         threadsafe_queue_init(&q);
 
@@ -40,13 +40,13 @@ TEST_SUITE("ThreadsafeQueue works like Queue in a single thread") {
 
         threadsafe_queue_push(&q, &a);
         threadsafe_queue_push(&q, &b);
-                CHECK(threadsafe_queue_wait_and_pop(&q) == &a);
-                CHECK(threadsafe_queue_wait_and_pop(&q) == &b);
+        CHECK(threadsafe_queue_wait_and_pop(&q) == &a);
+        CHECK(threadsafe_queue_wait_and_pop(&q) == &b);
 
         threadsafe_queue_push(&q, &c);
         threadsafe_queue_push(&q, &b);
-                CHECK(threadsafe_queue_wait_and_pop(&q) == &c);
-                CHECK(threadsafe_queue_wait_and_pop(&q) == &b);
+        CHECK(threadsafe_queue_wait_and_pop(&q) == &c);
+        CHECK(threadsafe_queue_wait_and_pop(&q) == &b);
         threadsafe_queue_destroy(&q);
     }
 }
@@ -63,7 +63,8 @@ TEST_CASE("ThreadsafeQueue multithreaded ping-pong"){
         for (int i = 0; i < PING_PONGS; ++i) {
             int old_value = i;
             threadsafe_queue_push(&qs[0], &old_value);
-            int *value = static_cast<int *>(threadsafe_queue_wait_and_pop(&qs[1]));
+            int *value =
+                    static_cast<int *>(threadsafe_queue_wait_and_pop(&qs[1]));
             REQUIRE(value == &old_value);
             REQUIRE(i + 1 == old_value);
         }
@@ -73,7 +74,8 @@ TEST_CASE("ThreadsafeQueue multithreaded ping-pong"){
     auto ponger = [](void *_qs) -> void * {
         ThreadsafeQueue *qs = static_cast<ThreadsafeQueue *>(_qs);
         for (int i = 0; i < PING_PONGS; i++) {
-            int *value = static_cast<int *>(threadsafe_queue_wait_and_pop(&(qs[0])));
+            int *value =
+                    static_cast<int *>(threadsafe_queue_wait_and_pop(&(qs[0])));
             (*value)++;
             threadsafe_queue_push(&(qs[1]), value);
         }
