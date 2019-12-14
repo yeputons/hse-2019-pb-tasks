@@ -9,13 +9,56 @@ class TicTacToeUserHandler(UserHandler):
         self.game: Optional[TicTacToe] = None
 
     def handle_message(self, message: str) -> None:
-        raise NotImplementedError
+        if message == 'start':
+            self.start_game()
+            return
+        if not self.game:
+            self.send_message('Game is not started')
+            return
+        turn, column, row = message.split(maxsplit=2)
+        if turn[0] == 'O':
+            player = Player.O
+        elif turn[0] == 'X':
+            player = Player.X
+        else:
+            self.send_message('Invalid turn')
+            return
+        try:
+            self.make_turn(player=player, row=int(row), col=int(column))
+        except ValueError:
+            self.send_message('Invalid turn')
 
     def start_game(self) -> None:
-        raise NotImplementedError
+        self.game = TicTacToe()
+        self.send_field()
 
     def make_turn(self, player: Player, *, row: int, col: int) -> None:
-        raise NotImplementedError
+        assert self.game
+        if not self.game.can_make_turn(player, row=row, col=col):
+            self.send_message('Invalid turn')
+            return
+        self.game.make_turn(player=player, row=row, col=col)
+        self.send_field()
+        if self.game.is_finished():
+            winner = self.game.winner()
+            if not winner:  # Sad story
+                self.send_message('Game is finished, draw')
+            elif winner == Player.O:
+                self.send_message('Game is finished, O wins')
+            else:
+                self.send_message('Game is finished, X wins')
+            self.game = None
 
     def send_field(self) -> None:
-        raise NotImplementedError
+        assert self.game
+        field = ''
+        for row in self.game.field:
+            for cell in row:
+                if not cell:
+                    field += '.'
+                elif cell == Player.O:
+                    field += 'O'
+                else:
+                    field += 'X'
+            field += '\n'
+        self.send_message(field[:-1])
