@@ -6,14 +6,14 @@ import re
 import argparse
 
 
-def check_line(line: str, pattern: str, is_regex: bool):
+def check_line(line: str, pattern: str, is_regex: bool) -> bool:
     if is_regex:
-        return re.search(pattern, line)
+        return bool(re.search(pattern, line))
     else:
         return pattern in line
 
 
-def print_lines(lines: List[str], filename: str, print_name: bool, print_number: bool):
+def print_lines(lines: List[str], filename: str, print_name: bool, print_number: bool) -> None:
     for line in lines:
         if not print_number:
             if print_name:
@@ -29,7 +29,7 @@ def print_lines(lines: List[str], filename: str, print_name: bool, print_number:
                 break
 
 
-def input_from_files(files: List[str], pattern: str, print_number: bool, is_regex: bool):
+def input_from_files(files: List[str], pattern: str, print_number: bool, is_regex: bool) -> None:
     lines = []
     print_name = bool(len(files) > 1)
     for filename in files:
@@ -43,7 +43,7 @@ def input_from_files(files: List[str], pattern: str, print_number: bool, is_rege
                 lines.clear()
 
 
-def input_from_stdin(pattern: str, print_number: bool, is_regex: bool):
+def input_from_stdin(pattern: str, print_number: bool, is_regex: bool) -> None:
     lines = []
     for line in sys.stdin.readlines():
         line = line.rstrip('\n')
