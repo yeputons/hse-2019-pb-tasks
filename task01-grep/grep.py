@@ -17,8 +17,8 @@ def process_lines(source: IO[str], pattern: str, is_c: bool) -> List[str]:
 
 
 def print_lines(lines: List[str]) -> None:
-    for i in range(len(lines)):
-        print(lines[i])
+    for line in lines:
+        print(line)
 
 
 def main(args_str: List[str]):
