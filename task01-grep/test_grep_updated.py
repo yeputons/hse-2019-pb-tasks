@@ -53,13 +53,13 @@ def test_integrate_invert_and_ignore(tmp_path, monkeypatch, capsys):
 
 
 def test_integrate_invert_and_regex(tmp_path, monkeypatch, capsys):
-    (tmp_path / 'a.txt').write_text('sadgaasjj\naskdjf\nvzxcjt')
+    (tmp_path / 'a.txt').write_text('aaaaa\nask\nme')
     (tmp_path / 'b.txt').write_text('ahaha\nA\nAAAA\naa\n')
     monkeypatch.chdir(tmp_path)
     grep.main(['-v', '-E', 'a+', 'b.txt', 'a.txt'])
     out, err = capsys.readouterr()
     assert err == ''
-    assert out == 'b.txt:A\nb.txt:AAAA\na.txt:vzxcjt\n'
+    assert out == 'b.txt:A\nb.txt:AAAA\na.txt:me\n'
 
 
 def test_integrate_full_match(tmp_path, monkeypatch, capsys):
@@ -73,13 +73,13 @@ def test_integrate_full_match(tmp_path, monkeypatch, capsys):
 
 
 def test_integrate_full_match_and_ignore(tmp_path, monkeypatch, capsys):
-    (tmp_path / 'a.txt').write_text('aaa\nAAA\n')
-    (tmp_path / 'b.txt').write_text('ahaha\nA\nAAAA\naaa\n')
+    (tmp_path / 'a.txt').write_text('aAa\naaA\n')
+    (tmp_path / 'b.txt').write_text('ahaha\nA\nAAAA\nAaa\n')
     monkeypatch.chdir(tmp_path)
     grep.main(['-xi', 'aaa', 'b.txt', 'a.txt'])
     out, err = capsys.readouterr()
     assert err == ''
-    assert out == 'b.txt:aaa\na.txt:aaa\na.txt:AAA\n'
+    assert out == 'b.txt:Aaa\na.txt:aAa\na.txt:aaA\n'
 
 
 def test_integrate_all_keys_with_count(tmp_path, monkeypatch, capsys):
@@ -93,8 +93,8 @@ def test_integrate_all_keys_with_count(tmp_path, monkeypatch, capsys):
 
 
 def test_integrate_all_keys_with_print_files(tmp_path, monkeypatch, capsys):
-    (tmp_path / 'a.txt').write_text('ahaha\nA\nAAAA\naaa\nasdfj')
-    (tmp_path / 'b.txt').write_text('ahaha\nA\nAAAA\naaa\nasdfj')
+    (tmp_path / 'a.txt').write_text('ahaha\nA\nAAAA\naaa\nal')
+    (tmp_path / 'b.txt').write_text('ahaha\nAAAA\n')
     monkeypatch.chdir(tmp_path)
     grep.main(['-lvxi', 'aaa', 'b.txt', 'a.txt', 'b.txt'])
     out, err = capsys.readouterr()
@@ -103,11 +103,30 @@ def test_integrate_all_keys_with_print_files(tmp_path, monkeypatch, capsys):
 
 
 def test_unit_match_files_with_filtered_strings():
-    files = ['a.txt', 'b.txt', 'in.txt', 'a.txt']
-    data = [['aa', 'a', 's adf '],
-            ['alex', 'xela'],
-            [],
-            ['aa', 'a', 's adf ']]
-    cond = False
-    ans = grep.match_files_with_filtered_strings(files, data, cond)
+    data = [('a.txt', ['aa', 'a', 'Lalalala']),
+            ('b.txt', ['alex', 'xela']),
+            ('in.txt', []),
+            ('a.txt', ['aa', 'a', 'Lalalala'])]
+    flag_not_strings = False
+    ans = grep.match_files_with_filtered_strings(data, flag_not_strings)
     assert ans == [['a.txt', 'b.txt', 'a.txt']]
+    data = [('a.txt', []),
+            ('b.txt', ['i try']),
+            ('in.txt', []),
+            ('a.txt', [])]
+    flag_not_strings = True
+    ans = grep.match_files_with_filtered_strings(data, flag_not_strings)
+    assert ans == [['a.txt', 'in.txt', 'a.txt']]
+
+
+def test_unit_regex_search():
+    pattern = 'a+b+c'
+    string = 'aaabbbbc'
+    full = True
+    ans = grep.regex_search(pattern, string, full)
+    assert ans
+    pattern = 'abc+'
+    string = 'aaac'
+    full = False
+    ans = grep.regex_search(pattern, string, full)
+    assert not ans

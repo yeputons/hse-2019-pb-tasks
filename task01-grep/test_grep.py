@@ -61,7 +61,7 @@ def test_integrate_files_grep_count(tmp_path, monkeypatch, capsys):
 
 def test_integrate_files_regex_grep_count(tmp_path, monkeypatch, capsys):
     (tmp_path / 'a.txt').write_text('ahaha\natata\n')
-    (tmp_path / 'b.txt').write_text('fasdkfj\naaaaa')
+    (tmp_path / 'b.txt').write_text('aloha\naaaaa')
     monkeypatch.chdir(tmp_path)
     grep.main(['-c', '-E', 'a+a+a', 'b.txt', 'a.txt'])
     out, err = capsys.readouterr()
@@ -69,51 +69,60 @@ def test_integrate_files_regex_grep_count(tmp_path, monkeypatch, capsys):
     assert out == 'b.txt:1\na.txt:0\n'
 
 
-def test_unit_filter_strings_by_pattern_with_cond_first():
+def test_unit_filter_strings_by_pattern_with_cond():
     pattern = 'a?lex?'
     pattern = re.compile(pattern)
     data = [['alex', '?', 'alex?', '????alex', 'ale', 'le'],
             ['alex?', 'ale', 'alex', 'ale'],
             ['hello'],
             ['alx?', '?alex?', '?ale', 'lex']]
-    cond = False
-    ans = grep.filter_strings_by_pattern_with_cond(pattern, data, cond)
+    inverse = False
+    full = False
+    ans = grep.filter_strings_by_pattern(pattern, data, inverse, full)
     assert ans == [['alex', 'alex?', '????alex', 'ale', 'le'],
                    ['alex?', 'ale', 'alex', 'ale'],
                    [],
                    ['?alex?', '?ale', 'lex']]
-
-
-def test_unit_filter_strings_by_pattern_with_cond_second():
     pattern = 'a+b*a?'
     pattern = re.compile(pattern)
     data = [['a', '', 'aa'],
             ['aaaaba'],
-            [],
+            ['hehe'],
             ['abba', 'aba'],
             ['aaaaaa', 'baa']]
-    cond = False
-    ans = grep.filter_strings_by_pattern_with_cond(pattern, data, cond)
-    assert ans == [['a', 'aa'],
-                   ['aaaaba'],
+    inverse = True
+    full = False
+    ans = grep.filter_strings_by_pattern(pattern, data, inverse, full)
+    assert ans == [[''],
                    [],
-                   ['abba', 'aba'],
-                   ['aaaaaa', 'baa']]
-
-
-def test_unit_filter_strings_by_pattern_with_cond_third():
+                   ['hehe'],
+                   [],
+                   []]
     pattern = 'a?'
     pattern = re.compile(re.escape(pattern))
     data = [['a', 'aa'],
             ['a?', '?aa'],
             ['a?', 'a?', 'a?'],
             ['aaaaaaa']]
-    cond = False
-    ans = grep.filter_strings_by_pattern_with_cond(pattern, data, cond)
+    inverse = False
+    full = True
+    ans = grep.filter_strings_by_pattern(pattern, data, inverse, full)
     assert ans == [[],
                    ['a?'],
                    ['a?', 'a?', 'a?'],
                    []]
+    pattern = 'aa'
+    data = [['a', 'aa'],
+            ['a?', '?aa'],
+            ['a?', 'a?', 'aa', 'a?'],
+            ['aaaaaaa']]
+    inverse = True
+    full = True
+    ans = grep.filter_strings_by_pattern(pattern, data, inverse, full)
+    assert ans == [['a'],
+                   ['a?', '?aa'],
+                   ['a?', 'a?', 'a?'],
+                   ['aaaaaaa']]
 
 
 def test_unit_count_filtered_strings():
@@ -128,26 +137,30 @@ def test_unit_count_filtered_strings():
 def test_unit_format_output_string():
     name_file = 'input.txt'
     line = 'test input.txt'
-    cond = True
-    ans = grep.format_output_string(name_file, line, cond)
+    file_is = True
+    ans = grep.format_output_string(name_file, line, file_is)
     assert ans == 'input.txt:test input.txt'
+    file_is = False
+    ans = grep.format_output_string(name_file, line, file_is)
+    assert ans == 'test input.txt'
 
 
 def test_unit_print_lines(capsys):
-    files = ['a.txt', 'b.txt', 'a.txt']
-    data = [['aa', 'a', 's adf '],
-            ['alex', 's sf '],
-            ['aa', 'a', 's adf ']]
-    cond = True
-    grep.print_lines(files, data, cond)
+    data = ['it', 'is', 'i']
+    name_file = 'a.txt'
+    file_is = True
+    grep.print_lines(data, name_file, file_is)
     out, err = capsys.readouterr()
     assert err == ''
-    assert out == 'a.txt:aa\na.txt:a\na.txt:s adf \n'\
-                  'b.txt:alex\nb.txt:s sf \na.txt:a'\
-                  'a\na.txt:a\na.txt:s adf \n'
+    assert out == 'a.txt:it\na.txt:is\na.txt:i\n'
+    file_is = False
+    grep.print_lines(data, name_file, file_is)
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'it\nis\ni\n'
 
 
 def test_unit_strip_lines():
-    lines = ['jsdafkj  pgia\n', 'sdafjha sf', 'alsdjfkdsa\n', '\n', 'n', '\n']
+    lines = ['\n', 'oooooo', 'nice\n', '\n', 'n', '\n']
     ans = grep.strip_lines(lines)
-    assert ans == ['jsdafkj  pgia', 'sdafjha sf', 'alsdjfkdsa', '', 'n', '']
+    assert ans == ['', 'oooooo', 'nice', '', 'n', '']
