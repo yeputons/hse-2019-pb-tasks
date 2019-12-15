@@ -1,5 +1,4 @@
 from typing import Callable, Optional
-import traceback
 from bot import UserHandler
 from tictactoe import Player, TicTacToe
 

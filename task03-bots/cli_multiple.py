@@ -11,7 +11,6 @@ def send_message(to_user_id: int, message: str) -> None:
     print('==========')
 
 
-
 def main() -> None:
     bot = UserIndependentBot(
         send_message=send_message,
@@ -28,4 +27,3 @@ def main() -> None:
 
 if __name__ == '__main__':
     main()
-    
