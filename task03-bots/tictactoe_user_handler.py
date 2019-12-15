@@ -1,4 +1,3 @@
-import traceback
 from typing import Callable, Optional
 from bot import UserHandler
 from tictactoe import Player, TicTacToe
@@ -18,8 +17,7 @@ class TicTacToeUserHandler(UserHandler):
             return
         try:
             player, col, row = message.split(maxsplit=2)
-            players = {'X': Player.X, 'O': Player.O}
-            self.make_turn(players[player], row=int(row), col=int(col))
+            self.make_turn(player=Player[player], row=int(row), col=int(col))
         except Exception:
             print('Invalid turn')
 
@@ -28,7 +26,8 @@ class TicTacToeUserHandler(UserHandler):
         self.send_field()
 
     def make_turn(self, player: Player, *, row: int, col: int) -> None:
-        if not self.game.can_make_turn(player, row=row, col=col):
+        if not 0 <= row < 3 or not 0 <= col < 3 or \
+                not self.game.can_make_turn(player, row=row, col=col):
             self.send_message('Invalid turn')
             return
 
@@ -47,12 +46,9 @@ class TicTacToeUserHandler(UserHandler):
         self.game = None
 
     def send_field(self) -> None:
-        try:
-            result_line = ''
-            for row in self.game.field:
-                for val in row:
-                    result_line += '' + val.name if val else '.'
-                result_line += '\n'
-            self.send_message(result_line.rstrip('\n'))
-        except Exception:
-            traceback.print_exc()
+        result_line = ''
+        for row in self.game.field:
+            for cell in row:
+                result_line += '' + cell.name if cell else '.'
+            result_line += '\n'
+        self.send_message(result_line.rstrip('\n'))
