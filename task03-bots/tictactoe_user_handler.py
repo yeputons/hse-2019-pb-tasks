@@ -16,22 +16,22 @@ class TicTacToeUserHandler(UserHandler):
         elif not self.game:
             self.send_message('Game is not started')
         elif re.fullmatch('[XO] [012] [012]', message):
-            self.__try_make_turn(message)
+            self.try_make_turn(message)
         else:
             self.send_message('Invalid turn')
 
-    def __try_make_turn(self, message):
+    def try_make_turn(self, message: str):
         player = Player.X if message[0] == 'X' else Player.O
         row = int(message[2])
         col = int(message[4])
         if self.game.can_make_turn(player, row=row, col=col):
             self.make_turn(player, row=row, col=col)
             self.send_field()
-            self.__is_finished()
+            self.check_completion()
         else:
             self.send_message('Invalid turn')
 
-    def __is_finished(self):
+    def check_completion(self):
         if self.game.is_finished():
             winner = self.game.winner()
             if winner == Player.X:
