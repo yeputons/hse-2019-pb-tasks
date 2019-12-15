@@ -22,8 +22,8 @@ class TicTacToeUserHandler(UserHandler):
 
     def try_make_turn(self, message: str):
         player = Player.X if message[0] == 'X' else Player.O
-        row = int(message[2])
-        col = int(message[4])
+        col = int(message[2])
+        row = int(message[4])
         if self.game.can_make_turn(player, row=row, col=col):
             self.make_turn(player, row=row, col=col)
             self.send_field()
