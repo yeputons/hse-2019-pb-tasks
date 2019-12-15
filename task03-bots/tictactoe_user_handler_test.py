@@ -90,3 +90,4 @@ def test_tictactoe_user_handler_3(mocker: pytest_mock.MockFixture) -> None:
         mocker.call('OXX\nXXO\nOOX'),
         mocker.call('Game is finished, draw')
     ]
+    
