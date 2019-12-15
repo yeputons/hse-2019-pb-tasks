@@ -75,7 +75,7 @@ TEST_CASE("ThreadsafeQueue multithreaded ping-pong" *
         ThreadsafeQueue *qs = static_cast<ThreadsafeQueue *>(_qs);
         // TODO(2)
         static_cast<void>(qs);  // Используем переменную как-нибудь.
-        static_cast<void>(PING_PONGS);  // Используем переменную как-нибудь.
+        //static_cast<void>(PING_PONGS);  // Используем переменную как-нибудь.
         return nullptr;
     };
 
