@@ -283,3 +283,4 @@ def test_integrate_files_grep_regex_inverted(tmp_path, monkeypatch, capsys):
     assert out == 'a.txt:Your hearts been aching but youre too shy to\n' \
                   'b.txt:Shes got a red coat with a hosod.\nc.txt:noletterf\n' \
                   'c.txt:weoiriojjsdoiff\nc.txt:oiuasueoianlknsf\n'
+
