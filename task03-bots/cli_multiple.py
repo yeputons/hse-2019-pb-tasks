@@ -11,7 +11,6 @@ def send_message(to_user_id: int, message: str) -> None:
 
 
 def main() -> None:
-    """Пример работы с ботом через консоль."""
     bot = ChatBot(send_message=send_message)
     for line in sys.stdin:
         try:
