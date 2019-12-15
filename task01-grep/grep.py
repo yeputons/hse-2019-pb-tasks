@@ -20,19 +20,6 @@ def cast_to_regex(regex_mode: bool, ignore_case: bool, pattern: str) -> Pattern[
     return re.compile(pattern)
 
 
-'''
-def cast_to_regex(regex_mode: bool, ignore_case: bool, pattern: str) -> str:
-    if not regex_mode:
-        return re.escape(pattern)
-    return pattern
-
-args.pattern = cast_to_regex(args.regex_mode, args.ignore_case, args.pattern)
-    flag = 0
-    if args.ignore_case:
-        flag = re.IGNORECASE
-    args.pattern = re.compile(args.pattern, flags=flag)
-'''
-
 def format_data(print_file_name: bool, source: str) -> str:
     if print_file_name:
         return '{0}:{1}'.format(source, '{}')
@@ -78,11 +65,6 @@ def main(args_str: List[str]):
 
     args = parser.parse_args(args_str)
     print_file_name = len(args.files) > 1
-    '''args.pattern = cast_to_regex(args.regex_mode, args.pattern)
-    flag = 0
-    if args.ignore_case:
-        flag = re.IGNORECASE
-    args.pattern = re.compile(args.pattern, flags=flag)'''
     pattern = cast_to_regex(args.regex_mode, args.ignore_case, args.pattern)
     files_content: Dict[str, List[str]] = {}
     if args.files:
