@@ -3,6 +3,7 @@
 import io
 import grep
 
+
 def test_integrate_stdin_grep(monkeypatch, capsys):
     monkeypatch.setattr('sys.stdin', io.StringIO(
         'pref needle?\nneedle? suf\nthe needl\npref needle? suf'))
@@ -46,7 +47,8 @@ def test_integrate_files_grep(tmp_path, monkeypatch, capsys):
     grep.main(['needle', 'b.txt', 'a.txt'])
     out, err = capsys.readouterr()
     assert err == ''
-    assert out == 'b.txt:pref needle suf\na.txt:pref needle\na.txt:needle suf\n'
+    assert out == 'b.txt:pref needle suf\na.txt:pref' \
+                  ' needle\na.txt:needle suf\n'
 
 
 def test_integrate_files_grep_count(tmp_path, monkeypatch, capsys):
@@ -98,51 +100,41 @@ def test_integrate_files_grep_regex_failed(tmp_path, monkeypatch, capsys):
 
 
 def test_regular_expression_check():
-    if grep.regular_expression_check('mem', 'memory', True, '', False) == 1:
-        print("Test of regular_expression_check is OK")
-    else:
-        print("Test of regular_expression_check FAILED")
+    assert grep.regular_expression_check('mem', 'memory', True, '', False) != 0
 
 
 def test_second_regular_expression_check():
-    if grep.regular_expression_check('mem', 'memory', False, '', False) == 0:
-        print("Test of regular_expression_check is OK")
-    else:
-        print("Test of regular_expression_check FAILED")
+    assert grep.regular_expression_check('mem', 'memory',
+                                         False, '', False) != 1
 
 
 def test_third_regular_expression_check(capsys):
-    grep.regular_expression_check('m*m', 'memory', False, 'some.txt', True)
+    grep.regular_expression_check('m*m', 'memory',
+                                  False, 'some.txt', True)
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'some.txt:memory\n'
 
 
 def test_which_keys_included():
-    if grep.which_keys_included(False, False, 'mem', 'memory', '', False) == 1:
-        print("Test of regular_expression_check is OK")
-    else:
-        print("Test of regular_expression_check FAILED")
+    assert grep.which_keys_included(False, False,
+                                    'mem', 'memory', '', False) != 1
 
 
 def test_2_which_keys_included():
-    if grep.which_keys_included(True, True, 'm*mm', 'memory', 'mem', False) == 1:
-        print("Test of regular_expression_check is OK")
-    else:
-        print("Test of regular_expression_check FAILED")
+    assert grep.which_keys_included(True, True,
+                                    'm*mm', 'memory', 'mem', False) != 1
 
 
 def test_print_format(capsys):
-    grep.print_format('some.txt', 'mem', True,
-                      False)
+    grep.print_format('some.txt', 'mem', True, False)
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'some.txt:mem\n'
 
 
 def test_2_print_format(capsys):
-    grep.print_format('some.txt', 'mem', True,
-                      True)
+    grep.print_format('some.txt', 'mem', True, True)
     out, err = capsys.readouterr()
     assert err == ''
     assert out == ''
