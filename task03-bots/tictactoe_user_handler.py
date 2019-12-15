@@ -18,7 +18,7 @@ class TicTacToeUserHandler(UserHandler):
             self.start_game()
             return
         player, col, row = message_words
-        players = {'X': Player.X, 'O': Player.O}
+        players = {'X': Player['X'], 'O': Player['O']}
         self.make_turn(
             player=players[player],
             row=int(row),
