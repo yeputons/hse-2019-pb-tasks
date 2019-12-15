@@ -8,6 +8,17 @@ def test_handler_invalid_input_number(mocker: pytest_mock.MockFixture) -> None:
     bot = TicTacToeUserHandler(send_message)
     bot.handle_message('12')
     assert send_message.call_args_list == [
+        mocker.call('Game is not started'),
+    ]
+
+
+def test_handler_invalid_player(mocker: pytest_mock.MockFixture) -> None:
+    send_message = mocker.stub(name='send_message_stub')
+    bot = TicTacToeUserHandler(send_message)
+    bot.handle_message('start')
+    bot.handle_message('Z 0 0')
+    assert send_message.call_args_list == [
+        mocker.call('...\n...\n...'),
         mocker.call('Invalid turn'),
     ]
 
@@ -15,8 +26,10 @@ def test_handler_invalid_input_number(mocker: pytest_mock.MockFixture) -> None:
 def test_handler_invalid_input_not_enough_args(mocker: pytest_mock.MockFixture) -> None:
     send_message = mocker.stub(name='send_message_stub')
     bot = TicTacToeUserHandler(send_message)
+    bot.handle_message('start')
     bot.handle_message('X 0')
     assert send_message.call_args_list == [
+        mocker.call('...\n...\n...'),
         mocker.call('Invalid turn'),
     ]
 
@@ -27,17 +40,6 @@ def test_handler_not_started_game(mocker: pytest_mock.MockFixture) -> None:
     bot.handle_message('X 0 1')
     assert send_message.call_args_list == [
         mocker.call('Game is not started'),
-    ]
-
-
-def test_handler_invalid_choice(mocker: pytest_mock.MockFixture) -> None:
-    send_message = mocker.stub(name='send_message_stub')
-    bot = TicTacToeUserHandler(send_message)
-    bot.start_game()
-    bot.handle_message('Z 0 1')
-    assert send_message.call_args_list == [
-        mocker.call('...\n...\n...'),
-        mocker.call('Incorrect choice (X|O)'),
     ]
 
 
