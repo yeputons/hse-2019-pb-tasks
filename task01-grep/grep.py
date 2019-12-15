@@ -12,17 +12,31 @@ def find_pattern_in_line(pattern: Pattern[str], line: str, fullmatch: bool) -> b
     return re.search(pattern, line) is not None
 
 
-def cast_to_regex(regex_mode: bool, pattern: str) -> str:
+def cast_to_regex(regex_mode: bool, ignore_case: bool, pattern: str) -> Pattern[str]:
+    if not regex_mode:
+        pattern = re.escape(pattern)
+    if ignore_case:
+        return re.compile(pattern, flags=re.IGNORECASE)
+    return re.compile(pattern)
+
+
+'''
+def cast_to_regex(regex_mode: bool, ignore_case: bool, pattern: str) -> str:
     if not regex_mode:
         return re.escape(pattern)
     return pattern
 
+args.pattern = cast_to_regex(args.regex_mode, args.ignore_case, args.pattern)
+    flag = 0
+    if args.ignore_case:
+        flag = re.IGNORECASE
+    args.pattern = re.compile(args.pattern, flags=flag)
+'''
 
 def format_data(print_file_name: bool, source: str) -> str:
-    print_format = '{}'
     if print_file_name:
-        print_format = '{0}:{1}'.format(source, print_format)
-    return print_format
+        return '{0}:{1}'.format(source, '{}')
+    return '{}'
 
 
 def print_result(output_format: str, filename: str, output: List[str],
@@ -64,11 +78,12 @@ def main(args_str: List[str]):
 
     args = parser.parse_args(args_str)
     print_file_name = len(args.files) > 1
-    args.pattern = cast_to_regex(args.regex_mode, args.pattern)
+    '''args.pattern = cast_to_regex(args.regex_mode, args.pattern)
     flag = 0
     if args.ignore_case:
         flag = re.IGNORECASE
-    args.pattern = re.compile(args.pattern, flags=flag)
+    args.pattern = re.compile(args.pattern, flags=flag)'''
+    pattern = cast_to_regex(args.regex_mode, args.ignore_case, args.pattern)
     files_content: Dict[str, List[str]] = {}
     if args.files:
         for filename in args.files:
@@ -82,7 +97,7 @@ def main(args_str: List[str]):
 
     for filename, source_from_file in files_content.items():
         source_from_file = find_pattern(args.counting_mode, source_from_file,
-                                        args.pattern, args.fullmatch, args.invert_result)
+                                        pattern, args.fullmatch, args.invert_result)
         print_format = format_data(print_file_name, filename)
         print_result(print_format, filename, source_from_file,
                      args.at_least_one_found, args.no_one_found)

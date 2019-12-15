@@ -4,128 +4,6 @@ import io
 import grep
 
 
-def test_integrate_stdin_grep(monkeypatch, capsys):
-    monkeypatch.setattr('sys.stdin', io.StringIO(
-        'pref needle?\nneedle? suf\nthe needl\npref needle? suf'))
-    grep.main(['needle?'])
-    out, err = capsys.readouterr()
-    assert err == ''
-    assert out == 'pref needle?\nneedle? suf\npref needle? suf\n'
-
-
-def test_integrate_stdin_regex_grep(monkeypatch, capsys):
-    monkeypatch.setattr('sys.stdin', io.StringIO(
-        'pref needle?\nneedle? suf\nthe needl\npref needle? suf'))
-    grep.main(['-E', 'needle?'])
-    out, err = capsys.readouterr()
-    assert err == ''
-    assert out == 'pref needle?\nneedle? suf\nthe needl\npref needle? suf\n'
-
-
-def test_integrate_stdin_grep_count(monkeypatch, capsys):
-    monkeypatch.setattr('sys.stdin', io.StringIO(
-        'pref needle\nneedle suf\nthe needl\npref needle suf'))
-    grep.main(['-c', 'needle'])
-    out, err = capsys.readouterr()
-    assert err == ''
-    assert out == '3\n'
-
-
-def test_integrate_file_grep(tmp_path, monkeypatch, capsys):
-    (tmp_path / 'a.txt').write_text('the needl\npref needle suf')
-    monkeypatch.chdir(tmp_path)
-    grep.main(['needle', 'a.txt'])
-    out, err = capsys.readouterr()
-    assert err == ''
-    assert out == 'pref needle suf\n'
-
-
-def test_integrate_files_grep(tmp_path, monkeypatch, capsys):
-    (tmp_path / 'a.txt').write_text('pref needle\nneedle suf\n')
-    (tmp_path / 'b.txt').write_text('the needl\npref needle suf')
-    monkeypatch.chdir(tmp_path)
-    grep.main(['needle', 'b.txt', 'a.txt'])
-    out, err = capsys.readouterr()
-    assert err == ''
-    assert out == 'b.txt:pref needle suf\na.txt:pref needle\na.txt:needle suf\n'
-
-
-def test_integrate_files_grep_count(tmp_path, monkeypatch, capsys):
-    (tmp_path / 'a.txt').write_text('pref needle\nneedle suf\n')
-    (tmp_path / 'b.txt').write_text('the needl\npref needle suf')
-    monkeypatch.chdir(tmp_path)
-    grep.main(['-c', 'needle', 'b.txt', 'a.txt'])
-    out, err = capsys.readouterr()
-    assert err == ''
-    assert out == 'b.txt:1\na.txt:2\n'
-
-
-def test_integrate_stdin_grep_no_substring(monkeypatch, capsys):
-    monkeypatch.setattr('sys.stdin', io.StringIO(
-        'pref needle?\nneedle? suf\nthe needl\npref needle? suf'))
-    grep.main(['needle!'])
-    out, err = capsys.readouterr()
-    assert err == ''
-    assert out == ''
-
-
-def test_integrate_stdin_regex_grep_no_regex(monkeypatch, capsys):
-    monkeypatch.setattr('sys.stdin', io.StringIO(
-        'pref needle?\nneedle? suf\nthe needl\npref needle? suf'))
-    grep.main(['-E', 'needle!'])
-    out, err = capsys.readouterr()
-    assert err == ''
-    assert out == ''
-
-
-def test_integrate_stdin_grep_count_no_substring(monkeypatch, capsys):
-    monkeypatch.setattr('sys.stdin', io.StringIO(
-        'pref needle\nneedle suf\nthe needl\npref needle suf'))
-    grep.main(['-c', 'needle!'])
-    out, err = capsys.readouterr()
-    assert err == ''
-    assert out == '0\n'
-
-
-def test_integrate_file_grep_no_substring(tmp_path, monkeypatch, capsys):
-    (tmp_path / 'a.txt').write_text('the needl\npref needle suf')
-    monkeypatch.chdir(tmp_path)
-    grep.main(['needle!', 'a.txt'])
-    out, err = capsys.readouterr()
-    assert err == ''
-    assert out == ''
-
-
-def test_integrate_files_grep_no_substring(tmp_path, monkeypatch, capsys):
-    (tmp_path / 'a.txt').write_text('pref needle\nneedle suf\n')
-    (tmp_path / 'b.txt').write_text('the needl\npref needle suf')
-    monkeypatch.chdir(tmp_path)
-    grep.main(['needle!', 'b.txt', 'a.txt'])
-    out, err = capsys.readouterr()
-    assert err == ''
-    assert out == ''
-
-
-def test_integrate_files_grep_count_no_substring(tmp_path, monkeypatch, capsys):
-    (tmp_path / 'a.txt').write_text('pref needle\nneedle suf\n')
-    (tmp_path / 'b.txt').write_text('the needl\npref needle suf')
-    monkeypatch.chdir(tmp_path)
-    grep.main(['-c', 'needle!', 'b.txt', 'a.txt'])
-    out, err = capsys.readouterr()
-    assert err == ''
-    assert out == 'b.txt:0\na.txt:0\n'
-
-
-def test_integrate_files_grep_count_regex(tmp_path, monkeypatch, capsys):
-    (tmp_path / 'a.txt').write_text('pref needle\nneedle suf\n')
-    (tmp_path / 'b.txt').write_text('the needl\npref needle suf')
-    monkeypatch.chdir(tmp_path)
-    grep.main(['-c', '-E', 'nee.?le', 'b.txt', 'a.txt'])
-    out, err = capsys.readouterr()
-    assert err == ''
-    assert out == 'b.txt:1\na.txt:2\n'
-
-
 def test_integrate_all_keys_print_files_grep(tmp_path, monkeypatch, capsys):
     (tmp_path / 'a.txt').write_text('fO\nFO\nFoO\n')
     (tmp_path / 'b.txt').write_text('hello fo?o world\nxfooyfoz\nfooo\n')
@@ -177,16 +55,6 @@ def test_find_pattern_in_line_not_equal():
     assert result
 
 
-def test_cast_tr_to_regex():
-    result = grep.cast_to_regex(True, 'needle?')
-    assert result == 'needle?'
-
-
-def test_cast_regex_to_regex():
-    result = grep.cast_to_regex(False, 'ne.*ed[a-b]+le?')
-    assert result == r'ne\.\*ed\[a\-b\]\+le\?'
-
-
 def test_format_output():
     result = grep.format_data(True, 'aaa')
     assert result == 'aaa:{}'
@@ -213,31 +81,31 @@ def test_print_result_standard(capsys):
     assert out == '1x\n\n1y\n\n'
 
 
-def test_find_pattern_1():
+def test_find_pattern_count_regex():
     result = grep.find_pattern(True, ['a', 'b', 'ac'], re.compile('[a-z]'), False, False)
     assert result == ['3']
 
 
-def test_find_pattern_2():
+def test_find_pattern_count_invert():
     result = grep.find_pattern(True, ['a', 'b', 'ac'], re.compile('[a-z]'), False, True)
     assert result == ['0']
 
 
-def test_find_pattern_3():
+def test_find_pattern_count_fullmatch_invert():
     result = grep.find_pattern(True, ['a', 'b', 'ac'], re.compile('[a-z]'), True, True)
     assert result == ['1']
 
 
-def test_find_pattern_4():
+def test_find_pattern_fullmatch_invert():
     result = grep.find_pattern(False, ['a', 'b', 'ac'], re.compile('[a-z]'), True, True)
     assert result == ['ac']
 
 
-def test_find_pattern_5():
+def test_find_pattern_fullmatch():
     result = grep.find_pattern(False, ['a', 'b', 'ac'], re.compile('[a-z]'), True, False)
     assert result == ['a', 'b']
 
 
-def test_find_pattern_6():
+def test_find_pattern():
     result = grep.find_pattern(False, ['a', 'b', 'ac'], re.compile('[a-z]'), False, False)
     assert result == ['a', 'b', 'ac']

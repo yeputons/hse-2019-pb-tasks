@@ -69,15 +69,6 @@ def test_integrate_stdin_grep_no_substring(monkeypatch, capsys):
     assert out == ''
 
 
-def test_integrate_stdin_regex_grep_no_regex(monkeypatch, capsys):
-    monkeypatch.setattr('sys.stdin', io.StringIO(
-        'pref needle?\nneedle? suf\nthe needl\npref needle? suf'))
-    grep.main(['-E', 'needle!'])
-    out, err = capsys.readouterr()
-    assert err == ''
-    assert out == ''
-
-
 def test_integrate_stdin_grep_count_no_substring(monkeypatch, capsys):
     monkeypatch.setattr('sys.stdin', io.StringIO(
         'pref needle\nneedle suf\nthe needl\npref needle suf'))
@@ -177,14 +168,14 @@ def test_find_pattern_in_line_not_equal():
     assert result
 
 
-def test_cast_to_regex():
-    result = grep.cast_to_regex(True, 'needle?')
-    assert result == 'needle?'
+def test_cast_tr_to_regex():
+    result = grep.cast_to_regex(True, False, 'needle?')
+    assert result == re.compile(r'needle?')
 
 
-def test_cast_to_regex_2():
-    result = grep.cast_to_regex(False, 'ne.*ed[a-b]+le?')
-    assert result == r'ne\.\*ed\[a\-b\]\+le\?'
+def test_cast_regex_to_regex():
+    result = grep.cast_to_regex(False, False, 'ne.*ed[a-b]+le?')
+    assert result == re.compile(re.escape('ne.*ed[a-b]+le?'))
 
 
 def test_format_output():
