@@ -5,7 +5,10 @@ import re
 import argparse
 
 
-def regex_search(needle: str, line: str, exact: bool = False, ignore_case: bool = False) -> bool:
+def regex_search(needle: str,
+                 line: str,
+                 exact: bool = False,
+                 ignore_case: bool = False) -> bool:
     expr = re.compile(needle, re.IGNORECASE if ignore_case else 0)
     if exact:
         return bool(expr.fullmatch(line))
@@ -15,7 +18,7 @@ def regex_search(needle: str, line: str, exact: bool = False, ignore_case: bool 
 
 def single_grep(needle: str,
                 strings: List[str],
-                search_function: Callable[[str, str, bool], bool],
+                search_function: Callable[[str, str, bool, bool], bool],
                 regex: bool = False,
                 ignore_case: bool = False,
                 exact: bool = False) -> List[str]:
@@ -23,9 +26,8 @@ def single_grep(needle: str,
         needle = re.escape(needle)
 
     return list(
-        filter(
-            lambda line: search_function(needle, line,
-                                         exact, ignore_case), strings))
+        filter(lambda line: search_function(needle, line, exact, ignore_case),
+               strings))
 
 
 def read_input(files: List[str]) -> List[List[str]]:
@@ -77,16 +79,14 @@ def main(args_str: List[str]):
     parser = create_parser()
     args = parser.parse_args(args_str)
 
-    regex_search_invert: Callable[
-        [str, str, bool], bool] = lambda *args: not regex_search(*args)
-
-    search_function = regex_search_invert if args.invert else regex_search
+    search_function: Callable[[str, str, bool, bool], bool] = \
+        lambda *ar: not regex_search(*ar) if args.invert else regex_search(*ar)
 
     inputs = read_input(args.files)
 
     answers = [
-        single_grep(args.needle, input, search_function, args.regex, args.ignore_case,
-                    args.exact) for input in inputs
+        single_grep(args.needle, input, search_function, args.regex,
+                    args.ignore_case, args.exact) for input in inputs
     ]
 
     if args.count:

@@ -6,22 +6,22 @@ import grep
 def test_normal_search():
     assert grep.single_grep('i', ['hi'], grep.regex_search, False) == ['hi']
     assert grep.single_grep('i', ['hi'], grep.regex_search, False) == ['hi']
-    assert grep.single_grep('i', ['hi', 'hi'],
-                            grep.regex_search, False) == ['hi', 'hi']
+    assert grep.single_grep('i', ['hi', 'hi'], grep.regex_search,
+                            False) == ['hi', 'hi']
     assert grep.single_grep('a', [''], grep.regex_search, False) == []
 
 
 def test_regex_search():
     assert grep.single_grep('i', ['hi'], grep.regex_search, True) == ['hi']
     assert grep.single_grep('i', ['hi'], grep.regex_search, True) == ['hi']
-    assert grep.single_grep('i', ['hi', 'hi'],
-                            grep.regex_search, True) == ['hi', 'hi']
-    assert grep.single_grep('a', [''],
-                            grep.regex_search, True) == []  # File has 0 lines
-    assert grep.single_grep('.*', [''],
-                            grep.regex_search, True) == ['']  # File has 0 lines
-    assert grep.single_grep('.*', [' '],
-                            grep.regex_search, True) == [' ']  # File has 1 line
+    assert grep.single_grep('i', ['hi', 'hi'], grep.regex_search,
+                            True) == ['hi', 'hi']
+    assert grep.single_grep('a', [''], grep.regex_search,
+                            True) == []  # File has 0 lines
+    assert grep.single_grep('.*', [''], grep.regex_search,
+                            True) == ['']  # File has 0 lines
+    assert grep.single_grep('.*', [' '], grep.regex_search,
+                            True) == [' ']  # File has 1 line
     assert grep.single_grep('.*', ['hi'], grep.regex_search, True) == ['hi']
 
 
@@ -36,8 +36,9 @@ def test_single_grep():
                             search_hi) == ['hihihi', 'hihi', 'hi']
     assert grep.single_grep('unused', ['', ''], search_hi) == []
 
-    assert grep.single_grep('x', ['xa', 'xxx', 'xxy'],
-                            lambda x, y, _, __: x in y) == ['xa', 'xxx', 'xxy']
+    assert grep.single_grep(
+        'x', ['xa', 'xxx', 'xxy'],
+        lambda x, y, _, __: x in y) == ['xa', 'xxx', 'xxy']
 
 
 def test_read_input(monkeypatch, tmp_path):
@@ -61,23 +62,7 @@ def test_read_input(monkeypatch, tmp_path):
     (tmp_path / 'b.txt').write_text('the needl\npref needle suf')
     monkeypatch.chdir(tmp_path)
     assert grep.read_input(args.files) == [['pref needle', 'needle suf'],
-                                     ['the needl', 'pref needle suf']]
-
-
-def test_create_parser():
-    parser = grep.create_parser()
-
-    args = parser.parse_args(['needle'])
-    assert args.needle == 'needle'
-    assert not args.files
-    assert not args.count
-    assert not args.regex
-
-    args = parser.parse_args(['-E', 'needle', 'a', 'b', 'c', '-c'])
-    assert args.needle == 'needle'
-    assert args.files == ['a', 'b', 'c']
-    assert args.count
-    assert args.regex
+                                           ['the needl', 'pref needle suf']]
 
 
 def test_print_answers(capsys):
@@ -104,6 +89,27 @@ def test_print_answers(capsys):
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'file2:bb\n'
+
+    grep.print_answers([[]], parser.parse_args(['needle']))
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == ''
+
+
+def test_create_parser():
+    parser = grep.create_parser()
+
+    args = parser.parse_args(['needle'])
+    assert args.needle == 'needle'
+    assert not args.files
+    assert not args.count
+    assert not args.regex
+
+    args = parser.parse_args(['-E', 'needle', 'a', 'b', 'c', '-c'])
+    assert args.needle == 'needle'
+    assert args.files == ['a', 'b', 'c']
+    assert args.count
+    assert args.regex
 
 
 def test_integrate_stdin_grep(monkeypatch, capsys):
