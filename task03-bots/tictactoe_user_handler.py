@@ -45,7 +45,7 @@ class TicTacToeUserHandler(UserHandler):
     def send_field(self) -> None:
         assert self.game
         message = '\n'.join([
-            ''.join(['.XO' [x.value if x else 0] for x in row])
+            ''.join([x.name if x else '.' for x in row])
             for row in self.game.field
         ])
         self.send_message(message)
