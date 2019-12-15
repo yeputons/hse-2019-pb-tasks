@@ -16,12 +16,8 @@ class TicTacToeUserHandler(UserHandler):
         if not self.game:
             self.send_message('Game is not started')
             return
-        symbol, col, row = message.split(maxsplit=2)
-        if symbol in ['X', 'O'] and 0 <= int(row) < 3 and 0 <= int(col) < 3:
-            self.make_turn(player={'X': Player.X, 'O': Player.O}[symbol],
-                           col=int(col), row=int(row))
-        else:
-            self.send_message('Invalid turn')
+        player_name, col, row = message.split(maxsplit=2)
+        self.make_turn(Player[player_name], row=int(row), col=int(col))
 
     def start_game(self) -> None:
         self.game = TicTacToe()
