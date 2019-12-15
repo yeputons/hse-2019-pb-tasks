@@ -12,7 +12,7 @@ def send_message(to_user_id: int, message: str) -> None:
     print('==========')
 
 
-def main() -> None
+def main() -> None:
     bot = UserIndependentBot(send_message=send_message, user_handler=AlarmUserHandler)
     for line in sys.stdin:
         try:
