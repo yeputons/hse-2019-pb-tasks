@@ -57,9 +57,11 @@ def main() -> None:
             traceback.print_exc()
 
     def create_widget(user_id: int) -> None:
-        user_widgets[user_id] = UserWidget(f'User #{user_id}',
-                                           lambda message: handle_message(user_id, message),
-                                           root)
+        user_widgets[user_id] = UserWidget(
+            f'User #{user_id}',
+            lambda message: handle_message(user_id, message),
+            root
+        )
 
     root = tkinter.Tk()
     root.title('Chat bot debug GUI example')

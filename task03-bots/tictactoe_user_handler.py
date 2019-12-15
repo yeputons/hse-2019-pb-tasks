@@ -12,14 +12,14 @@ class TicTacToeUserHandler(UserHandler):
         if message == 'start':
             self.start_game()
             return
-        if self.game:
-            player, coord_y, coord_x = message.split(' ')
-            if self.game.can_make_turn(player=Player[player], row=int(coord_x), col=int(coord_y)):
-                self.make_turn(Player[player], row=int(coord_x), col=int(coord_y))
-                return
-            self.send_message('Invalid turn')
+        if not self.game:
+            self.send_message('Game is not started')
             return
-        self.send_message('Game is not started')
+        player, col, row = message.split(' ')
+        if self.game.can_make_turn(player=Player[player], row=int(row), col=int(col)):
+            self.make_turn(Player[player], row=int(row), col=int(col))
+            return
+        self.send_message('Invalid turn')
 
     def start_game(self) -> None:
         self.game = TicTacToe()
@@ -30,10 +30,11 @@ class TicTacToeUserHandler(UserHandler):
         self.game.make_turn(player, row=row, col=col)
         self.send_field()
         if self.game.is_finished():
-            game_winner = f'{player.name} wins'
+            if self.game.winner() is not None:
+                result = f'{player.name} wins'
             if self.game.winner() is None:
-                game_winner = 'draw'
-            self.send_message(f'Game is finished, {game_winner}')
+                result = 'draw'
+            self.send_message(f'Game is finished, {result}')
             self.game = None
 
     def send_field(self) -> None:
