@@ -32,7 +32,7 @@ TEST_SUITE("ThreadsafeQueue works like Queue in a single thread") {
         threadsafe_queue_destroy(&q);
     }
 
-    TEST_CASE("with threadsafe_queue_wait_and_pop") {  
+    TEST_CASE("with threadsafe_queue_wait_and_pop") {
         ThreadsafeQueue q;
         threadsafe_queue_init(&q);
 
@@ -123,7 +123,7 @@ TEST_SUITE("ThreadsafeQueue pops from multiple threads") {
         threadsafe_queue_destroy(&q);
     }
 
-    TEST_CASE("with threadsafe_queue_wait_and_pop") { 
+    TEST_CASE("with threadsafe_queue_wait_and_pop") {
         ThreadsafeQueue q;
         threadsafe_queue_init(&q);
 
@@ -143,7 +143,7 @@ TEST_SUITE("ThreadsafeQueue pops from multiple threads") {
     }
 }
 
-TEST_CASE("ThreadsafeQueue pushes from multiple threads") {  
+TEST_CASE("ThreadsafeQueue pushes from multiple threads") {
     ThreadsafeQueue q;
     threadsafe_queue_init(&q);
 
@@ -162,7 +162,7 @@ TEST_CASE("ThreadsafeQueue pushes from multiple threads") {
     threadsafe_queue_destroy(&q);
 }
 
-TEST_CASE("ThreadsafeQueue pops from multiple threads") { 
+TEST_CASE("ThreadsafeQueue pops from multiple threads") {
     ThreadsafeQueue q;
     threadsafe_queue_init(&q);
 
@@ -181,7 +181,7 @@ TEST_CASE("ThreadsafeQueue pops from multiple threads") {
     threadsafe_queue_destroy(&q);
 }
 
-TEST_CASE("ThreadsafeQueue pushes and pops from multiple threads") { 
+TEST_CASE("ThreadsafeQueue pushes and pops from multiple threads") {
     ThreadsafeQueue q;
     threadsafe_queue_init(&q);
 
