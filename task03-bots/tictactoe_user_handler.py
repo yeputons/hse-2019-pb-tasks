@@ -51,8 +51,8 @@ class TicTacToeUserHandler(UserHandler):
         assert self.game
         player_sgn: Dict[Optional[Player], str] = {None: '.', Player.X: 'X', Player.O: 'O'}
         string_field = ''
-        for i in range(3):
-            for j in range(3):
-                string_field += player_sgn[self.game.field[i][j]]
+        for row in self.game.field:
+            for cell in row:
+                string_field += player_sgn[cell]
             string_field += '\n'
         self.send_message(string_field[:-1])
