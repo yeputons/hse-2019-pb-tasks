@@ -17,7 +17,7 @@ class TicTacToeUserHandler(UserHandler):
         else:
             player, col, row = message.rstrip(' ').split(maxsplit=2)
             now_player = Player.X if player == 'X' else Player.O
-            self.make_turn(now_player, row=row, col=col)
+            self.make_turn(now_player, row=int(row), col=int(col))
 
     def start_game(self) -> None:
         self.game = TicTacToe()
