@@ -34,7 +34,8 @@ class TicTacToeUserHandler(UserHandler):
 
     def make_turn(self, player: Player, *, row: int, col: int) -> None:
         assert self.game
-        if not (0 <= row < 3 and 0 <= col < 3 ) or not self.game.can_make_turn(player, row=row, col=col):
+        if not (0 <= row < 3 and 0 <= col < 3) or not self.game.can_make_turn(
+                player, row=row, col=col):
             self.send_message('Invalid turn')
             return
         self.game.make_turn(player=player, row=row, col=col)

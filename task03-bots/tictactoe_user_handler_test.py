@@ -23,7 +23,7 @@ def test_tictactoe_user_handle_start(mocker: pytest_mock.MockFixture) -> None:
     ]
 
 
-def test_tictactoe_user_handle_win_X(mocker: pytest_mock.MockFixture) -> None:
+def test_tictactoe_user_handle_win_x(mocker: pytest_mock.MockFixture) -> None:
     send_message = mocker.stub(name='send_message_stub')
     handler = TicTacToeUserHandler(send_message)
 
@@ -45,7 +45,7 @@ def test_tictactoe_user_handle_win_X(mocker: pytest_mock.MockFixture) -> None:
     ]
 
 
-def test_tictactoe_user_handle_win_O(mocker: pytest_mock.MockFixture) -> None:
+def test_tictactoe_user_handle_win_o(mocker: pytest_mock.MockFixture) -> None:
     send_message = mocker.stub(name='send_message_stub')
     handler = TicTacToeUserHandler(send_message)
 
