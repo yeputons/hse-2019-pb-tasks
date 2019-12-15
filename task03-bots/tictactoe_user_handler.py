@@ -21,9 +21,10 @@ class TicTacToeUserHandler(UserHandler):
             self.send_message('Invalid turn')
 
     def try_make_turn(self, message: str):
-        player = Player.X if message[0] == 'X' else Player.O
-        col = int(message[2])
-        row = int(message[4])
+        player_str, col_str, row_str = message.split()
+        player = Player.X if player_str == 'X' else Player.O
+        col = int(col_str)
+        row = int(row_str)
         if self.game.can_make_turn(player, row=row, col=col):
             self.make_turn(player, row=row, col=col)
             self.send_field()
