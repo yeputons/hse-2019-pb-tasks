@@ -43,7 +43,7 @@ def test_tictactoe_double_stroke(mocker: pytest_mock.MockFixture) -> None:
     ]
 
 
-def test_tictactoe_X_win(mocker: pytest_mock.MockFixture) -> None:
+def test_x_win(mocker: pytest_mock.MockFixture) -> None:
     send_message = mocker.stub(name='send_message_stub')
     bot = TicTacToeUserHandler(send_message)
     bot.handle_message('start')
@@ -63,7 +63,7 @@ def test_tictactoe_X_win(mocker: pytest_mock.MockFixture) -> None:
     ]
 
 
-def test_tictactoe_O_win(mocker: pytest_mock.MockFixture) -> None:
+def test_o_win(mocker: pytest_mock.MockFixture) -> None:
     send_message = mocker.stub(name='send_message_stub')
     bot = TicTacToeUserHandler(send_message)
     bot.handle_message('start')
@@ -111,4 +111,3 @@ def test_tictactoe_draw(mocker: pytest_mock.MockFixture) -> None:
         mocker.call('XOX\nXXO\nOXO'),
         mocker.call('Game is finished, draw'),
     ]
-    
