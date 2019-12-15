@@ -56,4 +56,4 @@ class TicTacToeUserHandler(UserHandler):
                     else:
                         field += '.'
                 field += '\n'
-            self.send_message(field.rstrip('\n'))
+            self.send_message(field)
