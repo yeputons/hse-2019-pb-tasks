@@ -40,6 +40,10 @@ def print_formatted_lines(list_of_lines: List[str], file: io.StringIO, number_of
     """
     Accepts the list of lines to be output.
     if there are more than 1 file, it also displays the file name.
+    Flags:
+        files_without_lines: print only names of FILEs with no selected lines
+        only_names_of_files: print only names of FILEs with selected lines
+        cflag: print only a count of selected lines per FILE
     """
     str_result = ''
     if number_of_files > 1:
@@ -79,20 +83,27 @@ def find_and_print_lines(needle: str, files: List[io.StringIO],
 def check_line(needle: str, line: str,
                regex: bool, whole_line: bool,
                iflag: bool, inversion: bool) -> bool:
-    """Checking for needle in the line with all the flags"""
+    """
+    Checking for needle in the line with all the flags
+    Flags:
+        regex: PATTERNS are extended regular expressions
+        whole_line: force PATTERN to match only whole lines
+        iflag: ignore case distinctions
+        inversion: select non-matching lines
+    """
+    res: bool
     flags = 0
-    if iflag:
-        if regex:
-            flags = re.IGNORECASE
-        else:
-            needle = needle.casefold()
-            line = line.casefold()
 
+    if not regex:
+        needle = re.escape(needle)
+
+    if iflag:
+        flags = re.IGNORECASE
     if whole_line:
-        res = (needle == line and not regex) or (regex and bool(re.fullmatch(needle, line, flags)))
+        res = bool(re.fullmatch(needle, line, flags))
     else:
-        res = (needle in line and not regex) or (regex and bool(re.search(needle, line, flags)))
-    return inversion ^ res
+        res = bool(re.search(needle, line, flags))
+    return res ^ inversion
 
 
 def main(args_str: List[str]):
