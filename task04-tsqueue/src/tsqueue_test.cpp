@@ -71,14 +71,13 @@ TEST_CASE("ThreadsafeQueue multithreaded ping-pong") {
     // (в общем случае это лямбда-функции/замыкания, но нам это неважно).
     auto pinger = [](void *_qs) -> void * {
         ThreadsafeQueue *qs = static_cast<ThreadsafeQueue *>(_qs);
-        int value;
         for (int i = 0; i < PING_PONGS; i++) {
-            value = i;
-            threadsafe_queue_push(&qs[0], &value);
+            int old_data = i;
+            threadsafe_queue_push(&qs[0], &old_data);
             int *data =
                 static_cast<int *>(threadsafe_queue_wait_and_pop(&qs[1]));
             REQUIRE(data != nullptr);
-            REQUIRE(i + 1 == value);
+            REQUIRE(*data == i + 1);
         }
         return nullptr;
     };
@@ -93,13 +92,12 @@ TEST_CASE("ThreadsafeQueue multithreaded ping-pong") {
         }
         return nullptr;
     };
-
     pthread_t t1, t2;
     REQUIRE(pthread_create(&t1, nullptr, pinger, qs) == 0);
     REQUIRE(pthread_create(&t2, nullptr, ponger, qs) == 0);
 
-    REQUIRE(pthread_join(t1, nullptr) == 0);
     REQUIRE(pthread_join(t2, nullptr) == 0);
+    REQUIRE(pthread_join(t1, nullptr) == 0);
 
     threadsafe_queue_destroy(&qs[1]);
     threadsafe_queue_destroy(&qs[0]);
@@ -126,6 +124,7 @@ void *consumer_try(void *_q) {
     void *data;
     for (int i = 0; i < ELEMENTS_PER_THREAD; i++) {
         REQUIRE(threadsafe_queue_try_pop(q, &data) == true);
+        REQUIRE(data == nullptr);
     }
     return nullptr;
 }
