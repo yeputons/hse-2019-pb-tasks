@@ -1,0 +1,1 @@
+/usr/bin/c++   -Wall -Wextra -Werror  -rdynamic CMakeFiles/queue_test.dir/src/queue_test.cpp.o CMakeFiles/queue_test.dir/src/queue.cpp.o  -o queue_test -pthread 
