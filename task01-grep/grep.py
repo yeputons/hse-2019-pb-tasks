@@ -5,45 +5,38 @@ import re
 import argparse
 
 
-def normal_search(needle: str, line: str, exact: bool = False) -> bool:
+def regex_search(needle: str, line: str, exact: bool = False, ignore_case: bool = False) -> bool:
+    expr = re.compile(needle, re.IGNORECASE if ignore_case else 0)
     if exact:
-        return needle == line
+        return bool(expr.fullmatch(line))
     else:
-        return needle in line
-
-
-def regex_search(needle: str, line: str, exact: bool = False) -> bool:
-    if exact:
-        return bool(re.fullmatch(needle, line))
-    else:
-        return bool(re.search(needle, line))
+        return bool(expr.search(line))
 
 
 def single_grep(needle: str,
                 strings: List[str],
                 search_function: Callable[[str, str, bool], bool],
+                regex: bool = False,
                 ignore_case: bool = False,
                 exact: bool = False) -> List[str]:
-    def modifier(s: str):
-        if ignore_case:
-            return s.lower()
-        return s
+    if not regex:
+        needle = re.escape(needle)
 
     return list(
         filter(
-            lambda line: search_function(modifier(needle), modifier(line),
-                                         exact), strings))
+            lambda line: search_function(needle, line,
+                                         exact, ignore_case), strings))
 
 
-def read_input(args: argparse.Namespace) -> List[List[str]]:
+def read_input(files: List[str]) -> List[List[str]]:
     def read_from_textio(file: TextIO) -> List[str]:
         return list(map(lambda line: line.rstrip('\n'), file.readlines()))
 
-    if not args.files:
+    if not files:
         return [read_from_textio(sys.stdin)]
     else:
         res = []
-        for file in args.files:
+        for file in files:
             with open(file) as f:
                 res.append(read_from_textio(f))
         return res
@@ -52,14 +45,14 @@ def read_input(args: argparse.Namespace) -> List[List[str]]:
 def print_answers(answers: List[List[str]], args: argparse.Namespace):
     if args.line_exists or args.line_not_exists:
         assert len(args.files) > 0
+        assert not (args.line_exists and args.line_not_exists)
         for filename, answer in zip(args.files, answers):
-            if (args.line_exists
-                    and len(answer) > 0) or (args.line_not_exists
-                                             and len(answer) == 0):
+            if args.line_exists ^ (len(answer) > 0) == 0:
                 print(filename)
     else:
         if len(answers) == 1:
-            print(*answers[0], sep='\n')
+            if len(answers[0]) > 0:
+                print(*answers[0], sep='\n')
         else:
             for filename, answer in zip(args.files, answers):
                 for x in answer:
@@ -84,18 +77,15 @@ def main(args_str: List[str]):
     parser = create_parser()
     args = parser.parse_args(args_str)
 
-    search_function_no_invert: Callable[
-        [str, str, bool], bool] = regex_search if args.regex else normal_search
-    search_function_invert: Callable[
-        [str, str, bool], bool] = lambda *args: not search_function_no_invert(
-            *args)
+    regex_search_invert: Callable[
+        [str, str, bool], bool] = lambda *args: not regex_search(*args)
 
-    search_function = search_function_invert if args.invert else search_function_no_invert
+    search_function = regex_search_invert if args.invert else regex_search
 
-    inputs = read_input(args)
+    inputs = read_input(args.files)
 
     answers = [
-        single_grep(args.needle, input, search_function, args.ignore_case,
+        single_grep(args.needle, input, search_function, args.regex, args.ignore_case,
                     args.exact) for input in inputs
     ]
 
