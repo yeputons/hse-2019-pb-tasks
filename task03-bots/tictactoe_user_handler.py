@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 from typing import Callable, Optional
 from bot import UserHandler
 from tictactoe import Player, TicTacToe
