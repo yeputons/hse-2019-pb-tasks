@@ -31,17 +31,13 @@ class TicTacToeUserHandler(UserHandler):
         self.send_field()
         if self.game.is_finished():
             winner = self.game.winner()
-            game_result = 'Game is finished, {}'.format('draw' if winner is None else
-                                                        '{} wins'.format(winner.name))
-            self.send_message(game_result)
+            game_result = 'draw' if winner is None else '{} wins'.format(winner.name)
+            game_end_message = 'Game is finished, {}'.format(game_result)
+            self.send_message(game_end_message)
             self.game = None
 
     def send_field(self) -> None:
         assert self.game is not None
-        field_in_lines = []
-        for row in self.game.field:
-            row_line = ''
-            for cell in row:
-                row_line += '{}'.format('.' if cell is None else cell.name)
-            field_in_lines.append(row_line)
+        field_in_lines = [''.join(cell.name if cell else '.' for cell in row)
+                          for row in self.game.field]
         self.send_message('\n'.join(field_in_lines))
