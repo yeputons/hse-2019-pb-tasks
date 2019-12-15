@@ -77,11 +77,11 @@ def main(args_str: List[str]):
     else:
         files_content[''] = strip_lines(sys.stdin)
 
-    for filename, source_from_file in files_content.items():
-        source_from_file = find_pattern(args.counting_mode, source_from_file,
+    for filename, lines_from_file in files_content.items():
+        lines_from_file = find_pattern(args.counting_mode, lines_from_file,
                                         pattern, args.fullmatch, args.invert_result)
         print_format = format_data(print_file_name, filename)
-        print_result(print_format, filename, source_from_file,
+        print_result(print_format, filename, lines_from_file,
                      args.at_least_one_found, args.no_one_found)
 
 
