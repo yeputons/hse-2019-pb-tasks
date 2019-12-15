@@ -120,13 +120,5 @@ def test_grep_process_lines(tmp_path, monkeypatch):
     source.write_text('pref needle?\nneedle? suf\npref needle? suf\nneed')
     monkeypatch.chdir(tmp_path)
     with open(source, 'r') as file:
-        lines = grep.process_lines(file, 'needle?', 1)
+        lines = grep.process_lines(file, 'needle?', True)
         assert lines == ['3']
-
-
-def test_grep_print_lines(capsys):
-    lines = ['all\ntests\nare\npassed\nsuccessfully']
-    grep.print_lines(lines)
-    out, err = capsys.readouterr()
-    assert err == ''
-    assert out == 'all\ntests\nare\npassed\nsuccessfully\n'

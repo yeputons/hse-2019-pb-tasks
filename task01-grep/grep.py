@@ -5,20 +5,13 @@ import re
 import argparse
 
 
-def process_lines(source: IO[str], pattern: str, is_c: bool) -> List[str]:
+def process_lines(source: IO[str], pattern: str, count: bool) -> List[str]:
     matching_lines = []
-    for line in source.readlines():
+    for line in source:
         line = line.rstrip('\n')
         if re.search(pattern, line):
             matching_lines.append(line)
-    if is_c:
-        matching_lines = [str(len(matching_lines))]
-    return matching_lines
-
-
-def print_lines(lines: List[str]) -> None:
-    for line in lines:
-        print(line)
+    return [str(len(matching_lines))] if count else matching_lines
 
 
 def main(args_str: List[str]):
@@ -33,20 +26,17 @@ def main(args_str: List[str]):
     flag_c = args.count
 
     if args.files:
-        if len(args.files) == 1:
-            for filename in args.files:
-                with open(filename, 'r') as file:
-                    lines = process_lines(file, needle, flag_c)
-                    print_lines(lines)
-        else:
-            for filename in args.files:
-                with open(filename, 'r') as file:
-                    lines = process_lines(file, needle, flag_c)
+        for filename in args.files:
+            with open(filename, 'r') as file:
+                lines = process_lines(file, needle, flag_c)
+                if len(args.files) > 1:
                     lines = [f'{filename}:{line}' for line in lines]
-                    print_lines(lines)
+                for line in lines:
+                    print(line)
     else:
         lines = process_lines(sys.stdin, needle, flag_c)
-        print_lines(lines)
+        for line in lines:
+            print(line)
 
 
 if __name__ == '__main__':
