@@ -14,7 +14,7 @@ def test_handle_message(mocker: pytest_mock.MockFixture) -> None:
     handler = TicTacToeUserHandler(send_message)
     messages = [
         'asdfasdfas asdf asd fas df',
-        'start',
+        'start botva',
         'start',
         'X 0 0',
         'X 0 0',
@@ -26,7 +26,7 @@ def test_handle_message(mocker: pytest_mock.MockFixture) -> None:
     handle_all_messages(handler, messages)
     assert send_message.call_args_list == [
         mocker.call('Game is not started'),
-        mocker.call('...\n...\n...'),
+        mocker.call('Game is not started'),
         mocker.call('...\n...\n...'),
         mocker.call('X..\n...\n...'),
         mocker.call('Invalid turn'),

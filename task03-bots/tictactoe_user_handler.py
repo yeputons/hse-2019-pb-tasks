@@ -9,11 +9,12 @@ class TicTacToeUserHandler(UserHandler):
         self.game: Optional[TicTacToe] = None
 
     def handle_message(self, message: str) -> None:
-        message_words = message.rstrip('\n').split()
-        if not self.game and not message_words[0] == 'start':
+        message = message.rstrip('\n')
+        message_words = message.split()
+        if not self.game and message != 'start':
             self.send_message('Game is not started')
             return
-        if message_words[0] == 'start':
+        if message == 'start':
             self.start_game()
             return
         player, col, row = message_words
