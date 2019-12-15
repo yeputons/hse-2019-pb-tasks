@@ -5,54 +5,48 @@ import re
 import argparse
 
 
-def invert_f(invert: bool, find_bool: bool) -> bool:
-    return not find_bool if invert else find_bool
-
-
-def find(line: str, needle: str, regex: bool, lowercase: bool, full_match: bool) -> bool:
-    flags_ = re.IGNORECASE if lowercase else 0
+def match(line: str, needle: str, *, regex: bool, low: bool, full_match: bool, inv: bool) -> bool:
+    flags = re.IGNORECASE if low else 0
     pattern = needle if regex else re.escape(needle)
-    return bool(re.fullmatch(pattern, line, flags=flags_)) if full_match \
-        else bool(re.search(pattern, line, flags=flags_))
+    res = bool(re.fullmatch(pattern, line, flags=flags)) if full_match \
+        else bool(re.search(pattern, line, flags=flags))
+    return not res if inv else res
 
 
-def make_filtered_list(source: IO[str], needle: str, regex: bool, count_flag: bool, invert: bool,
-                       lowercase: bool, full_match: bool) -> List[str]:
+def form_the_list(source: IO[str], needle: str, *, regex: bool, count: bool, inv: bool,
+                  low: bool, full_match: bool) -> List[str]:
     raw_list = [line.rstrip('\n') for line in source]
-    filter_list = [line for line in raw_list if
-                   invert_f(find(line, needle, regex, lowercase, full_match), invert)]
-    return [str(len(filter_list))] if count_flag else filter_list
+    filter_list = [line for line in raw_list
+                   if match(line, needle, regex=regex, low=low, full_match=full_match, inv=inv)]
+    return [str(len(filter_list))] if count else filter_list
 
 
-def print_list(file: str, list_: List[str], files_only: bool, invert_files: bool) -> None:
-    if files_only and len(list_) != 0:
-        print(f'{file}')
-    elif invert_files and len(list_) == 0:
-        print(f'{file}')
+def formatted_output(file: str, list_: List[str], *, files_only: bool, invert_files: bool) -> None:
+    if files_only and list_ or invert_files and not list_:
+        print(file, sep='\n')
     elif not files_only and not invert_files:
         for item in list_:
             print(f'{file}:{item}', sep='\n')
 
 
-def parse_std_in(needle: str, regex: bool, count_flag: bool, invert: bool,
-                 lowercase: bool, full_match: bool) -> None:
-    lines_to_print = make_filtered_list(sys.stdin, needle, regex, count_flag, invert, lowercase,
-                                        full_match)
-    if len(lines_to_print) != 0:
+def parse_std_in(needle: str, *, regex: bool, count: bool, inv: bool,
+                 low: bool, full_match: bool) -> None:
+    lines_to_print = form_the_list(sys.stdin, needle, regex=regex, count=count,
+                                   inv=inv, low=low, full_match=full_match)
+    if lines_to_print:
         print(*lines_to_print, sep='\n')
 
 
-def parse_files(files: List[str], needle: str, regex: bool, count_flag: bool, invert: bool,
-                lowercase: bool,
+def parse_files(files: List[str], needle: str, *, regex: bool, count: bool, inv: bool, low: bool,
                 full_match: bool, files_only: bool, invert_files: bool) -> None:
     for file in files:
         with open(file, 'r') as file_item:
-            lines_to_print = make_filtered_list(file_item, needle, regex, count_flag, invert,
-                                                lowercase, full_match)
-        if len(files) == 1 and len(lines_to_print) != 0 and not files_only:
-            print(*lines_to_print)
+            lines_to_print = form_the_list(file_item, needle, regex=regex, count=count,
+                                           inv=inv, low=low, full_match=full_match)
+        if len(files) == 1 and lines_to_print and not files_only:
+            print(*lines_to_print, sep='\n')
         else:
-            print_list(file, lines_to_print, files_only, invert_files)
+            formatted_output(file, lines_to_print, files_only=files_only, invert_files=invert_files)
 
 
 def main(args_str: List[str]) -> None:
@@ -70,11 +64,12 @@ def main(args_str: List[str]) -> None:
     args = parser.parse_args(args_str)
 
     if args.files:
-        parse_files(args.files, args.needle, args.regex, args.count, args.invert, args.lowercase,
-                    args.full_match, args.files_only, args.invert_files)
+        parse_files(args.files, args.needle, regex=args.regex, count=args.count, inv=args.invert,
+                    low=args.lowercase, full_match=args.full_match, files_only=args.files_only,
+                    invert_files=args.invert_files)
     else:
-        parse_std_in(args.needle, args.regex, args.count, args.invert, args.lowercase,
-                     args.full_match)
+        parse_std_in(args.needle, regex=args.regex, count=args.count, inv=args.invert,
+                     low=args.lowercase, full_match=args.full_match)
 
 
 if __name__ == '__main__':
