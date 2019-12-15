@@ -52,14 +52,8 @@ class TicTacToeUserHandler(UserHandler):
 
     def send_field(self) -> None:
         assert self.game
-        out = ''
-        for row in self.game.field:
-            for point in row:
-                if point == Player.O:
-                    out += 'O'
-                elif point == Player.X:
-                    out += 'X'
-                else:
-                    out += '.'
-            out += '\n'
-        self.send_message(out[0:11])
+        out_chars = [['O' if point == Player.O else 'X' if point == Player.X else '.'
+                      for point in row]
+                     for row in self.game.field]
+        out_lines = [''.join(line) for line in out_chars]
+        self.send_message('\n'.join(out_lines))
