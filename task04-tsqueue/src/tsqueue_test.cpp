@@ -9,8 +9,10 @@ TEST_SUITE("ThreadsafeQueue works like Queue in a single thread") {
     TEST_CASE("with threadsafe_queue_try_pop") {
         ThreadsafeQueue q;
         threadsafe_queue_init(&q);
+
         int a = 0, b = 0, c = 0;
         void *result;
+
         threadsafe_queue_push(&q, &a);
         threadsafe_queue_push(&q, &b);
         CHECK(threadsafe_queue_try_pop(&q, &result));
@@ -18,6 +20,7 @@ TEST_SUITE("ThreadsafeQueue works like Queue in a single thread") {
         CHECK(threadsafe_queue_try_pop(&q, &result));
         CHECK(result == &b);
         CHECK(!threadsafe_queue_try_pop(&q, &result));
+
         threadsafe_queue_push(&q, &c);
         threadsafe_queue_push(&q, &b);
         CHECK(threadsafe_queue_try_pop(&q, &result));
@@ -25,6 +28,7 @@ TEST_SUITE("ThreadsafeQueue works like Queue in a single thread") {
         CHECK(threadsafe_queue_try_pop(&q, &result));
         CHECK(result == &b);
         CHECK(!threadsafe_queue_try_pop(&q, &result));
+
         threadsafe_queue_destroy(&q);
     }
 
@@ -92,8 +96,8 @@ TEST_CASE("ThreadsafeQueue multithreaded ping-pong") {
     pthread_t t1, t2;
     REQUIRE(pthread_create(&t1, nullptr, pinger, qs) == 0);
     REQUIRE(pthread_create(&t2, nullptr, ponger, qs) == 0);
-    REQUIRE(pthread_join(t1, nullptr) == 0);
     REQUIRE(pthread_join(t2, nullptr) == 0);
+    REQUIRE(pthread_join(t1, nullptr) == 0);
 
     threadsafe_queue_destroy(&qs[1]);
     threadsafe_queue_destroy(&qs[0]);
@@ -117,12 +121,11 @@ void *consumer(void *_q) {
 
 void *consumer_try(void *_q) {
     ThreadsafeQueue *q = static_cast<ThreadsafeQueue *>(_q);
-    void *data;
     for (int i = 0; i < ELEMENTS_PER_THREAD; i++) {
-        REQUIRE(threadsafe_queue_try_pop(q, &data));
-        REQUIRE(data == nullptr);
+        void *data;
+                REQUIRE(threadsafe_queue_try_pop(q, &data));
+                REQUIRE(data == nullptr);
     }
-    static_cast<void>(q);
     return nullptr;
 }
 
