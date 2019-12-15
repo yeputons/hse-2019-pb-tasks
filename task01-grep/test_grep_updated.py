@@ -177,36 +177,36 @@ def test_find_pattern_in_line_not_equal():
     assert result
 
 
-def test_cast_to_regex():
+def test_cast_tr_to_regex():
     result = grep.cast_to_regex(True, 'needle?')
     assert result == 'needle?'
 
 
-def test_cast_to_regex_2():
+def test_cast_regex_to_regex():
     result = grep.cast_to_regex(False, 'ne.*ed[a-b]+le?')
     assert result == r'ne\.\*ed\[a\-b\]\+le\?'
 
 
 def test_format_output():
-    result = grep.format_output(True, 'aaa')
+    result = grep.format_data(True, 'aaa')
     assert result == 'aaa:{}'
 
 
-def test_print_result_1(capsys):
+def test_print_result_at_least_one_found(capsys):
     grep.print_result('{}', 'a.txt', ['1x\n', '1y\n'], True, False)
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'a.txt\n'
 
 
-def test_print_result_2(capsys):
+def test_print_result_no_one_found(capsys):
     grep.print_result('{}', 'a.txt', ['1x\n', '1y\n'], False, True)
     out, err = capsys.readouterr()
     assert err == ''
     assert out == ''
 
 
-def test_print_result_3(capsys):
+def test_print_result_standard(capsys):
     grep.print_result('{}', 'a.txt', ['1x\n', '1y\n'], False, False)
     out, err = capsys.readouterr()
     assert err == ''

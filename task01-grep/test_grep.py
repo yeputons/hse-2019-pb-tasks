@@ -188,7 +188,7 @@ def test_cast_to_regex_2():
 
 
 def test_format_output():
-    result = grep.format_output(True, 'aaa')
+    result = grep.format_data(True, 'aaa')
     assert result == 'aaa:{}'
 
 

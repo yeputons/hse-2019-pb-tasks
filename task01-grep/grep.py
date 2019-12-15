@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 import os
-from typing import List, Iterable, Tuple, Pattern
+from typing import List, Iterable, Tuple, Pattern, Dict
 import sys
 import re
 import argparse
 
 
-def find_pattern_in_line(pattern: Pattern[str], line: str, equal: bool) -> bool:
-    if equal:
+def find_pattern_in_line(pattern: Pattern[str], line: str, fullmatch: bool) -> bool:
+    if fullmatch:
         return re.fullmatch(pattern, line) is not None
     return re.search(pattern, line) is not None
 
@@ -18,14 +18,14 @@ def cast_to_regex(regex_mode: bool, pattern: str) -> str:
     return pattern
 
 
-def format_output(print_file_name: bool, source: str) -> str:
+def format_data(print_file_name: bool, source: str) -> str:
     print_format = '{}'
     if print_file_name:
         print_format = '{0}:{1}'.format(source, print_format)
     return print_format
 
 
-def print_result(format_of_output: str, filename: str, output: List[str],
+def print_result(output_format: str, filename: str, output: List[str],
                  at_least_one_found: bool, no_one_found: bool) -> None:
     if at_least_one_found and len(output) > 0:
         print(filename)
@@ -33,19 +33,19 @@ def print_result(format_of_output: str, filename: str, output: List[str],
         print(filename)
     if not at_least_one_found and not no_one_found:
         for print_output in output:
-            print(format_of_output.format(print_output))
+            print(output_format.format(print_output))
 
 
-def find_pattern(counting_mode: bool, file: List[str], pattern: Pattern[str], equal: bool,
+def find_pattern(counting_mode: bool, lines: List[str], pattern: Pattern[str], fullmatch: bool,
                  invert_result: bool) -> List[str]:
-    result = [line for line in file if invert_result ^ find_pattern_in_line(pattern, line, equal)]
+    result = [line for line in lines if invert_result ^ find_pattern_in_line(pattern, line, fullmatch)]
     if counting_mode:
         return [str(len(result))]
     else:
         return result
 
 
-def strip_lines(file: Iterable) -> List[str]:
+def strip_lines(file: Iterable[str]) -> List[str]:
     return [line.rstrip('\n') for line in file]
 
 
@@ -57,7 +57,7 @@ def main(args_str: List[str]):
     parser.add_argument('-E', dest='regex_mode', action='store_true')
     parser.add_argument('-i', dest='ignore_case', action='store_true')
     parser.add_argument('-v', dest='invert_result', action='store_true')
-    parser.add_argument('-x', dest='equal', action='store_true')
+    parser.add_argument('-x', dest='fullmatch', action='store_true')
     parser.add_argument('-l', dest='at_least_one_found', action='store_true')
     parser.add_argument('-L', dest='no_one_found', action='store_true')
 
@@ -68,21 +68,21 @@ def main(args_str: List[str]):
     if args.ignore_case:
         flag = re.IGNORECASE
     args.pattern = re.compile(args.pattern, flags=flag)
-    data_from_files: List[Tuple[str, List[str]]] = []
-    if len(args.files) != 0:
+    files_content: Dict[str, List[str]] = {}
+    if args.files:
         for filename in args.files:
             if not os.path.exists(filename):
                 "File {} doesn't exist".format(filename)
             else:
                 with open(filename, 'r') as input_file:
-                    data_from_files.append((filename, strip_lines(input_file)))
+                    files_content[filename] = strip_lines(input_file)
     else:
-        data_from_files.append((' ', strip_lines(sys.stdin)))
+        files_content[' '] = strip_lines(sys.stdin)
 
-    for filename, source_from_file in data_from_files:
+    for filename, source_from_file in files_content.items():
         source_from_file = find_pattern(args.counting_mode, source_from_file,
-                                        args.pattern, args.equal, args.invert_result)
-        print_format = format_output(print_file_name, filename)
+                                        args.pattern, args.fullmatch, args.invert_result)
+        print_format = format_data(print_file_name, filename)
         print_result(print_format, filename, source_from_file,
                      args.at_least_one_found, args.no_one_found)
 
