@@ -21,7 +21,7 @@ class TicTacToeUserHandler(UserHandler):
                 self.send_message('Invalid turn')
                 return
             self.make_turn(Player[player], row=int(row), col=int(col))
-        except Exception: # pylint: disable=W0703
+        except Exception:  # pylint: disable=W0703
             self.send_message('Invalid turn')
 
     def start_game(self) -> None:
