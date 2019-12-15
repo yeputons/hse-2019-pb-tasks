@@ -29,14 +29,12 @@ def test_multiple_start_and_start(mocker: pytest_mock.MockFixture) -> None:
     handler.handle_message('\\start')
     handler.handle_message('start')
     handler.handle_message('X 0 0')
-    handler.handle_message('asd')
     handler.handle_message('start')
     handler.handle_message('start')
     assert send_message.call_args_list == [
         mocker.call('Game is not started'),
         mocker.call('...\n...\n...'),
         mocker.call('X..\n...\n...'),
-        mocker.call('Invalid turn'),
         mocker.call('...\n...\n...'),
         mocker.call('...\n...\n...'),
     ]
