@@ -1,12 +1,8 @@
 #!/usr/bin/env python3
-from typing import List, IO, Union
+from typing import List, IO
 import sys
 import re
 import argparse
-
-
-def make_flag(lowercase: bool) -> Union[int, ]:  # RegexFlag
-    return re.IGNORECASE if lowercase else 0
 
 
 def invert_f(invert: bool, find_bool: bool) -> bool:
@@ -14,13 +10,14 @@ def invert_f(invert: bool, find_bool: bool) -> bool:
 
 
 def find(line: str, needle: str, regex: bool, lowercase: bool, full_match: bool) -> bool:
+    flags_ = re.IGNORECASE if lowercase else 0
     pattern = needle if regex else re.escape(needle)
-    return bool(re.fullmatch(pattern, line, flags=make_flag(lowercase))) if full_match \
-        else bool(re.search(pattern, line, flags=make_flag(lowercase)))
+    return bool(re.fullmatch(pattern, line, flags=flags_)) if full_match \
+        else bool(re.search(pattern, line, flags=flags_))
 
 
-def make_list(source: IO[str], needle: str, regex: bool, count_flag: bool, invert: bool,
-              lowercase: bool, full_match: bool) -> List[str]:
+def make_filtered_list(source: IO[str], needle: str, regex: bool, count_flag: bool, invert: bool,
+                       lowercase: bool, full_match: bool) -> List[str]:
     raw_list = [line.rstrip('\n') for line in source]
     filter_list = [line for line in raw_list if
                    invert_f(find(line, needle, regex, lowercase, full_match), invert)]
@@ -39,8 +36,10 @@ def print_list(file: str, list_: List[str], files_only: bool, invert_files: bool
 
 def parse_std_in(needle: str, regex: bool, count_flag: bool, invert: bool,
                  lowercase: bool, full_match: bool) -> None:
-    lines_to_print = make_list(sys.stdin, needle, regex, count_flag, invert, lowercase, full_match)
-    print(*lines_to_print, sep='\n')
+    lines_to_print = make_filtered_list(sys.stdin, needle, regex, count_flag, invert, lowercase,
+                                        full_match)
+    if len(lines_to_print) != 0:
+        print(*lines_to_print, sep='\n')
 
 
 def parse_files(files: List[str], needle: str, regex: bool, count_flag: bool, invert: bool,
@@ -48,9 +47,9 @@ def parse_files(files: List[str], needle: str, regex: bool, count_flag: bool, in
                 full_match: bool, files_only: bool, invert_files: bool) -> None:
     for file in files:
         with open(file, 'r') as file_item:
-            lines_to_print = make_list(file_item, needle, regex, count_flag, invert,
-                                       lowercase, full_match)
-        if len(files) == 1:
+            lines_to_print = make_filtered_list(file_item, needle, regex, count_flag, invert,
+                                                lowercase, full_match)
+        if len(files) == 1 and len(lines_to_print) != 0 and not files_only:
             print(*lines_to_print)
         else:
             print_list(file, lines_to_print, files_only, invert_files)
