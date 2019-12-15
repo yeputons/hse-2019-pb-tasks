@@ -28,11 +28,11 @@ def format_data(print_file_name: bool, source: str) -> str:
 
 def print_result(output_format: str, filename: str, output: List[str],
                  at_least_one_found: bool, no_one_found: bool) -> None:
-    if at_least_one_found and len(output) > 0:
+    if at_least_one_found and output:
         print(filename)
-    if no_one_found and len(output) == 0:
+    elif no_one_found and not output:
         print(filename)
-    if not at_least_one_found and not no_one_found:
+    elif not at_least_one_found and not no_one_found:
         for print_output in output:
             print(output_format.format(print_output))
 
