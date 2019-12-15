@@ -111,3 +111,4 @@ def test_tictactoe_draw(mocker: pytest_mock.MockFixture) -> None:
         mocker.call('XOX\nXXO\nOXO'),
         mocker.call('Game is finished, draw'),
     ]
+    
