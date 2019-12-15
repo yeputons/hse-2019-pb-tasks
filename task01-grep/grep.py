@@ -49,7 +49,9 @@ def print_answers(answers: List[List[str]], args: argparse.Namespace):
         assert len(args.files) > 0
         assert not (args.line_exists and args.line_not_exists)
         for filename, answer in zip(args.files, answers):
-            if args.line_exists ^ (len(answer) > 0) == 0:
+            file_matches = args.line_exists and len(answer) > 0
+            file_matches |= args.line_not_exists and len(answer) == 0
+            if file_matches:
                 print(filename)
     else:
         if len(answers) == 1:
