@@ -9,7 +9,7 @@ def handle_all_messages(handler: TicTacToeUserHandler,
         handler.handle_message(message=message)
 
 
-def test_handle_message(mocker: pytest_mock.MockFixture) -> None:
+def test_correct_start(mocker: pytest_mock.MockFixture) -> None:
     send_message = mocker.stub(name='send_message')
     handler = TicTacToeUserHandler(send_message)
     messages = [
@@ -37,13 +37,6 @@ def test_handle_message(mocker: pytest_mock.MockFixture) -> None:
     ]
 
 
-def test_start_game(mocker: pytest_mock.MockFixture) -> None:
-    send_message = mocker.stub(name='send_message')
-    handler = TicTacToeUserHandler(send_message)
-    handler.start_game()
-    assert send_message.call_args_list == [mocker.call('...\n...\n...')]
-
-
 def test_make_turn(mocker: pytest_mock.MockFixture) -> None:
     send_message = mocker.stub(name='send_message')
     handler = TicTacToeUserHandler(send_message)
@@ -65,34 +58,6 @@ def test_make_turn(mocker: pytest_mock.MockFixture) -> None:
         mocker.call('XO.\n...\n...'),
         mocker.call('Invalid turn'),
         mocker.call('XOX\n...\n...'),
-    ]
-
-
-def test_send_field(mocker: pytest_mock.MockFixture) -> None:
-    send_message = mocker.stub(name='send_message')
-    handler = TicTacToeUserHandler(send_message)
-    messages = [
-        'start',
-        'X 1 1',
-        'O 0 0',
-        'X 2 0',
-        'O 0 2',
-        'X 0 1',
-        'O 2 1',
-        'X 1 2',
-        'O 1 0'
-    ]
-    handle_all_messages(handler, messages)
-    assert send_message.call_args_list == [
-        mocker.call('...\n...\n...'),
-        mocker.call('...\n.X.\n...'),
-        mocker.call('O..\n.X.\n...'),
-        mocker.call('O.X\n.X.\n...'),
-        mocker.call('O.X\n.X.\nO..'),
-        mocker.call('O.X\nXX.\nO..'),
-        mocker.call('O.X\nXXO\nO..'),
-        mocker.call('O.X\nXXO\nOX.'),
-        mocker.call('OOX\nXXO\nOX.')
     ]
 
 
