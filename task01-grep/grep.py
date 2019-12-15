@@ -38,7 +38,8 @@ def print_result(output_format: str, filename: str, output: List[str],
 
 def find_pattern(counting_mode: bool, lines: List[str], pattern: Pattern[str], fullmatch: bool,
                  invert_result: bool) -> List[str]:
-    result = [line for line in lines if invert_result ^ find_pattern_in_line(pattern, line, fullmatch)]
+    result = [line for line in lines if invert_result ^
+                find_pattern_in_line(pattern, line, fullmatch)]
     if counting_mode:
         return [str(len(result))]
     else:
