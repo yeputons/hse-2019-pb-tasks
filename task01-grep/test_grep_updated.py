@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import re
 import grep
-from grep import full_find_pattern
+from grep import find_pattern
 from grep import filter_lines
 from grep import format_output
 from grep import print_with_flags
@@ -59,17 +59,17 @@ def test_filter_lines_not_regex_full():
 def test_not_full_find_pattern():
     line = 'Yes, of course'
     pattern = re.compile(re.escape('Yes'))
-    assert full_find_pattern(pattern, line, False)
+    assert find_pattern(pattern, line, False)
 
 
 def test_full_find_pattern():
     line = 'Yes, of course'
     pattern = re.compile(re.escape('Yes'))
-    assert not full_find_pattern(pattern, line, True)
+    assert not find_pattern(pattern, line, True)
 
 
 def test_format_output_not_many():
-    assert format_output('a.txt', 'Yes', False) == '{}'
+    assert format_output('a.txt', 'Yes', False) == 'Yes'
 
 
 def test_format_output_is_many():

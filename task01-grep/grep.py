@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from typing import List, Pattern
+from typing import List, Pattern, Optional
 import sys
 import re
 import argparse
@@ -16,36 +16,47 @@ def read_files(file_name: str) -> List[str]:
     return lines
 
 
-def full_find_pattern(pattern: Pattern[str], line: str, is_full: bool) -> bool:
-    if is_full:
+def find_pattern(pattern: Pattern[str], line: str, full_match_required: bool) -> bool:
+    if full_match_required:
         return bool(re.fullmatch(pattern, line))
     return bool(re.search(pattern, line))
 
 
 def filter_lines(lines: List[str], compiled_pattern: Pattern[str],
-                 is_invert: bool, is_full: bool) -> List[str]:
-    return list(filter(lambda line:
-                       is_invert ^ full_find_pattern(compiled_pattern, line, is_full), lines))
+                 is_invert: bool, full_match_required: bool) -> List[str]:
+    return [line for line in lines
+            if is_invert ^ find_pattern(compiled_pattern, line, full_match_required)]
 
 
-def format_output(file_name: str, output_storage: str, is_many: bool) -> str:
-    print_format = '{}'
-    if is_many:
-        print_format = '{0}:{1}'.format(file_name, output_storage)
+def format_output(file_name: str, output_storage: Optional[str], require_prefix: bool) -> str:
+    print_format = '{}'.format(output_storage)
+    if require_prefix:
+        print_format = '{}:'.format(file_name) + print_format
     return print_format
 
 
-def print_output(out: List[str], is_many: bool, file_name: str) -> None:
+def print_output(out: List[str], require_prefix: bool, file_name: str) -> None:
     for line in out:
-        print(format_output(file_name, line, is_many).format(line))
+        print_format = format_output(file_name, line, require_prefix)
+        print(print_format)
 
 
-def print_with_flags(file_name: str, counter: int,
-                     is_counter: bool, is_many: bool, is_found: bool, is_not_found: bool) -> None:
+def format_with_flags(file_name: str, counter: int, is_counter: bool,
+                      require_prefix: bool, is_found: bool, is_not_found: bool) -> str:
+    print_format = ''
     if is_counter:
-        print(format_output(file_name, str(counter), is_many).format(str(counter)))
+        print_format = format_output(file_name, str(counter), require_prefix)
     elif (is_found and counter > 0) or (is_not_found and counter == 0):
-        print(file_name)
+        print_format = '{}'.format(file_name)
+    return print_format
+
+
+def print_with_flags(file_name: str, counter: int, is_counter: bool,
+                     require_prefix: bool, is_found: bool, is_not_found: bool) -> None:
+    print_format = format_with_flags(file_name,
+                                     counter, is_counter, require_prefix, is_found, is_not_found)
+    if not print_format == '':
+        print(print_format)
 
 
 def existing_files(input_files: List[str]) -> int:
@@ -86,7 +97,7 @@ def main(args_str: List[str]):
     if existing_files(args.files) != 0:
         return
 
-    is_many = len(args.files) > 1
+    require_prefix = len(args.files) > 1
 
     compiled_pattern = compile_pattern(args.pattern, args.ignore, args.regex)
 
@@ -98,9 +109,10 @@ def main(args_str: List[str]):
 
         counter = len(filtered_lines)
         if args.counter or args.found or args.not_found:
-            print_with_flags(file, counter, args.counter, is_many, args.found, args.not_found)
+            print_with_flags(file, counter,
+                             args.counter, require_prefix, args.found, args.not_found)
         else:
-            print_output(filtered_lines, is_many, file)
+            print_output(filtered_lines, require_prefix, file)
 
 
 if __name__ == '__main__':
