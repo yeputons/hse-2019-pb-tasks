@@ -65,18 +65,18 @@ TEST_CASE("ThreadsafeQueue multithreaded ping-pong") {
     //    единицу и отправляет результат обратно через `qs[1]`.
     // 3. Поток `pinger` проверяет, что пришёл правильный адрес
     //    и что локальная переменная была увеличена.
-    const int PING_PONGS = 101;
+    const int PING_PONGS = 100;
 
     // Специальный синтаксис для объявления функции внутри функции.
     // (в общем случае это лямбда-функции/замыкания, но нам это неважно).
     auto pinger = [](void *_qs) -> void * {
         ThreadsafeQueue *qs = static_cast<ThreadsafeQueue *>(_qs);
         for (int i = 0; i < PING_PONGS; i++) {
-            int old_data = i;
-            threadsafe_queue_push(&qs[0], &old_data);
-            int *data = (int *)threadsafe_queue_wait_and_pop(&qs[1]);
-            REQUIRE(data == &old_data);
-            CHECK(*data == i + 1);
+            int sent_data = i;
+            threadsafe_queue_push(&qs[0], &sent_data);
+            REQUIRE(static_cast<int *>(threadsafe_queue_wait_and_pop(&qs[1])) ==
+                    &sent_data);
+            CHECK(sent_data == i + 1);
         }
         return nullptr;
     };
@@ -84,9 +84,10 @@ TEST_CASE("ThreadsafeQueue multithreaded ping-pong") {
     auto ponger = [](void *_qs) -> void * {
         ThreadsafeQueue *qs = static_cast<ThreadsafeQueue *>(_qs);
         for (int i = 0; i < PING_PONGS; i++) {
-            int *val = (int *)threadsafe_queue_wait_and_pop(&qs[0]);
-            ((*val)++);
-            threadsafe_queue_push(&qs[1], val);
+            int *recieved_data =
+                static_cast<int *>(threadsafe_queue_wait_and_pop(&qs[0]));
+            (*recieved_data)++;
+            threadsafe_queue_push(&qs[1], recieved_data);
         }
         return nullptr;
     };
