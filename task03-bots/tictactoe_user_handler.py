@@ -46,8 +46,5 @@ class TicTacToeUserHandler(UserHandler):
         outcome = {Player.X: 'X wins',
                    Player.O: 'O wins',
                    None: 'draw'}[self.game.winner()]
-        # outcome = 'X wins' if self.game.winner() == Player.X else\
-        #           'O wins' if self.game.winner() == Player.O else\
-        #           'draw'
         self.send_message(f'Game is finished, {outcome}')
         self.game = None
