@@ -57,6 +57,24 @@ def test_integrate_stdin_all_keys_count_files_grep(monkeypatch, capsys):
     assert out == '3\n'
 
 
+def test_integrate_one_file_bigl(tmp_path, monkeypatch, capsys):
+    (tmp_path / 'abc.txt').write_text('ka>aa\nwv*oo\n*...')
+    monkeypatch.chdir(tmp_path)
+    grep.main(['-L', 'kavo', 'abc.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'abc.txt\n'
+
+
+def test_integrate_one_file_l(tmp_path, monkeypatch, capsys):
+    (tmp_path / 'abc.txt').write_text('ka>aa\nwv*oo\n*...')
+    monkeypatch.chdir(tmp_path)
+    grep.main(['-l', 'ka>', 'abc.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'abc.txt\n'
+
+
 # test unit
 # test has_needle
 
@@ -217,7 +235,7 @@ def test_unit_print_res_stdin(capsys):
 
 def test_read_input_stdin(monkeypatch):
     monkeypatch.setattr('sys.stdin', io.StringIO('fo\nFOO\nhEllo fo?o world\nxfOOyfoz\nfooo\n'))
-    lines, one_file = read_input([])
+    lines, one_file = read_input([], True)
     assert one_file
     assert lines == [('', ['fo\n', 'FOO\n', 'hEllo fo?o world\n', 'xfOOyfoz\n', 'fooo\n'])]
 
@@ -226,7 +244,7 @@ def test_read_input_file(tmp_path, monkeypatch):
     (tmp_path / 'a.txt').write_text('a1\nb2\nc3\n')
     monkeypatch.chdir(tmp_path)
     files_input = ['a.txt']
-    lines, one_file = read_input(files_input)
+    lines, one_file = read_input(files_input, True)
     assert one_file
     assert lines == [('', ['a1\n', 'b2\n', 'c3\n'])]
 
@@ -236,7 +254,7 @@ def test_read_input_files(tmp_path, monkeypatch):
     (tmp_path / 'b.txt').write_text('hello fo?o world\nxfooyfoz\nfooo\n')
     monkeypatch.chdir(tmp_path)
     files_input = ['a.txt', 'b.txt']
-    lines, one_file = read_input(files_input)
+    lines, one_file = read_input(files_input, True)
     assert not one_file
     assert lines == [('a.txt', ['fO\n', 'FO\n', 'FoO\n']),
                      ('b.txt', ['hello fo?o world\n', 'xfooyfoz\n', 'fooo\n'])]

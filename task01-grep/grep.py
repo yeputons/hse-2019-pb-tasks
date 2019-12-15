@@ -27,7 +27,7 @@ def find_in_file(lines: List[str], needle: str, regex: bool, ignore_case: bool,
 
 
 def is_found(found: List[str], need_count: bool, need_not_find: bool) -> bool:
-    return need_count or (found and not need_not_find) or (not found and need_not_find)
+    return need_count or (bool(found) ^ need_not_find)
 
 
 def print_res(result: List[Tuple[str, List[str]]], count: bool, only_files: bool, one_file: bool):
@@ -43,10 +43,10 @@ def print_res(result: List[Tuple[str, List[str]]], count: bool, only_files: bool
                 print(file_name, line, sep='')
 
 
-def read_input(files: List[str]) -> Tuple[List[Tuple[str, List[str]]], bool]:
+def read_input(files: List[str], normal_search: bool) -> Tuple[List[Tuple[str, List[str]]], bool]:
     lines = []
     num_files = len(files)
-    one_file = num_files <= 1
+    one_file = normal_search and num_files <= 1
     if num_files == 0:
         lines.append(('', sys.stdin.readlines()))
     else:
@@ -73,7 +73,8 @@ def parse_arguments(args_str: List[str]) -> argparse.Namespace:
 
 def main(args_str: List[str]):
     args = parse_arguments(args_str)
-    lines, one_file = read_input(args.files)
+    normal_search = not (args.only_files or args.only_not_files)
+    lines, one_file = read_input(args.files, normal_search)
     result = []
     for file_name, line in lines:
         found = find_in_file(line, args.needle, args.regex,
