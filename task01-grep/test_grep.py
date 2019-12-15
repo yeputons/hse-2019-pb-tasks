@@ -168,7 +168,7 @@ def test_find_pattern_in_line_not_equal():
     assert result
 
 
-def test_cast_tr_to_regex():
+def test_cast_str_to_regex():
     result = grep.cast_to_regex(True, False, 'needle?')
     assert result == re.compile(r'needle?')
 
@@ -178,9 +178,14 @@ def test_cast_regex_to_regex():
     assert result == re.compile(re.escape('ne.*ed[a-b]+le?'))
 
 
-def test_format_output():
+def test_format_data_print_file_name():
     result = grep.format_data(True, 'aaa')
     assert result == 'aaa:{}'
+
+
+def test_format_data_not_print_file_name():
+    result = grep.format_data(False, 'aaa')
+    assert result == '{}'
 
 
 def test_print_result(capsys):

@@ -54,9 +54,14 @@ def test_find_pattern_in_line_not_equal():
     assert result
 
 
-def test_format_output():
-    result = grep.format_data(True, 'aaa')
-    assert result == 'aaa:{}'
+def test_cast_str_to_regex_ignore_case():
+    result = grep.cast_to_regex(True, True, 'NEEdle?')
+    assert result == re.compile(r'NEEdle?', re.IGNORECASE)
+
+
+def test_cast_regex_to_regex_ignore_case():
+    result = grep.cast_to_regex(False, True, 'Ne.*ed[a-b]+Le?')
+    assert result == re.compile(re.escape('Ne.*ed[a-b]+Le?'), re.IGNORECASE)
 
 
 def test_print_result_at_least_one_found(capsys):
@@ -95,6 +100,11 @@ def test_find_pattern_count_fullmatch_invert():
     assert result == ['1']
 
 
+def test_find_pattern_count_fullmatch():
+    result = grep.find_pattern(True, ['a', 'b', 'ac'], re.compile('a'), True, False)
+    assert result == ['1']
+
+
 def test_find_pattern_fullmatch_invert():
     result = grep.find_pattern(False, ['a', 'b', 'ac'], re.compile('[a-z]'), True, True)
     assert result == ['ac']
@@ -103,6 +113,11 @@ def test_find_pattern_fullmatch_invert():
 def test_find_pattern_fullmatch():
     result = grep.find_pattern(False, ['a', 'b', 'ac'], re.compile('[a-z]'), True, False)
     assert result == ['a', 'b']
+
+
+def test_find_pattern_invert():
+    result = grep.find_pattern(False, ['a', 'b', 'ac'], re.compile('[a-z]'), False, True)
+    assert result == []
 
 
 def test_find_pattern():
