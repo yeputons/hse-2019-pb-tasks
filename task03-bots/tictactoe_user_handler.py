@@ -12,14 +12,16 @@ class TicTacToeUserHandler(UserHandler):
         message_words = message.rstrip('\n').split()
         if not self.game and not message_words[0] == 'start':
             self.send_message('Game is not started')
+            return
         if message_words[0] == 'start':
             self.start_game()
             return
+        player, col, row = message_words
         players = {'X': Player.X, 'O': Player.O}
         self.make_turn(
-            player=players[message_words[0]],
-            row=int(message_words[2]),
-            col=int(message_words[1]))
+            player=players[player],
+            row=int(row),
+            col=int(col))
 
     def start_game(self) -> None:
         self.game = TicTacToe()
