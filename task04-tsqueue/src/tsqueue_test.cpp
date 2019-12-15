@@ -1,6 +1,6 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
-#include "tsqueue.h"
 #include "doctest.h"
+#include "tsqueue.h"
 
 const int ELEMENTS_PER_THREAD = 100 * 1000;
 const int REPEATS = 3;
@@ -143,7 +143,7 @@ TEST_SUITE("ThreadsafeQueue pops from multiple threads") {
             REQUIRE(pthread_join(t2, nullptr) == 0);
             REQUIRE(pthread_join(t1, nullptr) == 0);
         }
-        
+
         threadsafe_queue_destroy(&q);
     }
 
@@ -167,7 +167,7 @@ TEST_SUITE("ThreadsafeQueue pops from multiple threads") {
     }
 }
 
-TEST_CASE("ThreadsafeQueue pushes from multiple threads") {  
+TEST_CASE("ThreadsafeQueue pushes from multiple threads") {
     ThreadsafeQueue q;
     threadsafe_queue_init(&q);
 
@@ -186,7 +186,7 @@ TEST_CASE("ThreadsafeQueue pushes from multiple threads") {
     threadsafe_queue_destroy(&q);
 }
 
-TEST_CASE("ThreadsafeQueue pops from multiple threads") {  
+TEST_CASE("ThreadsafeQueue pops from multiple threads") {
     ThreadsafeQueue q;
     threadsafe_queue_init(&q);
 
