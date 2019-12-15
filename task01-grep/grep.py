@@ -75,7 +75,7 @@ def main(args_str: List[str]):
                 with open(filename, 'r') as input_file:
                     files_content[filename] = strip_lines(input_file)
     else:
-        files_content[' '] = strip_lines(sys.stdin)
+        files_content[''] = strip_lines(sys.stdin)
 
     for filename, source_from_file in files_content.items():
         source_from_file = find_pattern(args.counting_mode, source_from_file,
