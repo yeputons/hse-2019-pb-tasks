@@ -12,7 +12,8 @@ extern "C" {
  */
 struct ThreadsafeQueue {
     Queue q;
-    // TODO
+    pthread_mutex_t mutex_queue;
+    pthread_cond_t cond_queue;
 };
 
 /**
