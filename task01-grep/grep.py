@@ -1,29 +1,42 @@
 #!/usr/bin/env python3
-from typing import List
+from typing import List, IO
 import sys
 import re
 import argparse
 
 
-def main(args_str: List[str]):
+def is_match(regex_key: bool, line: str, pattern: str) -> bool:
+    if regex_key:
+        return bool(re.search(pattern, line))
+    else:
+        return pattern in line
+
+
+def get_matches(regex_key: bool, needle: str, stream: IO[str]) -> List[str]:
+    lines = [line.rstrip('\n') for line in stream]
+    return [line for line in lines if is_match(regex_key, line, needle)]
+
+
+def main(args_str: List[str]) -> None:
     parser = argparse.ArgumentParser()
+    parser.add_argument('-c', dest='count', action='store_true', help='key')
+    parser.add_argument('-E', dest='regex_key', action='store_true', help='key')
     parser.add_argument('needle', type=str)
     parser.add_argument('files', nargs='*')
-    parser.add_argument('-E', dest='regex', action='store_true')
     args = parser.parse_args(args_str)
 
-    # STUB BEGINS
-    for line in sys.stdin.readlines():
-        line = line.rstrip('\n')
-        if args.needle in line:
-            print('Found needle in ' + line)
-
-    with open('input.txt', 'r') as in_file:
-        for line in in_file.readlines():
-            line = line.rstrip('\n')
-            if re.search(args.needle, line):
-                print(f'Found re in {line}')
-    # STUB ENDS
+    files_in_input = bool(args.files)
+    files: List[str] = ['']
+    if args.files:
+        files = args.files
+    for file in files:
+        with open(file, 'r') if files_in_input else sys.stdin as opened_file:
+            lines = get_matches(args.regex_key, args.needle, opened_file)
+            lines = [str(len(lines))] if args.count else lines
+            if len(args.files) > 1:
+                lines = [f'{file}:{line}' for line in lines]
+            for line in lines:
+                print(line)
 
 
 if __name__ == '__main__':
