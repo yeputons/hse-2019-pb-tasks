@@ -71,15 +71,16 @@ TEST_CASE("ThreadsafeQueue multithreaded ping-pong") {
     // (в общем случае это лямбда-функции/замыкания, но нам это неважно).
     auto pinger = [](void *_qs) -> void * {
         ThreadsafeQueue *qs = static_cast<ThreadsafeQueue *>(_qs);
-	    int pass_value = 33;
+        int pass_value = 33;
 
         for (int i = 0; i < PING_PONGS; i++) {
             int ping_var = pass_value;
             threadsafe_queue_push(&(qs[0]), &ping_var);
-            int *res = static_cast<int*>(threadsafe_queue_wait_and_pop(&(qs[1])));
+            int *res =
+                static_cast<int *>(threadsafe_queue_wait_and_pop(&(qs[1])));
             REQUIRE(res == &ping_var);
             REQUIRE(*res == pass_value + 1);
-          	pass_value = (pass_value * 137 + 83) % (10007);
+            pass_value = (pass_value * 137 + 83) % (10007);
         }
         return nullptr;
     };
@@ -123,7 +124,7 @@ void *consumer(void *_q) {
 void *consumer_try(void *_q) {
     ThreadsafeQueue *q = static_cast<ThreadsafeQueue *>(_q);
     for (int i = 0; i < ELEMENTS_PER_THREAD; i++) {
-	    void *tmp_store_address;
+        void *tmp_store_address;
         REQUIRE(threadsafe_queue_try_pop(q, &tmp_store_address));
     }
     return nullptr;
