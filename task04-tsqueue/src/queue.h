@@ -10,7 +10,7 @@ struct QueueNode;
  * использовать напрямую, только при помощи функцией queue_*().
  */
 struct Queue {
-  QueueNode *head, *last;
+    QueueNode *head, *last;
 };
 
 /**
