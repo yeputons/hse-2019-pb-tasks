@@ -9,16 +9,12 @@ def test_game_start(mocker: MockFixture) -> None:
     handler.handle_message('X 1 1')
     handler.handle_message('start')
     handler.handle_message('X 1 1')
-    handler.handle_message('O 0 1')
-    handler.handle_message('O 0 0')
     handler.handle_message('start')
     assert send_message.call_args_list == [
         mocker.call('Game is not started'),
         mocker.call('Game is not started'),
         mocker.call('...\n...\n...'),
         mocker.call('...\n.X.\n...'),
-        mocker.call('...\nOX.\n...'),
-        mocker.call('Invalid turn'),
         mocker.call('...\n...\n...'),
     ]
 
@@ -51,22 +47,7 @@ def test_multiple_starts(mocker: MockFixture) -> None:
     ]
 
 
-def test_invalid_turn_o(mocker: MockFixture) -> None:
-    send_message = mocker.stub(name='send_message_stub')
-    handler = TicTacToeUserHandler(send_message=send_message)
-    handler.handle_message('start')
-    handler.handle_message('X 1 2')
-    handler.handle_message('O 1 2')
-    handler.handle_message('O 1 2')
-    assert send_message.call_args_list == [
-        mocker.call('...\n...\n...'),
-        mocker.call('...\n...\n.X.'),
-        mocker.call('Invalid turn'),
-        mocker.call('Invalid turn')
-    ]
-
-
-def test_invalid_turn_x(mocker: MockFixture) -> None:
+def test_invalid_turn(mocker: MockFixture) -> None:
     send_message = mocker.stub(name='send_message_stub')
     handler = TicTacToeUserHandler(send_message=send_message)
     handler.handle_message('start')
@@ -83,7 +64,7 @@ def test_invalid_turn_x(mocker: MockFixture) -> None:
     ]
 
 
-def test_invalid_turn_not_your_turn_x(mocker: MockFixture) -> None:
+def test_invalid_turn_not_your_turn(mocker: MockFixture) -> None:
     send_message = mocker.stub(name='send_message_stub')
     handler = TicTacToeUserHandler(send_message=send_message)
     handler.handle_message('start')
@@ -92,23 +73,6 @@ def test_invalid_turn_not_your_turn_x(mocker: MockFixture) -> None:
     assert send_message.call_args_list == [
         mocker.call('...\n...\n...'),
         mocker.call('...\n...\n.X.'),
-        mocker.call('Invalid turn')
-    ]
-
-
-def test_invalid_turn_not_your_turn_o(mocker: MockFixture) -> None:
-    send_message = mocker.stub(name='send_message_stub')
-    handler = TicTacToeUserHandler(send_message=send_message)
-    handler.handle_message('start')
-    handler.handle_message('O 1 1')
-    handler.handle_message('X 1 1')
-    handler.handle_message('O 0 0')
-    handler.handle_message('O 2 2')
-    assert send_message.call_args_list == [
-        mocker.call('...\n...\n...'),
-        mocker.call('Invalid turn'),
-        mocker.call('...\n.X.\n...'),
-        mocker.call('O..\n.X.\n...'),
         mocker.call('Invalid turn')
     ]
 
@@ -183,7 +147,7 @@ def test_draw(mocker: MockFixture) -> None:
     ]
 
 
-def test_game_restart(mocker: MockFixture) -> None:
+def test_game_restart_after_end(mocker: MockFixture) -> None:
     send_message = mocker.stub(name='send_message_stub')
     handler = TicTacToeUserHandler(send_message=send_message)
     handler.handle_message('start')
