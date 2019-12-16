@@ -66,7 +66,7 @@ TEST_CASE("ThreadsafeQueue multithreaded ping-pong") {
     // 3. Поток `pinger` проверяет, что пришёл правильный адрес
     //    и что локальная переменная была увеличена.
     const int PING_PONGS = 100;
-    const int PASS_VALUE = 33;
+    int PASS_VALUE = 33;
 
     // Специальный синтаксис для объявления функции внутри функции.
     // (в общем случае это лямбда-функции/замыкания, но нам это неважно).
@@ -80,6 +80,7 @@ TEST_CASE("ThreadsafeQueue multithreaded ping-pong") {
             REQUIRE(res == &tmp);
             REQUIRE(*res == PASS_VALUE + 1);
             res = static_cast<int *>(res);
+            PASS_VALUE = (PASS_VALUE * 13 + 83) % (1e9 + 7);
         }
         return nullptr;
     };
