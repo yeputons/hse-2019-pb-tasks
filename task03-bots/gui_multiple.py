@@ -2,7 +2,7 @@
 import tkinter
 import traceback
 from typing import Callable, Dict, Optional
-from alarm_user_handler import AlarmUserHandler
+from chat_bot import ChatBot
 from bot import UserIndependentBot
 
 
@@ -49,7 +49,7 @@ def main() -> None:
 
     bot = UserIndependentBot(
         send_message=lambda user_id, message: user_widgets[user_id].received_message(message),
-        user_handler=AlarmUserHandler
+        user_handler=ChatBot
     )
 
     def handle_message(user_id: int, message: str) -> None:
