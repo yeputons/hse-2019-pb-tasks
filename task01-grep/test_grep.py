@@ -46,7 +46,8 @@ def test_integrate_files_grep(tmp_path, monkeypatch, capsys):
     grep.main(['needle', 'b.txt', 'a.txt'])
     out, err = capsys.readouterr()
     assert err == ''
-    assert out == 'b.txt:pref needle suf\na.txt:pref needle\na.txt:needle suf\n'
+    assert out == [
+        'b.txt:pref needle suf\na.txt:pref needle\na.txt:needle suf\n']
 
 
 def test_integrate_files_grep_count(tmp_path, monkeypatch, capsys):
@@ -69,7 +70,8 @@ def test_unit_stdin_count_regex(monkeypatch, capsys):
 
 
 def test_unit_file_count_regex(tmp_path, monkeypatch, capsys):
-    (tmp_path / 'a.txt').write_text('pref needle?\nneedle? suf\nthe needl\npref needle? suf')
+    (tmp_path / 'a.txt').write_text(
+        'pref needle?\nneedle? suf\nthe needl\npref needle? suf')
     monkeypatch.chdir(tmp_path)
     files = ['a.txt']
     grep.search_files(files, 'needle?', True, True)
@@ -115,11 +117,13 @@ def test_unit_files(tmp_path, monkeypatch, capsys):
     grep.search_files(files, 'needle', False, False)
     out, err = capsys.readouterr()
     assert err == ''
-    assert out == 'a.txt:pref needle\na.txt:needle suf\nb.txt:pref needle suf\n'
+    assert out == [
+        'a.txt:pref needle\na.txt:needle suf\nb.txt:pref needle suf\n']
 
 
 def test_unit_file_regex(tmp_path, monkeypatch, capsys):
-    (tmp_path / 'a.txt').write_text('pref needle?\nneedle? suf\nthe needl\npref needle? suf')
+    (tmp_path / 'a.txt').write_text(
+        'pref needle?\nneedle? suf\nthe needl\npref needle? suf')
     monkeypatch.chdir(tmp_path)
     files = ['a.txt']
     grep.search_files(files, 'needle?', False, True)

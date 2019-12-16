@@ -13,7 +13,8 @@ def print_files(files: List[str], file: str, line: str) -> None:
         print(f'{line}')
 
 
-def search_files(files: List[str], pattern: str, counter: bool, regex: bool) -> None:
+def search_files(files: List[str], pattern: str, counter: bool,
+                 regex: bool) -> None:
     for file in files:
         cnt = 0
         with open(file, 'r') as in_file:
