@@ -75,6 +75,56 @@ def test_ticktactoe_user_hadler_draw(mocker: pytest_mock.MockFixture) -> None:
     ]
 
 
+def test_tictactoe_user_hander_multiple_games(mocker: pytest_mock.MockFixture
+                                              ) -> None:
+    send_message = mocker.stub(name='send_message_stub')
+    bot = TicTacToeUserHandler(send_message)
+    bot.handle_message('start')
+    bot.handle_message('X 0 0')
+    bot.handle_message('X 1 1')
+    bot.handle_message('O 1 1')
+    bot.handle_message('X q 1')
+    bot.handle_message('X 1 1')
+    bot.handle_message('X 1 0')
+    bot.handle_message('O 0 2')
+    bot.handle_message('X 2 0')
+    bot.handle_message('O 2 2')
+    bot.handle_message('start')
+    bot.handle_message('X 1 1')
+    bot.handle_message('O 0 0')
+    bot.handle_message('start')
+    bot.handle_message('X 1 1')
+    bot.handle_message('O 0 0')
+    bot.handle_message('X 0 1')
+    bot.handle_message('O 1 0')
+    bot.handle_message('X 0 2')
+    bot.handle_message('O 2 0')
+    assert send_message.call_args_list == [
+        mocker.call('...\n...\n...'),
+        mocker.call('X..\n...\n...'),
+        mocker.call('Invalid turn'),
+        mocker.call('X..\n.O.\n...'),
+        mocker.call('Invalid turn'),
+        mocker.call('Invalid turn'),
+        mocker.call('XX.\n.O.\n...'),
+        mocker.call('XX.\n.O.\nO..'),
+        mocker.call('XXX\n.O.\nO..'),
+        mocker.call('Game is finished, X wins'),
+        mocker.call('Game is not started'),
+        mocker.call('...\n...\n...'),
+        mocker.call('...\n.X.\n...'),
+        mocker.call('O..\n.X.\n...'),
+        mocker.call('...\n...\n...'),
+        mocker.call('...\n.X.\n...'),
+        mocker.call('O..\n.X.\n...'),
+        mocker.call('O..\nXX.\n...'),
+        mocker.call('OO.\nXX.\n...'),
+        mocker.call('OO.\nXX.\nX..'),
+        mocker.call('OOO\nXX.\nX..'),
+        mocker.call('Game is finished, O wins')
+    ]
+
+
 def test_ticktactoe_user_hadler_invalid_turns_1(mocker: pytest_mock.MockFixture
                                                 ) -> None:
     send_message = mocker.stub(name='send_message_stub')
