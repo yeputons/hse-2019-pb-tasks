@@ -2,7 +2,6 @@
 import tkinter
 import traceback
 from typing import Callable, Dict, Optional
-from bot import UserIndependentBot
 from chat_bot import ChatBot
 
 
