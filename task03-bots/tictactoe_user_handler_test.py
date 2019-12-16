@@ -164,11 +164,17 @@ def test_ticktactoe_user_hadler_invalid_turns_while_parsing(
     bot.handle_message('O 1 w')
     bot.handle_message('X q 2')
     bot.handle_message('q 1 2')
+    bot.handle_message('o q')
+    bot.handle_message('O 1')
+    bot.handle_message('X O')
     assert send_message.call_args_list == [
         mocker.call('...\n...\n...'),
         mocker.call('Invalid turn'),
         mocker.call('Invalid turn'),
         mocker.call('...\n.X.\n...'),
+        mocker.call('Invalid turn'),
+        mocker.call('Invalid turn'),
+        mocker.call('Invalid turn'),
         mocker.call('Invalid turn'),
         mocker.call('Invalid turn'),
         mocker.call('Invalid turn')
