@@ -69,14 +69,17 @@ TEST_CASE("ThreadsafeQueue multithreaded ping-pong") {
 
     // Специальный синтаксис для объявления функции внутри функции.
     // (в общем случае это лямбда-функции/замыкания, но нам это неважно).
+    //
     auto pinger = [](void *_qs) -> void * {
         ThreadsafeQueue *qs = static_cast<ThreadsafeQueue *>(_qs);
-        int a = 0;
         for (int i = 0; i < PING_PONGS; ++i) {
-            threadsafe_queue_push(&qs[0], &a);
-            int *ptr = (int *)threadsafe_queue_wait_and_pop(&qs[1]);
-            REQUIRE(ptr == &a);
-            REQUIRE(a == i + 1);
+            int variable = i * i + 228 * i + 322;
+            int variable_old = variable;
+            threadsafe_queue_push(&qs[0], &variable);
+            int *ptr =
+                static_cast<int *>(threadsafe_queue_wait_and_pop(&qs[1]));
+            REQUIRE(ptr == &variable);
+            REQUIRE(variable == variable_old + 1);
         }
         return nullptr;
     };
@@ -84,7 +87,8 @@ TEST_CASE("ThreadsafeQueue multithreaded ping-pong") {
     auto ponger = [](void *_qs) -> void * {
         ThreadsafeQueue *qs = static_cast<ThreadsafeQueue *>(_qs);
         for (int i = 0; i < PING_PONGS; ++i) {
-            int *ptr = (int *)threadsafe_queue_wait_and_pop(&qs[0]);
+            int *ptr =
+                static_cast<int *>(threadsafe_queue_wait_and_pop(&qs[0]));
             REQUIRE(ptr);
             ++*ptr;
             threadsafe_queue_push(&qs[1], ptr);
@@ -121,8 +125,8 @@ void *consumer(void *_q) {
 void *consumer_try(void *_q) {
     ThreadsafeQueue *q = static_cast<ThreadsafeQueue *>(_q);
     for (int i = 0; i < ELEMENTS_PER_THREAD; i++) {
-        void *res = nullptr;
-        REQUIRE(threadsafe_queue_try_pop(q, &res) == true);
+        void *res;
+        REQUIRE(threadsafe_queue_try_pop(q, &res));
         REQUIRE(res == nullptr);
     }
     return nullptr;
