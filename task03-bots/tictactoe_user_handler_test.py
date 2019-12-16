@@ -84,7 +84,8 @@ def test_multiple_operations_exception(mocker: pytest_mock.MockFixture) -> None:
     bot.handle_message('start')
     bot.handle_message('I will win!')
     assert send_message.call_args_list == [
-        mocker.call('...\n...\n...')]
+        mocker.call('...\n...\n...'),
+        mocker.call('Invalid turn')]
 
 
 def test_multiple_operations_right_turn(mocker: pytest_mock.MockFixture) -> None:
@@ -134,6 +135,48 @@ def test_multiple_operations_winner_x_game(mocker: pytest_mock.MockFixture) -> N
         mocker.call('...\n.X.\nOOX'),
         mocker.call('X..\n.X.\nOOX'),
         mocker.call('Game is finished, X wins')]
+
+
+def test_multiple_operations_winner_x_game_continue(mocker: pytest_mock.MockFixture) -> None:
+    send_message = mocker.stub(name='send_message_stub')
+    bot = TicTacToeUserHandler(send_message)
+    bot.handle_message('start')
+    bot.handle_message('X 1 1')
+    bot.handle_message('O 1 2')
+    bot.handle_message('X 2 2')
+    bot.handle_message('O 0 2')
+    bot.handle_message('X 0 0')
+    bot.handle_message('O 1 1')
+    assert send_message.call_args_list == [
+        mocker.call('...\n...\n...'),
+        mocker.call('...\n.X.\n...'),
+        mocker.call('...\n.X.\n.O.'),
+        mocker.call('...\n.X.\n.OX'),
+        mocker.call('...\n.X.\nOOX'),
+        mocker.call('X..\n.X.\nOOX'),
+        mocker.call('Game is finished, X wins'),
+        mocker.call('Game is not started')]
+
+
+def test_multiple_operations_winner_x_game_new_game(mocker: pytest_mock.MockFixture) -> None:
+    send_message = mocker.stub(name='send_message_stub')
+    bot = TicTacToeUserHandler(send_message)
+    bot.handle_message('start')
+    bot.handle_message('X 1 1')
+    bot.handle_message('O 1 2')
+    bot.handle_message('X 2 2')
+    bot.handle_message('O 0 2')
+    bot.handle_message('X 0 0')
+    bot.handle_message('start')
+    assert send_message.call_args_list == [
+        mocker.call('...\n...\n...'),
+        mocker.call('...\n.X.\n...'),
+        mocker.call('...\n.X.\n.O.'),
+        mocker.call('...\n.X.\n.OX'),
+        mocker.call('...\n.X.\nOOX'),
+        mocker.call('X..\n.X.\nOOX'),
+        mocker.call('Game is finished, X wins'),
+        mocker.call('...\n...\n...')]
 
 
 def test_multiple_operations_winner_o_game(mocker: pytest_mock.MockFixture) -> None:
