@@ -48,4 +48,4 @@ class TicTacToeUserHandler(UserHandler):
                 else:
                     next_field += element.name
             next_field += '\n'
-        self.send_message(next_field)
+        self.send_message(next_field[:-1])

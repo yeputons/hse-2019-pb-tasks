@@ -16,7 +16,6 @@ def main() -> None:
             bot.handle_message(message)
         except Exception:  # pylint: disable=W0703
             traceback.print_exc()
-    raise NotImplementedError
 
 
 if __name__ == '__main__':
