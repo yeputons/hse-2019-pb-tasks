@@ -143,7 +143,7 @@ TEST_SUITE("ThreadsafeQueue pops from multiple threads") {
             for (int i = 0; i < 2 * ELEMENTS_PER_THREAD; i++) {
                 threadsafe_queue_push(&q, nullptr);
             }
-        
+
             pthread_t t1, t2;
             REQUIRE(pthread_create(&t1, nullptr, consumer, &q) == 0);
             REQUIRE(pthread_create(&t2, nullptr, consumer, &q) == 0);
