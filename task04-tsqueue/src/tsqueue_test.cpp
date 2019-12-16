@@ -9,7 +9,7 @@ TEST_SUITE("ThreadsafeQueue works like Queue in a single thread") {
     TEST_CASE("with threadsafe_queue_try_pop") {
         ThreadsafeQueue q;
         threadsafe_queue_init(&q);
-        
+
         int a = 0, b = 0, c = 0;
         void *result;
 
