@@ -1,4 +1,0 @@
-/home/just/python2019/hse-2019-pb-tasks/task04-tsqueue/CMakeFiles/rebuild_cache.dir
-/home/just/python2019/hse-2019-pb-tasks/task04-tsqueue/CMakeFiles/edit_cache.dir
-/home/just/python2019/hse-2019-pb-tasks/task04-tsqueue/CMakeFiles/tsqueue_test.dir
-/home/just/python2019/hse-2019-pb-tasks/task04-tsqueue/CMakeFiles/queue_test.dir
