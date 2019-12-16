@@ -72,11 +72,11 @@ TEST_CASE("ThreadsafeQueue multithreaded ping-pong") {
     auto pinger = [](void *_qs) -> void * {
         ThreadsafeQueue *qs = static_cast<ThreadsafeQueue *>(_qs);
         for (int i = 0; i < PING_PONGS; i++) {
-            int val = i;
-            threadsafe_queue_push(&qs[0], &val);
+            int current_i = i;
+            threadsafe_queue_push(&qs[0], &current_i);
             int *data =
                 static_cast<int *>(threadsafe_queue_wait_and_pop(&qs[1]));
-            REQUIRE(data == &val);
+            REQUIRE(data == &current_i);
             REQUIRE(*data == i + 1);
         }
         return nullptr;
