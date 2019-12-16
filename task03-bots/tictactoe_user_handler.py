@@ -7,9 +7,9 @@ class TicTacToeUserHandler(UserHandler):
     START_COMMAND = 'start'
     GAME_IS_NOT_STARTED = 'Game is not started'
     INVALID_TURN = 'Invalid turn'
-    GAME_FINISHED_X_WINS = 'Game finished, X wins'
-    GAME_FINISHED_O_WINS = 'Game finished, Y wins'
-    GAME_FINISHED_DRAW = 'Game finished, draw'
+    GAME_FINISHED_X_WINS = 'Game is finished, X wins'
+    GAME_FINISHED_O_WINS = 'Game is finished, O wins'
+    GAME_FINISHED_DRAW = 'Game is finished, draw'
 
     def __init__(self, send_message: Callable[[str], None]) -> None:
         super(TicTacToeUserHandler, self).__init__(send_message)
