@@ -1,5 +1,4 @@
 from typing import Callable, Optional
-import traceback
 from bot import UserHandler
 from tictactoe import Player, TicTacToe
 
@@ -26,7 +25,6 @@ class TicTacToeUserHandler(UserHandler):
 
         except Exception:  # pylint: disable=W0703
             self.send_message('Invalid turn')
-            traceback.print_exc()
 
     def start_game(self) -> None:
         """Начинает новую игру в крестики-нолики и сообщает об этом пользователю."""
@@ -49,16 +47,15 @@ class TicTacToeUserHandler(UserHandler):
                     self.send_message(f'Game is finished, {inverse_player_signs[winner]} wins')
             return
         self.send_message('Invalid turn')
-        return
 
     def send_field(self) -> None:
         assert self.game
-        str_of_game = ''
+        field_row = ''
         for row in self.game.field:
             for cell in row:
                 if cell is None:
-                    str_of_game += '.'
+                    field_row += '.'
                 else:
-                    str_of_game += 'X' if cell == Player.X else 'O'
-            str_of_game += '\n'
-        self.send_message(str_of_game[:-1])
+                    field_row += 'X' if cell == Player.X else 'O'
+            field_row += '\n'
+        self.send_message(field_row[:-1])
