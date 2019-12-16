@@ -9,6 +9,7 @@ TEST_SUITE("ThreadsafeQueue works like Queue in a single thread") {
     TEST_CASE("with threadsafe_queue_try_pop") {
         ThreadsafeQueue q;
         threadsafe_queue_init(&q);
+        
         int a = 0, b = 0, c = 0;
         void *result;
 
@@ -104,7 +105,6 @@ void *producer(void *_q) {
     for (int i = 0; i < ELEMENTS_PER_THREAD; i++) {
         threadsafe_queue_push(q, nullptr);
     }
-
     return nullptr;
 }
 
@@ -113,7 +113,6 @@ void *consumer(void *_q) {
     for (int i = 0; i < ELEMENTS_PER_THREAD; i++) {
         REQUIRE(threadsafe_queue_wait_and_pop(q) == nullptr);
     }
-
     return nullptr;
 }
 
