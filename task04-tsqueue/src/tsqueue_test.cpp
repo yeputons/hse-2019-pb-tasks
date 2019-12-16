@@ -112,7 +112,7 @@ void *consumer_try(void *_q) {
     for (int i = 0; i < ELEMENTS_PER_THREAD; i++) {
         void *data;
         REQUIRE(threadsafe_queue_try_pop(q, &data));
-        REQUIRE(data == nullptr)
+        REQUIRE(data == nullptr);
     }
     return nullptr;
 }
