@@ -207,8 +207,7 @@ TEST_CASE("ThreadsafeQueue pops from multiple threads") {
     threadsafe_queue_destroy(&q);
 }
 
-TEST_CASE("ThreadsafeQueue pushes and pops from multiple threads") {
-    ThreadsafeQueue q;
+TEST_CASE("ThreadsafeQueue pushes and pops from multiple threads") {    ThreadsafeQueue q;
     threadsafe_queue_init(&q);
 
     const int THREADS = 5;
