@@ -56,10 +56,10 @@ def print_format(output_line: str, filename: str = '', line: str = '') -> None:
     print(output_line.format(line=line, filename=filename))
 
 
-def print_output_dict(output: fl_dict_type, output_format: str, by_line: bool,
+def print_output_dict(output: fl_dict_type, output_format: str, print_by_line: bool,
                       file_invert: bool = False) -> None:
     for file in output:
-        if by_line:
+        if print_by_line:
             for line in output[file]:
                 print_format(output_line=output_format, filename=file, line=line)
         else:
