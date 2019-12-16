@@ -32,6 +32,10 @@ def test_integrate_regex_full_match():
     assert matcher('aaabbb', 'a*b*')
     assert not matcher('aaabbb', 'a*b*c')
     assert matcher('aaabbbCCCCC', 'a*b*C*')
+    assert matcher('a', 'a*')
+    assert matcher('aaaaaaaaa', 'aa*')
+    assert matcher('', 'a*')
+    assert matcher('1', '[0-9]x*')
 
 
 def test_integrate_regex_ignore_case():
