@@ -15,28 +15,23 @@ class TicTacToeUserHandler(UserHandler):
         elif not self.game:
             self.send_message('Game is not started')
         else:
-            dude = message.split(maxsplit=2)[0]
-            if dude == 'X':
+            side, col, row = message.split(maxsplit=2)
+            if side == 'X':
                 player = Player.X
-            else:
+            if side == 'O':
                 player = Player.O
-            i = int(message.split(maxsplit=2)[1])
-            j = int(message.split(maxsplit=2)[2])
-            self.make_turn(player=player, row=i, col=j)
+            self.make_turn(player=player, row=int(row), col=int(col))
 
     def start_game(self) -> None:
         self.game = TicTacToe()
-        for i in range(3):
-            for j in range(3):
-                self.game.field[i][j] = None
         self.send_field()
 
     def make_turn(self, player: Player, *, row: int, col: int) -> None:
         assert self.game
-        try:
+        if self.game.can_make_turn(player, row=row, col=col):
             self.game.make_turn(player, row=row, col=col)
             self.send_field()
-        except AssertionError:
+        else:
             self.send_message('Invalid turn')
             return
         if self.game.is_finished():
@@ -51,14 +46,7 @@ class TicTacToeUserHandler(UserHandler):
 
     def send_field(self) -> None:
         assert self.game
-        a = []
-        for row in self.game.field:
-            for j in row:
-                if j:
-                    a.append(j.name)
-                else:
-                    a.append('.')
-            a.append('\n')
-        del a[len(a) - 1]
-        field = ''.join(a)
+        flat_field = [col.name if col else '.' for row in self.game.field for col in row]
+        flat_devided_field = [''.join(flat_field[i:i+3]) for i in range(0, len(flat_field), 3)]
+        field = '\n'.join(flat_devided_field)
         self.send_message(field)
