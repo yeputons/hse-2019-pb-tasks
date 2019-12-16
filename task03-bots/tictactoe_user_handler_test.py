@@ -18,7 +18,7 @@ def test_integrate_draw(mocker: pytest_mock.MockFixture):
     handler.handle_message('X 2 2')
 
     assert send_message.call_args_list[-2:] == [
-        mocker.call('XXO\nOOX\nXOX'),
+        mocker.call('XOX\nXOO\nOXX'),
         mocker.call('Game is finished, draw')
     ]
 
@@ -45,7 +45,7 @@ def test_integrate_invalid_start(mocker: pytest_mock.MockFixture):
         mocker.call('Invalid turn'),
         mocker.call('Invalid turn'),
         mocker.call('...\n...\n...'),
-        mocker.call('.X.\n...\n...'),
+        mocker.call('...\nX..\n...'),
         mocker.call('Invalid turn')
     ]
 
@@ -65,10 +65,10 @@ def test_integrate_o_wins(mocker: pytest_mock.MockFixture):
     assert send_message.call_args_list == [
         mocker.call('...\n...\n...'),
         mocker.call('...\n.X.\n...'),
-        mocker.call('...\n.X.\n.O.'),
-        mocker.call('.X.\n.X.\n.O.'),
-        mocker.call('.X.\n.X.\n.OO'),
-        mocker.call('XX.\n.X.\n.OO'),
-        mocker.call('XX.\n.X.\nOOO'),
+        mocker.call('...\n.XO\n...'),
+        mocker.call('...\nXXO\n...'),
+        mocker.call('...\nXXO\n..O'),
+        mocker.call('X..\nXXO\n..O'),
+        mocker.call('X.O\nXXO\n..O'),
         mocker.call('Game is finished, O wins')
     ]
