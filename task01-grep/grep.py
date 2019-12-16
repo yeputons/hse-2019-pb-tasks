@@ -42,7 +42,7 @@ def print_result(lines: List[str], name_of_file: str, onefile: bool):
         if onefile:
             print(line)
         else:
-            print(name_of_file + ':' + line)       
+            print(name_of_file + ':' + line)
 
 
 def print_count(count: int, name_of_file: str, onefile: bool):
@@ -88,7 +88,7 @@ def main(args_str: List[str]):
     onefile = False
     if len(namespace.files) <= 1:
         onefile = True
-    if not len(namespace.files) == 0:
+    if len(namespace.files) == 0:
         run_all(sys.stdin, namespace.regex, namespace.count, namespace.full,
                 namespace.inversion, namespace.caseignore,
                 namespace.onlyfiles, namespace.reverseof, onefile,
