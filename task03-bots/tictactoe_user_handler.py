@@ -43,8 +43,6 @@ class TicTacToeUserHandler(UserHandler):
 
     def send_field(self) -> None:
         assert self.game
-        if self.game is None:
-            return
         data = ''
         for row in self.game.field:
             for col in row:
