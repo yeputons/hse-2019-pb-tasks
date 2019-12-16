@@ -18,7 +18,7 @@ class TicTacToeUserHandler(UserHandler):
         if self.game is None:
             self.send_message('Game is not started')
             return
-        player, row, col = message.split()
+        player, col, row = message.split()
         players = {'X': Player.X, 'O': Player.O}
         self.make_turn(player=players[player], row=int(row), col=int(col))
 
@@ -26,12 +26,10 @@ class TicTacToeUserHandler(UserHandler):
         """Начинает новую игру в крестики-нолики и сообщает об этом пользователю."""
         self.game = TicTacToe()
         self.send_field()
-        return
 
     def make_turn(self, player: Player, *, row: int, col: int) -> None:
         """Обрабатывает ход игрока player в клетку (row, col)."""
-        if self.game is None:
-            return
+        assert self.game
         if not self.game.can_make_turn(player, row=row, col=col):
             self.send_message('Invalid turn')
             return
@@ -39,20 +37,17 @@ class TicTacToeUserHandler(UserHandler):
         if not self.game.is_finished():
             self.send_field()
             return
-        if self.game.winner() is None:
+        winner = self.game.winner()
+        if winner is None:
             self.send_message('Game is finished, draw')
         else:
-            winner = self.game.winner()
-            assert winner
             self.send_message(f'Game is finished,{winner.name} wins')
         self.game = None
-        return
 
     def send_field(self) -> None:
         """Отправляет пользователю сообщение с текущим состоянием игры."""
-        if self.game is not None:
-            field = self.game.field
-            output_field = '\n'.join([''.join([cell.name
-                                               if cell else '.' for cell in col]) for col in field])
-            self.send_message(output_field)
-        return
+        assert self.game
+        field = self.game.field
+        output_field = '\n'.join([''.join([cell.name
+                                           if cell else '.' for cell in col]) for col in field])
+        self.send_message(output_field)
