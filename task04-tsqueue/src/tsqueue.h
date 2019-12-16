@@ -12,8 +12,8 @@ extern "C" {
  */
 struct ThreadsafeQueue {
     Queue q;
-    pthread_mutex_t work;
-    pthread_cond_t startWorking;
+    pthread_mutex_t mutex_work;
+    pthread_cond_t cond_start_working;
 };
 
 /**
