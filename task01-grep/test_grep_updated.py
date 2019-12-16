@@ -2,12 +2,16 @@
 import grep
 
 
-def test_unit_ignore():
+def test_unit_inverse():
     ir_matcher = grep.select_matcher(False, False, False, True)
     assert ir_matcher('abc', 'd')
     assert not ir_matcher('abc', 'a')
     assert not ir_matcher('abc', 'ab')
     assert ir_matcher('', 'd')
+    assert not ir_matcher('a', 'a')
+    assert ir_matcher('abc', 'abc ')
+    assert ir_matcher('123', 'ab')
+    assert not ir_matcher('', '')
 
 
 def test_unit_full_match():
