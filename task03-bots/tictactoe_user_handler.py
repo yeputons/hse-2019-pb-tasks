@@ -41,7 +41,7 @@ class TicTacToeUserHandler(UserHandler):
         if winner is None:
             self.send_message('Game is finished, draw')
         else:
-            self.send_message(f'Game is finished,{winner.name} wins')
+            self.send_message(f'Game is finished, {winner.name} wins')
         self.game = None
 
     def send_field(self) -> None:
