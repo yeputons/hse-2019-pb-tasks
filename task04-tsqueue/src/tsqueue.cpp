@@ -2,8 +2,8 @@
 #include "queue.h"
 
 void threadsafe_queue_init(ThreadsafeQueue *q) {
-    pthread_mutex_init(&q->mutex, nullptr);
     queue_init(&q->q);
+    pthread_mutex_init(&q->mutex, nullptr);
 }
 
 void threadsafe_queue_destroy(ThreadsafeQueue *q) {
