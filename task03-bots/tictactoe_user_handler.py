@@ -1,4 +1,4 @@
-from typing import Callable, Optional
+from typing import Callable, Optional, Dict, List
 from bot import UserHandler
 from tictactoe import Player, TicTacToe
 
@@ -59,16 +59,14 @@ class TicTacToeUserHandler(UserHandler):
     def send_field(self) -> None:
         assert self.game is not None
 
-        def get_char(player: Optional[Player]) -> str:
-            if player is None:
-                return '.'
-            if player is Player.X:
-                return 'X'
-            return 'O'
+        player_to_char: Dict[Optional[Player], str] = {
+            None: '.',
+            Player.X: 'X',
+            Player.O: 'O'
+        }
 
-        message = ''
-        for row in range(0, 3):
-            for col in range(0, 3):
-                message += get_char(self.game.field[row][col])
-            message += '\n'
-        self.send_message(message[:-1])
+        messages: List[str] = [
+            ''.join([player_to_char[player] for player in row])
+            for row in self.game.field
+        ]
+        self.send_message('\n'.join(messages))
