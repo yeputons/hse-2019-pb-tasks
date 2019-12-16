@@ -74,7 +74,7 @@ TEST_CASE("ThreadsafeQueue multithreaded ping-pong") {
         for (int i = 0; i < PING_PONGS; i++) {
             int ball = i;
             threadsafe_queue_push(&qs[0], &ball);
-            int *pinger_ball = (int *)threadsafe_queue_wait_and_pop(&(qs[1]));
+            int *pinger_ball = (int *)threadsafe_queue_wait_and_pop(&qs[1]);
             REQUIRE(pinger_ball == &ball);
             CHECK(*pinger_ball == i + 1);
         }
