@@ -1,52 +1,62 @@
 #!/usr/bin/env python3
-from typing import List, IO
+from typing import List, IO, Union
 import sys
 import re
 import argparse
 
 
-def match(line: str, needle: str, *, regex: bool, low: bool, full_match: bool, inv: bool) -> bool:
-    flags = re.IGNORECASE if low else 0
+def match(line: str, needle: str, *, regex: bool, lowercase: bool,
+          full_match: bool, invert: bool) -> bool:
+    flags = re.IGNORECASE if lowercase else 0
     pattern = needle if regex else re.escape(needle)
     res = bool(re.fullmatch(pattern, line, flags=flags)) if full_match \
         else bool(re.search(pattern, line, flags=flags))
-    return not res if inv else res
+    return not res if invert else res
 
 
-def form_the_list(source: IO[str], needle: str, *, regex: bool, count: bool, inv: bool,
-                  low: bool, full_match: bool) -> List[str]:
+def get_matching_lines(source: IO[str], needle: str, *, regex: bool, invert: bool,
+                       lowercase: bool, full_match: bool) -> List[str]:
     raw_list = [line.rstrip('\n') for line in source]
-    filter_list = [line for line in raw_list
-                   if match(line, needle, regex=regex, low=low, full_match=full_match, inv=inv)]
-    return [str(len(filter_list))] if count else filter_list
+    filter_list = [line for line in raw_list if
+                   match(line, needle, regex=regex, lowercase=lowercase,
+                         full_match=full_match, invert=invert)]
+    return filter_list
 
 
-def formatted_output(file: str, list_: List[str], *, files_only: bool, invert_files: bool) -> None:
-    if files_only and list_ or invert_files and not list_:
-        print(file, sep='\n')
-    elif not files_only and not invert_files:
-        for item in list_:
-            print(f'{file}:{item}', sep='\n')
+def formatted_output(count_files: int, file: Union[str, None], list_: List[str], *,
+                     files_only: bool, invert_files: bool, count: bool) -> None:
+    format_ = len(list_) if count else list_
+    if not files_only and not invert_files:
+        if format_:
+            if file is None or count_files == 1:
+                print(format_, sep='\n') if type(format_) == int else print(*format_, sep='\n')
+            else:
+                if type(format_) == int:
+                    print(f'{file}:{format_}', sep='\n')
+                else:
+                    for item in format_:
+                        print(f'{file}:{item}', sep='\n')
+    else:
+        if files_only and format_ or invert_files and not format_:
+            print(file, sep='\n')
 
 
-def parse_std_in(needle: str, *, regex: bool, count: bool, inv: bool,
-                 low: bool, full_match: bool) -> None:
-    lines_to_print = form_the_list(sys.stdin, needle, regex=regex, count=count,
-                                   inv=inv, low=low, full_match=full_match)
-    if lines_to_print:
-        print(*lines_to_print, sep='\n')
+def parse_std_in(needle: str, *, regex: bool, count: bool, invert: bool,
+                 lowercase: bool, full_match: bool) -> None:
+    lines_to_print = get_matching_lines(sys.stdin, needle, regex=regex, invert=invert,
+                                        lowercase=lowercase, full_match=full_match)
+    formatted_output(0, None, lines_to_print, files_only=False, invert_files=False, count=count)
 
 
-def parse_files(files: List[str], needle: str, *, regex: bool, count: bool, inv: bool, low: bool,
-                full_match: bool, files_only: bool, invert_files: bool) -> None:
+def parse_files(files: List[str], needle: str, *, regex: bool, count: bool, invert: bool,
+                lowercase: bool, full_match: bool, files_only: bool, invert_files: bool) -> None:
+    count_files = len(files)
     for file in files:
         with open(file, 'r') as file_item:
-            lines_to_print = form_the_list(file_item, needle, regex=regex, count=count,
-                                           inv=inv, low=low, full_match=full_match)
-        if len(files) == 1 and lines_to_print and not files_only:
-            print(*lines_to_print, sep='\n')
-        else:
-            formatted_output(file, lines_to_print, files_only=files_only, invert_files=invert_files)
+            lines_to_print = get_matching_lines(file_item, needle, regex=regex, invert=invert,
+                                                lowercase=lowercase, full_match=full_match)
+            formatted_output(count_files, file, lines_to_print, files_only=files_only,
+                             invert_files=invert_files, count=count)
 
 
 def main(args_str: List[str]) -> None:
@@ -64,12 +74,12 @@ def main(args_str: List[str]) -> None:
     args = parser.parse_args(args_str)
 
     if args.files:
-        parse_files(args.files, args.needle, regex=args.regex, count=args.count, inv=args.invert,
-                    low=args.lowercase, full_match=args.full_match, files_only=args.files_only,
-                    invert_files=args.invert_files)
+        parse_files(args.files, args.needle, regex=args.regex, count=args.count, invert=args.invert,
+                    lowercase=args.lowercase, full_match=args.full_match,
+                    files_only=args.files_only, invert_files=args.invert_files)
     else:
-        parse_std_in(args.needle, regex=args.regex, count=args.count, inv=args.invert,
-                     low=args.lowercase, full_match=args.full_match)
+        parse_std_in(args.needle, regex=args.regex, count=args.count, invert=args.invert,
+                     lowercase=args.lowercase, full_match=args.full_match)
 
 
 if __name__ == '__main__':

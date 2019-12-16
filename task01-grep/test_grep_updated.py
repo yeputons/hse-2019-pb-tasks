@@ -32,7 +32,8 @@ def test_integrate_stdin_grep_ix_regex(monkeypatch, capsys):
 def test_integrate_parse_stdin_grep_count(monkeypatch, capsys):
     monkeypatch.setattr('sys.stdin', io.StringIO(
         'pref needle?\nneedle? suf\nthe needl\npref needle? suf'))
-    grep.parse_std_in('needle?', regex=False, count=True, inv=False, low=False, full_match=False)
+    grep.parse_std_in('needle?', regex=False, count=True, invert=False,
+                      lowercase=False, full_match=False)
     out, err = capsys.readouterr()
     assert err == ''
     assert out == '3\n'
@@ -42,7 +43,7 @@ def test_integrate_parse_stdin_grep_trivial(monkeypatch, capsys):
     monkeypatch.setattr('sys.stdin', io.StringIO(
         'pref needle?\nneedle? suf\nthe needl\npref needle? suf'))
     grep.parse_std_in('needle?', regex=False, count=False,
-                      inv=False, low=False, full_match=False)
+                      invert=False, lowercase=False, full_match=False)
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'pref needle?\nneedle? suf\npref needle? suf\n'
@@ -50,7 +51,7 @@ def test_integrate_parse_stdin_grep_trivial(monkeypatch, capsys):
 
 def test_integrate_parse_stdin_grep(monkeypatch, capsys):
     monkeypatch.setattr('sys.stdin', io.StringIO('WWWWWWOWWWWWWWW\nWOW\nwow\nwowowowoww'))
-    grep.parse_std_in('WOW', regex=False, count=False, inv=True, low=True, full_match=True)
+    grep.parse_std_in('WOW', regex=False, count=False, invert=True, lowercase=True, full_match=True)
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'WWWWWWOWWWWWWWW\nwowowowoww\n'
@@ -66,11 +67,11 @@ def test_integrate_files_grep_lix_regex(tmp_path, monkeypatch, capsys):
     assert out == 'a.txt\n'
 
 
-def test_integrate_files_grep_livx_regex(tmp_path, monkeypatch, capsys):
+def test_integrate_files_grep_lvix_regex(tmp_path, monkeypatch, capsys):
     (tmp_path / 'a.txt').write_text('foo\nfo\nfoo\nFOo\nFO')
     (tmp_path / 'b.txt').write_text('ooo\nnothing\nRaw test')
     monkeypatch.chdir(tmp_path)
-    grep.main(['-livx', '-E', 'fo?o', 'a.txt', 'b.txt'])
+    grep.main(['-lvix', '-E', 'fo?o', 'a.txt', 'b.txt'])
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'b.txt\n'
@@ -93,6 +94,15 @@ def test_integrate_file_grep(tmp_path, monkeypatch, capsys):
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'pref needle suf\n'
+
+
+def test_integrate_one_file_grep_lowercase(tmp_path, monkeypatch, capsys):
+    (tmp_path / 'a.txt').write_text('the needl\npref needle suf\nNedleee\nNeedle')
+    monkeypatch.chdir(tmp_path)
+    grep.main(['-ci', 'needle', 'a.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == '2\n'
 
 
 def test_integrate_one_file_l_grep(tmp_path, monkeypatch, capsys):
@@ -128,7 +138,7 @@ def test_integrate_files_grep_trivial(tmp_path, monkeypatch):
     (tmp_path / 'b.txt').write_text('the needl\npref needle suf')
     files = ['a.txt', 'b.txt']
     monkeypatch.chdir(tmp_path)
-    grep.parse_files(files, 'needle', regex=True, count=False, inv=False, low=False,
+    grep.parse_files(files, 'needle', regex=True, count=False, invert=False, lowercase=False,
                      full_match=False, files_only=False, invert_files=False)
     assert 'a.txt:pref needle\na.txt:needle suf\nb.txt:pref needle suf\n'
 
@@ -138,7 +148,7 @@ def test_integrate_files_grep_count(tmp_path, monkeypatch):
     (tmp_path / 'b.txt').write_text('the needl\npref needle suf')
     files = ['a.txt', 'b.txt']
     monkeypatch.chdir(tmp_path)
-    grep.parse_files(files, 'needle', regex=False, count=True, inv=False, low=False,
+    grep.parse_files(files, 'needle', regex=False, count=True, invert=False, lowercase=False,
                      full_match=False, files_only=False, invert_files=False)
     assert 'a.txt:2\nb.txt:1\n'
 
@@ -149,7 +159,7 @@ def test_integrate_files_grep_lowercase_filenames_only(tmp_path, monkeypatch):
     (tmp_path / 'c.txt').write_text('Wow\nWow\nWow')
     files = ['a.txt', 'b.txt', 'c.txt']
     monkeypatch.chdir(tmp_path)
-    grep.parse_files(files, 'WOW', regex=False, count=False, inv=False, low=True,
+    grep.parse_files(files, 'WOW', regex=False, count=False, invert=False, lowercase=True,
                      full_match=False, files_only=True, invert_files=False)
     assert 'a.txt\nc.txt\n'
 
@@ -160,7 +170,7 @@ def test_integrate_files_grep_count_invert(tmp_path, monkeypatch):
     (tmp_path / 'c.txt').write_text('Wow\nWow\nWow')
     files = ['a.txt', 'b.txt', 'c.txt']
     monkeypatch.chdir(tmp_path)
-    grep.parse_files(files, 'Wow', regex=False, count=True, inv=True, low=False,
+    grep.parse_files(files, 'Wow', regex=False, count=True, invert=True, lowercase=False,
                      full_match=False, files_only=False, invert_files=False)
     assert 'a.txt:2\nb.txt:3\nc.txt:0\n'
 
@@ -171,51 +181,57 @@ def test_integrate_files_grep_invert_files_invert(tmp_path, monkeypatch):
     (tmp_path / 'c.txt').write_text('Wow\nWow\nWow')
     files = ['a.txt', 'b.txt', 'c.txt']
     monkeypatch.chdir(tmp_path)
-    grep.parse_files(files, 'Wow', regex=False, count=True, inv=False, low=False,
+    grep.parse_files(files, 'Wow', regex=False, count=True, invert=False, lowercase=False,
                      full_match=False, files_only=False, invert_files=True)
     assert 'c.txt\n'
 
 
 def test_needle_full_match_find():
     line = 'find\n something here, ffind, Find_here!'
-    assert not grep.match(line, 'find', regex=False, low=False, full_match=True, inv=False)
+    assert not grep.match(line, 'find', regex=False, lowercase=False, full_match=True, invert=False)
 
 
 def test_regex_lowercase_find():
     line = 'find something here, FFFind, find f'
-    assert grep.match(line, 'F*', regex=True, low=True, full_match=False, inv=False)
+    assert grep.match(line, 'F*', regex=True, lowercase=True, full_match=False, invert=False)
 
 
 def test_make_filtered_list_count():
     line = io.StringIO('find something here\nno\nwhy no?\nwho knows the answer?')
-    list_to_check = grep.form_the_list(line, 'no', regex=False, count=True, inv=False,
-                                       low=False, full_match=False)
-    assert list_to_check == ['3']
+    list_to_check = grep.get_matching_lines(line, 'no', regex=False,
+                                            invert=False, lowercase=False, full_match=False)
+    assert list_to_check == ['no', 'why no?', 'who knows the answer?']
 
 
 def test_make_filtered_list_count_full_match():
     line = io.StringIO('find something here\nno\nwhy no?\nwho knows the answer?')
-    list_to_check = grep.form_the_list(line, 'no', regex=False, count=True, inv=False,
-                                       low=False, full_match=True)
-    assert list_to_check == ['1']
+    list_to_check = grep.get_matching_lines(line, 'no', regex=False, invert=False,
+                                            lowercase=False, full_match=True)
+    assert list_to_check == ['no']
 
 
 def test_make_filtered_list_trivial():
     line = io.StringIO('find something here\nno\nwhy no?\nwho knows the answer?')
-    list_to_check = grep.form_the_list(line, 'no', regex=False, count=False, inv=False,
-                                       low=False, full_match=False)
+    list_to_check = grep.get_matching_lines(line, 'no', regex=False, invert=False,
+                                            lowercase=False, full_match=False)
     assert list_to_check == ['no', 'why no?', 'who knows the answer?']
+
+
+def test_make_filtered_list_count_full_match_print():
+    list_to_check = ['no']
+    grep.formatted_output(0, None, list_to_check, files_only=False, invert_files=False, count=True)
+    assert '1'
 
 
 def test_print_list_grep():
     list_ = ['pref needle', 'needle suf']
-    grep.formatted_output('a.txt', list_, files_only=False, invert_files=False)
+    grep.formatted_output(1, 'a.txt', list_, files_only=False, invert_files=False, count=False)
     assert 'a.txt:pref needle\na.txt:needle suf\n'
 
 
 def test_print_empty_list_invert_grep():
     list_ = []
-    grep.formatted_output('a.txt', list_, files_only=True, invert_files=True)
+    grep.formatted_output(1, 'a.txt', list_, files_only=True, invert_files=True, count=False)
     assert 'a.txt'
 
 
@@ -223,7 +239,8 @@ def test_print_list_not_one_file_grep():
     lists_ = [[], ['something', 'something', 'something']]
     files = ['a.txt', 'b.txt']
     for i in range(2):
-        grep.formatted_output(files[i], lists_[i], files_only=True, invert_files=False)
+        grep.formatted_output(len(files), files[i], lists_[i], files_only=True,
+                              invert_files=False, count=False)
     assert 'b.txt'
 
 
@@ -231,11 +248,12 @@ def test_print_list_not_one_file_invert_grep():
     lists_ = [[], ['something', 'something', 'something']]
     files = ['a.txt', 'b.txt']
     for i in range(2):
-        grep.formatted_output(files[i], lists_[i], files_only=True, invert_files=True)
+        grep.formatted_output(len(files), files[i], lists_[i], files_only=True,
+                              invert_files=True, count=False)
     assert 'a.txt'
 
 
 def test_print_empty_stdin_grep():
     list_ = []
-    grep.formatted_output('a.txt', list_, files_only=True, invert_files=True)
+    grep.formatted_output(1, 'a.txt', list_, files_only=True, invert_files=True, count=False)
     assert 'a.txt'

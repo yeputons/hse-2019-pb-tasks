@@ -61,14 +61,14 @@ def test_integrate_files_grep_count(tmp_path, monkeypatch, capsys):
 
 def test_find_needle():
     line = 'find something here'
-    assert grep.match(line, 'find', regex=False, low=False, full_match=False, inv=False)
+    assert grep.match(line, 'find', regex=False, lowercase=False, full_match=False, invert=False)
 
 
 def test_regex_find():
     line = 'find something here'
-    assert grep.match(line, 'f*', regex=True, low=False, full_match=False, inv=False)
+    assert grep.match(line, 'f*', regex=True, lowercase=False, full_match=False, invert=False)
 
 
 def test_do_not_find():
     line = 'find something here'
-    assert not grep.match(line, 'no', regex=False, low=False, full_match=False, inv=False)
+    assert not grep.match(line, 'no', regex=False, lowercase=False, full_match=False, invert=False)
