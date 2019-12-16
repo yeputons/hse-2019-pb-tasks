@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 from typing import Callable, Optional
 from bot import UserHandler
 from tictactoe import Player, TicTacToe
@@ -47,7 +46,6 @@ class TicTacToeUserHandler(UserHandler):
         assert self.game
         if self.game is not None:
             field = ''
-            count = 0
             for row in self.game.field:
                 for cell in row:
                     if cell == Player.X:
@@ -56,7 +54,5 @@ class TicTacToeUserHandler(UserHandler):
                         field += 'O'
                     else:
                         field += '.'
-                count += 1
-                if count < 3:
-                    field += '\n'
-            self.send_message(field)
+                field += '\n'
+            self.send_message(field.rstrip('\n'))
