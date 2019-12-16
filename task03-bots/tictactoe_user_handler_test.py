@@ -44,7 +44,7 @@ def test_invalid_turn(mocker: MockFixture) -> None:
     ]
 
 
-def test_play_x(mocker: MockFixture) -> None:
+def test_play_x_wins(mocker: MockFixture) -> None:
     send_message = mocker.stub(name='send_message_stub')
     handler = TicTacToeUserHandler(send_message=send_message)
     handle_multiple_messages(handler, [
@@ -61,7 +61,7 @@ def test_play_x(mocker: MockFixture) -> None:
     ]
 
 
-def test_play_o(mocker: MockFixture) -> None:
+def test_play_o_wins(mocker: MockFixture) -> None:
     send_message = mocker.stub(name='send_message_stub')
     handler = TicTacToeUserHandler(send_message=send_message)
     handle_multiple_messages(handler, [
