@@ -113,9 +113,7 @@ void *producer(void *_q) {
 void *consumer(void *_q) {
     ThreadsafeQueue *q = static_cast<ThreadsafeQueue *>(_q);
     for (int i = 0; i < ELEMENTS_PER_THREAD; i++) {
-        void *res = 0;
-        REQUIRE(threadsafe_queue_try_pop(q, &res) == true);
-        REQUIRE(res == nullptr);
+        REQUIRE(threadsafe_queue_wait_and_pop(q) == nullptr);
     }
     return nullptr;
 }
@@ -123,7 +121,9 @@ void *consumer(void *_q) {
 void *consumer_try(void *_q) {
     ThreadsafeQueue *q = static_cast<ThreadsafeQueue *>(_q);
     for (int i = 0; i < ELEMENTS_PER_THREAD; i++) {
-        REQUIRE(threadsafe_queue_wait_and_pop(q) == nullptr);
+        void *res = nullptr;
+        REQUIRE(threadsafe_queue_try_pop(q, &res) == true);
+        REQUIRE(res == nullptr);
     }
     return nullptr;
 }
