@@ -27,12 +27,12 @@ bool threadsafe_queue_try_pop(ThreadsafeQueue *q, void **data) {
     assert(q);
     assert(data);
     pthread_mutex_lock(&q->mutex);
-    bool existance = !queue_empty(&q->q);
-    if (existance) {
+    bool not_empty = !queue_empty(&q->q);
+    if (not_empty) {
         *data = queue_pop(&q->q);
     }
     pthread_mutex_unlock(&q->mutex);
-    return existance;
+    return not_empty;
 }
 
 void *threadsafe_queue_wait_and_pop(ThreadsafeQueue *q) {
