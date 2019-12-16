@@ -71,6 +71,7 @@ def test_unit_print_filenames(capsys):
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'a.txt\n'
+
     printer('a.txt', [])
     out, err = capsys.readouterr()
     assert err == ''
@@ -81,6 +82,7 @@ def test_unit_print_filenames(capsys):
     assert err == ''
     assert out == 'sys.stdin\n'
     printer('sys.stdin', [''])
+
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'sys.stdin\n'
@@ -88,14 +90,26 @@ def test_unit_print_filenames(capsys):
 
 def test_unit_print_filenames_without(capsys):
     printer = grep.select_printer(False, True, False, False)
+
     printer('a.txt', ['hell', 'w'])
     out, err = capsys.readouterr()
     assert err == ''
     assert out == ''
+
     printer('a.txt', [])
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'a.txt\n'
+
+    printer('file', [''])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == ''
+
+    printer('file1', ['', '', '', '', '', ''])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == ''
 
 
 def test_integrate_all_keys_print_files_grep(tmp_path, monkeypatch, capsys):
