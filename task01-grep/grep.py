@@ -6,70 +6,78 @@ import re
 import argparse
 
 
-def cnt(lines: List[str], regex: bool, pattern: str) -> int:
-    x = 0
-    for string in lines:
-        if regex:
-            if re.search(pattern, string):
-                x += 1
+def has_needle(line: str, needle: str, regex: bool, ignore_case: bool, inverted: bool, full_match: bool) -> bool:
+    if not regex:
+        needle = re.escape(needle)
+    re_needle = re.compile(needle, re.IGNORECASE if ignore_case else 0)
+    search = re.fullmatch if full_match else re.search
+    result = search(re_needle, line) is not None
+    return result ^ inverted
+
+
+def find_in_file(lines: List[str], needle: str, regex: bool, ignore_case: bool, inverted: bool, full_match: bool) -> List[str]:
+    result = []
+    for line in lines:
+        line = line.rstrip('\n')
+        if has_needle(line, needle, regex, ignore_case, inverted, full_match):
+            result.append(line)
+    return result
+
+def is_found(found: List[str], need_count: bool, need_not_find: bool) -> bool:
+    return need_count or (bool(found) ^ need_not_find)
+
+def print_res(result: List[Tuple[str, List[str]]], count: bool, only_files: bool, one_file: bool):
+    for file_name, lines in result:
+        if not one_file and not only_files:
+            file_name += ':'
+        if count:
+            print(file_name, len(lines), sep='')
+        elif only_files:
+            print(file_name)
         else:
-            if (pattern in string):
-                x += 1
-    return x
+            for line in lines:
+                print(file_name, line, sep='')
 
 
-def search(name: str, check: bool, regex: bool, lines: List[str], pattern: str):
-    for string in lines:
-        if regex:
-            if re.search(pattern, string):
-                if check:
-                    print(name + ':' + string)
-                else:
-                    print(string)
-        else:
-            if pattern in string:
-                if check:
-                    print(name + ':' + string)
-                else:
-                    print(string)
+def read_input(files: List[str], normal_search: bool) -> Tuple[List[Tuple[str, List[str]]], bool]:
+    lines = []
+    num_files = len(files)
+    one_file = normal_search and num_files <= 1
+    if num_files == 0:
+        lines.append(('', sys.stdin.readlines()))
+    else:
+        for file in files:
+            with open(file, 'r') as in_file:
+                file_name = '' if one_file else file
+                lines.append((file_name, in_file.readlines()))
+    return lines, one_file
 
 
-def redef_file(file: str) -> List[str]:
-    if file == 'sys.stdin':
-        return [line.rstrip('\n') for line in sys.stdin.readlines()]
-    with open(file, 'r') as in_file:
-        return [line.rstrip('\n') for line in in_file.readlines()]
-
-
-def redef_files(files: List[str]) -> List[Tuple[str, List[str]]]:
-    return [(file, redef_file(file)) for file in files]
-
-
-def gsearch(files: List[str], regex: bool, pattern: str, count_check: bool):
-    f = redef_files(files)
-    for file, lines in f:
-        if count_check:
-            if len(f) > 1:
-                print(file + ':' + str(cnt(lines, regex, pattern)))
-            else:
-                print(cnt(lines, regex, pattern))
-        else:
-            search(file, len(f) > 1, regex, lines, pattern)
-
-
-def main(args_str: List[str]):
+def parse_arguments(args_str: List[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument('needle', type=str)
     parser.add_argument('files', nargs='*')
-    parser.add_argument('-c', dest='count', action='store_true')
     parser.add_argument('-E', dest='regex', action='store_true')
-    args = parser.parse_args(args_str)
-    if len(args.files) <= 0:
-        gsearch(['sys.stdin'], args.regex, args.needle, args.count)
-    else:
-        gsearch(args.files, args.regex, args.needle, args.count)
+    parser.add_argument('-c', dest='count', action='store_true')
+    parser.add_argument('-i', dest='ignore_case', action='store_true')
+    parser.add_argument('-v', dest='inverted', action='store_true')
+    parser.add_argument('-x', dest='full_match', action='store_true')
+    parser.add_argument('-l', dest='only_files', action='store_true')
+    parser.add_argument('-L', dest='only_not_files', action='store_true')
+    return parser.parse_args(args_str)
 
 
+def main(args_str: List[str]):
+    args = parse_arguments(args_str)
+    normal_search = not (args.only_files or args.only_not_files)
+    lines, one_file = read_input(args.files, normal_search)
+    result = []
+    for file_name, line in lines:
+        found = find_in_file(line, args.needle, args.regex,
+                             args.ignore_case, args.inverted, args.full_match)
+        if is_found(found, args.count, args.only_not_files):
+            result.append((file_name, found))
+    print_res(result, args.count, args.only_files or args.only_not_files, one_file)
 
 
 if __name__ == '__main__':
