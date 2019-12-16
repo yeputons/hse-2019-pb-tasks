@@ -115,3 +115,25 @@ def test_win_draw(mocker: pytest_mock.MockFixture) -> None:
         mocker.call('Game is not started'),
         mocker.call('...\n...\n...'),
     ]
+
+
+def test_integrate_in_one_cell(mocker: pytest_mock.MockFixture):
+    send_message = mocker.stub(name='send_message_stub')
+    handler = TicTacToeUserHandler(send_message)
+    handler.handle_message('start')
+    handler.handle_message('X 1 0')
+    handler.handle_message('X 1 1')
+    handler.handle_message('O 1 0')
+    handler.handle_message('O 1 1')
+    handler.handle_message('O 0 0')
+    handler.handle_message('X 1 1')
+
+    assert send_message.call_args_list == [
+        mocker.call('...\n...\n...'),
+        mocker.call('.X.\n...\n...'),
+        mocker.call('Invalid turn'),
+        mocker.call('Invalid turn'),
+        mocker.call('.X.\n.O.\n...'),
+        mocker.call('Invalid turn'),
+        mocker.call('Invalid turn')
+    ]
