@@ -9,7 +9,6 @@ class TicTacToeUserHandler(UserHandler):
         self.game: Optional[TicTacToe] = None
 
     def handle_message(self, message: str) -> None:
-        message = message.rstrip('\n')
         if message == 'start':
             self.start_game()
             return
