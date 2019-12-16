@@ -71,18 +71,31 @@ TEST_CASE("ThreadsafeQueue multithreaded ping-pong") {
     // (в общем случае это лямбда-функции/замыкания, но нам это неважно).
     auto pinger = [](void *_qs) -> void * {
         ThreadsafeQueue *qs = static_cast<ThreadsafeQueue *>(_qs);
-        // TODO(2)
-        static_cast<void>(qs);  // Используем переменную как-нибудь.
-        static_cast<void>(PING_PONGS);  // Используем переменную как-нибудь.
+        for (int i = 0; i < PING_PONGS; ++i) {
+            int var = i;
+            threadsafe_queue_push(&qs[0], &var);
+            int *data = (int *)threadsafe_queue_wait_and_pop(&qs[1]);
+            CHECK(&var == data);
+            CHECK(var == i + 1);
+        }
         return nullptr;
     };
 
-    // TODO(2)
+    auto ponger = [](void *_qs) -> void * {
+        ThreadsafeQueue *qs = static_cast<ThreadsafeQueue *>(_qs);
+        for (int i = 0; i < PING_PONGS; ++i) {
+            int *data = (int *)threadsafe_queue_wait_and_pop(&qs[0]);
+            ++(*data);
+            threadsafe_queue_push(&qs[1], data);
+        }
+        return nullptr;
+    };
 
     pthread_t t1, t2;
     REQUIRE(pthread_create(&t1, nullptr, pinger, qs) == 0);
-    // TODO(2)
-    static_cast<void>(t2);
+    REQUIRE(pthread_create(&t2, nullptr, ponger, qs) == 0);
+
+    REQUIRE(pthread_join(t2, nullptr) == 0);
     REQUIRE(pthread_join(t1, nullptr) == 0);
 
     threadsafe_queue_destroy(&qs[1]);
