@@ -2,12 +2,12 @@
 import tkinter
 import traceback
 from typing import Callable, Dict, Optional
-from alarm_user_handler import AlarmUserHandler
-from bot import UserIndependentBot
+from chat_bot import ChatBot
 
 
 class UserWidget(tkinter.LabelFrame):
     """Класс, реализующий графический интерфейс для работы с одним пользователем."""
+
     def __init__(self,
                  text: str,
                  send_message_cb: Callable[[str], None],
@@ -20,7 +20,8 @@ class UserWidget(tkinter.LabelFrame):
 
     def create_widgets(self) -> None:
         """Создаёт часть интерфейса для одного пользователя."""
-        self.lines = tkinter.Text(self, wrap='word', state=tkinter.DISABLED, width=1, height=1)
+        self.lines = tkinter.Text(
+            self, wrap='word', state=tkinter.DISABLED, width=1, height=1)
         self.lines.pack(expand=1, fill=tkinter.BOTH, padx=4, pady=4)
 
         self.send_frame = tkinter.Frame(self, pady=4)
@@ -28,9 +29,11 @@ class UserWidget(tkinter.LabelFrame):
 
         self.new_command = tkinter.Entry(self.send_frame, width=1)
         self.new_command.bind('<Return>', lambda event: self.send_message())
-        self.new_command.pack(side=tkinter.LEFT, expand=1, fill=tkinter.X, padx=4)
+        self.new_command.pack(side=tkinter.LEFT, expand=1,
+                              fill=tkinter.X, padx=4)
 
-        self.send_button = tkinter.Button(self.send_frame, text='Send', command=self.send_message)
+        self.send_button = tkinter.Button(
+            self.send_frame, text='Send', command=self.send_message)
         self.send_button.pack(side=tkinter.RIGHT, padx=4)
 
     def received_message(self, message: str) -> None:
@@ -56,9 +59,9 @@ class UserWidget(tkinter.LabelFrame):
 def main() -> None:
     user_widgets: Dict[int, UserWidget] = {}
 
-    bot = UserIndependentBot(
-        send_message=lambda user_id, message: user_widgets[user_id].received_message(message),
-        user_handler=AlarmUserHandler
+    bot = ChatBot(
+        send_message=lambda user_id, message: user_widgets[user_id].received_message(
+            message)
     )
 
     def handle_message(user_id: int, message: str) -> None:
