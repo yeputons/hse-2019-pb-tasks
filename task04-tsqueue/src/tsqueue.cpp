@@ -1,6 +1,5 @@
 #include "tsqueue.h"
 #include <assert.h>
-#include <iostream>
 #include "queue.h"
 
 void threadsafe_queue_init(ThreadsafeQueue *q) {
