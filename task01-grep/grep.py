@@ -26,18 +26,23 @@ def find_in_file(lines: List[str], needle: str, regex: bool, ignore_case: bool,
     return result
 
 
-def is_found(found: List[str], need_count: bool, need_not_find: bool) -> bool:
-    return need_count or (bool(found) ^ need_not_find)
-
-
-def print_res(result: List[Tuple[str, List[str]]], count: bool, only_files: bool, one_file: bool):
+def print_res(result: List[Tuple[str, List[str]]], count: bool,
+              only_files: bool, only_not_files: bool, one_file: bool):
     for file_name, lines in result:
-        if not one_file and not only_files:
+        if only_files:
+            if lines:
+                print(file_name)
+            continue
+        if only_not_files:
+            if not lines:
+                print(file_name)
+            continue
+        if one_file:
+            file_name = ''
+        else:
             file_name += ':'
         if count:
             print(file_name, len(lines), sep='')
-        elif only_files:
-            print(file_name)
         else:
             for line in lines:
                 print(file_name, line, sep='')
@@ -52,8 +57,7 @@ def read_input(files: List[str], normal_search: bool) -> Tuple[List[Tuple[str, L
     else:
         for file in files:
             with open(file, 'r') as in_file:
-                file_name = '' if one_file else file
-                lines.append((file_name, in_file.readlines()))
+                lines.append((file, in_file.readlines()))
     return lines, one_file
 
 
@@ -79,9 +83,8 @@ def main(args_str: List[str]):
     for file_name, line in lines:
         found = find_in_file(line, args.needle, args.regex,
                              args.ignore_case, args.inverted, args.full_match)
-        if is_found(found, args.count, args.only_not_files):
-            result.append((file_name, found))
-    print_res(result, args.count, args.only_files or args.only_not_files, one_file)
+        result.append((file_name, found))
+    print_res(result, args.count, args.only_files, args.only_not_files, one_file)
 
 
 if __name__ == '__main__':
