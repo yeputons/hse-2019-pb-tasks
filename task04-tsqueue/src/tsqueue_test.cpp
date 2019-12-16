@@ -76,8 +76,8 @@ TEST_CASE("ThreadsafeQueue multithreaded ping-pong") {
             threadsafe_queue_push(&qs[0], &old_data);
             int *data =
                 static_cast<int *>(threadsafe_queue_wait_and_pop(&qs[1]));
-            REQUIRE(data != nullptr);
-            REQUIRE(*data == i + 1);
+            REQUIRE(data == &old_data);
+            CHECK(*data == i + 1);
         }
         return nullptr;
     };
@@ -121,9 +121,9 @@ void *consumer(void *_q) {
 
 void *consumer_try(void *_q) {
     ThreadsafeQueue *q = static_cast<ThreadsafeQueue *>(_q);
-    void *data;
     for (int i = 0; i < ELEMENTS_PER_THREAD; i++) {
-        REQUIRE(threadsafe_queue_try_pop(q, &data) == true);
+        void *data;
+        REQUIRE(threadsafe_queue_try_pop(q, &data));
         REQUIRE(data == nullptr);
     }
     return nullptr;
