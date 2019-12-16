@@ -20,13 +20,13 @@ def does_line_match(line: str, regex: bool, needle: str,
                     ignore_case: bool = False, full_match: bool = False) -> bool:
     if not regex:
         needle = re.escape(needle)
-    ignore_case_flags = 0
+    ignore_case_flag = 0
     if ignore_case:
-        ignore_case_flags = re.IGNORECASE
+        ignore_case_flag = re.IGNORECASE
     if full_match:
-        return bool(re.fullmatch(needle, line, flags=ignore_case_flags))
+        return bool(re.fullmatch(needle, line, flags=ignore_case_flag))
     else:
-        return bool(re.search(needle, line, flags=ignore_case_flags))
+        return bool(re.search(needle, line, flags=ignore_case_flag))
 
 
 def search_needle_in_file_line_dict(
