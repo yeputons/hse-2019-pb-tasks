@@ -1,21 +1,15 @@
 #include "tsqueue.h"
-#include <cassert>
 
 void threadsafe_queue_init(ThreadsafeQueue *q) {
+    queue_init(&q->q);
     pthread_mutex_init(&q->mutex, nullptr);
     pthread_cond_init(&q->cond, nullptr);
-    pthread_mutex_lock(&q->mutex);
-    queue_init(&q->q);
-    pthread_mutex_unlock(&q->mutex);
 }
 
 void threadsafe_queue_destroy(ThreadsafeQueue *q) {
-    pthread_mutex_lock(&q->mutex);
-    assert(queue_empty(&q->q));
     queue_destroy(&q->q);
-    pthread_mutex_unlock(&q->mutex);
-    pthread_cond_destroy(&q->cond);
     pthread_mutex_destroy(&q->mutex);
+    pthread_cond_destroy(&q->cond);
 }
 
 void threadsafe_queue_push(ThreadsafeQueue *q, void *data) {
