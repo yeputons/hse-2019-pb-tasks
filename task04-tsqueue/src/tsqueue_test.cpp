@@ -1,6 +1,5 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "tsqueue.h"
-#include <iostream>
 #include "doctest.h"
 
 const int ELEMENTS_PER_THREAD = 100 * 1000;
