@@ -71,18 +71,31 @@ TEST_CASE("ThreadsafeQueue multithreaded ping-pong") {
     // (в общем случае это лямбда-функции/замыкания, но нам это неважно).
     auto pinger = [](void *_qs) -> void * {
         ThreadsafeQueue *qs = static_cast<ThreadsafeQueue *>(_qs);
-        // TODO(2)
-        static_cast<void>(qs);  // Используем переменную как-нибудь.
-        static_cast<void>(PING_PONGS);  // Используем переменную как-нибудь.
+        int a = 0;
+        for (int i = 0; i < PING_PONGS; ++i) {
+            threadsafe_queue_push(&qs[0], &a);
+            int *ptr = (int *)threadsafe_queue_wait_and_pop(&qs[1]);
+            REQUIRE(ptr == &a);
+            REQUIRE(a == i + 1);
+        }
         return nullptr;
     };
 
-    // TODO(2)
+    auto ponger = [](void *_qs) -> void * {
+        ThreadsafeQueue *qs = static_cast<ThreadsafeQueue *>(_qs);
+        for (int i = 0; i < PING_PONGS; ++i) {
+            int *ptr = (int *)threadsafe_queue_wait_and_pop(&qs[0]);
+            REQUIRE(ptr);
+            ++*ptr;
+            threadsafe_queue_push(&qs[1], ptr);
+        }
+        return nullptr;
+    };
 
     pthread_t t1, t2;
     REQUIRE(pthread_create(&t1, nullptr, pinger, qs) == 0);
-    // TODO(2)
-    static_cast<void>(t2);
+    REQUIRE(pthread_create(&t2, nullptr, ponger, qs) == 0);
+    REQUIRE(pthread_join(t2, nullptr) == 0);
     REQUIRE(pthread_join(t1, nullptr) == 0);
 
     threadsafe_queue_destroy(&qs[1]);
@@ -100,15 +113,18 @@ void *producer(void *_q) {
 void *consumer(void *_q) {
     ThreadsafeQueue *q = static_cast<ThreadsafeQueue *>(_q);
     for (int i = 0; i < ELEMENTS_PER_THREAD; i++) {
-        REQUIRE(threadsafe_queue_wait_and_pop(q) == nullptr);
+        void *res = 0;
+        REQUIRE(threadsafe_queue_try_pop(q, &res) == true);
+        REQUIRE(res == nullptr);
     }
     return nullptr;
 }
 
 void *consumer_try(void *_q) {
     ThreadsafeQueue *q = static_cast<ThreadsafeQueue *>(_q);
-    // TODO используется в тесте ниже.
-    static_cast<void>(q);
+    for (int i = 0; i < ELEMENTS_PER_THREAD; i++) {
+        REQUIRE(threadsafe_queue_wait_and_pop(q) == nullptr);
+    }
     return nullptr;
 }
 
@@ -117,8 +133,17 @@ TEST_SUITE("ThreadsafeQueue pops from multiple threads") {
         ThreadsafeQueue q;
         threadsafe_queue_init(&q);
 
-        // TODO: аналогично тесту ниже, но с threadsafe_queue_try_pop,
-        //       используемый в consumer_try выше.
+        for (int repeat = 0; repeat < REPEATS; repeat++) {
+            for (int i = 0; i < 2 * ELEMENTS_PER_THREAD; i++) {
+                threadsafe_queue_push(&q, nullptr);
+            }
+
+            pthread_t t1, t2;
+            REQUIRE(pthread_create(&t1, nullptr, consumer_try, &q) == 0);
+            REQUIRE(pthread_create(&t2, nullptr, consumer_try, &q) == 0);
+            REQUIRE(pthread_join(t2, nullptr) == 0);
+            REQUIRE(pthread_join(t1, nullptr) == 0);
+        }
 
         threadsafe_queue_destroy(&q);
     }
