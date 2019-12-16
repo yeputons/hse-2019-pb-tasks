@@ -66,6 +66,7 @@ def test_integrate_regex_full_match_ignore_case():
 
 def test_unit_print_filenames(capsys):
     printer = grep.select_printer(True, False, False, False)
+
     printer('a.txt', ['hell', 'w'])
     out, err = capsys.readouterr()
     assert err == ''
@@ -74,6 +75,15 @@ def test_unit_print_filenames(capsys):
     out, err = capsys.readouterr()
     assert err == ''
     assert out == ''
+
+    printer('sys.stdin', [' '])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'sys.stdin\n'
+    printer('sys.stdin', [''])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'sys.stdin\n'
 
 
 def test_unit_print_filenames_without(capsys):
