@@ -57,6 +57,11 @@ def test_integrate_regex_full_match_ignore_case():
     assert not matcher('ab', 'A')
     assert not matcher('AbbAbAbbbacc', 'Abb*a*B')
     assert matcher('AABB', 'a*b*c*')
+    assert not matcher('Aaa3bbB', 'a*[1-2]B*c*')
+    assert matcher('a', 'A')
+    assert not matcher('', 'A')
+    assert not matcher('AbbAbAbbbacc', 'a*B')
+    assert matcher('3333333333AA', '[3-9]*A*')
 
 
 def test_unit_print_filenames(capsys):
