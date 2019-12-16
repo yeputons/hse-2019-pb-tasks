@@ -9,17 +9,16 @@ class TicTacToeUserHandler(UserHandler):
         self.game: Optional[TicTacToe] = None
 
     def handle_message(self, message: str) -> None:
-        bot_message = message.rstrip('\n').split()
-        if bot_message[0] != 'start' and not self.game:
+        bot_message = message.split()
+        if message != 'start' and not self.game:
             self.send_message('Game is not started')
-        elif bot_message[0] == 'start':
+        elif message == 'start':
             self.start_game()
         else:
-            if bot_message[0] == 'X':
-                cur_player = Player.X
-            else:
-                cur_player = Player.O
-            self.make_turn(cur_player, row=int(bot_message[2]), col=int(bot_message[1]))
+            row = int(bot_message[2])
+            col = int(bot_message[1])
+            players = {'X': Player.X, 'O': Player.O}
+            self.make_turn(players[bot_message[0]], row=row, col=col)
 
     def start_game(self) -> None:
         self.game = TicTacToe()
@@ -32,13 +31,14 @@ class TicTacToeUserHandler(UserHandler):
             self.send_field()
         else:
             self.send_message('Invalid turn')
+            return
         if self.game.is_finished():
             finish_str = 'Game is finished, '
             winner = self.game.winner()
             if not winner:
-                self.send_message(finish_str + 'draw')
+                self.send_message(f'{finish_str}draw')
             else:
-                self.send_message(finish_str + str(winner.name) + ' wins')
+                self.send_message(f'{finish_str}{winner.name} wins')
             self.game = None
 
     def send_field(self) -> None:
