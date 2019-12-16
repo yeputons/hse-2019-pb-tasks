@@ -17,12 +17,9 @@ class TicTacToeUserHandler(UserHandler):
                 self.send_message('Game is not started')
                 return
             player, col, row = message.split(maxsplit=2)
-            if player not in ['X', 'O']:
-                self.send_message('Invalid turn')
-                return
             self.make_turn(Player[player], row=int(row), col=int(col))
         except Exception:  # pylint: disable=W0703
-            self.send_message('Invalid turn')
+            self.send_message('Invalid format')
 
     def start_game(self) -> None:
         self.game = TicTacToe()
@@ -47,7 +44,6 @@ class TicTacToeUserHandler(UserHandler):
         assert self.game
         field = ''
         for row in self.game.field:
-            for cell in row:
-                field += cell.name if cell else '.'
-            field += '\n'
+            tmp = ''.join([cell.name if cell else '.' for cell in row])
+            field += tmp + '\n'
         self.send_message(field.rstrip('\n'))

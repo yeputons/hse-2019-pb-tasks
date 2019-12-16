@@ -19,7 +19,7 @@ def test_handler_invalid_player(mocker: pytest_mock.MockFixture) -> None:
     bot.handle_message('Z 0 0')
     assert send_message.call_args_list == [
         mocker.call('...\n...\n...'),
-        mocker.call('Invalid turn'),
+        mocker.call('Invalid format'),
     ]
 
 
@@ -30,7 +30,7 @@ def test_handler_invalid_input_not_enough_args(mocker: pytest_mock.MockFixture) 
     bot.handle_message('X 0')
     assert send_message.call_args_list == [
         mocker.call('...\n...\n...'),
-        mocker.call('Invalid turn'),
+        mocker.call('Invalid format'),
     ]
 
 
@@ -50,7 +50,7 @@ def test_handler_invalid_values(mocker: pytest_mock.MockFixture) -> None:
     bot.handle_message('X 3 3')
     assert send_message.call_args_list == [
         mocker.call('...\n...\n...'),
-        mocker.call('Invalid turn'),
+        mocker.call('Invalid format'),
     ]
 
 
