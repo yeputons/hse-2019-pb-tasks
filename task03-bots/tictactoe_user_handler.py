@@ -41,8 +41,7 @@ class TicTacToeUserHandler(UserHandler):
         self.game = None
 
     def send_field(self) -> None:
-        if self.game is None:
-            return
+        assert self.game
         field = ''
         for line in self.game.field:
             for col in line:
