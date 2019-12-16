@@ -123,3 +123,97 @@ def test_integrate_files_grep_regex_count_error(tmp_path, monkeypatch, capsys):
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'File keklol does not exist\nb.txt:2\na.txt:2\n'
+
+
+def test_what_to_return(tmp_path, monkeypatch, capsys):
+    grep.what_to_return(['test1', 'test2'], 'test', True, False,
+                   False, False)
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'test1\ntest2\n'
+
+
+def test_run_all_count(tmp_path, monkeypatch, capsys):
+    monkeypatch.setattr('sys.stdin', io.StringIO(
+        'pref needle?\nneedle? suf\nthe needl\npref needle? suf'))
+    grep.run_all(io.StringIO(
+        'pref needle?\nneedle? suf\nthe needl\npref needle? suf'),
+         False, True, False, False, False, False, False,
+          True, 'needle?', '')
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == '3\n'
+
+
+def test_run_all_regex_count(tmp_path, monkeypatch, capsys):
+    monkeypatch.setattr('sys.stdin', io.StringIO(
+        'pref needle?\nneedle? suf\nthe needl\npref needle? suf'))
+    grep.run_all(io.StringIO(
+        'pref needle?\nneedle? suf\nthe needl\npref needle? suf'),
+         True, True, False, False, False, False, False,
+          True, 'needle?', '')
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == '4\n'
+
+
+def test_run_all_regex(tmp_path, monkeypatch, capsys):
+    monkeypatch.setattr('sys.stdin', io.StringIO(
+        'pref needle?\nneedle? suf\nthe needl\npref needle? suf'))
+    grep.run_all(io.StringIO(
+        'pref needle?\nneedle? suf\nthe needl\npref needle? suf'),
+         True, False, False, False, False, False, False,
+          True, 'needle?', '')
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'pref needle?\nneedle? suf\nthe needl\npref needle? suf\n'
+
+
+def test_run_all(tmp_path, monkeypatch, capsys):
+    monkeypatch.setattr('sys.stdin', io.StringIO(
+        'pref needle?\nneedle? suf\nthe needl\npref needle? suf'))
+    grep.run_all(io.StringIO(
+        'pref needle?\nneedle? suf\nthe needl\npref needle? suf'),
+         False, False, False, False, False, False, False,
+          True, 'needle?', '')
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'pref needle?\nneedle? suf\npref needle? suf\n'
+
+
+def test_print_count(tmp_path, monkeypatch, capsys):
+    grep.print_count(6, '', True)
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == '6\n'
+
+
+def test_print_count_file(tmp_path, monkeypatch, capsys):
+    grep.print_count(6, 'kek.txt', False)
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'kek.txt:6\n'
+
+
+def test_print_result(tmp_path, monkeypatch, capsys):
+    grep.print_result(['lol','kek'], 'test', False)
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'test:lol\ntest:kek\n'
+
+
+assert(grep.choosing_type_of_search(True, False, False,
+                        'test', 'test')== True)
+
+
+assert(grep.choosing_type_of_search(True, False, False,
+                        'test1', 'test')== False)
+
+
+assert(grep.choosing_type_of_search(True, True, False,
+                        'test', 'test')== True)
+
+
+assert(grep.choosing_type_of_search(True, True, False,
+                        'test1', 'test')== False)
+
