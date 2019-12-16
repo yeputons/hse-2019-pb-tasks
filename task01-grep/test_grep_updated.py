@@ -121,10 +121,119 @@ def test_unit_compile_pattern_regex():
     assert not compiled_pattern.search('CGGS')
 
 
+def test_find_pattern_in_line_found():
+    is_found = grep.find_pattern_in_line('I easier to write unit tests than it was',
+                                         grep.compile_pattern('easier'))
+    assert is_found
+
+
+def test_find_pattern_in_line_not_found():
+    is_found = grep.find_pattern_in_line('I easier to write unit tests than it was',
+                                         grep.compile_pattern('easy'))
+    assert not is_found
+
+
+def test_find_pattern_in_line_full_match_found():
+    is_found = grep.find_pattern_in_line('vamos', grep.compile_pattern('vamos'))
+    assert is_found
+
+
+def test_find_pattern_in_line_full_match_not_found():
+    is_found = grep.find_pattern_in_line('vamos', grep.compile_pattern('come on'))
+    assert not is_found
+
+
 def test_unit_filter_matched_lines_inverse_answer():
     lines = grep.filter_matched_lines(['hello f?o world', 'xfooyfoz', 'fooo'],
                                       grep.compile_pattern('fo'), inverse_answer=True)
     assert lines == ['hello f?o world']
+
+
+def test_unit_filter_matched_lines_real_answer():
+    lines = grep.filter_matched_lines(['hello f?o world', 'xfooyfoz', 'fooo'],
+                                      grep.compile_pattern('fo'), inverse_answer=False)
+    assert lines == ['xfooyfoz', 'fooo']
+
+
+def test_unit_filter_matched_lines_full_math_real_answer():
+    lines = grep.filter_matched_lines(['hello f?o world', 'xfooyfoz', 'fo'],
+                                      grep.compile_pattern('fo'), inverse_answer=False,
+                                      full_match=True)
+    assert lines == ['fo']
+
+
+def test_unit_filter_matched_lines_full_math_inverse_answer():
+    lines = grep.filter_matched_lines(['hello f?o world', 'xfooyfoz', 'fo'],
+                                      grep.compile_pattern('fo'), inverse_answer=True,
+                                      full_match=True)
+    assert lines == ['hello f?o world', 'xfooyfoz']
+
+
+def test_unit_format_answer_whole_answer_one_file():
+    lines = grep.format_filtered_lines(['I want to have 10', 'or 9', 'or 8', 'not less than 8'],
+                                       is_only_one_file=True)
+    assert lines == ['I want to have 10', 'or 9', 'or 8', 'not less than 8']
+
+
+def test_unit_format_answer_whole_answer_many_files():
+    lines = grep.format_filtered_lines(['I want to have 10', 'or 9', 'or 8', 'not less than 8'],
+                                       is_only_one_file=False, file_name='a.txt')
+    assert lines == ['a.txt:I want to have 10', 'a.txt:or 9', 'a.txt:or 8',
+                     'a.txt:not less than 8']
+
+
+def test_unit_format_answer_only_file_names_many_files():
+    lines = grep.format_filtered_lines(['I want to have 10', 'or 9', 'or 8', 'not less than 8'],
+                                       is_only_one_file=False, file_name='a.txt', only_files=True)
+    assert lines == ['a.txt']
+
+
+def test_unit_format_answer_only_file_names_one_file():
+    lines = grep.format_filtered_lines(['I want to have 10', 'or 9', 'or 8', 'not less than 8'],
+                                       is_only_one_file=True, file_name='a.txt', only_files=True)
+    assert lines == ['a.txt']
+
+
+def test_unit_format_answer_only_file_names_count():
+    lines = grep.format_filtered_lines(['I want to have 10', 'or 9', 'or 8', 'not less than 8'],
+                                       is_only_one_file=True, file_name='a.txt', only_files=True,
+                                       is_only_count=True)
+    assert lines == ['a.txt']
+
+
+def test_unit_format_answer_whole_answer_names_count():
+    lines = grep.format_filtered_lines(['I want to have 10', 'or 9', 'or 8', 'not less than 8'],
+                                       is_only_one_file=False, file_name='a.txt', only_files=False,
+                                       is_only_count=True)
+    assert lines == ['a.txt:4']
+
+
+def test_unit_format_answer_inverse_only_file_names_not_found():
+    lines = grep.format_filtered_lines(['I want to have 10', 'or 9', 'or 8', 'not less than 8'],
+                                       is_only_one_file=True, file_name='a.txt', only_files=False,
+                                       is_only_count=False, inverse_only_files=True)
+    assert lines == []
+
+
+def test_unit_format_answer_inverse_only_file_names_count_not_found():
+    lines = grep.format_filtered_lines(['I want to have 10', 'or 9', 'or 8', 'not less than 8'],
+                                       is_only_one_file=True, file_name='a.txt', only_files=False,
+                                       is_only_count=True, inverse_only_files=True)
+    assert lines == []
+
+
+def test_unit_format_answer_inverse_only_file_names_():
+    lines = grep.format_filtered_lines([],
+                                       is_only_one_file=True, file_name='a.txt', only_files=False,
+                                       is_only_count=False, inverse_only_files=True)
+    assert lines == ['a.txt']
+
+
+def test_unit_format_answer_inverse_only_file_names_count():
+    lines = grep.format_filtered_lines([],
+                                       is_only_one_file=True, file_name='a.txt', only_files=False,
+                                       is_only_count=True, inverse_only_files=True)
+    assert lines == ['a.txt']
 
 
 def test_unit_strip_lines():

@@ -18,9 +18,7 @@ def parse_args(args_str: List[str]) -> argparse.Namespace:
     parser.add_argument('-l', dest='only_files', action='store_true')
     parser.add_argument('-L', dest='inverse_only_files', action='store_true')
 
-    args = parser.parse_args(args_str)
-
-    return args
+    return parser.parse_args(args_str)
 
 
 def compile_pattern(pattern: str, is_pattern_regex: bool = False,
@@ -39,17 +37,25 @@ def filter_matched_lines(lines: List[str], pattern: Pattern, full_match: bool = 
             if inverse_answer ^ find_pattern_in_line(line, pattern, full_match)]
 
 
-def grep_from_lines(read_lines: List[str], pattern: Pattern, is_only_count: bool = False,
-                    full_match: bool = False, inverse_answer: bool = False) -> List:
-    filtered_lines = filter_matched_lines(read_lines, pattern, full_match, inverse_answer)
-    if is_only_count:
-        cnt = len(filtered_lines)
-        return [cnt]
-    return filtered_lines
-
-
 def strip_lines(lines: List[str]) -> List[str]:
-    return [line.rstrip() for line in lines]
+    return [line.rstrip('\n') for line in lines]
+
+
+def format_filtered_lines(lines: List[str], file_name: str = '', only_files: bool = False,
+                          is_only_count: bool = False, inverse_only_files: bool = False,
+                          is_only_one_file: bool = False) -> List[str]:
+    if only_files:
+        if lines:
+            return [file_name]
+    elif inverse_only_files:
+        if not lines or is_only_count and len(lines) == 0:
+            return ['{}'.format(file_name)]
+    elif is_only_count:
+        return ['{}{}'.format((file_name + ':') if not is_only_one_file else '', len(lines))]
+    else:
+        return ['{}{}'.format((file_name + ':') if not is_only_one_file else '',
+                              line) for line in lines]
+    return []
 
 
 def find_lines_from_grep_files(files: str, pattern: Pattern, is_only_count: bool = False,
@@ -60,17 +66,10 @@ def find_lines_from_grep_files(files: str, pattern: Pattern, is_only_count: bool
     for file_name in files:
         try:
             with open(file_name, 'r') as in_file:
-                lines = grep_from_lines(strip_lines(in_file.readlines()),
-                                        pattern, is_only_count, full_match, inverse_answer)
-                if only_files:
-                    if lines:
-                        filtered_lines += ['{}'.format(file_name)]
-                elif inverse_only_files:
-                    if not lines or lines == [0] and is_only_count:
-                        filtered_lines += ['{}'.format(file_name)]
-                else:
-                    filtered_lines += ['{}{}'.format((file_name + ':') if len(files) > 1 else '',
-                                                     line) for line in lines]
+                lines = filter_matched_lines(strip_lines(in_file.readlines()),
+                                             pattern, full_match, inverse_answer)
+                filtered_lines += format_filtered_lines(lines, file_name, only_files, is_only_count,
+                                                        inverse_only_files, len(files) == 1)
         except (OSError, IOError):
             print('{}:not found'.format(file_name), file=sys.stderr)
     return filtered_lines
@@ -79,8 +78,9 @@ def find_lines_from_grep_files(files: str, pattern: Pattern, is_only_count: bool
 def find_lines_from_grep_stdin(pattern: Pattern, is_only_count: bool = False,
                                full_match: bool = False,
                                inverse_answer: bool = False) -> List[str]:
-    return grep_from_lines(strip_lines(sys.stdin.readlines()),
-                           pattern, is_only_count, full_match, inverse_answer)
+    lines = filter_matched_lines(strip_lines(sys.stdin.readlines()),
+                                 pattern, full_match, inverse_answer)
+    return lines if not is_only_count else [str(len(lines))]
 
 
 def main(args_str: List[str]):

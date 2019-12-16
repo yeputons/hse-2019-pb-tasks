@@ -102,18 +102,3 @@ def test_unit_filter_matched_lines_not_regex():
     lines = grep.filter_matched_lines(['hello world', 'CGSG_FOREVER_30', 'DF5'],
                                       grep.compile_pattern('F'))
     assert lines == ['CGSG_FOREVER_30', 'DF5']
-
-
-def test_unit_find_lines_from_grep_not_regex_not_count():
-    lines = grep.grep_from_lines(['pref needle?', 'needle? suf', 'the needl',
-                                  'pref needle? suf'], grep.compile_pattern('needle?'),
-                                 False)
-    assert lines == ['pref needle?', 'needle? suf', 'pref needle? suf']
-
-
-def test_unit_find_lines_from_grep_regex_count():
-    result = grep.grep_from_lines(['pref needle?', 'needle? suf',
-                                   'the needl', 'pref needle? suf'],
-                                  grep.compile_pattern('needle?', True),
-                                  True)
-    assert result == [4]
