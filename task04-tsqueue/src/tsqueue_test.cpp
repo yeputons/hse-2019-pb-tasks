@@ -65,7 +65,7 @@ TEST_CASE("ThreadsafeQueue multithreaded ping-pong") {
     //    единицу и отправляет результат обратно через `qs[1]`.
     // 3. Поток `pinger` проверяет, что пришёл правильный адрес
     //    и что локальная переменная была увеличена.
-    const int PING_PONGS = 100;
+    const int PING_PONGS = 500;
 
     // Специальный синтаксис для объявления функции внутри функции.
     // (в общем случае это лямбда-функции/замыкания, но нам это неважно).
@@ -76,7 +76,7 @@ TEST_CASE("ThreadsafeQueue multithreaded ping-pong") {
             threadsafe_queue_push(&qs[0], &var);
             int *data = (int *)threadsafe_queue_wait_and_pop(&qs[1]);
             CHECK(&var == data);
-            CHECK(var == i + 1);
+            CHECK(*data == i + 1);
         }
         return nullptr;
     };
@@ -218,8 +218,8 @@ TEST_CASE("ThreadsafeQueue pushes and pops from multiple threads") {
             REQUIRE(pthread_create(&cons[i], nullptr, consumer, &q) == 0);
         }
         for (int i = THREADS - 1; i >= 0; i--) {
-            REQUIRE(pthread_join(prods[i], nullptr) == 0);
             REQUIRE(pthread_join(cons[i], nullptr) == 0);
+            REQUIRE(pthread_join(prods[i], nullptr) == 0);
         }
     }
 
