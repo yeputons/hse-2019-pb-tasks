@@ -1,6 +1,22 @@
 #!/usr/bin/env python3
 import io
+import re
+from typing import List
 import grep
+
+
+def test_get_pattern_1():
+    assert grep.get_pattern('h+i?', True) == re.compile('h+i?')
+
+
+def test_get_pattern_2():
+    assert grep.get_pattern('h+i?', False) == re.compile('h\\+i\\?')
+
+
+def test_file_to_lines():
+    data: List[str] = ['pref needle?\n', 'needle? suf\n', 'the needl\n', 'pref needle? suf']
+    assert grep.file_to_lines(data) == ['pref needle?', 'needle? suf',
+                                        'the needl', 'pref needle? suf']
 
 
 def test_integrate_stdin_grep(monkeypatch, capsys):
