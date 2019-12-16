@@ -138,7 +138,6 @@ TEST_SUITE("ThreadsafeQueue pops from multiple threads") {
               doctest::skip()) {  // TODO(2)
         ThreadsafeQueue q;
         threadsafe_queue_init(&q);
-
         for (int repeat = 0; repeat < REPEATS; repeat++) {
             for (int i = 0; i < 2 * ELEMENTS_PER_THREAD; i++) {
                 threadsafe_queue_push(&q, nullptr);
@@ -150,7 +149,6 @@ TEST_SUITE("ThreadsafeQueue pops from multiple threads") {
             REQUIRE(pthread_join(t2, nullptr) == 0);
             REQUIRE(pthread_join(t1, nullptr) == 0);
         }
-
         threadsafe_queue_destroy(&q);
     }
 }
