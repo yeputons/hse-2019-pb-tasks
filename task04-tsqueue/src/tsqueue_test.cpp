@@ -110,9 +110,9 @@ void *consumer(void *_q) {
 void *consumer_try(void *_q) {
     ThreadsafeQueue *q = static_cast<ThreadsafeQueue *>(_q);
     for (int i = 0; i < ELEMENTS_PER_THREAD; i++) {
-        static_cast<void>(q);
-        void *data;
+        void * data;
         REQUIRE(threadsafe_queue_try_pop(q, &data));
+        REQUIRE(data == nullptr);
     }
     return nullptr;
 }
@@ -121,16 +121,19 @@ TEST_SUITE("ThreadsafeQueue pops from multiple threads") {
     TEST_CASE("with threadsafe_queue_try_pop") {
         ThreadsafeQueue q;
         threadsafe_queue_init(&q);
+
         for (int repeat = 0; repeat < REPEATS; repeat++) {
             for (int i = 0; i < 2 * ELEMENTS_PER_THREAD; i++) {
                 threadsafe_queue_push(&q, nullptr);
             }
+
             pthread_t t1, t2;
             REQUIRE(pthread_create(&t1, nullptr, consumer_try, &q) == 0);
             REQUIRE(pthread_create(&t2, nullptr, consumer_try, &q) == 0);
             REQUIRE(pthread_join(t2, nullptr) == 0);
             REQUIRE(pthread_join(t1, nullptr) == 0);
         }
+
         threadsafe_queue_destroy(&q);
     }
 
@@ -138,6 +141,7 @@ TEST_SUITE("ThreadsafeQueue pops from multiple threads") {
               doctest::skip()) {  // TODO(2)
         ThreadsafeQueue q;
         threadsafe_queue_init(&q);
+
         for (int repeat = 0; repeat < REPEATS; repeat++) {
             for (int i = 0; i < 2 * ELEMENTS_PER_THREAD; i++) {
                 threadsafe_queue_push(&q, nullptr);
@@ -149,6 +153,7 @@ TEST_SUITE("ThreadsafeQueue pops from multiple threads") {
             REQUIRE(pthread_join(t2, nullptr) == 0);
             REQUIRE(pthread_join(t1, nullptr) == 0);
         }
+
         threadsafe_queue_destroy(&q);
     }
 }
