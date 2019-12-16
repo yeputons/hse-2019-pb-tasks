@@ -66,21 +66,21 @@ TEST_CASE("ThreadsafeQueue multithreaded ping-pong") {
     // 3. Поток `pinger` проверяет, что пришёл правильный адрес
     //    и что локальная переменная была увеличена.
     const int PING_PONGS = 100;
-    const int PASS_VALUE = 33;
 
     // Специальный синтаксис для объявления функции внутри функции.
     // (в общем случае это лямбда-функции/замыкания, но нам это неважно).
     auto pinger = [](void *_qs) -> void * {
         ThreadsafeQueue *qs = static_cast<ThreadsafeQueue *>(_qs);
+	    int pass_value = 33;
 
         for (int i = 0; i < PING_PONGS; i++) {
-            int ping_var = PASS_VALUE;
+            int ping_var = pass_value;
             threadsafe_queue_push(&(qs[0]), &ping_var);
             int *res = (int *)threadsafe_queue_wait_and_pop(&(qs[1]));
             REQUIRE(res == &ping_var);
-            REQUIRE(*res == PASS_VALUE + 1);
+            REQUIRE(*res == pass_value + 1);
             res = static_cast<int *>(res);
-          //  PASS_VALUE = (PASS_VALUE * 13 + 83) % (1e9 + 7);
+          	pass_value = (pass_value * 137 + 83) % (10007);
         }
         return nullptr;
     };
