@@ -25,6 +25,7 @@ class TicTacToeUserHandler(UserHandler):
             self.make_turn(players_signs[player_sign], row=int(row), col=int(column))
 
         except Exception:  # pylint: disable=W0703
+            self.send_message('Invalid turn')
             traceback.print_exc()
 
     def start_game(self) -> None:
@@ -41,6 +42,7 @@ class TicTacToeUserHandler(UserHandler):
             self.send_field()
             if self.game.is_finished():
                 winner = self.game.winner()
+                self.game = None
                 if winner is None:
                     self.send_message('Game is finished, draw')
                 else:
@@ -52,11 +54,11 @@ class TicTacToeUserHandler(UserHandler):
     def send_field(self) -> None:
         assert self.game
         str_of_game = ''
-        for i in range(3):
-            for j in range(3):
-                if self.game.field[i][j] is None:
+        for row in self.game.field:
+            for cell in row:
+                if cell is None:
                     str_of_game += '.'
                 else:
-                    str_of_game += 'X' if self.game.field[i][j] == Player.X else 'O'
+                    str_of_game += 'X' if cell == Player.X else 'O'
             str_of_game += '\n'
         self.send_message(str_of_game[:-1])
