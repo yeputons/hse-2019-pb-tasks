@@ -23,7 +23,7 @@ void threadsafe_queue_push(ThreadsafeQueue *q, void *data) {
 
     pthread_mutex_lock(&q->mutex);
     queue_push(&q->q, data);
-    pthread_cond_broadcast(&q->cond_empty);
+    pthread_cond_signal(&q->cond_empty);
     pthread_mutex_unlock(&q->mutex);
 }
 
