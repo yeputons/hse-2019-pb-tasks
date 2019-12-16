@@ -19,6 +19,7 @@ def test_x_wins(mocker: pytest_mock.MockFixture):
         mocker.call('XX.\n.O.\n...'),
         mocker.call('Invalid turn'),
         mocker.call('XX.\n.O.\n..O'),
+        mocker.call('XXX\n.O.\n..O'),
         mocker.call('Game is finished, X wins')
     ]
 
@@ -51,6 +52,7 @@ def test_draw(mocker: pytest_mock.MockFixture):
         mocker.call('OXO\nXO.\n..X'),
         mocker.call('OXO\nXO.\nX.X'),
         mocker.call('OXO\nXO.\nXOX'),
+        mocker.call('OXO\nXOX\nXOX'),
         mocker.call('Game is finished, draw'),
         mocker.call('Game is not started')
     ]
@@ -83,6 +85,7 @@ def test_o_wins(mocker: pytest_mock.MockFixture):
         mocker.call('Invalid turn'),
         mocker.call('XXO\nXO.\n...'),
         mocker.call('Invalid turn'),
+        mocker.call('XXO\nXO.\nO..'),
         mocker.call('Game is finished, O wins')
     ]
 
@@ -93,12 +96,14 @@ def test_invalid_turns(mocker: pytest_mock.MockFixture):
     bot.handle_message('Who')
     bot.handle_message('start')
     bot.handle_message('O 1 2')
-    bot.handle_message('X00')
-    bot.handle_message('X 1 3')
+    bot.handle_message('X 1 1')
+    bot.handle_message('X 1 1')
+    bot.handle_message('O 1 1')
     assert send_message.call_args_list == [
         mocker.call('Game is not started'),
         mocker.call('...\n...\n...'),
         mocker.call('Invalid turn'),
+        mocker.call('...\n.X.\n...'),
         mocker.call('Invalid turn'),
         mocker.call('Invalid turn')
     ]

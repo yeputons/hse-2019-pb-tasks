@@ -16,19 +16,10 @@ class TicTacToeUserHandler(UserHandler):
         elif self.game is None:
             self.send_message('Game is not started')
         else:
-            input_source = message.split()
-            if not len(input_source) == 3:
-                self.send_message('Invalid turn')
-                return
+            player, col, row = message.split()
 
-            if (not 0 <= int(input_source[1]) < 3) or (not 0 <= int(input_source[2]) < 3):
-                self.send_message('Invalid turn')
-                return
-
-            if self.game.can_make_turn(player=Player[input_source[0]],
-                                       row=int(input_source[1]), col=int(input_source[2])):
-                self.make_turn(player=Player[input_source[0]],
-                               row=int(input_source[1]), col=int(input_source[2]))
+            if self.game.can_make_turn(player=Player[player], row=int(row), col=int(col)):
+                self.make_turn(player=Player[player], row=int(row), col=int(col))
             else:
                 self.send_message('Invalid turn')
 
@@ -41,6 +32,7 @@ class TicTacToeUserHandler(UserHandler):
         """Обрабатывает ход игрока player в клетку (row, col)."""
         assert self.game
         self.game.make_turn(player=player, row=row, col=col)
+        self.send_field()
         if self.game.is_finished():
             winner = self.game.winner()
             if winner is None:
@@ -48,14 +40,11 @@ class TicTacToeUserHandler(UserHandler):
             else:
                 self.send_message(f'Game is finished, {winner.name} wins')
             self.game = None
-            return
-        else:
-            self.send_field()
 
     def send_field(self) -> None:
         """Отправляет пользователю сообщение с текущим состоянием игры."""
         assert self.game
         field = self.game.field
         message = '\n'.join([''.join([cell.name
-                                      if cell else '.' for cell in col]) for col in field])
+                                      if cell else '.' for cell in row]) for row in field])
         self.send_message(message)
