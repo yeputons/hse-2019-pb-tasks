@@ -7,7 +7,9 @@ class TicTacToeUserHandler(UserHandler):
     START_COMMAND = 'start'
     GAME_IS_NOT_STARTED = 'Game is not started'
     INVALID_TURN = 'Invalid turn'
-    GAME_FINISHED = 'Game is finished,'
+    GAME_FINISHED_X_WINS = 'Game finished, X wins'
+    GAME_FINISHED_O_WINS = 'Game finished, Y wins'
+    GAME_FINISHED_DRAW = 'Game finished, draw'
 
     def __init__(self, send_message: Callable[[str], None]) -> None:
         super(TicTacToeUserHandler, self).__init__(send_message)
@@ -20,10 +22,15 @@ class TicTacToeUserHandler(UserHandler):
         if self.game is None:
             self.send_message(self.GAME_IS_NOT_STARTED)
             return
+
         try:
             player, col, row = message.split(maxsplit=2)
-            self.make_turn(Player[player], row=int(row), col=int(col))
         except ValueError:
+            self.send_message(self.INVALID_TURN)
+            return
+        try:
+            self.make_turn(Player[player], row=int(row), col=int(col))
+        except (ValueError, KeyError):
             self.send_message(self.INVALID_TURN)
 
     def start_game(self) -> None:
@@ -41,9 +48,12 @@ class TicTacToeUserHandler(UserHandler):
         if self.game.is_finished():
             winner: Optional[Player] = self.game.winner()
             if winner is None:
-                self.send_message(f'{self.GAME_FINISHED} draw')
+                result = self.GAME_FINISHED_DRAW
+            elif winner.name == 'X':
+                result = self.GAME_FINISHED_X_WINS
             else:
-                self.send_message(f'{self.GAME_FINISHED} {winner.name} wins')
+                result = self.GAME_FINISHED_O_WINS
+            self.send_message(result)
             self.game = None
 
     def send_field(self) -> None:
