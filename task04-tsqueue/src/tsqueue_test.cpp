@@ -147,7 +147,7 @@ TEST_SUITE("ThreadsafeQueue pops from multiple threads") {
         threadsafe_queue_destroy(&q);
     }
 
-    TEST_CASE("with threadsafe_queue_wait_and_pop") { 
+    TEST_CASE("with threadsafe_queue_wait_and_pop") {
         ThreadsafeQueue q;
         threadsafe_queue_init(&q);
 
