@@ -19,6 +19,11 @@ def test_unit_full_match():
     assert fm_matcher('abc', 'abc')
     assert fm_matcher('', '')
     assert not fm_matcher('aaaa', 'aaba')
+    assert fm_matcher('AAA', 'AAA')
+    assert not fm_matcher('a', '')
+    assert fm_matcher('123abc123', '123abc123')
+    assert not fm_matcher('123abc123', '123ac123')
+    assert not fm_matcher('123ac123', '123abc123')
 
 
 def test_integrate_regex_full_match():
