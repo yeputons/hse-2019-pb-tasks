@@ -115,7 +115,7 @@ def test_start_in_the_middle(mocker: pytest_mock.MockFixture) -> None:
     bot.handle_message('O 1 1')
     bot.handle_message('start')
     bot.handle_message('start')
-    bot.handle_message('O 1 1')
+    bot.handle_message('X 1 1')
     assert send_message.call_args_list == [
         mocker.call('...\n...\n...'),
         mocker.call('X..\n...\n...'),
@@ -124,35 +124,4 @@ def test_start_in_the_middle(mocker: pytest_mock.MockFixture) -> None:
         mocker.call('...\n.O.\n..X'),
         mocker.call('...\n...\n...'),
         mocker.call('...\n...\n...'),
-        mocker.call('Invalid turn')]
-
-
-def test_invalid_turns_in_the_middle(mocker: pytest_mock.MockFixture) -> None:
-    send_message = mocker.stub(name='send_message_stub')
-    bot = TicTacToeUserHandler(send_message)
-    bot.handle_message('start')
-    bot.handle_message('X 0 0')
-    bot.handle_message('O 1 1')
-    bot.handle_message('X 1 0')
-    bot.handle_message('X 0 0')
-    bot.handle_message('O 2 0')
-    bot.handle_message('X 0 2')
-    bot.handle_message('O 0 1')
-    bot.handle_message('X 2 1')
-    bot.handle_message('O 1 2')
-    bot.handle_message('O 2 0')
-    bot.handle_message('X 2 2')
-    assert send_message.call_args_list == [
-        mocker.call('...\n...\n...'),
-        mocker.call('X..\n...\n...'),
-        mocker.call('X..\n.O.\n...'),
-        mocker.call('XX.\n.O.\n...'),
-        mocker.call('Invalid turn'),
-        mocker.call('XXO\n.O.\n...'),
-        mocker.call('XXO\n.O.\nX..'),
-        mocker.call('XXO\nOO.\nX..'),
-        mocker.call('XXO\nOOX\nX..'),
-        mocker.call('XXO\nOOX\nXO.'),
-        mocker.call('Invalid turn'),
-        mocker.call('XXO\nOOX\nXOX'),
-        mocker.call('Game is finished, draw')]
+        mocker.call('...\n.X.\n...')]
