@@ -40,7 +40,7 @@ def print_count(filename: str, match: List[str], single_file: bool) -> None:
 
 
 def print_filenames(filename: str, match: List[str], rev: bool) -> None:
-    if rev ^ (len(match) > 0):
+    if not rev and bool(match) or rev and not bool(match):
         print(filename)
 
 
