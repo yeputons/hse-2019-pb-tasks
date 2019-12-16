@@ -19,12 +19,8 @@ def regex_search(needle: str,
 def single_grep(needle: str,
                 strings: List[str],
                 search_function: Callable[[str, str, bool, bool], bool],
-                regex: bool = False,
                 ignore_case: bool = False,
                 exact: bool = False) -> List[str]:
-    if not regex:
-        needle = re.escape(needle)
-
     return list(
         filter(lambda line: search_function(needle, line, exact, ignore_case),
                strings))
@@ -49,8 +45,9 @@ def print_answers(answers: List[List[str]], args: argparse.Namespace):
         assert len(args.files) > 0
         assert not (args.line_exists and args.line_not_exists)
         for filename, answer in zip(args.files, answers):
-            file_matches = args.line_exists and len(answer) > 0
-            file_matches |= args.line_not_exists and len(answer) == 0
+            file_matches = args.line_exists and len(answer) > 0 \
+                           or                                   \
+                           args.line_not_exists and len(answer) == 0
             if file_matches:
                 print(filename)
     else:
@@ -81,14 +78,17 @@ def main(args_str: List[str]):
     parser = create_parser()
     args = parser.parse_args(args_str)
 
+    if not args.regex:
+        args.needle = re.escape(args.needle)
+
     search_function: Callable[[str, str, bool, bool], bool] = \
         lambda *ar: not regex_search(*ar) if args.invert else regex_search(*ar)
 
     inputs = read_input(args.files)
 
     answers = [
-        single_grep(args.needle, input, search_function, args.regex,
-                    args.ignore_case, args.exact) for input in inputs
+        single_grep(args.needle, input, search_function, args.ignore_case,
+                    args.exact) for input in inputs
     ]
 
     if args.count:

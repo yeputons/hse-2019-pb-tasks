@@ -2,6 +2,16 @@
 import grep
 
 
+def test_integrate_regex_symbols(tmp_path, monkeypatch, capsys):
+    (tmp_path / 'a.txt').write_text('!!!.*.?!!!')
+    (tmp_path / 'b.txt').write_text('aeouaeou')
+    monkeypatch.chdir(tmp_path)
+    grep.main(['.*.?', 'b.txt', 'a.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'a.txt:!!!.*.?!!!\n'
+
+
 def test_integrate_empty_result(tmp_path, monkeypatch, capsys):
     (tmp_path / 'a.txt').write_text('hihihi')
     (tmp_path / 'b.txt').write_text('byebyebye')
@@ -10,6 +20,26 @@ def test_integrate_empty_result(tmp_path, monkeypatch, capsys):
     out, err = capsys.readouterr()
     assert err == ''
     assert out == ''
+
+
+def test_integrate_empty_everything(tmp_path, monkeypatch, capsys):
+    (tmp_path / 'a.txt').write_text('')
+    (tmp_path / 'b.txt').write_text('')
+    monkeypatch.chdir(tmp_path)
+    grep.main(['', 'b.txt', 'a.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == ''
+
+
+def test_integrate_empty_string(tmp_path, monkeypatch, capsys):
+    (tmp_path / 'a.txt').write_text('hi\nhi\n')
+    (tmp_path / 'b.txt').write_text('bye')
+    monkeypatch.chdir(tmp_path)
+    grep.main(['', 'b.txt', 'a.txt'])
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'b.txt:bye\na.txt:hi\na.txt:hi\n'
 
 
 def test_integrate_ignorecase_exact(tmp_path, monkeypatch, capsys):

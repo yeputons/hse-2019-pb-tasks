@@ -4,29 +4,31 @@ import grep
 
 
 def test_normal_search():
-    assert grep.single_grep('i', ['hi'], grep.regex_search, False) == ['hi']
-    assert grep.single_grep('i', ['hi'], grep.regex_search, False) == ['hi']
-    assert grep.single_grep('i', ['hi', 'hi'], grep.regex_search,
-                            False) == ['hi', 'hi']
-    assert grep.single_grep('a', [''], grep.regex_search, False) == []
+    assert grep.single_grep('i', ['hi'], grep.regex_search) == ['hi']
+    assert grep.single_grep('i', ['hi'], grep.regex_search) == ['hi']
+    assert grep.single_grep('i', ['hi', 'hi'],
+                            grep.regex_search) == ['hi', 'hi']
+    assert grep.single_grep('a', [''], grep.regex_search) == []
+    assert grep.single_grep('\\.\\*', ['.*'], grep.regex_search) == ['.*']
+    assert grep.single_grep('\\.\\*', ['hi'], grep.regex_search) == []
 
 
 def test_regex_search():
-    assert grep.single_grep('i', ['hi'], grep.regex_search, True) == ['hi']
-    assert grep.single_grep('i', ['hi'], grep.regex_search, True) == ['hi']
-    assert grep.single_grep('i', ['hi', 'hi'], grep.regex_search,
-                            True) == ['hi', 'hi']
-    assert grep.single_grep('a', [''], grep.regex_search,
-                            True) == []  # File has 0 lines
-    assert grep.single_grep('.*', [''], grep.regex_search,
-                            True) == ['']  # File has 0 lines
-    assert grep.single_grep('.*', [' '], grep.regex_search,
-                            True) == [' ']  # File has 1 line
-    assert grep.single_grep('.*', ['hi'], grep.regex_search, True) == ['hi']
+    assert grep.single_grep('i', ['hi'], grep.regex_search) == ['hi']
+    assert grep.single_grep('i', ['hi'], grep.regex_search) == ['hi']
+    assert grep.single_grep('i', ['hi', 'hi'],
+                            grep.regex_search) == ['hi', 'hi']
+    assert grep.single_grep('a', [''],
+                            grep.regex_search) == []  # File has 0 lines
+    assert grep.single_grep('.*', [''],
+                            grep.regex_search) == ['']  # File has 0 lines
+    assert grep.single_grep('.*', [' '],
+                            grep.regex_search) == [' ']  # File has 1 line
+    assert grep.single_grep('.*', ['hi'], grep.regex_search) == ['hi']
 
 
 def test_single_grep():
-    def search_hi(_, y, __: bool = False, exact: bool = False):
+    def search_hi(_, y, __, exact: bool = False):
         if exact:
             return y == 'hi'
         else:
