@@ -125,8 +125,8 @@ def test_tictactoe_user_hander_multiple_games(mocker: pytest_mock.MockFixture
     ]
 
 
-def test_ticktactoe_user_hadler_invalid_turns_1(mocker: pytest_mock.MockFixture
-                                                ) -> None:
+def test_ticktactoe_user_hadler_invalid_turns_while_making_turn(
+        mocker: pytest_mock.MockFixture) -> None:
     send_message = mocker.stub(name='send_message_stub')
     bot = TicTacToeUserHandler(send_message)
     bot.handle_message('aavbb')
@@ -153,8 +153,8 @@ def test_ticktactoe_user_hadler_invalid_turns_1(mocker: pytest_mock.MockFixture
     ]
 
 
-def test_ticktactoe_user_hadler_invalid_turns_2(mocker: pytest_mock.MockFixture
-                                                ) -> None:
+def test_ticktactoe_user_hadler_invalid_turns_while_parsing(
+        mocker: pytest_mock.MockFixture) -> None:
     send_message = mocker.stub(name='send_message_stub')
     bot = TicTacToeUserHandler(send_message)
     bot.handle_message('start')
