@@ -76,7 +76,7 @@ TEST_CASE("ThreadsafeQueue multithreaded ping-pong") {
         for (int i = 0; i < PING_PONGS; i++) {
             int ping_var = pass_value;
             threadsafe_queue_push(&(qs[0]), &ping_var);
-            int *res = (int *)threadsafe_queue_wait_and_pop(&(qs[1]));
+            int *res = static_cast<int*>(threadsafe_queue_wait_and_pop(&(qs[1])));
             REQUIRE(res == &ping_var);
             REQUIRE(*res == pass_value + 1);
           	pass_value = (pass_value * 137 + 83) % (10007);
