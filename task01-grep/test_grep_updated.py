@@ -44,6 +44,10 @@ def test_integrate_regex_ignore_case():
     assert matcher('helloaaaBbbdddd', 'a*b*')
     assert not matcher('AaAbBb', 'a*b*C')
     assert matcher('aaaAbbbCCCCCcccc', 'a*b*C*')
+    assert matcher('heLlo', 'Hel*o[0-9]*')
+    assert matcher('hel[a-z]loaaaBbbdddd', 'a*b*')
+    assert not matcher('', 'a*b*C[a-v][0-9]')
+    assert matcher('aaaAbbbCCCCCcccc', '')
 
 
 def test_integrate_regex_full_match_ignore_case():
