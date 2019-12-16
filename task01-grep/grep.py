@@ -62,7 +62,7 @@ def select_matcher(pattern_regex: bool,
                    pattern_reverse_result: bool) -> Callable[[str, str], bool]:
     def match_function(string: str, pattern: str) -> bool:
         pattern = pattern if pattern_regex else re.escape(pattern)
-        ignore_case = re.IGNORECASE if pattern_ignore_case else False
+        ignore_case = re.IGNORECASE if pattern_ignore_case else 0
         if pattern_full_match:
             result = bool(re.fullmatch(pattern, string, flags=ignore_case))
         else:
