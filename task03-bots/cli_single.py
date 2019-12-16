@@ -9,7 +9,7 @@ def send_message(message: str) -> None:
 
 
 def main() -> None:
-    bot = AlarmUserHandler(send_message=send_message)
+    bot = AlarmUserHandler(send_message=print)
     for line in sys.stdin:
         try:
             message = line.rstrip('\n')

@@ -24,7 +24,7 @@ def test_start(mocker: MockFixture) -> None:
         ]
 
 
-def test_good_day_for_o_player(mocker: MockFixture) -> None:
+def test_winner_o(mocker: MockFixture) -> None:
     send_message = mocker.stub(name='send_message_stub')
     bot = TicTacToeUserHandler(send_message)
     bot.handle_message('start')
@@ -46,7 +46,7 @@ def test_good_day_for_o_player(mocker: MockFixture) -> None:
         mocker.call('Game is finished, O wins')]
 
 
-def test_good_day_for_x_player(mocker: MockFixture) -> None:
+def test_winner_x(mocker: MockFixture) -> None:
     send_message = mocker.stub(name='send_message_stub')
     bot = TicTacToeUserHandler(send_message)
     bot.handle_message('start')
@@ -94,7 +94,7 @@ def test_draw(mocker: MockFixture) -> None:
         mocker.call('Game is finished, draw')]
 
 
-def test_invalid_players(mocker: MockFixture) -> None:
+def test_invalid_turns(mocker: MockFixture) -> None:
     send_message = mocker.stub(name='send_message_stub')
     bot = TicTacToeUserHandler(send_message)
     bot.handle_message('start')

@@ -46,7 +46,6 @@ class TicTacToeUserHandler(UserHandler):
 
     def send_field(self) -> None:
         assert self.game
-        flat_field = [col.name if col else '.' for row in self.game.field for col in row]
-        flat_devided_field = [''.join(flat_field[i:i+3]) for i in range(0, len(flat_field), 3)]
-        field = '\n'.join(flat_devided_field)
+        field = '\n'.join([''.join([
+            cell.name if cell else '.' for cell in row]) for row in self.game.field])
         self.send_message(field)
