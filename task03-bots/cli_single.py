@@ -9,7 +9,7 @@ def send_message(message: str) -> None:
 
 
 def main() -> None:
-    bot = TicTacToeUserHandler(send_message=send_message)
+    bot = TicTacToeUserHandler(send_message=print)
     for line in sys.stdin:
         line = line.rstrip('\n')
         try:

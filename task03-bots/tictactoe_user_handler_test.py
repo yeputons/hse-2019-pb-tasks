@@ -15,15 +15,23 @@ def create_list_of_calls(mocker: pytest_mock.MockFixture, calls: List[str]) -> L
 def test_game_not_started(mocker: pytest_mock.MockFixture) -> None:
     send_message = mocker.stub(name='send_message_stub')
     bot = TicTacToeUserHandler(send_message)
-    send_messages(bot, ['start please', ':(', 'X wins!'])
-    assert send_message.call_args_list == [mocker.call('Game is not started')] * 3
+
+    number_incorrect_turn_queries = 7
+
+    send_messages(bot, ['start please'] * number_incorrect_turn_queries)
+    assert (send_message.call_args_list ==
+            [mocker.call('Game is not started')] * number_incorrect_turn_queries)
 
 
 def test_many_starts(mocker: pytest_mock.MockFixture) -> None:
     send_message = mocker.stub(name='send_message_stub')
     bot = TicTacToeUserHandler(send_message)
-    send_messages(bot, ['start'] * 4)
-    assert send_message.call_args_list == [mocker.call('...\n...\n...')] * 4
+
+    number_start_queries = 5
+
+    send_messages(bot, ['start'] * number_start_queries)
+    assert (send_message.call_args_list ==
+            [mocker.call('...\n...\n...')] * number_start_queries)
 
 
 def test_many_invalid_turns(mocker: pytest_mock.MockFixture) -> None:
@@ -129,7 +137,7 @@ def test_draw_finished(mocker: pytest_mock.MockFixture) -> None:
     ])
 
 
-def test_check_starts_in_the_middle(mocker: pytest_mock.MockFixture) -> None:
+def test_check_starts__and_invalid_turn_in_the_middle(mocker: pytest_mock.MockFixture) -> None:
     send_message = mocker.stub(name='send_message_stub')
     bot = TicTacToeUserHandler(send_message)
     send_messages(bot, [
@@ -153,23 +161,4 @@ def test_check_starts_in_the_middle(mocker: pytest_mock.MockFixture) -> None:
         '...\n...\n...',
         '...\n...\n...',
         'Invalid turn',
-    ])
-
-
-def test_wrong_marks(mocker: pytest_mock.MockFixture) -> None:
-    send_message = mocker.stub(name='send_message_stub')
-    bot = TicTacToeUserHandler(send_message)
-    send_messages(bot, [
-        'start',
-        'X 1 1',
-        'Z 0 0',
-        'O 0 0',
-        'F 2 1'
-    ])
-    assert send_message.call_args_list == create_list_of_calls(mocker, [
-        '...\n...\n...',
-        '...\n.X.\n...',
-        'Invalid turn',
-        'O..\n.X.\n...',
-        'Invalid turn'
     ])
