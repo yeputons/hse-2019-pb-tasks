@@ -11,7 +11,6 @@ class TicTacToeUserHandler(UserHandler):
 
     def handle_message(self, message: str) -> None:
         """Обрабатывает очередное сообщение от пользователя."""
-        message = message.rstrip('\n')
         if message == 'start':
             self.start_game()
             return
@@ -39,11 +38,11 @@ class TicTacToeUserHandler(UserHandler):
     def make_turn(self, player: Player, *, row: int, col: int) -> None:
         """Обрабатывает ход игрока player в клетку (row, col)."""
         assert self.game
-        if self.game.can_make_turn(player, row=row, col=col):
-            self.game.make_turn(player, row=row, col=col)
-            self.send_field()
-        else:
+        if not self.game.can_make_turn(player, row=row, col=col):
             self.send_message('Invalid turn')
+            return
+        self.game.make_turn(player, row=row, col=col)
+        self.send_field()
         if self.game.is_finished():
             self.finish_game()
 
