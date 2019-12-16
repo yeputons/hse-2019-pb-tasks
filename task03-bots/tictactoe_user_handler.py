@@ -28,15 +28,14 @@ class TicTacToeUserHandler(UserHandler):
         assert self.game
         if self.game.can_make_turn(player, row=row, col=col):
             self.game.make_turn(player, row=row, col=col)
+            self.send_field()
             if self.game.winner():
                 self.send_message('Game is finished, ' + player.name + ' wins')
             else:
-                self.send_field()
+                if self.game.is_finished():
+                    self.send_message('Game is finished, draw')
         else:
-            if self.game.is_finished():
-                self.send_message('Game is finished, draw')
-            else:
-                self.send_message('Invalid turn')
+            self.send_message('Invalid turn')
 
     def send_field(self) -> None:
         assert self.game
