@@ -86,6 +86,10 @@ def test_tictactoe_user_hander_correct_start(mocker: pytest_mock.MockFixture) ->
     bot.handle_message('O 2 0')
     bot.handle_message('O 2 0')
     bot.handle_message('X 2 2')
+    bot.handle_message('start')
+    bot.handle_message('X 0 0')
+    bot.handle_message('start')
+    bot.handle_message('X 0 0')
     assert send_message.call_args_list == [
         mocker.call('Game is not started'),
         mocker.call('Game is not started'),
@@ -98,7 +102,11 @@ def test_tictactoe_user_hander_correct_start(mocker: pytest_mock.MockFixture) ->
         mocker.call('X.O\nXO.\nO.X'),
         mocker.call('Game is finished, O wins'),
         mocker.call('Game is not started'),
-        mocker.call('Game is not started')
+        mocker.call('Game is not started'),
+        mocker.call('...\n...\n...'),
+        mocker.call('X..\n...\n...'),
+        mocker.call('...\n...\n...'),
+        mocker.call('X..\n...\n...')
     ]
 
 
@@ -112,7 +120,6 @@ def test_tictactoe_user_hander_invalid_turn(mocker: pytest_mock.MockFixture) -> 
     bot.handle_message('X 0 1')
     bot.handle_message('O 1 1')
     bot.handle_message('X 1 1')
-    bot.handle_message('X 0 2')
     assert send_message.call_args_list == [
         mocker.call('...\n...\n...'),
         mocker.call('X..\n...\n...'),
@@ -121,6 +128,4 @@ def test_tictactoe_user_hander_invalid_turn(mocker: pytest_mock.MockFixture) -> 
         mocker.call('XO.\nX..\n...'),
         mocker.call('XO.\nXO.\n...'),
         mocker.call('Invalid turn'),
-        mocker.call('XO.\nXO.\nX..'),
-        mocker.call('Game is finished, X wins'),
     ]

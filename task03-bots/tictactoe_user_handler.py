@@ -5,7 +5,6 @@ from tictactoe import Player, TicTacToe
 
 class TicTacToeUserHandler(UserHandler):
     """Реализация логики бота для игры в крестики-нолики с одним пользователем."""
-
     def __init__(self, send_message: Callable[[str], None]) -> None:
         super(TicTacToeUserHandler, self).__init__(send_message)
         self.game: Optional[TicTacToe] = None
@@ -19,8 +18,7 @@ class TicTacToeUserHandler(UserHandler):
             self.send_message('Game is not started')
             return
         player, col, row = message.split()
-        players = {'X': Player.X, 'O': Player.O}
-        self.make_turn(player=players[player], row=int(row), col=int(col))
+        self.make_turn(player=Player[player], row=int(row), col=int(col))
 
     def start_game(self) -> None:
         """Начинает новую игру в крестики-нолики и сообщает об этом пользователю."""
