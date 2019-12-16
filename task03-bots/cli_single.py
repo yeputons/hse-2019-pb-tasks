@@ -4,10 +4,6 @@ import traceback
 from alarm_user_handler import AlarmUserHandler
 
 
-def send_message(message: str) -> None:
-    print(message)
-
-
 def main() -> None:
     # noinspection PyTypeChecker
     bot = AlarmUserHandler(send_message=print)

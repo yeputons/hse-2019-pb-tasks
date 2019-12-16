@@ -8,7 +8,6 @@ def test_tictactoe_win_x(mocker: pytest_mock.MockFixture) -> None:
     bot.handle_message('start')
     bot.handle_message('X 1 1')
     bot.handle_message('O 2 0')
-    bot.handle_message('O 1 0')
     bot.handle_message('X 1 0')
     bot.handle_message('O 0 2')
     bot.handle_message('X 1 2')
@@ -16,7 +15,6 @@ def test_tictactoe_win_x(mocker: pytest_mock.MockFixture) -> None:
         mocker.call('...\n...\n...'),
         mocker.call('...\n.X.\n...'),
         mocker.call('..O\n.X.\n...'),
-        mocker.call('Invalid turn'),
         mocker.call('.XO\n.X.\n...'),
         mocker.call('.XO\n.X.\nO..'),
         mocker.call('.XO\n.X.\nOX.'),
@@ -30,7 +28,6 @@ def test_tictactoe_win_o(mocker: pytest_mock.MockFixture) -> None:
     bot.handle_message('start')
     bot.handle_message('X 0 0')
     bot.handle_message('O 2 0')
-    bot.handle_message('O 1 0')
     bot.handle_message('X 1 0')
     bot.handle_message('O 2 1')
     bot.handle_message('X 1 1')
@@ -39,7 +36,6 @@ def test_tictactoe_win_o(mocker: pytest_mock.MockFixture) -> None:
         mocker.call('...\n...\n...'),
         mocker.call('X..\n...\n...'),
         mocker.call('X.O\n...\n...'),
-        mocker.call('Invalid turn'),
         mocker.call('XXO\n...\n...'),
         mocker.call('XXO\n..O\n...'),
         mocker.call('XXO\n.XO\n...'),
@@ -76,20 +72,29 @@ def test_tictactoe_draw(mocker: pytest_mock.MockFixture) -> None:
     ]
 
 
-def test_tictactoe_invalid_not_started(mocker: pytest_mock.MockFixture) -> None:
+def test_tictactoe_invalid(mocker: pytest_mock.MockFixture) -> None:
     send_message = mocker.stub(name='send_message_stub')
     bot = TicTacToeUserHandler(send_message)
-    bot.handle_message('hello')
     bot.handle_message('start')
     bot.handle_message('X 0 0')
     bot.handle_message('O 0 0')
     bot.handle_message('O 2 0')
     bot.handle_message('O 0 1')
     assert send_message.call_args_list == [
-        mocker.call('Game is not started'),
         mocker.call('...\n...\n...'),
         mocker.call('X..\n...\n...'),
         mocker.call('Invalid turn'),
         mocker.call('X.O\n...\n...'),
         mocker.call('Invalid turn'),
+    ]
+
+
+def test_tictactoe_not_started(mocker: pytest_mock.MockFixture) -> None:
+    send_message = mocker.stub(name='send_message_stub')
+    bot = TicTacToeUserHandler(send_message)
+    bot.handle_message('hello')
+    bot.handle_message('start')
+    assert send_message.call_args_list == [
+        mocker.call('Game is not started'),
+        mocker.call('...\n...\n...'),
     ]
