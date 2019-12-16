@@ -13,7 +13,7 @@ extern "C" {
 struct ThreadsafeQueue {
     Queue q;
     pthread_mutex_t mutex_work;
-    pthread_cond_t cond_start_working_cause_queue_is_not_empty;
+    pthread_cond_t cond_start_cause_queue_is_not_empty;
 };
 
 /**
