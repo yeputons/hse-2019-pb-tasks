@@ -17,7 +17,7 @@ class TicTacToeUserHandler(UserHandler):
             self.send_message('Game is not started')
             return
         try:
-            symbol, col, row = message.split(maxsplit=2)
+            symbol, col, row = message.split()
             self.make_turn(Player.X if symbol == 'X' else Player.O, row=int(row), col=int(col))
         except Exception:  # pylint: disable=W0703
             self.send_message('Invalid turn')
@@ -47,13 +47,16 @@ class TicTacToeUserHandler(UserHandler):
         assert self.game
         if self.game is not None:
             field = ''
+            count = 0
             for row in self.game.field:
-                for col in row:
-                    if col == Player.X:
+                for cell in row:
+                    if cell == Player.X:
                         field += 'X'
-                    elif col == Player.O:
+                    elif cell == Player.O:
                         field += 'O'
                     else:
                         field += '.'
-                field += '\n'
+                count += 1
+                if count < 3:
+                    field += '\n'
             self.send_message(field)
