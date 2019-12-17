@@ -1,14 +1,12 @@
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
-#include "doctest.h"
 #include "tsqueue.h"
+#include "doctest.h"
 
 const int ELEMENTS_PER_THREAD = 100 * 1000;
 const int REPEATS = 3;
 
-TEST_SUITE("ThreadsafeQueue works like Queue in a single thread")
-{
-    TEST_CASE("with threadsafe_queue_try_pop")
-    {
+TEST_SUITE("ThreadsafeQueue works like Queue in a single thread") {
+    TEST_CASE("with threadsafe_queue_try_pop") {
         ThreadsafeQueue q;
         threadsafe_queue_init(&q);
 
@@ -34,8 +32,7 @@ TEST_SUITE("ThreadsafeQueue works like Queue in a single thread")
         threadsafe_queue_destroy(&q);
     }
 
-    TEST_CASE("with threadsafe_queue_wait_and_pop")
-    {
+    TEST_CASE("with threadsafe_queue_wait_and_pop") {
         ThreadsafeQueue q;
         threadsafe_queue_init(&q);
 
@@ -54,8 +51,7 @@ TEST_SUITE("ThreadsafeQueue works like Queue in a single thread")
     }
 }
 
-TEST_CASE("ThreadsafeQueue multithreaded ping-pong")
-{
+TEST_CASE("ThreadsafeQueue multithreaded ping-pong") {
     ThreadsafeQueue qs[2];
     threadsafe_queue_init(&qs[0]);
     threadsafe_queue_init(&qs[1]);
@@ -75,11 +71,11 @@ TEST_CASE("ThreadsafeQueue multithreaded ping-pong")
     // (в общем случае это лямбда-функции/замыкания, но нам это неважно).
     auto pinger = [](void *_qs) -> void * {
         ThreadsafeQueue *qs = static_cast<ThreadsafeQueue *>(_qs);
-        for (int i = 0; i < PING_PONGS; ++i)
-        {
+        for (int i = 0; i < PING_PONGS; ++i) {
             int data = i;
             threadsafe_queue_push(&qs[0], &data);
-            int *new_data = static_cast<int *>(threadsafe_queue_wait_and_pop(&qs[1]));
+            int *new_data =
+                static_cast<int *>(threadsafe_queue_wait_and_pop(&qs[1]));
             REQUIRE(&data == new_data);
             REQUIRE(data == i + 1);
         }
@@ -88,9 +84,9 @@ TEST_CASE("ThreadsafeQueue multithreaded ping-pong")
 
     auto ponger = [](void *_qs) -> void * {
         ThreadsafeQueue *qs = static_cast<ThreadsafeQueue *>(_qs);
-        for (int i = 0; i < PING_PONGS; ++i)
-        {
-            int *data = static_cast<int *>(threadsafe_queue_wait_and_pop(&qs[0]));
+        for (int i = 0; i < PING_PONGS; ++i) {
+            int *data =
+                static_cast<int *>(threadsafe_queue_wait_and_pop(&qs[0]));
             (*data)++;
             threadsafe_queue_push(&qs[1], data);
         }
@@ -107,31 +103,25 @@ TEST_CASE("ThreadsafeQueue multithreaded ping-pong")
     threadsafe_queue_destroy(&qs[0]);
 }
 
-void *producer(void *_q)
-{
+void *producer(void *_q) {
     ThreadsafeQueue *q = static_cast<ThreadsafeQueue *>(_q);
-    for (int i = 0; i < ELEMENTS_PER_THREAD; i++)
-    {
+    for (int i = 0; i < ELEMENTS_PER_THREAD; i++) {
         threadsafe_queue_push(q, nullptr);
     }
     return nullptr;
 }
 
-void *consumer(void *_q)
-{
+void *consumer(void *_q) {
     ThreadsafeQueue *q = static_cast<ThreadsafeQueue *>(_q);
-    for (int i = 0; i < ELEMENTS_PER_THREAD; i++)
-    {
+    for (int i = 0; i < ELEMENTS_PER_THREAD; i++) {
         REQUIRE(threadsafe_queue_wait_and_pop(q) == nullptr);
     }
     return nullptr;
 }
 
-void *consumer_try(void *_q)
-{
+void *consumer_try(void *_q) {
     ThreadsafeQueue *q = static_cast<ThreadsafeQueue *>(_q);
-    for (int i = 0; i < ELEMENTS_PER_THREAD; i++)
-    {
+    for (int i = 0; i < ELEMENTS_PER_THREAD; i++) {
         void *data;
         REQUIRE(threadsafe_queue_try_pop(q, &data));
         REQUIRE(data == nullptr);
@@ -139,17 +129,13 @@ void *consumer_try(void *_q)
     return nullptr;
 }
 
-TEST_SUITE("ThreadsafeQueue pops from multiple threads")
-{
-    TEST_CASE("with threadsafe_queue_try_pop")
-    {
+TEST_SUITE("ThreadsafeQueue pops from multiple threads") {
+    TEST_CASE("with threadsafe_queue_try_pop") {
         ThreadsafeQueue q;
         threadsafe_queue_init(&q);
 
-        for (int repeat = 0; repeat < REPEATS; repeat++)
-        {
-            for (int i = 0; i < 2 * ELEMENTS_PER_THREAD; i++)
-            {
+        for (int repeat = 0; repeat < REPEATS; repeat++) {
+            for (int i = 0; i < 2 * ELEMENTS_PER_THREAD; i++) {
                 threadsafe_queue_push(&q, nullptr);
             }
 
@@ -162,15 +148,12 @@ TEST_SUITE("ThreadsafeQueue pops from multiple threads")
         threadsafe_queue_destroy(&q);
     }
 
-    TEST_CASE("with threadsafe_queue_wait_and_pop")
-    {
+    TEST_CASE("with threadsafe_queue_wait_and_pop") {
         ThreadsafeQueue q;
         threadsafe_queue_init(&q);
 
-        for (int repeat = 0; repeat < REPEATS; repeat++)
-        {
-            for (int i = 0; i < 2 * ELEMENTS_PER_THREAD; i++)
-            {
+        for (int repeat = 0; repeat < REPEATS; repeat++) {
+            for (int i = 0; i < 2 * ELEMENTS_PER_THREAD; i++) {
                 threadsafe_queue_push(&q, nullptr);
             }
 
@@ -185,21 +168,18 @@ TEST_SUITE("ThreadsafeQueue pops from multiple threads")
     }
 }
 
-TEST_CASE("ThreadsafeQueue pushes from multiple threads")
-{
+TEST_CASE("ThreadsafeQueue pushes from multiple threads") {
     ThreadsafeQueue q;
     threadsafe_queue_init(&q);
 
-    for (int repeat = 0; repeat < REPEATS; repeat++)
-    {
+    for (int repeat = 0; repeat < REPEATS; repeat++) {
         pthread_t t1, t2;
         REQUIRE(pthread_create(&t1, nullptr, producer, &q) == 0);
         REQUIRE(pthread_create(&t2, nullptr, producer, &q) == 0);
         REQUIRE(pthread_join(t2, nullptr) == 0);
         REQUIRE(pthread_join(t1, nullptr) == 0);
 
-        for (int i = 0; i < 2 * ELEMENTS_PER_THREAD; i++)
-        {
+        for (int i = 0; i < 2 * ELEMENTS_PER_THREAD; i++) {
             REQUIRE(threadsafe_queue_wait_and_pop(&q) == nullptr);
         }
     }
@@ -207,15 +187,12 @@ TEST_CASE("ThreadsafeQueue pushes from multiple threads")
     threadsafe_queue_destroy(&q);
 }
 
-TEST_CASE("ThreadsafeQueue pops from multiple threads")
-{
+TEST_CASE("ThreadsafeQueue pops from multiple threads") {
     ThreadsafeQueue q;
     threadsafe_queue_init(&q);
 
-    for (int repeat = 0; repeat < REPEATS; repeat++)
-    {
-        for (int i = 0; i < 2 * ELEMENTS_PER_THREAD; i++)
-        {
+    for (int repeat = 0; repeat < REPEATS; repeat++) {
+        for (int i = 0; i < 2 * ELEMENTS_PER_THREAD; i++) {
             threadsafe_queue_push(&q, nullptr);
         }
 
@@ -229,23 +206,19 @@ TEST_CASE("ThreadsafeQueue pops from multiple threads")
     threadsafe_queue_destroy(&q);
 }
 
-TEST_CASE("ThreadsafeQueue pushes and pops from multiple threads")
-{
+TEST_CASE("ThreadsafeQueue pushes and pops from multiple threads") {
     ThreadsafeQueue q;
     threadsafe_queue_init(&q);
 
     const int THREADS = 5;
 
-    for (int repeat = 0; repeat < REPEATS; repeat++)
-    {
+    for (int repeat = 0; repeat < REPEATS; repeat++) {
         pthread_t prods[THREADS], cons[THREADS];
-        for (int i = 0; i < THREADS; i++)
-        {
+        for (int i = 0; i < THREADS; i++) {
             REQUIRE(pthread_create(&prods[i], nullptr, producer, &q) == 0);
             REQUIRE(pthread_create(&cons[i], nullptr, consumer, &q) == 0);
         }
-        for (int i = THREADS - 1; i >= 0; i--)
-        {
+        for (int i = THREADS - 1; i >= 0; i--) {
             REQUIRE(pthread_join(prods[i], nullptr) == 0);
             REQUIRE(pthread_join(cons[i], nullptr) == 0);
         }
