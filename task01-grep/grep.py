@@ -6,6 +6,7 @@ import argparse
 
 
 <<<<<<< HEAD
+# Please remove this comment. This is a debug line added by @yeputons for https://travis-ci.community/t/build-checks-out-wrong-pull-request-79-instead-of-7/6118/6
 def regular_expression_check(pattern: str, line: str,
                              amount_output_format: bool, file_name: str,
                              name_in_output: bool) -> int:
