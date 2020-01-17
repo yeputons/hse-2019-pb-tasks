@@ -1,6 +1,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 import Exercises
 import Test.HUnit
+import System.Exit
 
 check name a b = TestLabel name $ TestCase $ assertEqual "" a b
 group name elems = TestLabel name $ TestList elems
@@ -62,4 +63,6 @@ testAll = TestList [
     ]
   ]
 
-main = runTestTT testAll
+main = do
+  results <- runTestTT testAll
+  exitWith $ if errors results + failures results == 0 then ExitSuccess else ExitFailure 1
