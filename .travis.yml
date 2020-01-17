@@ -5,11 +5,6 @@ dist: bionic
 cache:
 - pip
 install:
-- echo "$TRAVIS_PULL_REQUEST_BRANCH"
-- echo "$TRAVIS_PULL_REQUEST"
-- echo "$TRAVIS_PULL_REQUEST_SHA"
-- echo "$TRAVIS_PULL_REQUEST_SLUG"
-- echo "$TRAVIS_REPO_SLUG"
 - sudo bash -c 'echo "deb http://us.archive.ubuntu.com/ubuntu/ bionic-updates universe" >> /etc/apt/sources.list'
 - sudo bash -c 'echo "deb-src http://us.archive.ubuntu.com/ubuntu/ bionic-updates universe" >> /etc/apt/sources.list'
 - sudo apt-get update
@@ -38,6 +33,6 @@ script:
 - pushd task05-fp-exercises
 - ghc -W -Wno-unused-matches -Wno-unused-imports Exercises.hs
 - ghc -W RunTests.hs
-- if ! [ -z "TRAVIS_PULL_REQUEST_BRANCH" ] ; then ./RunTests; else echo Skipping running tests for non-PRs; fi
+- if [ "$TRAVIS_PULL_REQUEST" != "false" ] ; then ./RunTests; else echo Skipping running tests for non-PRs; fi
 - hlint "--ignore=Unnecessary hiding" Exercises.hs
 - popd
