@@ -1,6 +1,6 @@
-module Exercises where  -- Вспомогательная строчка, чтобы можно было использовать функции в других файлах.
 {- HLINT ignore "Use foldr" -}
 {- HLINT ignore "Unnecessary hiding" -}
+module Exercises where  -- Вспомогательная строчка, чтобы можно было использовать функции в других файлах.
 import Control.Arrow
 import Data.Char
 import Data.Text(isInfixOf, pack)
