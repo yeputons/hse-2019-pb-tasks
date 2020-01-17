@@ -34,5 +34,5 @@ script:
 - ghc -W -Wno-unused-matches -Wno-unused-imports Exercises.hs
 - ghc -W RunTests.hs
 - if [ "$TRAVIS_PULL_REQUEST" != "false" ] ; then ./RunTests; else echo Skipping running tests for non-PRs; fi
-- hlint "--ignore=Unnecessary hiding" Exercises.hs
+- hlint "--ignore=Unnecessary hiding" "--ignore=Use foldr" Exercises.hs
 - popd
