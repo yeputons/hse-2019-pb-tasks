@@ -86,7 +86,7 @@ tryHead _     = Nothing
 -- >>> :t tryTail ["hello"]
 -- tryTail ["hello"] :: [[Char]]
 -- >>> tryTail [1, 2, 3]
--- Just 1
+-- Just [2,3]
 tryTail :: [a] -> Maybe [a]
 tryTail (_:xs) = Just xs
 tryTail _      = Nothing
