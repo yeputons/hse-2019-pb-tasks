@@ -1,9 +1,10 @@
 module Exercises where  -- Вспомогательная строчка, чтобы можно было использовать функции в других файлах.
+{- HLINT ignore "Use foldr" -}
+{- HLINT ignore "Unnecessary hiding" -}
 import Control.Arrow
 import Data.Char
 import Data.Text(isInfixOf, pack)
 import Prelude hiding (sum, concat, foldr, map)
-{- HLINT ignore "Use foldr" -}
 
 -- 1) Выделение функции высшего порядка.
 -- Функция sum' считает сумму чисел в списке при помощи функции sum''.
