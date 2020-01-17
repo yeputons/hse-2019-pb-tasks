@@ -33,6 +33,6 @@ script:
 - pushd task05-fp-exercises
 - ghc -W -Wno-unused-matches -Wno-unused-imports Exercises.hs
 - ghc -W RunTests.hs
-- if ! [ -z "$TRAVIS_PULL_REQUEST" ] ; then ./RunTests; else echo Skipping running tests for non-PRs; fi
-- hlint Exercises.hs
+- if ! [ -z "TRAVIS_PULL_REQUEST_BRANCH" ] ; then ./RunTests; else echo Skipping running tests for non-PRs; fi
+- hlint "--ignore=Unnecessary hiding" Exercises.hs
 - popd
