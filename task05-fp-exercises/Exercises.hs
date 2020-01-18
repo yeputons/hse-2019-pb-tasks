@@ -146,7 +146,7 @@ thirdElementOfSecondList xs = case nthElement 1 xs of
 -- >>> fifthElement [1, 2, 3, 4, 5]
 -- Just 5
 fifthElement :: [a] -> Maybe a
-fifthElement xs = nthElement 4 xs where
+fifthElement = nthElement 4 where
     nthElement :: Int -> [a] -> Maybe a
     nthElement 0 xs = tryHead xs
     nthElement n xs = case tryTail xs of 
