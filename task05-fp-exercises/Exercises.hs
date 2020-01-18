@@ -53,7 +53,7 @@ hash' = hash'' 0
 
 hash'' :: Int -> String -> Int
 hash'' ini [] = ini
-hash'' ini xs = hash'' ((p ^ (length xs - 2)) * (ord (last xs) + ini)) (init xs)
+hash'' ini xs = hash'' (ord (last xs) + p * ini) (init xs)
 
 -- Выделите общую логику предыдущих функций и реализуйте функцию высшего порядка foldr',
 -- не используя никаких стандартных функций.
