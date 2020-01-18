@@ -209,7 +209,7 @@ nubBy'' elem eq (x:xs) | eq elem x = next
 quickSort' :: Ord a => [a] -> [a]
 quickSort' [] = []
 quickSort' xs = fir ++ (filter' (== pivot) xs) ++ sec
-              where pivot = xs !! 1 
+              where pivot = xs !! 0 
                     fir = quickSort' (filter' (< pivot) xs)
                     sec = quickSort' (filter' (> pivot) xs)            
                       
@@ -232,9 +232,8 @@ filter' f (x:xs) | f x       = x : next
 -- 5
 -- >>> weird' [[1, 11, 12], [9, 10, 20]]
 -- 3
-weird':: [[Int]] -> Int
---weird' xs = sum' . map' length
-
+--weird' :: [[Int]] -> Int
+weird' = sum' . map' length . filter (even . sum') . map' (map' fromEnum) . map' (map' (> 100)) . map' (map' (^2))
 
 -- 4) grep
 -- Нужно реализовать несколько вариаций grep'а.
