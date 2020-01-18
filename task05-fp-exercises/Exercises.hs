@@ -208,8 +208,8 @@ nubBy'' elem eq (x:xs) | eq elem x = next
 
 quickSort' :: Ord a => [a] -> [a]
 quickSort' [] = []
-quickSort' xs = fir ++ (filter' (== pivot) xs) ++ sec
-              where pivot = xs !! 0 
+quickSort' xs = fir ++ filter' (== pivot) xs ++ sec
+              where pivot = head xs 
                     fir = quickSort' (filter' (< pivot) xs)
                     sec = quickSort' (filter' (> pivot) xs)            
                       
@@ -260,7 +260,7 @@ type File = (String, [String])
 -- параметр и возвращает второй.
 grep' :: (String -> [String] -> [String]) -> (String -> Bool) -> [File] -> [String]
 grep' format match [] = []
-grep' format match (file:left) = format (fst file) (filter' match (snd file)) ++ (grep' format match left) 
+grep' format match (file:left) = format (fst file) (filter' match (snd file)) ++ grep' format match left 
 
 -- Также вам предоставлена функция для проверки вхождения подстроки в строку.
 -- >>> isSubstringOf "a" "bac"
@@ -282,10 +282,10 @@ isSubstringOf n s = pack n `isInfixOf` pack s
 -- ["c", "c", "ccccc"]
 grepSubstringNoFilename :: String -> [File] -> [String]
 grepSubstringNoFilename needle [] = []
-grepSubstringNoFilename needle (file:left) = (searchForSubstrings needle (snd file)) ++ (grepSubstringNoFilename needle left)
+grepSubstringNoFilename needle (file:left) = searchForSubstrings needle (snd file) ++ grepSubstringNoFilename needle left
 
 searchForSubstrings :: String -> [String] -> [String]
-searchForSubstrings needle strs = filter' (isSubstringOf needle) strs
+searchForSubstrings needle = filter' (isSubstringOf needle)
  
 -- Вариант, когда ищется точное совпадение и нужно ко всем подходящим строкам
 -- дописать имя файла через ":".
@@ -296,7 +296,7 @@ searchForSubstrings needle strs = filter' (isSubstringOf needle) strs
 -- ["b.txt:c", "c.txt:c"]
 grepExactMatchWithFilename :: String -> [File] -> [String]
 grepExactMatchWithFilename needle [] = []
-grepExactMatchWithFilename needle (file:left) = (map' (((fst file) ++ ":") ++) (searchForStrings needle (snd file))) ++ (grepExactMatchWithFilename needle left)
+grepExactMatchWithFilename needle (file:left) = map' ((fst file ++ ":") ++) (searchForStrings needle (snd file)) ++ grepExactMatchWithFilename needle left
 
 searchForStrings :: String -> [String] -> [String]
-searchForStrings needle strs = filter (needle ==) strs
+searchForStrings needle = filter (needle ==)
