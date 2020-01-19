@@ -179,7 +179,14 @@ thirdElementOfSecondList' xs = Just xs ~~> tryTail ~~> tryHead ~~> tryTail ~~> t
 -- nubBy' (\x y -> x == y || x + y == 10) [2, 3, 5, 7, 8, 2]
 -- [2,3,5]
 nubBy' :: (a -> a -> Bool) -> [a] -> [a]
-nubBy' eq xs = undefined
+nubBy' eq [] = []
+nubBy' eq xs 
+        | find' eq (last xs) (init xs) = nubBy' eq (init xs)
+        | otherwise                    = nubBy' eq (init xs) ++ [last xs] where
+    find' :: (a -> a -> Bool) -> a -> [a] -> Bool
+    find' eq x [] = False
+    find' eq x xs | eq x (head xs) = True
+                  | otherwise = find' eq x (tail xs)
 
 -- Реализуйте функцию quickSort, которая принимает на вход список, и 
 -- возвращает список, в котором элементы отсортированы при помощи алгоритма
@@ -199,7 +206,15 @@ nubBy' eq xs = undefined
 -- >>> quickSort' "babca"
 -- "aabbc"
 quickSort' :: Ord a => [a] -> [a]
-quickSort' xs = undefined
+quickSort' [] = []
+quickSort' xs = quickSort' xs1 ++ xs2 ++ quickSort' xs3 where
+    (xs1, xs2, xs3) = partition' (head xs) xs where
+        partition' :: Ord a => a -> [a] -> ([a], [a], [a])
+        partition' y [] = ([], [], [])
+        partition' y (x:xs) | x < y  = (x:xs1, xs2, xs3)
+                            | x == y = (xs1, x:xs2, xs3)
+                            | x > y  = (xs1, xs2, x:xs3) where
+                                (xs1, xs2, xs3) = partition' y xs
 
 -- Найдите суммарную длину списков, в которых чётное количество элементов
 -- имеют квадрат больше 100. Реализация должна быть без использования
@@ -214,7 +229,7 @@ quickSort' xs = undefined
 -- >>> weird' [[1, 11, 12], [9, 10, 20]]
 -- 3
 weird':: [[Int]] -> Int
-weird' xs = undefined
+weird' = length . concat' . filter (even . length . filter ((> 100) . (^ 2))) 
 
 
 -- 4) grep
