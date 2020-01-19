@@ -2,7 +2,7 @@ module Exercises where  -- Вспомогательная строчка, что
 import Control.Arrow
 import Data.Char
 import Data.Text(isInfixOf, pack)
-import Prelude hiding (sum, concat, foldr, map)
+-- import Prelude hiding (sum, concat, foldr, map)
 {- HLINT ignore "Use foldr" -}
 
 -- 1) Выделение функции высшего порядка.
@@ -30,7 +30,8 @@ concat' :: [[a]] -> [a]
 concat' = concat'' []
 
 concat'' :: [a] -> [[a]] -> [a]
-concat'' ini xs = undefined
+concat'' ini [] = ini
+concat'' ini xs = concat'' (ini ++ head xs) (tail xs)
 
 -- Функция hash' принимает на вход строку s и считает полиномиальный
 -- хэш от строки по формуле hash' s_0...s_{n - 1} =
@@ -51,7 +52,11 @@ hash' :: String -> Int
 hash' = hash'' 0
 
 hash'' :: Int -> String -> Int
-hash'' ini xs = undefined
+hash'' ini "" = ini
+hash'' ini xs = p * hash'' ini (tail xs) + ord (head xs)
+
+-- hashIterative ini "" it = ini
+-- hashIterative ini xs it = hashIterative (ini + ord (head xs) * p ^ it) (tail xs) (it + 1)
 
 -- Выделите общую логику предыдущих функций и реализуйте функцию высшего порядка foldr',
 -- не используя никаких стандартных функций.
