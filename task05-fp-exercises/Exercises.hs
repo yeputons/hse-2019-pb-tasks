@@ -4,6 +4,9 @@ import Data.Char
 import Data.Text(isInfixOf, pack)
 import Prelude hiding (sum, concat, foldr, map)
 {- HLINT ignore "Use foldr" -}
+{- HLINT ignore "Use map" -}
+{- HLINT ignore "Redundant bracket" -}
+
 
 
 sum' :: [Int] -> Int
@@ -18,7 +21,7 @@ concat' :: [[a]] -> [a]
 concat' = concat'' []
 
 concat'' :: [a] -> [[a]] -> [a]
-concat'' ini (x:[]) = (x ++ ini)
+concat'' ini [x] = x ++ ini
 concat'' ini (x:y:xs) = concat'' ini ((x ++ y):xs)
 
 
@@ -34,13 +37,13 @@ hash'' ini (x:xs) = (ord x) + p * (hash'' ini xs)
 
 
 foldr' :: (a -> b -> b) -> b -> [a] -> b
-foldr' f ini (x:[]) = f x ini
+foldr' f ini [x] = f x ini
 foldr' f ini (x:xs) = f x (foldr' f ini xs)
 
 
 map' :: (a -> b) -> [a] -> [b]
 map' f [] = []
-map' f (x:xs) = (f x):(map' f xs)
+map' f (x:xs) = (f x) : (map' f xs)
 
 
 tryHead :: [a] -> Maybe a
@@ -72,7 +75,7 @@ thirdElementOfSecondList xs = case tryTail xs of
 
 
 fifthElement :: [a] -> Maybe a
-fifthElement xs = element 4 xs
+fifthElement = element 4
                where 
                	element 0 xs = tryHead xs
                	element num xs = case tryTail xs of
@@ -97,28 +100,28 @@ thirdElementOfSecondList' xs = (element 1 xs) ~~> (element 2)
 
 nubBy' :: (a -> a -> Bool) -> [a] -> [a]
 nubBy' eq [] = []
-nubBy' eq (x:xs) = (x:nubBy' eq (filter' (eq x) xs))
+nubBy' eq (x:xs) = x : nubBy' eq (filter' (eq x) xs)
            where 
            	filter' f [] = []
            	filter' f (x:xs) | f x = filter' f xs
-           	                 | otherwise = (x:filter' f xs)
+           	                 | otherwise = x : filter' f xs
 
 
 quickSort' :: Ord a => [a] -> [a]
 quickSort' [] = []
-quickSort' (x:xs) = (quickSort' (filter (<= x) xs)) ++ [x] ++ (quickSort' (filter (>x) xs))
+quickSort' (x:xs) = (quickSort' (filter (<= x) xs))) ++ [x] ++ (quickSort' (filter (>x) xs))
 
 
 weird':: [[Int]] -> Int
 weird' [] = 0
-weird' xs = foldr' ((+) . snd) (0) (filter (even . length . fst) (zip (map' (filter ((> 10) . abs)) xs) (map' length xs)))
+weird' xs = foldr' ((+) . snd) 0 (filter (even . length . fst) (zip (map' (filter ((> 10) . abs)) xs) (map' length xs))) 
 
 
 type File = (String, [String])
 
 
 grep' :: (String -> [String] -> [String]) -> (String -> Bool) -> [File] -> [String]
-grep' format match (file:[]) = (format (fst file) (filter match (snd file)))
+grep' format match [file] = format (fst file) (filter match (snd file))
 grep' format match (file:files) = (format (fst file) (filter match (snd file))) ++ (grep' format match files)
 
 
@@ -127,8 +130,8 @@ isSubstringOf n s = pack n `isInfixOf` pack s
 
 
 grepSubstringNoFilename :: String -> [File] -> [String]
-grepSubstringNoFilename needle files = grep' (\ _ s -> s) (isSubstringOf needle) files
+grepSubstringNoFilename needle = grep' (\ _ s -> s) (isSubstringOf needle)
  
 
 grepExactMatchWithFilename :: String -> [File] -> [String]
-grepExactMatchWithFilename needle files = grep' (\ fn s -> map' ((fn ++ [':']) ++ ) s) (needle == ) files
+grepExactMatchWithFilename needle = grep' (\ fn s -> map' ((fn ++ [':']) ++ ) s) (needle == )
