@@ -18,6 +18,7 @@ concat' :: [[a]] -> [a]
 concat' = concat'' []
 
 concat'' :: [a] -> [[a]] -> [a]
+concat'' ini [] = ini
 concat'' ini [x] = x ++ ini
 concat'' ini (x:y:xs) = concat'' ini ((x ++ y):xs)
 
@@ -34,7 +35,7 @@ hash'' ini (x:xs) = ord x + p * hash'' ini xs
 
 
 foldr' :: (a -> b -> b) -> b -> [a] -> b
-foldr' f ini [x] = f x ini
+foldr' f ini [] = ini
 foldr' f ini (x:xs) = f x (foldr' f ini xs)
 
 
