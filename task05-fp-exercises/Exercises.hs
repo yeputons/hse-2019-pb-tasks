@@ -68,7 +68,9 @@ foldr' f ini xs = f (head xs) (foldr' f ini (tail xs))
 -- Реализуйте функцию map' (которая делает то же самое, что обычный map)
 -- через функцию foldr', не используя стандартных функций.
 map' :: (a -> b) -> [a] -> [b]
-map' f xs = undefined
+
+map' f [] = []
+map' f xs = foldr' (\y ys -> f y : ys) [] xs
 
 -- 2) Maybe
 -- Maybe a - это специальный тип данных, который может принимать либо
