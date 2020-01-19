@@ -96,7 +96,7 @@ tryHead _     = Nothing
 -- >>> :t tryTail ["hello"]
 -- tryTail ["hello"] :: [[Char]]
 -- >>> tryTail [1, 2, 3]
--- Just [2,3]
+-- Just [2, 3]
 tryTail :: [a] -> Maybe [a]
 tryTail (_:xs) = Just xs
 tryTail _      = Nothing
@@ -152,11 +152,15 @@ thirdElementOfSecondList xs = case secondElement xs of
 -- >>> fifthElement [1, 2, 3, 4, 5]
 -- Just 5
 fifthElement :: [a] -> Maybe a
-fifthElement xs = undefined
+fifthElement xs = case secondElement xs of
+                    Just a -> thirdElement (tail (tail xs))
+                    _      -> Nothing
 
 -- Выделите общую логику в оператор ~~>.
 (~~>) :: Maybe a -> (a -> Maybe b) -> Maybe b
-(~~>) ma f = undefined
+(~~>) ma f = case ma of
+               Just a -> f a
+               _      -> Nothing
 
 -- Перепишите функцию thirdElementOfSecondList в thirdElementOfSecondList' используя
 -- только tryHead, tryTail, применение функций и оператор ~~>, но не используя
