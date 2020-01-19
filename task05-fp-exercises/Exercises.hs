@@ -128,7 +128,12 @@ secondElement xs = case tryTail xs of
 -- >>> thirdElementOfSecondList [["a"], ["b", "c", "d"]]
 -- Just "d"
 thirdElementOfSecondList :: [[a]] -> Maybe a
-thirdElementOfSecondList xs = undefined
+thirdElementOfSecondList xs = case secondElement xs of
+                                Just a -> thirdElementOfList a
+                                _      -> Nothing
+thirdElementOfList xs = case tryTail xs of
+                          Just a -> secondElement a
+                          _      -> Nothing
 
 -- Функцию fifthElement, которая возвращает пятый элемент списка или Nothing,
 -- если пятого элемента в списке нет.
@@ -139,18 +144,26 @@ thirdElementOfSecondList xs = undefined
 -- >>> fifthElement [1, 2, 3, 4, 5]
 -- Just 5
 fifthElement :: [a] -> Maybe a
-fifthElement xs = undefined
+fifthElement = at' 5
+  where 
+    at' 1 (x:xs) = Just x
+    at' _ [] = Nothing
+    at' i (x:xs) = at' (i-1) xs
 
 -- Выделите общую логику в оператор ~~>.
 (~~>) :: Maybe a -> (a -> Maybe b) -> Maybe b
-(~~>) ma f = undefined
+(~~>) ma f = case ma of
+               Just a -> f a
+               _      -> Nothing
 
 -- Перепишите функцию thirdElementOfSecondList в thirdElementOfSecondList' используя
 -- только tryHead, tryTail, применение функций и оператор ~~>, но не используя
 -- сопоставление с образом (pattern matching) ни в каком виде, case, if, guards.
 thirdElementOfSecondList' :: [[a]] -> Maybe a
-thirdElementOfSecondList' xs = undefined
-
+thirdElementOfSecondList' xs = (tryTail xs ~~> tryHead) ~~> thirdElement'
+  where
+    thirdElement' xs = (tryTail xs ~~> tryTail) ~~> tryHead
+                                                      
 -- 3) Несколько упражнений
 -- Реализуйте функцию nubBy', которая принимает на вход функцию для сравнения 
 -- элементов на эквивалентность и список элементов и возвращает список из тех же
