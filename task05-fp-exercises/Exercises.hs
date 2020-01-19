@@ -181,8 +181,12 @@ thirdElementOfSecondList' xs = secondElement xs ~~> thirdElement
 -- "abcd"
 -- nubBy' (\x y -> x == y || x + y == 10) [2, 3, 5, 7, 8, 2]
 -- [2,3,5]
+
+removeEqual xs a eq = filter (not . eq a) xs
+
 nubBy' :: (a -> a -> Bool) -> [a] -> [a]
-nubBy' eq xs = undefined
+nubBy' eq [] = []
+nubBy' eq xs = head xs : nubBy' eq (removeEqual (tail xs) (head xs) eq)
 
 -- Реализуйте функцию quickSort, которая принимает на вход список, и 
 -- возвращает список, в котором элементы отсортированы при помощи алгоритма
