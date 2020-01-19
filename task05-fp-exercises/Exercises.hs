@@ -205,8 +205,21 @@ nubBy' eq xs = head xs : nubBy' eq (removeEqual (tail xs) (head xs) eq)
 -- [1,2,2,3]
 -- >>> quickSort' "babca"
 -- "aabbc"
+
 quickSort' :: Ord a => [a] -> [a]
-quickSort' xs = undefined
+quickSort' xs
+    | length xs <= 1 = xs
+    | otherwise = quickSort' (head parts) ++ (parts !! 1) ++ quickSort' (parts !! 2)
+        where
+            parts = partition' xs (xs !! (length xs `div` 2))
+ 
+partition' xs e = partition'' xs e [] [] []
+
+partition'' [] e sm eq lg = [sm, eq, lg]
+partition'' xs e sm eq lg
+    | head xs < e = partition'' (tail xs) e (head xs : sm) eq lg 
+    | head xs == e = partition'' (tail xs) e sm (head xs : eq) lg
+    | otherwise = partition'' (tail xs) e sm eq (head xs : lg)
 
 -- Найдите суммарную длину списков, в которых чётное количество элементов
 -- имеют квадрат больше 100. Реализация должна быть без использования
