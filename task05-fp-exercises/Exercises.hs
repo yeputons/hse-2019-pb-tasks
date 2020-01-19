@@ -109,7 +109,7 @@ nubBy' eq (x:xs) = x : nubBy' eq (filter' (eq x) xs)
 
 quickSort' :: Ord a => [a] -> [a]
 quickSort' [] = []
-quickSort' (x:xs) = (quickSort' (filter (<= x) xs))) ++ [x] ++ (quickSort' (filter (>x) xs))
+quickSort' (x:xs) = (quickSort' (filter (<= x) xs)) ++ [x] ++ (quickSort' (filter (>x) xs))
 
 
 weird':: [[Int]] -> Int
