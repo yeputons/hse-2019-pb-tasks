@@ -127,14 +127,15 @@ secondElement xs =
 -- Nothing
 -- >>> thirdElementOfSecondList [["a"], ["b", "c", "d"]]
 -- Just "d"
+
 thirdElementOfSecondList :: [[a]] -> Maybe a
-thirdElementOfSecondList xs =
-      maybeTryHead $ maybeTryTail $ maybeTryTail $ maybeTryHead $ maybeTryTail $ Just xs
-    maybeTryHead xs =
+thirdElementOfSecondList xs = maybeTryHead $ maybeTryTail $ maybeTryTail $ maybeTryHead $ maybeTryTail $ Just xs
+  where
+    maybeTryHead xs = 
           case xs of
             Just xs -> tryHead xs
             _       -> Nothing
-    maybeTryTail xs =
+    maybeTryTail xs = 
           case xs of
             Just xs -> tryTail xs
             _       -> Nothing
