@@ -31,7 +31,7 @@ concat' = concat'' []
 
 concat'' :: [a] -> [[a]] -> [a]
 concat'' ini [] = ini
-concat'' ini xs = concat'' (ini ++ head xs) (tail xs)
+concat'' ini xs = head xs ++ concat'' ini (tail xs)
 
 -- Функция hash' принимает на вход строку s и считает полиномиальный
 -- хэш от строки по формуле hash' s_0...s_{n - 1} =
