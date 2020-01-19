@@ -61,7 +61,9 @@ hash'' ini xs = p * hash'' ini (tail xs) + ord (head xs)
 -- Выделите общую логику предыдущих функций и реализуйте функцию высшего порядка foldr',
 -- не используя никаких стандартных функций.
 foldr' :: (a -> b -> b) -> b -> [a] -> b
-foldr' f ini xs = undefined
+foldr' f ini [] = ini
+foldr' f ini xs = f (head xs) (foldr' f ini (tail xs))
+
 
 -- Реализуйте функцию map' (которая делает то же самое, что обычный map)
 -- через функцию foldr', не используя стандартных функций.
