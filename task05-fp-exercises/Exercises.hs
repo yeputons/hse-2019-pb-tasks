@@ -13,10 +13,11 @@ import Prelude hiding (sum, concat, foldr, map)
 -- >>> sum'' 10 [2, 3]
 -- 15
 sum' :: [Int] -> Int
-sum' = sum'' 0
+sum' (x:xs) = sum'' x xs 
 
 sum'' :: Int -> [Int] -> Int
-sum'' ini xs = undefined
+sum'' ini [] = ini
+sum'' ini (x:xs) = ini + sum'' x xs  
 
 -- Функция concat' принимает на вход список списков и возвращает конкатенацию
 -- этих списков. Она использует функцию concat'', которая дополнительно
