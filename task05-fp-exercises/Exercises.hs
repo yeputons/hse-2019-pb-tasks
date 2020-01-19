@@ -3,9 +3,6 @@ import Control.Arrow
 import Data.Char
 import Data.Text(isInfixOf, pack)
 import Prelude hiding (sum, concat, foldr, map)
-{- HLINT ignore "Use foldr" -}
-{- HLINT ignore "Use map" -}
-{- HLINT ignore "Redundant bracket" -}
 
 
 
@@ -14,7 +11,7 @@ sum' = sum'' 0
 
 sum'' :: Int -> [Int] -> Int
 sum'' ini [] = ini
-sum'' ini (x:xs) = ini + x + (sum'' 0 xs)
+sum'' ini (x:xs) = ini + x + sum'' 0 xs
 
 
 concat' :: [[a]] -> [a]
@@ -33,7 +30,7 @@ hash' = hash'' 0
 
 hash'' :: Int -> String -> Int
 hash'' ini [] = ini
-hash'' ini (x:xs) = (ord x) + p * (hash'' ini xs)
+hash'' ini (x:xs) = ord x + p * hash'' ini xs
 
 
 foldr' :: (a -> b -> b) -> b -> [a] -> b
@@ -42,9 +39,7 @@ foldr' f ini (x:xs) = f x (foldr' f ini xs)
 
 
 map' :: (a -> b) -> [a] -> [b]
-map' f [] = []
-map' f (x:xs) = (f x) : (map' f xs)
-
+map' f = foldr' (\ x xs -> f x : xs) []
 
 tryHead :: [a] -> Maybe a
 tryHead (x:_) = Just x
@@ -90,7 +85,7 @@ fifthElement = element 4
 
 
 thirdElementOfSecondList' :: [[a]] -> Maybe a
-thirdElementOfSecondList' xs = (element 1 xs) ~~> (element 2)
+thirdElementOfSecondList' xs = element 1 xs ~~> element 2
               where
                	element 0 xs = tryHead xs
                	element num xs = case tryTail xs of
@@ -109,7 +104,7 @@ nubBy' eq (x:xs) = x : nubBy' eq (filter' (eq x) xs)
 
 quickSort' :: Ord a => [a] -> [a]
 quickSort' [] = []
-quickSort' (x:xs) = (quickSort' (filter (<= x) xs)) ++ [x] ++ (quickSort' (filter (>x) xs))
+quickSort' (x:xs) = quickSort' (filter (<= x) xs) ++ [x] ++ quickSort' (filter (>x) xs)
 
 
 weird':: [[Int]] -> Int
@@ -122,7 +117,7 @@ type File = (String, [String])
 
 grep' :: (String -> [String] -> [String]) -> (String -> Bool) -> [File] -> [String]
 grep' format match [file] = format (fst file) (filter match (snd file))
-grep' format match (file:files) = (format (fst file) (filter match (snd file))) ++ (grep' format match files)
+grep' format match (file:files) = format (fst file) (filter match (snd file)) ++ grep' format match files
 
 
 isSubstringOf :: String -> String -> Bool
