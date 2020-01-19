@@ -1,10 +1,11 @@
-module Exercises where  -- Вспомогательная строчка, чтобы можно было использовать функции в других файлах.
+module Exercises where -- Вспомогательная строчка, чтобы можно было использовать функции в других файлах.
+
 import Control.Arrow
 import Data.Char
-import Data.Text(isInfixOf, pack)
-import Prelude hiding (sum, concat, foldr, map)
-{- HLINT ignore "Use foldr" -}
+import Data.Text (isInfixOf, pack)
+import Prelude hiding (concat, foldr, map, sum)
 
+{- HLINT ignore "Use foldr" -}
 -- 1) Выделение функции высшего порядка.
 -- Функция sum' считает сумму чисел в списке при помощи функции sum''.
 -- Функция sum'' x xs считает сумму чисел в списке xs плюс x.
@@ -16,7 +17,8 @@ sum' :: [Int] -> Int
 sum' = sum'' 0
 
 sum'' :: Int -> [Int] -> Int
-sum'' ini xs = undefined
+sum'' ini [] = ini
+sum'' ini (x:xs) = (+) ini $ sum'' x xs
 
 -- Функция concat' принимает на вход список списков и возвращает конкатенацию
 -- этих списков. Она использует функцию concat'', которая дополнительно
@@ -29,7 +31,8 @@ concat' :: [[a]] -> [a]
 concat' = concat'' []
 
 concat'' :: [a] -> [[a]] -> [a]
-concat'' ini xs = undefined
+concat'' ini [] = ini
+concat'' ini (x:xs) = (++) x $ concat'' ini xs
 
 -- Функция hash' принимает на вход строку s и считает полиномиальный
 -- хэш от строки по формуле hash' s_0...s_{n - 1} =
@@ -50,23 +53,25 @@ hash' :: String -> Int
 hash' = hash'' 0
 
 hash'' :: Int -> String -> Int
-hash'' ini xs = undefined
+hash'' ini [] = ini
+hash'' ini (x:xs) = (+) (ord x) $ (*) p $ hash'' ini xs
 
 -- Выделите общую логику предыдущих функций и реализуйте функцию высшего порядка foldr',
 -- не используя никаких стандартных функций.
 foldr' :: (a -> b -> b) -> b -> [a] -> b
-foldr' f ini xs = undefined
+foldr' _ ini [] = ini
+foldr' f ini (x:xs) = f x $ foldr' f ini xs
 
 -- Реализуйте функцию map' (которая делает то же самое, что обычный map)
 -- через функцию foldr', не используя стандартных функций.
 map' :: (a -> b) -> [a] -> [b]
-map' f xs = undefined
+-- map' f = foldr' (\x y -> f x : y) []
+map' f = foldr' ((:) <<< f) [] -- just for import Control.Arrow warning
 
 -- 2) Maybe
 -- Maybe a - это специальный тип данных, который может принимать либо
 -- значение Nothing, либо значение Just x, где x --- значение типа a.
 -- Его удобно использовать для сообщения об ошибке.
-
 -- Даны функции tryHead и tryTail, реализованные следующим образом
 -- >>> tryHead []
 -- Nothing
@@ -76,7 +81,7 @@ map' f xs = undefined
 -- Just 1
 tryHead :: [a] -> Maybe a
 tryHead (x:_) = Just x
-tryHead _     = Nothing
+tryHead _ = Nothing
 
 --
 -- >>> tryTail []
@@ -89,7 +94,7 @@ tryHead _     = Nothing
 -- Just [2,3]
 tryTail :: [a] -> Maybe [a]
 tryTail (_:xs) = Just xs
-tryTail _      = Nothing
+tryTail _ = Nothing
 
 -- Также предоставлен пример функции, которая возвращает второй элемент
 -- списка или Nothing, если второго элемента в списке нет.
@@ -101,15 +106,15 @@ tryTail _      = Nothing
 -- >>> secondElement "ab"
 -- Just 'b'
 secondElement :: [a] -> Maybe a
-secondElement xs = case tryTail xs of
-                     Just a  -> tryHead a
-                     _       -> Nothing
+secondElement xs =
+      case tryTail xs of
+            Just a -> tryHead a
+            _ -> Nothing
 
 -- Используя функции tryHead и tryTail, а также case и сопоставление с
 -- образцом (pattern matching) только для Maybe (но не для списков) реализуйте
 -- без использования стандартных функций (при этом разрешается заводить свои
 -- дополнительные функции, используя where):
-
 -- Функцию thirdElementOfSecondList, которая принимает на вход список 
 -- списков, и возвращает третий элемент второго списка или Nothing, если 
 -- второго списка или третьего элемента в нём не существует.
@@ -123,7 +128,17 @@ secondElement xs = case tryTail xs of
 -- >>> thirdElementOfSecondList [["a"], ["b", "c", "d"]]
 -- Just "d"
 thirdElementOfSecondList :: [[a]] -> Maybe a
-thirdElementOfSecondList xs = undefined
+thirdElementOfSecondList xs =
+      maybeTryHead $ maybeTryTail $ maybeTryTail $ maybeTryHead $ maybeTryTail $ Just xs
+  where
+    maybeTryHead xs =
+          case xs of
+                Just xs -> tryHead xs
+                _ -> Nothing
+    maybeTryTail xs =
+          case xs of
+                Just xs -> tryTail xs
+                _ -> Nothing
 
 -- Функцию fifthElement, которая возвращает пятый элемент списка или Nothing,
 -- если пятого элемента в списке нет.
@@ -134,17 +149,33 @@ thirdElementOfSecondList xs = undefined
 -- >>> fifthElement [1, 2, 3, 4, 5]
 -- Just 5
 fifthElement :: [a] -> Maybe a
-fifthElement xs = undefined
+fifthElement xs = maybeTryHead $ maybeNthTail 4 xs
+  where
+    maybeTryHead xs =
+          case xs of
+                Just xs -> tryHead xs
+                _ -> Nothing
+    maybeTryTail xs =
+          case xs of
+                Just xs -> tryTail xs
+                _ -> Nothing
+    maybeNthTail n xs =
+          case n of
+                0 -> Just xs
+                _ -> maybeTryTail $ maybeNthTail (n - 1) xs
 
 -- Выделите общую логику в оператор ~~>.
 (~~>) :: Maybe a -> (a -> Maybe b) -> Maybe b
-(~~>) ma f = undefined
+(~~>) ma f =
+      case ma of
+            Just ma -> f ma
+            _ -> Nothing
 
 -- Перепишите функцию thirdElementOfSecondList в thirdElementOfSecondList' используя
 -- только tryHead, tryTail, применение функций и оператор ~~>, но не используя
 -- сопоставление с образом (pattern matching) ни в каком виде, case, if, guards.
 thirdElementOfSecondList' :: [[a]] -> Maybe a
-thirdElementOfSecondList' xs = undefined
+thirdElementOfSecondList' xs = Just xs ~~> tryTail ~~> tryHead ~~> tryTail ~~> tryTail ~~> tryHead
 
 -- 3) Несколько упражнений
 -- Реализуйте функцию nubBy', которая принимает на вход функцию для сравнения 
@@ -160,8 +191,20 @@ thirdElementOfSecondList' xs = undefined
 -- nubBy' (\x y -> x == y || x + y == 10) [2, 3, 5, 7, 8, 2]
 -- [2,3,5]
 nubBy' :: (a -> a -> Bool) -> [a] -> [a]
-nubBy' eq xs = undefined
+nubBy' _ [] = []
+nubBy' eq (x:xs) = (:) x $ filter' (not . eq x) $ nubBy' eq xs
 
+filter' _ [] = []
+filter' f (x:xs) =
+      if f x
+            then x : filter' f xs
+            else filter' f xs
+
+-- hlint recommend to use if, my own version was
+-- filter' f (x:xs) =
+--       case f x of
+--             True -> x : filter' f xs
+--             False -> filter' f xs
 -- Реализуйте функцию quickSort, которая принимает на вход список, и 
 -- возвращает список, в котором элементы отсортированы при помощи алгоритма
 -- быстрой сортировки.
@@ -180,7 +223,11 @@ nubBy' eq xs = undefined
 -- >>> quickSort' "babca"
 -- "aabbc"
 quickSort' :: Ord a => [a] -> [a]
-quickSort' xs = undefined
+quickSort' [] = []
+quickSort' (x:xs) = left ++ [x] ++ right
+      where
+            left = quickSort' $ filter' (<= x) xs
+            right = quickSort' $ filter' (> x) xs
 
 -- Найдите суммарную длину списков, в которых чётное количество элементов
 -- имеют квадрат больше 100. Реализация должна быть без использования
@@ -194,10 +241,11 @@ quickSort' xs = undefined
 -- 5
 -- >>> weird' [[1, 11, 12], [9, 10, 20]]
 -- 3
-weird':: [[Int]] -> Int
-weird' xs = undefined
+weird' :: [[Int]] -> Int
+weird' = (.) (foldr' ((+) . length) 0) $ filter $ (.) even $ (.) length $ filter $ (> 100) . (^ 2)
 
-
+-- or either
+-- weird' = (.) (sum' . (map' length)) $ filter $ (.) even $ (.) length $ filter $ (> 100) . (^ 2)
 -- 4) grep
 -- Нужно реализовать несколько вариаций grep'а.
 -- Вместо файлов на вход будет подаваться список из структур File,
@@ -222,7 +270,9 @@ type File = (String, [String])
 -- Здесь (\_ s -> s) --- это лямбда-функция, которая игнорирует первый
 -- параметр и возвращает второй.
 grep' :: (String -> [String] -> [String]) -> (String -> Bool) -> [File] -> [String]
-grep' format match files = undefined
+grep' _ _ [] = []
+grep' format match ((name, strings):files) =
+      format name (filter' match strings) ++ grep' format match files
 
 -- Также вам предоставлена функция для проверки вхождения подстроки в строку.
 -- >>> isSubstringOf "a" "bac"
@@ -243,8 +293,8 @@ isSubstringOf n s = pack n `isInfixOf` pack s
 -- >>> grepSubstringNoFilename "c" [("a.txt", ["a", "a"]), ("b.txt", ["b", "bab", "c"]), ("c.txt", ["c", "ccccc"])]
 -- ["c", "c", "ccccc"]
 grepSubstringNoFilename :: String -> [File] -> [String]
-grepSubstringNoFilename needle files = undefined
- 
+grepSubstringNoFilename needle = grep' (curry snd) $ isSubstringOf needle
+
 -- Вариант, когда ищется точное совпадение и нужно ко всем подходящим строкам
 -- дописать имя файла через ":".
 --
@@ -253,4 +303,4 @@ grepSubstringNoFilename needle files = undefined
 -- >>> grepExactMatchWithFilename "c" [("a.txt", ["a", "a"]), ("b.txt", ["b", "bab", "c"]), ("c.txt", ["c", "ccccc"])]
 -- ["b.txt:c", "c.txt:c"]
 grepExactMatchWithFilename :: String -> [File] -> [String]
-grepExactMatchWithFilename needle files = undefined
+grepExactMatchWithFilename needle = grep' (\x -> map' ((x ++ ":") ++)) (== needle)
