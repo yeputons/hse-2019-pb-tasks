@@ -108,15 +108,15 @@ tryTail _ = Nothing
 secondElement :: [a] -> Maybe a
 secondElement xs =
       case tryTail xs of
-            Just a -> tryHead a
-            _ -> Nothing
+        Just a -> tryHead a
+        _      -> Nothing
 
 -- Используя функции tryHead и tryTail, а также case и сопоставление с
 -- образцом (pattern matching) только для Maybe (но не для списков) реализуйте
 -- без использования стандартных функций (при этом разрешается заводить свои
 -- дополнительные функции, используя where):
--- Функцию thirdElementOfSecondList, которая принимает на вход список 
--- списков, и возвращает третий элемент второго списка или Nothing, если 
+-- Функцию thirdElementOfSecondList, которая принимает на вход список
+-- списков, и возвращает третий элемент второго списка или Nothing, если
 -- второго списка или третьего элемента в нём не существует.
 --
 -- >>> thirdElementOfSecondList []
@@ -130,15 +130,14 @@ secondElement xs =
 thirdElementOfSecondList :: [[a]] -> Maybe a
 thirdElementOfSecondList xs =
       maybeTryHead $ maybeTryTail $ maybeTryTail $ maybeTryHead $ maybeTryTail $ Just xs
-  where
     maybeTryHead xs =
           case xs of
-                Just xs -> tryHead xs
-                _ -> Nothing
+            Just xs -> tryHead xs
+            _       -> Nothing
     maybeTryTail xs =
           case xs of
-                Just xs -> tryTail xs
-                _ -> Nothing
+            Just xs -> tryTail xs
+            _       -> Nothing
 
 -- Функцию fifthElement, которая возвращает пятый элемент списка или Nothing,
 -- если пятого элемента в списке нет.
@@ -153,23 +152,23 @@ fifthElement xs = maybeTryHead $ maybeNthTail 4 xs
   where
     maybeTryHead xs =
           case xs of
-                Just xs -> tryHead xs
-                _ -> Nothing
+            Just xs -> tryHead xs
+            _       -> Nothing
     maybeTryTail xs =
           case xs of
-                Just xs -> tryTail xs
-                _ -> Nothing
+            Just xs -> tryTail xs
+            _       -> Nothing
     maybeNthTail n xs =
           case n of
-                0 -> Just xs
-                _ -> maybeTryTail $ maybeNthTail (n - 1) xs
+            0 -> Just xs
+            _ -> maybeTryTail $ maybeNthTail (n - 1) xs
 
 -- Выделите общую логику в оператор ~~>.
 (~~>) :: Maybe a -> (a -> Maybe b) -> Maybe b
 (~~>) ma f =
       case ma of
-            Just ma -> f ma
-            _ -> Nothing
+        Just ma -> f ma
+        _       -> Nothing
 
 -- Перепишите функцию thirdElementOfSecondList в thirdElementOfSecondList' используя
 -- только tryHead, tryTail, применение функций и оператор ~~>, но не используя
@@ -178,7 +177,7 @@ thirdElementOfSecondList' :: [[a]] -> Maybe a
 thirdElementOfSecondList' xs = Just xs ~~> tryTail ~~> tryHead ~~> tryTail ~~> tryTail ~~> tryHead
 
 -- 3) Несколько упражнений
--- Реализуйте функцию nubBy', которая принимает на вход функцию для сравнения 
+-- Реализуйте функцию nubBy', которая принимает на вход функцию для сравнения
 -- элементов на эквивалентность и список элементов и возвращает список из тех же
 -- элементов без повторений. Гарантируется, что функция задаёт отношение
 -- эквивалентности. Важно сохранить порядок, в котором элементы встречались впервые.
@@ -197,15 +196,15 @@ nubBy' eq (x:xs) = (:) x $ filter' (not . eq x) $ nubBy' eq xs
 filter' _ [] = []
 filter' f (x:xs) =
       if f x
-            then x : filter' f xs
-            else filter' f xs
+         then x : filter' f xs
+         else filter' f xs
 
 -- hlint recommend to use if, my own version was
 -- filter' f (x:xs) =
 --       case f x of
 --             True -> x : filter' f xs
 --             False -> filter' f xs
--- Реализуйте функцию quickSort, которая принимает на вход список, и 
+-- Реализуйте функцию quickSort, которая принимает на вход список, и
 -- возвращает список, в котором элементы отсортированы при помощи алгоритма
 -- быстрой сортировки.
 -- Рандом или быстрый partition использовать не нужно, выберите максимально
@@ -225,9 +224,9 @@ filter' f (x:xs) =
 quickSort' :: Ord a => [a] -> [a]
 quickSort' [] = []
 quickSort' (x:xs) = left ++ [x] ++ right
-      where
-            left = quickSort' $ filter' (<= x) xs
-            right = quickSort' $ filter' (> x) xs
+  where
+    left  = quickSort' $ filter' (<= x) xs
+    right = quickSort' $ filter' (> x) xs
 
 -- Найдите суммарную длину списков, в которых чётное количество элементов
 -- имеют квадрат больше 100. Реализация должна быть без использования
@@ -286,7 +285,7 @@ isSubstringOf n s = pack n `isInfixOf` pack s
 
 -- При помощи функций выше реализуйте несколько вариантов grep.
 --
--- Вариант, когда ищется подстрока и нужно просто вернуть список подходящих 
+-- Вариант, когда ищется подстрока и нужно просто вернуть список подходящих
 -- строк.
 -- >>> grepSubstringNoFilename "b" [("a.txt", ["a", "b"])]
 -- ["b"]
