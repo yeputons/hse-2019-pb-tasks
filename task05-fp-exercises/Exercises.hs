@@ -225,7 +225,7 @@ quickSort' xs
 -- 5
 -- >>> weird' [[1, 11, 12], [9, 10, 20]]
 -- 3
--- weird':: [[Int]] -> Int
+weird':: [[Int]] -> Int
 weird' = length . concat . filter (even . length . filter (> 100) . map (^2))
 
 
@@ -253,7 +253,7 @@ type File = (String, [String])
 -- Здесь (\_ s -> s) --- это лямбда-функция, которая игнорирует первый
 -- параметр и возвращает второй.
 grep' :: (String -> [String] -> [String]) -> (String -> Bool) -> [File] -> [String]
-grep' format match files = undefined
+grep' format match files = concat [format (fst file) (filter match (snd file)) | file <- files]
 
 -- Также вам предоставлена функция для проверки вхождения подстроки в строку.
 -- >>> isSubstringOf "a" "bac"
@@ -273,8 +273,9 @@ isSubstringOf n s = pack n `isInfixOf` pack s
 -- ["b"]
 -- >>> grepSubstringNoFilename "c" [("a.txt", ["a", "a"]), ("b.txt", ["b", "bab", "c"]), ("c.txt", ["c", "ccccc"])]
 -- ["c", "c", "ccccc"]
+
 grepSubstringNoFilename :: String -> [File] -> [String]
-grepSubstringNoFilename needle files = undefined
+grepSubstringNoFilename needle = grep' (curry snd) (isSubstringOf needle)
  
 -- Вариант, когда ищется точное совпадение и нужно ко всем подходящим строкам
 -- дописать имя файла через ":".
@@ -284,4 +285,4 @@ grepSubstringNoFilename needle files = undefined
 -- >>> grepExactMatchWithFilename "c" [("a.txt", ["a", "a"]), ("b.txt", ["b", "bab", "c"]), ("c.txt", ["c", "ccccc"])]
 -- ["b.txt:c", "c.txt:c"]
 grepExactMatchWithFilename :: String -> [File] -> [String]
-grepExactMatchWithFilename needle files = undefined
+grepExactMatchWithFilename needle = grep' (\ name strings -> map ((name ++ ":") ++) strings) (== needle)
