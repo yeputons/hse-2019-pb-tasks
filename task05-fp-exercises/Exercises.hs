@@ -209,17 +209,9 @@ nubBy' eq xs = head xs : nubBy' eq (removeEqual (tail xs) (head xs) eq)
 quickSort' :: Ord a => [a] -> [a]
 quickSort' xs
     | length xs <= 1 = xs
-    | otherwise = quickSort' (head parts) ++ (parts !! 1) ++ quickSort' (parts !! 2)
+    | otherwise = concat [quickSort' (filter (<mid) xs), filter (==mid) xs, quickSort' (filter (>mid) xs)]
         where
-            parts = partition' xs (xs !! (length xs `div` 2))
- 
-partition' xs e = partition'' xs e [] [] []
-
-partition'' [] e sm eq lg = [sm, eq, lg]
-partition'' xs e sm eq lg
-    | head xs < e = partition'' (tail xs) e (head xs : sm) eq lg 
-    | head xs == e = partition'' (tail xs) e sm (head xs : eq) lg
-    | otherwise = partition'' (tail xs) e sm eq (head xs : lg)
+            mid = xs !! (length xs `div` 2)
 
 -- Найдите суммарную длину списков, в которых чётное количество элементов
 -- имеют квадрат больше 100. Реализация должна быть без использования
@@ -233,8 +225,8 @@ partition'' xs e sm eq lg
 -- 5
 -- >>> weird' [[1, 11, 12], [9, 10, 20]]
 -- 3
-weird':: [[Int]] -> Int
-weird' xs = undefined
+-- weird':: [[Int]] -> Int
+weird' = length . concat . filter (even . length . filter (> 100) . map (^2))
 
 
 -- 4) grep
