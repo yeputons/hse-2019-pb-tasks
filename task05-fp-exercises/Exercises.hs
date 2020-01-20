@@ -16,7 +16,7 @@ sum' :: [Int] -> Int
 sum' = sum'' 0
 
 sum'' :: Int -> [Int] -> Int
-sum'' ini [] = ini
+sum'' ini []     = ini
 sum'' ini (x:xs) = x + sum'' ini xs
 
 -- Функция concat' принимает на вход список списков и возвращает конкатенацию
@@ -30,7 +30,7 @@ concat' :: [[a]] -> [a]
 concat' = concat'' []
 
 concat'' :: [a] -> [[a]] -> [a]
-concat'' ini [] = ini
+concat'' ini []     = ini
 concat'' ini (x:xs) = x ++ concat'' ini xs
 
 -- Функция hash' принимает на вход строку s и считает полиномиальный
@@ -52,19 +52,19 @@ hash' :: String -> Int
 hash' = hash'' 0
 
 hash'' :: Int -> String -> Int
-hash'' ini [] = ini
+hash'' ini []     = ini
 hash'' ini (x:xs) = ord x + p * hash'' ini xs
 
 -- Выделите общую логику предыдущих функций и реализуйте функцию высшего порядка foldr',
 -- не используя никаких стандартных функций.
 foldr' :: (a -> b -> b) -> b -> [a] -> b
-foldr' f ini [] = ini
+foldr' f ini []     = ini
 foldr' f ini (x:xs) = f x (foldr' f ini xs)
 
 -- Реализуйте функцию map' (которая делает то же самое, что обычный map)
 -- через функцию foldr', не используя стандартных функций.
 map' :: (a -> b) -> [a] -> [b]
-map' f = foldr' (\x xs -> f x : xs) []
+map' f = foldr' (\x xs -> f x:xs) []
 
 -- 2) Maybe
 -- Maybe a - это специальный тип данных, который может принимать либо
@@ -127,7 +127,12 @@ secondElement xs = case tryTail xs of
 -- >>> thirdElementOfSecondList [["a"], ["b", "c", "d"]]
 -- Just "d"
 thirdElementOfSecondList :: [[a]] -> Maybe a
-thirdElementOfSecondList xs = undefined
+thirdElementOfSecondList xs = case secondElement xs of
+                                Just a -> thirdElementOfList a
+                                _      -> Nothing
+                                where thirdElementOfList xs = case tryTail xs of
+                                                                Just a -> secondElement a
+                                                                _      -> Nothing
 
 -- Функцию fifthElement, которая возвращает пятый элемент списка или Nothing,
 -- если пятого элемента в списке нет.
@@ -138,17 +143,27 @@ thirdElementOfSecondList xs = undefined
 -- >>> fifthElement [1, 2, 3, 4, 5]
 -- Just 5
 fifthElement :: [a] -> Maybe a
-fifthElement xs = undefined
+fifthElement xs = case tryTail xs of
+                    Just xs -> fourthElement xs
+                    _       -> Nothing
+                    where
+                    fourthElement xs = case tryTail xs of
+                                         Just xs -> thirdElement xs
+                                         _       -> Nothing
+                                         where thirdElement xs = case tryTail xs of
+                                                                   Just xs -> secondElement xs
+                                                                   _       -> Nothing
 
 -- Выделите общую логику в оператор ~~>.
 (~~>) :: Maybe a -> (a -> Maybe b) -> Maybe b
-(~~>) ma f = undefined
+(~~>) Nothing  _ = Nothing
+(~~>) (Just x) f = f x
 
 -- Перепишите функцию thirdElementOfSecondList в thirdElementOfSecondList' используя
 -- только tryHead, tryTail, применение функций и оператор ~~>, но не используя
 -- сопоставление с образом (pattern matching) ни в каком виде, case, if, guards.
 thirdElementOfSecondList' :: [[a]] -> Maybe a
-thirdElementOfSecondList' xs = undefined
+thirdElementOfSecondList' xs = tryTail xs ~~> tryHead ~~> tryTail ~~> tryTail ~~> tryHead
 
 -- 3) Несколько упражнений
 -- Реализуйте функцию nubBy', которая принимает на вход функцию для сравнения 
@@ -164,8 +179,8 @@ thirdElementOfSecondList' xs = undefined
 -- nubBy' (\x y -> x == y || x + y == 10) [2, 3, 5, 7, 8, 2]
 -- [2,3,5]
 nubBy' :: (a -> a -> Bool) -> [a] -> [a]
-nubBy' _ [] = []
-nubBy' eq (x:xs) = x : nubBy' eq (filter' (not . eq x) xs)
+nubBy' _ []      = []
+nubBy' eq (x:xs) = x:nubBy' eq (filter (not . eq x) xs)
 
 -- Реализуйте функцию quickSort, которая принимает на вход список, и 
 -- возвращает список, в котором элементы отсортированы при помощи алгоритма
@@ -185,17 +200,12 @@ nubBy' eq (x:xs) = x : nubBy' eq (filter' (not . eq x) xs)
 -- >>> quickSort' "babca"
 -- "aabbc"
 
-filter' :: (a -> Bool) -> [a] -> [a]
-filter' f [] = []
-filter' f (x:xs) | f x = x : filter' f xs
-                 | otherwise = filter' f xs
-
 quickSort' :: Ord a => [a] -> [a]
 quickSort' [] = []
 quickSort' (x:xs) = l ++ m ++ r
-              where m = x : filter' (== x) xs
-                    l = quickSort'(filter' (<x) xs)
-                    r = quickSort'(filter' (>x) xs)
+              where m = x:filter (== x) xs
+                    l = quickSort'(filter (<x) xs)
+                    r = quickSort'(filter (>x) xs)
 
 -- Найдите суммарную длину списков, в которых чётное количество элементов
 -- имеют квадрат больше 100. Реализация должна быть без использования
@@ -210,7 +220,7 @@ quickSort' (x:xs) = l ++ m ++ r
 -- >>> weird' [[1, 11, 12], [9, 10, 20]]
 -- 3
 weird':: [[Int]] -> Int
-weird' = sum' . map' length . filter (even . length . filter (>10))
+weird' = sum' . map' length . filter (even . length . filter ((>100) . (^2)))
 
 -- 4) grep
 -- Нужно реализовать несколько вариаций grep'а.
