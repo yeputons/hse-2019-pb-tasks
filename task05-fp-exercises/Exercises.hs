@@ -1,9 +1,8 @@
 module Exercises where  -- Вспомогательная строчка, чтобы можно было использовать функции в других файлах.
-
 import Control.Arrow
 import Data.Char
 import Data.Text(isInfixOf, pack)
-import Prelude hiding (concat, foldr, map, sum)
+import Prelude hiding (sum, concat, foldr, map)
 {- HLINT ignore "Use foldr" -}
 
 -- 1) Выделение функции высшего порядка.
@@ -114,8 +113,9 @@ secondElement xs = case tryTail xs of
 -- образцом (pattern matching) только для Maybe (но не для списков) реализуйте
 -- без использования стандартных функций (при этом разрешается заводить свои
 -- дополнительные функции, используя where):
--- Функцию thirdElementOfSecondList, которая принимает на вход список
--- списков, и возвращает третий элемент второго списка или Nothing, если
+
+-- Функцию thirdElementOfSecondList, которая принимает на вход список 
+-- списков, и возвращает третий элемент второго списка или Nothing, если 
 -- второго списка или третьего элемента в нём не существует.
 --
 -- >>> thirdElementOfSecondList []
@@ -185,7 +185,7 @@ nubBy' _  [] = []
 nubBy' eq xs = foldr' (\x ys -> x:filter (not . eq x) ys) [] xs
 -- doesn't seem more beautiful :thinking
 
--- Реализуйте функцию quickSort, которая принимает на вход список, и
+-- Реализуйте функцию quickSort, которая принимает на вход список, и 
 -- возвращает список, в котором элементы отсортированы при помощи алгоритма
 -- быстрой сортировки.
 -- Рандом или быстрый partition использовать не нужно, выберите максимально
