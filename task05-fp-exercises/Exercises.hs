@@ -16,7 +16,8 @@ sum' :: [Int] -> Int
 sum' = sum'' 0
 
 sum'' :: Int -> [Int] -> Int
-sum'' ini xs = undefined
+sum'' ini []     = ini
+sum'' ini (x:xs) = x + sum'' ini xs
 
 -- Функция concat' принимает на вход список списков и возвращает конкатенацию
 -- этих списков. Она использует функцию concat'', которая дополнительно
@@ -29,10 +30,11 @@ concat' :: [[a]] -> [a]
 concat' = concat'' []
 
 concat'' :: [a] -> [[a]] -> [a]
-concat'' ini xs = undefined
+concat'' ini []     = ini
+concat'' ini (x:xs) = x ++ concat'' ini xs
 
 -- Функция hash' принимает на вход строку s и считает полиномиальный
--- хэш от строки по формуле hash' s_0...s_{n - 1} =
+-- хэш от строки по формуле hash' s_0...s_{n - 1} =	
 --  s_0 + p * s_1 + ... + p^{n - 1} * s_{n - 1}, где p - константа
 -- (в данном случае, 17).
 -- Функция hash' использует функцию hash'', которая принимает на вход
@@ -50,17 +52,19 @@ hash' :: String -> Int
 hash' = hash'' 0
 
 hash'' :: Int -> String -> Int
-hash'' ini xs = undefined
+hash'' ini []     = ini
+hash'' ini (x:xs) = ord x + p * hash'' ini xs 
 
 -- Выделите общую логику предыдущих функций и реализуйте функцию высшего порядка foldr',
 -- не используя никаких стандартных функций.
 foldr' :: (a -> b -> b) -> b -> [a] -> b
-foldr' f ini xs = undefined
+foldr' f ini []     = ini
+foldr' f ini (x:xs) = f x $ foldr' f ini xs  
 
 -- Реализуйте функцию map' (которая делает то же самое, что обычный map)
 -- через функцию foldr', не используя стандартных функций.
-map' :: (a -> b) -> [a] -> [b]
-map' f xs = undefined
+map' :: (a -> b) -> [a] -> [b] 
+map' f = foldr' (\ x ys -> f x:ys) []
 
 -- 2) Maybe
 -- Maybe a - это специальный тип данных, который может принимать либо
@@ -254,3 +258,5 @@ grepSubstringNoFilename needle files = undefined
 -- ["b.txt:c", "c.txt:c"]
 grepExactMatchWithFilename :: String -> [File] -> [String]
 grepExactMatchWithFilename needle files = undefined
+
+
