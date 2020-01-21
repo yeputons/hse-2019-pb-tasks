@@ -222,7 +222,7 @@ quickSort' (x:xs) = left ++ [x] ++ right
 -- >>> weird' [[1, 11, 12], [9, 10, 20]]
 -- 3
 weird' :: [[Int]] -> Int
-weird' = sum' <<< map' length <<< (filter $ even <<< length <<< (filter $ (> 100) <<< (^ 2)))
+weird' = sum' <<< map' length <<< filter (even <<< length <<< filter ((> 100) <<< (^ 2)))
 
 -- 4) grep
 -- Нужно реализовать несколько вариаций grep'а.
