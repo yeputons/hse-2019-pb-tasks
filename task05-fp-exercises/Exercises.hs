@@ -181,8 +181,7 @@ thirdElementOfSecondList' xs = tryTail xs ~~> tryHead ~~> tryTail ~~> tryTail ~~
 -- nubBy' (\x y -> x == y || x + y == 10) [2, 3, 5, 7, 8, 2]
 -- [2,3,5]
 nubBy' :: (a -> a -> Bool) -> [a] -> [a]
-nubBy' _  [] = []
-nubBy' eq xs = foldr' (\x ys -> x:filter (not . eq x) ys) [] xs
+nubBy' eq = foldr' (\x ys -> x:filter (not . eq x) ys) []
 -- doesn't seem more beautiful :thinking
 
 -- Реализуйте функцию quickSort, которая принимает на вход список, и 
@@ -248,7 +247,6 @@ type File = (String, [String])
 -- Здесь (\_ s -> s) --- это лямбда-функция, которая игнорирует первый
 -- параметр и возвращает второй.
 grep' :: (String -> [String] -> [String]) -> (String -> Bool) -> [File] -> [String]
-grep' _      _     []       = []
 grep' format match files    = concat' $ map' (\(name, strings) -> format name $ filter match strings) files
 
 -- Также вам предоставлена функция для проверки вхождения подстроки в строку.
