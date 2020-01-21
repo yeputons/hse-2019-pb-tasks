@@ -127,8 +127,12 @@ secondElement xs = case tryTail xs of
 -- >>> thirdElementOfSecondList [["a"], ["b", "c", "d"]]
 -- Just "d"
 thirdElementOfSecondList :: [[a]] -> Maybe a
-thirdElementOfSecondList xs = undefined
-
+thirdElementOfSecondList xs = case secondElement xs of
+                                Nothing -> Nothing
+                                Just ys -> case tryTail ys of
+                                            Just ys' -> secondElement ys'
+                                            _        -> Nothing  
+    
 -- Функцию fifthElement, которая возвращает пятый элемент списка или Nothing,
 -- если пятого элемента в списке нет.
 -- >>> fifthElement []
@@ -138,18 +142,26 @@ thirdElementOfSecondList xs = undefined
 -- >>> fifthElement [1, 2, 3, 4, 5]
 -- Just 5
 fifthElement :: [a] -> Maybe a
-fifthElement xs = undefined
+fifthElement xs = fe xs 5
+                   where fe xs 1 = tryHead xs
+                         fe xs n = case tryTail xs of
+                                     Just ys' -> fe (tail xs) $ n - 1 
+                                     Nothing  -> Nothing  
+                     
 
 -- Выделите общую логику в оператор ~~>.
 (~~>) :: Maybe a -> (a -> Maybe b) -> Maybe b
-(~~>) ma f = undefined
+(~~>) (Just ma) f = f ma
+(~~>) _         f = Nothing
+                
 
 -- Перепишите функцию thirdElementOfSecondList в thirdElementOfSecondList' используя
 -- только tryHead, tryTail, применение функций и оператор ~~>, но не используя
 -- сопоставление с образом (pattern matching) ни в каком виде, case, if, guards.
 thirdElementOfSecondList' :: [[a]] -> Maybe a
-thirdElementOfSecondList' xs = undefined
-
+thirdElementOfSecondList' xs = tryTail xs ~~> tryHead ~~> tryTail ~~> tryTail ~~> tryHead   
+-- (tryTail xs) ~~> tryHead) == secondElement - вернет maybe второй_элемент
+-- (tryTail ((tryTail xs) ~~> tryHead)) == хвост от секонд элемента
 -- 3) Несколько упражнений
 -- Реализуйте функцию nubBy', которая принимает на вход функцию для сравнения 
 -- элементов на эквивалентность и список элементов и возвращает список из тех же
@@ -260,3 +272,4 @@ grepExactMatchWithFilename :: String -> [File] -> [String]
 grepExactMatchWithFilename needle files = undefined
 
 
+ 
