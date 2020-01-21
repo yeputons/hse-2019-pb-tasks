@@ -59,7 +59,7 @@ hash'' ini (x:xs) = ord x + p * hash'' ini xs
 -- не используя никаких стандартных функций.
 foldr' :: (a -> b -> b) -> b -> [a] -> b
 foldr' f ini []     = ini 
-foldr' f ini (x:xs) = f x (foldr' f ini xs)
+foldr' f ini (x:xs) = f x $ foldr' f ini xs
 
 -- Реализуйте функцию map' (которая делает то же самое, что обычный map)
 -- через функцию foldr', не используя стандартных функций.
@@ -130,7 +130,19 @@ secondElement xs = case tryTail xs of
 -- >>> thirdElementOfSecondList [["a"], ["b", "c", "d"]]
 -- Just "d"
 thirdElementOfSecondList :: [[a]] -> Maybe a
-thirdElementOfSecondList xs = undefined
+thirdElementOfSecondList xs = case tryTail xs of
+                                Nothing -> Nothing
+                                Just a  -> case tryHead a of 
+                                             Nothing -> Nothing 
+                                             Just b  -> get b 3 
+                                                        where 
+                                                          get :: [a] -> Int -> Maybe a
+                                                          get [] _       = Nothing 
+                                                          get (x:xs) 1   = Just x 
+                                                          get (x:xs) ind = get xs (ind - 1)
+                                                      
+                                             
+                                            
 
 -- Функцию fifthElement, которая возвращает пятый элемент списка или Nothing,
 -- если пятого элемента в списке нет.
@@ -141,17 +153,24 @@ thirdElementOfSecondList xs = undefined
 -- >>> fifthElement [1, 2, 3, 4, 5]
 -- Just 5
 fifthElement :: [a] -> Maybe a
-fifthElement xs = undefined
+fifthElement xs = get xs 5
+                  where 
+                    get :: [a] -> Int -> Maybe a
+                    get [] _       = Nothing 
+                    get (x:xs) 1   = Just x 
+                    get (x:xs) ind = get xs (ind - 1)
+
 
 -- Выделите общую логику в оператор ~~>.
 (~~>) :: Maybe a -> (a -> Maybe b) -> Maybe b
-(~~>) ma f = undefined
+(~~>) Nothing f  = Nothing
+(~~>) (Just a) f = f a
 
 -- Перепишите функцию thirdElementOfSecondList в thirdElementOfSecondList' используя
 -- только tryHead, tryTail, применение функций и оператор ~~>, но не используя
 -- сопоставление с образом (pattern matching) ни в каком виде, case, if, guards.
 thirdElementOfSecondList' :: [[a]] -> Maybe a
-thirdElementOfSecondList' xs = undefined
+thirdElementOfSecondList' xs = tryTail xs ~~> tryHead ~~> tryTail ~~> tryTail ~~> tryHead
 
 -- 3) Несколько упражнений
 -- Реализуйте функцию nubBy', которая принимает на вход функцию для сравнения 
