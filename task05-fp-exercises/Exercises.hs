@@ -64,10 +64,10 @@ foldr' f ini (x:xs) = f x $ foldr' f ini xs
 -- Реализуйте функцию map' (которая делает то же самое, что обычный map)
 -- через функцию foldr', не используя стандартных функций.
 map' :: (a -> b) -> [a] -> [b]
-map' f xs = foldr' (map'' f) [] xs
+map' f = foldr' (map'' f) []
 
 map'' :: (a -> b) -> a -> [b] -> [b]
-map'' f x y = (f x):y
+map'' f x y = f x : y
 
 -- 2) Maybe
 -- Maybe a - это специальный тип данных, который может принимать либо
@@ -214,7 +214,7 @@ filter' eq x (xx:xs)
 -- "aabbc"
 quickSort' :: Ord a => [a] -> [a]
 quickSort' []     = []
-quickSort' (x:[]) = [x]
+quickSort' [x]    = [x]
 quickSort' (x:xs) = (quickSort' left) ++ [x] ++ (quickSort' right)
                     where 
                       (left, right) = partition x xs
@@ -241,7 +241,7 @@ partition x (xx:xs)
 -- >>> weird' [[1, 11, 12], [9, 10, 20]]
 -- 3
 weird':: [[Int]] -> Int
-weird' = sum' . map' length . filter ((== 0) . (flip mod) 2 . length . filter ((>100) . (^2)))
+weird' = sum' . map' length . filter ((== 0) . flip mod 2 . length . filter ((>100) . (^2)))
 
 
 -- 4) grep
@@ -289,7 +289,7 @@ isSubstringOf n s = pack n `isInfixOf` pack s
 -- >>> grepSubstringNoFilename "c" [("a.txt", ["a", "a"]), ("b.txt", ["b", "bab", "c"]), ("c.txt", ["c", "ccccc"])]
 -- ["c", "c", "ccccc"]
 grepSubstringNoFilename :: String -> [File] -> [String]
-grepSubstringNoFilename needle files = grep' (\_ s -> s) (isSubstringOf needle) files
+grepSubstringNoFilename needle = grep' (\_ s -> s) (isSubstringOf needle) 
  
 -- Вариант, когда ищется точное совпадение и нужно ко всем подходящим строкам
 -- дописать имя файла через ":".
@@ -299,4 +299,4 @@ grepSubstringNoFilename needle files = grep' (\_ s -> s) (isSubstringOf needle) 
 -- >>> grepExactMatchWithFilename "c" [("a.txt", ["a", "a"]), ("b.txt", ["b", "bab", "c"]), ("c.txt", ["c", "ccccc"])]
 -- ["b.txt:c", "c.txt:c"]
 grepExactMatchWithFilename :: String -> [File] -> [String]
-grepExactMatchWithFilename needle files = grep' (\filename lines -> map' (\line -> filename ++ ":" ++ line) lines) (== needle) files
+grepExactMatchWithFilename needle = grep' (\filename lines -> map' (\line -> filename ++ ":" ++ line) lines) (== needle)
