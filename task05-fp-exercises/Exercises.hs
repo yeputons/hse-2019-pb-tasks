@@ -50,7 +50,8 @@ hash' :: String -> Int
 hash' = hash'' 0
 
 hash'' :: Int -> String -> Int
-hash'' ini xs = undefined
+hash'' ini [] = ini
+hash'' ini (x:xs) = ord x + p * hash'' ini xs
 
 -- Выделите общую логику предыдущих функций и реализуйте функцию высшего порядка foldr',
 -- не используя никаких стандартных функций.
@@ -60,7 +61,8 @@ foldr' f ini xs = undefined
 -- Реализуйте функцию map' (которая делает то же самое, что обычный map)
 -- через функцию foldr', не используя стандартных функций.
 map' :: (a -> b) -> [a] -> [b]
-map' f xs = undefined
+map' f [] = []
+map' f (x:xs) = foldr' (\x xs -> f x:xs) [] (x:xs)
 
 -- 2) Maybe
 -- Maybe a - это специальный тип данных, который может принимать либо
@@ -159,8 +161,16 @@ thirdElementOfSecondList' xs = undefined
 -- "abcd"
 -- nubBy' (\x y -> x == y || x + y == 10) [2, 3, 5, 7, 8, 2]
 -- [2,3,5]
+delEl' :: (a -> a -> Bool) -> a -> [a] -> [a]
+delEl' eq x [] = []
+delEl' eq x (y:ys) | eq x y         = delEl' eq x ys
+                   | otherwise      = y:delEl' eq x ys
+
 nubBy' :: (a -> a -> Bool) -> [a] -> [a]
-nubBy' eq xs = undefined
+nubBy' eq [] = []
+nubBy' eq [x] = [x]
+nubBy' eq (x:y:xs) | eq x y         = x:nubBy' eq (delEl' eq x xs)
+                   | otherwise      = x:nubBy' eq (y:delEl' eq x xs) 
 
 -- Реализуйте функцию quickSort, которая принимает на вход список, и 
 -- возвращает список, в котором элементы отсортированы при помощи алгоритма
@@ -180,7 +190,8 @@ nubBy' eq xs = undefined
 -- >>> quickSort' "babca"
 -- "aabbc"
 quickSort' :: Ord a => [a] -> [a]
-quickSort' xs = undefined
+quickSort' [] = []
+quickSort' (x:xs) = quickSort' [y | y <- xs, y < x] ++ ([y | y <- x:xs, y == x] ++ quickSort' [y | y <- xs, y > x])
 
 -- Найдите суммарную длину списков, в которых чётное количество элементов
 -- имеют квадрат больше 100. Реализация должна быть без использования
@@ -195,8 +206,7 @@ quickSort' xs = undefined
 -- >>> weird' [[1, 11, 12], [9, 10, 20]]
 -- 3
 weird':: [[Int]] -> Int
-weird' xs = undefined
-
+weird' = sum' . map' length . filter ((== 0). (`mod` 2) . length . filter(>10))
 
 -- 4) grep
 -- Нужно реализовать несколько вариаций grep'а.
@@ -222,7 +232,8 @@ type File = (String, [String])
 -- Здесь (\_ s -> s) --- это лямбда-функция, которая игнорирует первый
 -- параметр и возвращает второй.
 grep' :: (String -> [String] -> [String]) -> (String -> Bool) -> [File] -> [String]
-grep' format match files = undefined
+grep' format match [] = []
+grep' format match (file:files) = format (fst file) (filter match (snd file)) ++ grep' format match files
 
 -- Также вам предоставлена функция для проверки вхождения подстроки в строку.
 -- >>> isSubstringOf "a" "bac"
@@ -243,7 +254,7 @@ isSubstringOf n s = pack n `isInfixOf` pack s
 -- >>> grepSubstringNoFilename "c" [("a.txt", ["a", "a"]), ("b.txt", ["b", "bab", "c"]), ("c.txt", ["c", "ccccc"])]
 -- ["c", "c", "ccccc"]
 grepSubstringNoFilename :: String -> [File] -> [String]
-grepSubstringNoFilename needle files = undefined
+grepSubstringNoFilename needle = grep' (\_ s -> s) (isSubstringOf needle)
  
 -- Вариант, когда ищется точное совпадение и нужно ко всем подходящим строкам
 -- дописать имя файла через ":".
@@ -253,4 +264,6 @@ grepSubstringNoFilename needle files = undefined
 -- >>> grepExactMatchWithFilename "c" [("a.txt", ["a", "a"]), ("b.txt", ["b", "bab", "c"]), ("c.txt", ["c", "ccccc"])]
 -- ["b.txt:c", "c.txt:c"]
 grepExactMatchWithFilename :: String -> [File] -> [String]
-grepExactMatchWithFilename needle files = undefined
+format file [] = []
+format file lines = map' (\ s -> file ++ ":" ++ s) lines
+grepExactMatchWithFilename needle = grep' format (== needle)
