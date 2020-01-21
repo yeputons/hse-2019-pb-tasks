@@ -215,7 +215,7 @@ filter' eq x (xx:xs)
 quickSort' :: Ord a => [a] -> [a]
 quickSort' []     = []
 quickSort' [x]    = [x]
-quickSort' (x:xs) = (quickSort' left) ++ [x] ++ (quickSort' right)
+quickSort' (x:xs) = quickSort' left ++ [x] ++ quickSort' right
                     where 
                       (left, right) = partition x xs
 
