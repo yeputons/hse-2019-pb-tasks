@@ -148,9 +148,9 @@ thirdElementOfSecondList xs = case secondElement xs of
 fifthElement :: [a] -> Maybe a
 fifthElement xs = case tryTail xs of
                     Nothing -> Nothing
-                    Just ys -> case tryTail xs of
+                    Just ys -> case tryTail ys of
                                   Nothing -> Nothing
-                                  Just zs -> case tryTail xs of
+                                  Just zs -> case tryTail zs of
                                                 Nothing -> Nothing
                                                 Just qs -> secondElement qs
 
@@ -267,8 +267,6 @@ isSubstringOf n s = pack n `isInfixOf` pack s
 grepSubstringNoFilename :: String -> [File] -> [String]
 grepSubstringNoFilename needle = grep' (\_ x -> x) (isSubstringOf needle)
 
- {- HLINT ignore "Avoid lambda" -}
-
 -- Вариант, когда ищется точное совпадение и нужно ко всем подходящим строкам
 -- дописать имя файла через ":".
 --
@@ -277,6 +275,6 @@ grepSubstringNoFilename needle = grep' (\_ x -> x) (isSubstringOf needle)
 -- >>> grepExactMatchWithFilename "c" [("a.txt", ["a", "a"]), ("b.txt", ["b", "bab", "c"]), ("c.txt", ["c", "ccccc"])]
 -- ["b.txt:c", "c.txt:c"]
 grepExactMatchWithFilename :: String -> [File] -> [String]
-grepExactMatchWithFilename needle = grep' (\name -> map' (fmt name)) (==needle)
+grepExactMatchWithFilename needle = grep' (map' . fmt) (==needle)
                                   where fmt name line = name ++ ':':line
 
