@@ -182,7 +182,7 @@ thirdElementOfSecondList' xs = (~~>) ((~~>) ((~~>) ((~~>) (tryTail xs) tryHead) 
 -- "abcd"
 -- nubBy' (\x y -> x == y || x + y == 10) [2, 3, 5, 7, 8, 2]
 -- [2,3,5]
-nubBy' eq xs = foldr' (\x xs -> x:filter (not . eq x) xs) [] xs
+nubBy' eq = foldr' (\x xs -> x:filter (not . eq x) xs) []
 
 -- Реализуйте функцию quickSort, которая принимает на вход список, и 
 -- возвращает список, в котором элементы отсортированы при помощи алгоритма
