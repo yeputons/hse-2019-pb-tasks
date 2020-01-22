@@ -201,9 +201,9 @@ nubBy' eq (x:xs) = x:nubBy' eq (filter (not.eq x) xs)
 quickSort' :: Ord a => [a] -> [a]
 quickSort' [] = []
 quickSort' xs = left ++ middle ++ right
-                where left   = quickSort' $ filter (<(head xs)) xs
-                      middle = filter (==(head xs)) xs
-                      right  = quickSort' $ filter (>(head xs)) xs
+                where left   = quickSort' $ filter (< head xs) xs
+                      middle = filter (== head xs) xs
+                      right  = quickSort' $ filter (> head xs) xs
 
 -- Найдите суммарную длину списков, в которых чётное количество элементов
 -- имеют квадрат больше 100. Реализация должна быть без использования
