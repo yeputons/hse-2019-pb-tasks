@@ -180,9 +180,8 @@ nubBy' eq [] = []
 nubBy' eq (x:xs) = x : nubBy' eq (delMembFromList eq x xs)
 delMembFromList :: (a -> a -> Bool) -> a -> [a] -> [a]
 delMembFromList eq y [] = []
-delMembFromList eq y (x:xs) = case eq x y of 
-                                True -> delMembFromList eq y xs
-                                _    -> x : delMembFromList eq y xs
+delMembFromList eq y (x:xs) | eq x y    = delMembFromList eq y xs
+                            | otherwise = x : delMembFromList eq y xs
 
 -- Реализуйте функцию quickSort, которая принимает на вход список, и 
 -- возвращает список, в котором элементы отсортированы при помощи алгоритма
