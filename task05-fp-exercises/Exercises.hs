@@ -269,7 +269,6 @@ isSubstringOf n s = pack n `isInfixOf` pack s
 -- ["c", "c", "ccccc"]
 grepSubstringNoFilename :: String -> [File] -> [String]
 grepSubstringNoFilename needle = grep' (\_ s -> s) (isSubstringOf needle) 
-
  
 -- Вариант, когда ищется точное совпадение и нужно ко всем подходящим строкам
 -- дописать имя файла через ":".
