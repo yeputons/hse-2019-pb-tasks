@@ -36,7 +36,7 @@ foldr' f ini (x:xs) = f x $ foldr' f ini xs
 
 
 map' :: (a -> b) -> [a] -> [b]
-map' f = foldr' (\x ys -> (f x):ys) []
+map' f = foldr' (\x ys -> f x:ys) []
 
 
 tryHead :: [a] -> Maybe a
@@ -97,7 +97,7 @@ type File = (String, [String])
 
 grep' :: (String -> [String] -> [String]) -> (String -> Bool) -> [File] -> [String]
 grep' format match [] = []
-grep' format match (a:b) = uncurry format ((fst a), filter (match) (snd a)) ++ grep' format match b
+grep' format match (a:b) = uncurry format (fst a, filter match (snd a)) ++ grep' format match b
 
 
 isSubstringOf :: String -> String -> Bool
