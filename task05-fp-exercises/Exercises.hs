@@ -185,7 +185,7 @@ nubBy' :: (a -> a -> Bool) -> [a] -> [a]
 nubBy'' :: (a -> a -> Bool) -> a -> [a] -> [a]
 
 nubBy' eq [] = []
-nubBy' eq (x:xs) = x:(nubBy' eq (nubBy'' eq x xs))
+nubBy' eq (x:xs) = x : nubBy' eq (nubBy'' eq x xs)
 
 nubBy'' eq _ [] = []
 nubBy'' eq element (x:xs) 
@@ -212,7 +212,7 @@ nubBy'' eq element (x:xs)
 quickSort' :: Ord a => [a] -> [a]
 quickSort' xs 
         | null xs   = []
-        | otherwise = quickSort' ([x | x <- xs, x < h]) ++ 
+        | otherwise = quickSort' [x | x <- xs, x < h] ++ 
           [x | x <- xs, x == h] ++ 
           quickSort' [x | x <- xs, x > h]
         where 
