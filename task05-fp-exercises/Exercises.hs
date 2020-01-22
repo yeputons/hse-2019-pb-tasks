@@ -177,7 +177,7 @@ thirdElementOfSecondList' xs = tryTail xs ~~> tryHead ~~> tryTail ~~> tryTail ~~
 -- [2,3,5]
 nubBy' :: (a -> a -> Bool) -> [a] -> [a]
 nubBy' _ [] = [] 
-nubBy' eq (x:xs) =  x : (nubBy' eq $ filter (not . eq x) xs)
+nubBy' eq (x:xs) = x : nubBy' eq (filter (not . eq x) xs)
 
 
 -- Реализуйте функцию quickSort, которая принимает на вход список, и 
