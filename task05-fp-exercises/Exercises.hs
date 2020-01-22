@@ -1,3 +1,6 @@
+
+
+
 module Exercises where  -- Вспомогательная строчка, чтобы можно было использовать функции в других файлах.
 import Control.Arrow
 import Data.Char
@@ -16,7 +19,8 @@ sum' :: [Int] -> Int
 sum' = sum'' 0
 
 sum'' :: Int -> [Int] -> Int
-sum'' ini xs = undefined
+sum'' ini [] = ini
+sum'' ini (x:xs) = ini + sum'' x xs
 
 -- Функция concat' принимает на вход список списков и возвращает конкатенацию
 -- этих списков. Она использует функцию concat'', которая дополнительно
@@ -29,7 +33,8 @@ concat' :: [[a]] -> [a]
 concat' = concat'' []
 
 concat'' :: [a] -> [[a]] -> [a]
-concat'' ini xs = undefined
+concat'' ini [] = ini
+concat'' ini (x:xs) = x ++ concat'' ini xs 
 
 -- Функция hash' принимает на вход строку s и считает полиномиальный
 -- хэш от строки по формуле hash' s_0...s_{n - 1} =
@@ -50,17 +55,19 @@ hash' :: String -> Int
 hash' = hash'' 0
 
 hash'' :: Int -> String -> Int
-hash'' ini xs = undefined
+hash'' ini [] = ini
+hash'' ini (x:xs) = ord x + p * hash'' ini xs
 
 -- Выделите общую логику предыдущих функций и реализуйте функцию высшего порядка foldr',
 -- не используя никаких стандартных функций.
 foldr' :: (a -> b -> b) -> b -> [a] -> b
-foldr' f ini xs = undefined
+foldr' f ini [] = ini
+foldr' f ini (x:xs) = f x ( foldr' f ini xs)
 
 -- Реализуйте функцию map' (которая делает то же самое, что обычный map)
 -- через функцию foldr', не используя стандартных функций.
-map' :: (a -> b) -> [a] -> [b]
-map' f xs = undefined
+map' :: ( a -> b) -> [a] -> [b]
+map' f = foldr' (\x xs -> f x : xs) []
 
 -- 2) Maybe
 -- Maybe a - это специальный тип данных, который может принимать либо
@@ -122,9 +129,16 @@ secondElement xs = case tryTail xs of
 -- Nothing
 -- >>> thirdElementOfSecondList [["a"], ["b", "c", "d"]]
 -- Just "d"
-thirdElementOfSecondList :: [[a]] -> Maybe a
-thirdElementOfSecondList xs = undefined
+thirdElement :: [a] -> Maybe a
+thirdElement x = case tryTail x of
+	Just y -> secondElement y
+	Nothing -> Nothing 
 
+
+thirdElementOfSecondList :: [[a]] -> Maybe a
+thirdElementOfSecondList xs = case secondElement xs of
+                 Just a -> thirdElement a
+                 Nothing -> Nothing
 -- Функцию fifthElement, которая возвращает пятый элемент списка или Nothing,
 -- если пятого элемента в списке нет.
 -- >>> fifthElement []
@@ -134,17 +148,28 @@ thirdElementOfSecondList xs = undefined
 -- >>> fifthElement [1, 2, 3, 4, 5]
 -- Just 5
 fifthElement :: [a] -> Maybe a
-fifthElement xs = undefined
+fifthElement xs = case tryTail xs of
+		Just a -> fourthElement a
+		Nothing -> Nothing
+		where 
+		  fourthElement :: [a] -> Maybe a
+		  fourthElement xs = case tryTail xs of
+			Just z -> thirdElement z
+			Nothing -> Nothing
 
 -- Выделите общую логику в оператор ~~>.
 (~~>) :: Maybe a -> (a -> Maybe b) -> Maybe b
-(~~>) ma f = undefined
+(~~>) ma f = case ma of
+		Just ma -> f ma
+		Nothing -> Nothing
 
 -- Перепишите функцию thirdElementOfSecondList в thirdElementOfSecondList' используя
 -- только tryHead, tryTail, применение функций и оператор ~~>, но не используя
 -- сопоставление с образом (pattern matching) ни в каком виде, case, if, guards.
 thirdElementOfSecondList' :: [[a]] -> Maybe a
-thirdElementOfSecondList' xs = undefined
+thirdElementOfSecondList' xs = (~~>) ((~~>) (secondElement' xs) tryTail) secondElement'
+	where
+		secondElement' xs = (~~>) (tryTail xs) tryHead
 
 -- 3) Несколько упражнений
 -- Реализуйте функцию nubBy', которая принимает на вход функцию для сравнения 
@@ -159,8 +184,11 @@ thirdElementOfSecondList' xs = undefined
 -- "abcd"
 -- nubBy' (\x y -> x == y || x + y == 10) [2, 3, 5, 7, 8, 2]
 -- [2,3,5]
+
 nubBy' :: (a -> a -> Bool) -> [a] -> [a]
-nubBy' eq xs = undefined
+nubBy' eq [] = []
+nubBy' eq (x:xs) = x:nubBy' eq (filter (not.eq x) xs)
+
 
 -- Реализуйте функцию quickSort, которая принимает на вход список, и 
 -- возвращает список, в котором элементы отсортированы при помощи алгоритма
@@ -180,7 +208,11 @@ nubBy' eq xs = undefined
 -- >>> quickSort' "babca"
 -- "aabbc"
 quickSort' :: Ord a => [a] -> [a]
-quickSort' xs = undefined
+quickSort' [] = []
+quickSort' (x:xs) = (quickSort' left) ++ [x] ++ (quickSort' right)
+	where
+		left  = filter ( <= x ) xs
+		right = filter ( > x ) xs
 
 -- Найдите суммарную длину списков, в которых чётное количество элементов
 -- имеют квадрат больше 100. Реализация должна быть без использования
@@ -195,7 +227,7 @@ quickSort' xs = undefined
 -- >>> weird' [[1, 11, 12], [9, 10, 20]]
 -- 3
 weird':: [[Int]] -> Int
-weird' xs = undefined
+weird' = sum' . map' length . filter ((== 0) . (flip mod) 2 . length . filter ((>100) . (^2)))
 
 
 -- 4) grep
@@ -222,7 +254,8 @@ type File = (String, [String])
 -- Здесь (\_ s -> s) --- это лямбда-функция, которая игнорирует первый
 -- параметр и возвращает второй.
 grep' :: (String -> [String] -> [String]) -> (String -> Bool) -> [File] -> [String]
-grep' format match files = undefined
+grep' format match [] = []
+grep' format match ((name,lines):xs) = format name (filter match lines) ++ (grep' format match xs)
 
 -- Также вам предоставлена функция для проверки вхождения подстроки в строку.
 -- >>> isSubstringOf "a" "bac"
@@ -242,8 +275,9 @@ isSubstringOf n s = pack n `isInfixOf` pack s
 -- ["b"]
 -- >>> grepSubstringNoFilename "c" [("a.txt", ["a", "a"]), ("b.txt", ["b", "bab", "c"]), ("c.txt", ["c", "ccccc"])]
 -- ["c", "c", "ccccc"]
+
 grepSubstringNoFilename :: String -> [File] -> [String]
-grepSubstringNoFilename needle files = undefined
+grepSubstringNoFilename needle files = grep' (\_ s -> s) (\ str -> isSubstringOf needle str) files
  
 -- Вариант, когда ищется точное совпадение и нужно ко всем подходящим строкам
 -- дописать имя файла через ":".
@@ -253,4 +287,4 @@ grepSubstringNoFilename needle files = undefined
 -- >>> grepExactMatchWithFilename "c" [("a.txt", ["a", "a"]), ("b.txt", ["b", "bab", "c"]), ("c.txt", ["c", "ccccc"])]
 -- ["b.txt:c", "c.txt:c"]
 grepExactMatchWithFilename :: String -> [File] -> [String]
-grepExactMatchWithFilename needle files = undefined
+grepExactMatchWithFilename needle files = grep' (\ fileName strings -> map' ((fileName ++ ":") ++) strings) (\ str -> str == needle) files
