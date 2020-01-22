@@ -132,7 +132,7 @@ thirdElementOfSecondList xs = case secondElement xs of
                                 Just ys -> case tryTail ys of
                                             Just ys' -> secondElement ys'
                                             _        -> Nothing  
-    
+
 -- Функцию fifthElement, которая возвращает пятый элемент списка или Nothing,
 -- если пятого элемента в списке нет.
 -- >>> fifthElement []
@@ -176,7 +176,9 @@ thirdElementOfSecondList' xs = tryTail xs ~~> tryHead ~~> tryTail ~~> tryTail ~~
 -- nubBy' (\x y -> x == y || x + y == 10) [2, 3, 5, 7, 8, 2]
 -- [2,3,5]
 nubBy' :: (a -> a -> Bool) -> [a] -> [a]
-nubBy' eq xs = undefined
+nubBy' _ [] = [] 
+nubBy' eq (x:xs) = (++) [x] (nubBy' eq $ filter (not.eq x ) xs)
+
 
 -- Реализуйте функцию quickSort, которая принимает на вход список, и 
 -- возвращает список, в котором элементы отсортированы при помощи алгоритма
@@ -196,7 +198,10 @@ nubBy' eq xs = undefined
 -- >>> quickSort' "babca"
 -- "aabbc"
 quickSort' :: Ord a => [a] -> [a]
-quickSort' xs = undefined
+quickSort' []     = []
+quickSort' [x]    = [x]  
+quickSort' (x:xs) = quickSort' (filter (< x) xs) ++ [x] ++ quickSort' (filter (>= x) xs)   
+
 
 -- Найдите суммарную длину списков, в которых чётное количество элементов
 -- имеют квадрат больше 100. Реализация должна быть без использования
@@ -211,8 +216,7 @@ quickSort' xs = undefined
 -- >>> weird' [[1, 11, 12], [9, 10, 20]]
 -- 3
 weird':: [[Int]] -> Int
-weird' xs = undefined
-
+weird' = sum'.map' length . filter (even . length . filter ( (>100) . (^2) ) )  
 
 -- 4) grep
 -- Нужно реализовать несколько вариаций grep'а.
