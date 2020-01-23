@@ -246,7 +246,7 @@ type File = (String, [String])
 -- параметр и возвращает второй.
 grep' :: (String -> [String] -> [String]) -> (String -> Bool) -> [File] -> [String]
 grep' format match [] = []
-grep' format match ((name,lines):fs) = format name (filter match lines) ++ (grep' format match fs)
+grep' format match ((name,lines):fs) = format name (filter match lines) ++ grep' format match fs
 
 -- Также вам предоставлена функция для проверки вхождения подстроки в строку.
 -- >>> isSubstringOf "a" "bac"
