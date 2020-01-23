@@ -17,7 +17,7 @@ sum' = sum'' 0
 
 sum'' :: Int -> [Int] -> Int
 sum'' ini []     = ini
-sum'' ini (x:xs) = x + (sum'' ini xs)
+sum'' ini (x:xs) = x + sum'' ini xs
 
 -- Функция concat' принимает на вход список списков и возвращает конкатенацию
 -- этих списков. Она использует функцию concat'', которая дополнительно
@@ -31,7 +31,7 @@ concat' = concat'' []
 
 concat'' :: [a] -> [[a]] -> [a]
 concat'' ini []     = ini
-concat'' ini (x:xs) = x ++ (concat'' ini xs)
+concat'' ini (x:xs) = x ++ concat'' ini xs
 
 -- Функция hash' принимает на вход строку s и считает полиномиальный
 -- хэш от строки по формуле hash' s_0...s_{n - 1} =
@@ -64,7 +64,7 @@ foldr' f ini (x:xs) = f x (foldr' f ini xs)
 -- Реализуйте функцию map' (которая делает то же самое, что обычный map)
 -- через функцию foldr', не используя стандартных функций.
 map' :: (a -> b) -> [a] -> [b]
-map' f xs = foldr' (\x xs -> f x : xs) [] xs
+map' f = foldr' (\x xs -> f x : xs) []
 
 -- 2) Maybe
 -- Maybe a - это специальный тип данных, который может принимать либо
@@ -181,7 +181,7 @@ thirdElementOfSecondList' xs = (~~>) (  (~~>) ( (~~>) ( (~~>) (tryTail xs) tryHe
 -- [2,3,5]
 nubBy' :: (a -> a -> Bool) -> [a] -> [a]
 nubBy' eq []     = []
-nubBy' eq (x:xs) = x:(nubBy' eq $ filter (\x' -> not(eq x x')) xs)
+nubBy' eq (x:xs) = x:(nubBy' eq $ filter (not . eq x) xs)
 
 -- Реализуйте функцию quickSort, которая принимает на вход список, и 
 -- возвращает список, в котором элементы отсортированы при помощи алгоритма
@@ -202,7 +202,7 @@ nubBy' eq (x:xs) = x:(nubBy' eq $ filter (\x' -> not(eq x x')) xs)
 -- "aabbc"
 quickSort' :: Ord a => [a] -> [a]
 quickSort' []     = []
-quickSort' (x:xs) = (quickSort' $ filter (\x' -> x' < x) xs) ++ x:(quickSort' $ filter (\x' -> x' >= x) xs)
+quickSort' (x:xs) = quickSort' (filter (< x) xs) ++ x:quickSort' (filter (>= x) xs)
 
 -- Найдите суммарную длину списков, в которых чётное количество элементов
 -- имеют квадрат больше 100. Реализация должна быть без использования
@@ -267,7 +267,7 @@ isSubstringOf n s = pack n `isInfixOf` pack s
 -- >>> grepSubstringNoFilename "c" [("a.txt", ["a", "a"]), ("b.txt", ["b", "bab", "c"]), ("c.txt", ["c", "ccccc"])]
 -- ["c", "c", "ccccc"]
 grepSubstringNoFilename :: String -> [File] -> [String]
-grepSubstringNoFilename needle files = grep' (\_ s -> s) (\x -> isSubstringOf needle x) files
+grepSubstringNoFilename needle = grep' (\_ s -> s) (\x -> isSubstringOf needle x)
  
 -- Вариант, когда ищется точное совпадение и нужно ко всем подходящим строкам
 -- дописать имя файла через ":".
@@ -277,5 +277,4 @@ grepSubstringNoFilename needle files = grep' (\_ s -> s) (\x -> isSubstringOf ne
 -- >>> grepExactMatchWithFilename "c" [("a.txt", ["a", "a"]), ("b.txt", ["b", "bab", "c"]), ("c.txt", ["c", "ccccc"])]
 -- ["b.txt:c", "c.txt:c"]
 grepExactMatchWithFilename :: String -> [File] -> [String]
-grepExactMatchWithFilename needle files = grep' (\name s -> map' (\x -> name ++ ":" ++ x) s)
-                (== needle) files
+grepExactMatchWithFilename needle = grep' (\name s -> map' (\x -> name ++ ":" ++ x) s) (== needle)
