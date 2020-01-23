@@ -258,7 +258,7 @@ type File = (String, [String])
 -- Здесь (\_ s -> s) --- это лямбда-функция, которая игнорирует первый
 -- параметр и возвращает второй.
 grep' :: (String -> [String] -> [String]) -> (String -> Bool) -> [File] -> [String]
-grep' format match files = concat' [format (filename) (filter match (strings)) | (filename, strings) <- files]
+grep' format match files = concat' [format filename (filter match strings) | (filename, strings) <- files]
 
 -- Также вам предоставлена функция для проверки вхождения подстроки в строку.
 -- >>> isSubstringOf "a" "bac"
