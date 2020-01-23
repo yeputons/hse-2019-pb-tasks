@@ -68,8 +68,8 @@ map' :: (a -> b) -> [a] -> [b]
 map' f = foldr' ((:) . f)  []
 
 {-
-map' f xs = foldr' (\y ys -> (f y) : ys) [] xs
-map' f = foldr' (\y ys -> (f y) : ys) []
+map' f xs = foldr' (\y ys -> (f y):ys) [] xs
+map' f = foldr' (\y ys -> (f y):ys) []
 map' f = foldr' (\y  -> (:) (f y)) []
 map' f = foldr' (\y  -> ((:) . f) y) []
 map' f = foldr' ((:) . f)  []
@@ -141,7 +141,7 @@ thirdElementOfSecondList xs = case secondElement xs of
 
                                 where thirdElement xs = case tryTail xs of
                                                 Just a -> secondElement a
-                                                _     -> Nothing 
+                                                _      -> Nothing 
 
 
 -- Функцию fifthElement, которая возвращает пятый элемент списка или Nothing,
@@ -155,7 +155,7 @@ thirdElementOfSecondList xs = case secondElement xs of
 fifthElement :: [a] -> Maybe a
 fifthElement = cut 4
     where 
-        cut _ [] = Nothing
+        cut _ []                = Nothing
         cut 0 (x:korben_Dallas) = Just x
         cut n (x:korben_Dallas) = cut (n-1) korben_Dallas
 
@@ -185,8 +185,13 @@ thirdElementOfSecondList' xs = tryTail xs ~~> tryHead ~~> tryTail ~~> tryTail ~~
 -- "abcd"
 -- nubBy' (\x y -> x == y || x + y == 10) [2, 3, 5, 7, 8, 2]
 -- [2,3,5]
+
+filter' p xs = [x | x <- xs, p x]
+
 nubBy' :: (a -> a -> Bool) -> [a] -> [a]
-nubBy' eq xs = undefined
+nubBy' _ []  = []
+nubBy' eq xs = foldr' (\x xs -> x:filter'(not.eq x) xs) [] xs
+
 
 -- Реализуйте функцию quickSort, которая принимает на вход список, и 
 -- возвращает список, в котором элементы отсортированы при помощи алгоритма
@@ -206,7 +211,13 @@ nubBy' eq xs = undefined
 -- >>> quickSort' "babca"
 -- "aabbc"
 quickSort' :: Ord a => [a] -> [a]
-quickSort' xs = undefined
+quickSort' [] = []
+quickSort' list = quickSort' left ++ middle ++ quickSort' right
+  where
+    pivot  = head list
+    left   = filter' (< pivot) list 
+    middle = filter' (== pivot) list
+    right  = filter' (> pivot) list
 
 -- Найдите суммарную длину списков, в которых чётное количество элементов
 -- имеют квадрат больше 100. Реализация должна быть без использования
@@ -221,7 +232,7 @@ quickSort' xs = undefined
 -- >>> weird' [[1, 11, 12], [9, 10, 20]]
 -- 3
 weird':: [[Int]] -> Int
-weird' xs = undefined
+weird' = sum' . map' length . filter (even . length . filter((>100) . (^2)))
 
 
 -- 4) grep
