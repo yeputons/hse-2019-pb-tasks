@@ -59,7 +59,7 @@ hash'' ini (x:xs) 	= ord x + hash'' ini xs * p
 -- не используя никаких стандартных функций.
 foldr' :: (a -> b -> b) -> b -> [a] -> b
 foldr' f ini [] = ini
-foldr' f ini (x:xs) = x `f` (foldr' f ini xs)
+foldr' f ini (x:xs) = x `f` foldr' f ini xs
 
 -- Реализуйте функцию map' (которая делает то же самое, что обычный map)
 -- через функцию foldr', не используя стандартных функций.
