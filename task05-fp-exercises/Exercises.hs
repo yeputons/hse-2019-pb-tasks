@@ -181,7 +181,7 @@ thirdElementOfSecondList' xs = (~~>) (  (~~>) ( (~~>) ( (~~>) (tryTail xs) tryHe
 -- [2,3,5]
 nubBy' :: (a -> a -> Bool) -> [a] -> [a]
 nubBy' eq []     = []
-nubBy' eq (x:xs) = x:(nubBy' eq $ filter (not . eq x) xs)
+nubBy' eq (x:xs) = x:nubBy' eq (filter (not . eq x) xs)
 
 -- Реализуйте функцию quickSort, которая принимает на вход список, и 
 -- возвращает список, в котором элементы отсортированы при помощи алгоритма
@@ -267,7 +267,7 @@ isSubstringOf n s = pack n `isInfixOf` pack s
 -- >>> grepSubstringNoFilename "c" [("a.txt", ["a", "a"]), ("b.txt", ["b", "bab", "c"]), ("c.txt", ["c", "ccccc"])]
 -- ["c", "c", "ccccc"]
 grepSubstringNoFilename :: String -> [File] -> [String]
-grepSubstringNoFilename needle = grep' (\_ s -> s) (\x -> isSubstringOf needle x)
+grepSubstringNoFilename needle = grep' (\_ s -> s) (isSubstringOf needle)
  
 -- Вариант, когда ищется точное совпадение и нужно ко всем подходящим строкам
 -- дописать имя файла через ":".
