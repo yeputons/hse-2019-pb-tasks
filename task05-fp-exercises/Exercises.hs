@@ -183,10 +183,10 @@ thirdElementOfSecondList' xs = tryTail xs ~~> tryHead ~~> tryTail ~~> tryTail ~~
 -- [2,3,5]
 nubBy' :: (a -> a -> Bool) -> [a] -> [a]
 nubBy' _ [] = []
-nubBy' eq (x:xs) = x : nubBy' eq (delEq eq x xs)
+nubBy' eq (x : xs) = x : nubBy' eq (delEq eq x xs)
 	where
 	  delEq _ _ [] = [] 
-	  delEq eq cad (x:xs) 
+	  delEq eq cad (x : xs) 
 		| eq cad x     = delEq eq cad xs
 		| otherwise    = x : delEq eq cad xs	 
 
