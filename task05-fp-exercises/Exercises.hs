@@ -127,7 +127,7 @@ secondElement xs = case tryTail xs of
 -- >>> thirdElementOfSecondList [["a"], ["b", "c", "d"]]
 -- Just "d"
 thirdElementOfSecondList :: [[a]] -> Maybe a
-thirdElementOfSecondList xs = tryHeadMB (tryTailMB (tryTailMB (tryHeadMB (tryTail xs))))
+thirdElementOfSecondList xs = tryHeadMB $ tryTailMB $ tryTailMB $ tryHeadMB $ tryTail xs
                                 where tryHeadMB xs = case xs of
                                                       Just a  -> tryHead a
                                                       _       -> Nothing
@@ -144,7 +144,7 @@ thirdElementOfSecondList xs = tryHeadMB (tryTailMB (tryTailMB (tryHeadMB (tryTai
 -- >>> fifthElement [1, 2, 3, 4, 5]
 -- Just 5
 fifthElement :: [a] -> Maybe a
-fifthElement xs = tryHeadMB (tryTailMB (tryTailMB (tryTailMB (tryTail xs))))
+fifthElement xs = tryHeadMB $ tryTailMB $ tryTailMB $ tryTailMB $ tryTail xs
                     where tryHeadMB xs = case xs of
                                            Just a  -> tryHead a
                                            _       -> Nothing
