@@ -176,7 +176,7 @@ thirdElementOfSecondList' xs = tryTail xs ~~> tryHead ~~> tryTail ~~> tryTail ~~
 -- [2,3,5]
 nubBy' :: (a -> a -> Bool) -> [a] -> [a]
 nubBy' eq [] = []
-nubBy' eq (x : xs) = (x : nubBy' eq (filter (not . eq x) xs))
+nubBy' eq (x : xs) = x : nubBy' eq (filter (not . eq x) xs)
 
 -- Реализуйте функцию quickSort, которая принимает на вход список, и 
 -- возвращает список, в котором элементы отсортированы при помощи алгоритма
@@ -240,7 +240,8 @@ type File = (String, [String])
 -- параметр и возвращает второй.
 grep' :: (String -> [String] -> [String]) -> (String -> Bool) -> [File] -> [String]
 grep' _ _ [] = []
-grep' format match ((filename, strings):files) = format filename (filter match strings) ++ (grep' format match files)
+grep' format match ((filename, strings):files) = format filename (filter match strings) ++ 
+                                                     (grep' format match files)
 
 
 -- Также вам предоставлена функция для проверки вхождения подстроки в строку.
