@@ -12,13 +12,12 @@ import Prelude hiding (sum, concat, foldr, map)
 --
 -- >>> sum'' 10 [2, 3]
 -- 15
-
 sum' :: [Int] -> Int
 sum' = sum'' 0
 
 sum'' :: Int -> [Int] -> Int
 sum'' ini [] = ini
-sum'' ini (x:xs) = sum'' x xs + ini
+sum'' ini (x:xs) = x + sum'' ini xs
 
 -- Функция concat' принимает на вход список списков и возвращает конкатенацию
 -- этих списков. Она использует функцию concat'', которая дополнительно
@@ -31,7 +30,7 @@ concat' :: [[a]] -> [a]
 concat' = concat'' []
 
 concat'' :: [a] -> [[a]] -> [a]
-concat'' ini [] = ini
+concat'' ini []     = ini
 concat'' ini (x:xs) = x ++ concat'' ini xs
 
 -- Функция hash' принимает на вход строку s и считает полиномиальный
@@ -53,13 +52,13 @@ hash' :: String -> Int
 hash' = hash'' 0
 
 hash'' :: Int -> String -> Int
-hash'' ini [] = ini
+hash'' ini []     = ini
 hash'' ini (x:xs) = hash'' ini xs * p + ord x
 
 -- Выделите общую логику предыдущих функций и реализуйте функцию высшего порядка foldr',
 -- не используя никаких стандартных функций.
 foldr' :: (a -> b -> b) -> b -> [a] -> b
-foldr' f ini [] = ini
+foldr' f ini []     = ini
 foldr' f ini (x:xs) = f x (foldr' f ini xs)
 
 -- Реализуйте функцию map' (которая делает то же самое, что обычный map)
@@ -145,22 +144,20 @@ thirdElementOfSecondList xs = case secondElement xs of
 -- Just 5
 fifthElement :: [a] -> Maybe a
 fifthElement xs = case tryTail xs of
-                  Just y -> fourthElement y
-                  _      -> Nothing
-                  where
-                      thirdElement xs  = case tryTail xs of
-                                          Just y -> secondElement y
-                                          _      -> Nothing
-
-                      fourthElement xs = case tryTail xs of
-                                          Just y -> thirdElement y
-                                          _      -> Nothing
+                    Just y -> fourthElement y
+                    _      -> Nothing
+                    where
+                        thirdElement xs  = case tryTail xs of
+                                             Just y -> secondElement y
+                                             _      -> Nothing
+                        fourthElement xs = case tryTail xs of
+                                             Just y -> thirdElement y
+                                             _      -> Nothing
 
 -- Выделите общую логику в оператор ~~>.
 (~~>) :: Maybe a -> (a -> Maybe b) -> Maybe b
-(~~>) ma f = case ma of
-    Just a  -> f a
-    _       -> Nothing
+(~~>) (Just ma) f = f ma
+(~~>) _         f = Nothing
 
 -- Перепишите функцию thirdElementOfSecondList в thirdElementOfSecondList' используя
 -- только tryHead, tryTail, применение функций и оператор ~~>, но не используя
