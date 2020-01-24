@@ -128,7 +128,7 @@ secondElement xs = case tryTail xs of
 -- Just "d"
 
 thirdElementOfSecondList :: [[a]] -> Maybe a
-thirdElementOfSecondList xs = maybeTryHead $ maybeTryTail $ maybeTryTail $ maybeTryHead $ maybeTryTail $ Just xs
+thirdElementOfSecondList xs = maybeTryHead $ maybeTryTail $ maybeTryTail $ maybeTryHead $ maybeTryTail xs
                               where maybeTryHead xs = case xs of
                                                         Just xs -> tryHead xs
                                                         _       -> Nothing
@@ -204,9 +204,8 @@ nubBy' eq = foldr' (\x ys -> x:filter (not . eq x) ys) []
 quickSort' :: Ord a => [a] -> [a]
 quickSort' [] = []
 quickSort' (x:xs) = left ++ [x] ++ right
-  where
-    left  = quickSort' $ filter (<= x) xs
-    right = quickSort' $ filter (> x) xs
+                    where left  = quickSort' $ filter (<= x) xs
+                          right = quickSort' $ filter (> x) xs
 
 -- Найдите суммарную длину списков, в которых чётное количество элементов
 -- имеют квадрат больше 100. Реализация должна быть без использования
