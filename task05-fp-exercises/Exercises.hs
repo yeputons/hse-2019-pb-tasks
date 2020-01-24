@@ -129,11 +129,11 @@ secondElement xs = case tryTail xs of
 thirdElementOfSecondList :: [[a]] -> Maybe a
 thirdElementOfSecondList xs = case secondElement xs of
                                 Just a  -> thirdElement a
-                                Nothing -> Nothing
+                                _       -> Nothing
                               where 
                                 thirdElement xs = case tryTail xs of
                                                    Just ys -> secondElement ys
-                                                   Nothing -> Nothing
+                                                   _       -> Nothing
 
 -- Функцию fifthElement, которая возвращает пятый элемент списка или Nothing,
 -- если пятого элемента в списке нет.
@@ -146,19 +146,19 @@ thirdElementOfSecondList xs = case secondElement xs of
 fifthElement :: [a] -> Maybe a
 fifthElement xs = case tryTail xs of
                     Just ys -> fourthElement ys
-                    Nothing -> Nothing
+                    _       -> Nothing
                   where
                     fourthElement ys = case tryTail ys of
                                          Just zs -> case tryTail zs of
                                                       Just a -> secondElement a
-                                                      Nothing -> Nothing
-                                         Nothing -> Nothing 
+                                                      _      -> Nothing
+                                         _       -> Nothing 
 
 -- Выделите общую логику в оператор ~~>.
 (~~>) :: Maybe a -> (a -> Maybe b) -> Maybe b
 (~~>) ma f = case ma of
                Just a  -> f a
-               Nothing -> Nothing
+               _       -> Nothing
 
 -- Перепишите функцию thirdElementOfSecondList в thirdElementOfSecondList' используя
 -- только tryHead, tryTail, применение функций и оператор ~~>, но не используя
@@ -180,15 +180,8 @@ thirdElementOfSecondList' xs = tryTail xs ~~> tryHead ~~> tryTail ~~> tryTail ~~
 -- nubBy' (\x y -> x == y || x + y == 10) [2, 3, 5, 7, 8, 2]
 -- [2,3,5]
 nubBy' :: (a -> a -> Bool) -> [a] -> [a]
-nubBy' _ [] = []
-nubBy' eq (x:xs) = x : nubBy' eq (nubBy'' eq x xs)
-    where
-      nubBy'' eq toCompare [] = []
-      nubBy'' eq toCompare (x:xs)
-           | eq toCompare x = xs'
-           | otherwise      = x:xs'
-           where
-             xs' = nubBy'' eq toCompare xs
+nubBy' _  []     = []
+nubBy' eq (x:xs) = x : nubBy' eq (filter (not . eq x) xs)
 
 -- Реализуйте функцию quickSort, которая принимает на вход список, и 
 -- возвращает список, в котором элементы отсортированы при помощи алгоритма
@@ -208,8 +201,7 @@ nubBy' eq (x:xs) = x : nubBy' eq (nubBy'' eq x xs)
 -- >>> quickSort' "babca"
 -- "aabbc"
 quickSort' :: Ord a => [a] -> [a]
-quickSort' [] = []
-quickSort' [x] = [x]
+quickSort' []     = []
 quickSort' (x:xs) = quickSort' (filter (< x) xs) ++ [x] ++ quickSort' (filter (>= x) xs)
 
 -- Найдите суммарную длину списков, в которых чётное количество элементов
@@ -252,7 +244,7 @@ type File = (String, [String])
 -- Здесь (\_ s -> s) --- это лямбда-функция, которая игнорирует первый
 -- параметр и возвращает второй.
 grep' :: (String -> [String] -> [String]) -> (String -> Bool) -> [File] -> [String]
-grep' format match [] = []
+grep' format match []        = []
 grep' format match (f:files) = format (fst f) (filter match (snd f)) ++ grep' format match files   
 
 -- Также вам предоставлена функция для проверки вхождения подстроки в строку.
