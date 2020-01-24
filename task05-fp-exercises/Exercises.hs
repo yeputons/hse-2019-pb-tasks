@@ -185,7 +185,7 @@ thirdElementOfSecondList' xs = tryTail xs ~~> tryHead ~~> tryTail ~~> tryTail ~~
 -- [2,3,5]
 nubBy' :: (a -> a -> Bool) -> [a] -> [a]
 nubBy' _ [] = []
-nubBy' eq (x:xs) = x : nubBy' eq (filter (\y -> not(eq x y)) xs)
+nubBy' eq (x:xs) = x : nubBy' eq (filter (not . eq x) xs)
 
 -- Реализуйте функцию quickSort, которая принимает на вход список, и 
 -- возвращает список, в котором элементы отсортированы при помощи алгоритма
@@ -206,7 +206,7 @@ nubBy' eq (x:xs) = x : nubBy' eq (filter (\y -> not(eq x y)) xs)
 -- "aabbc"
 quickSort' :: Ord a => [a] -> [a]
 quickSort' [] = []
-quickSort' (x:xs) = quickSort'(filter (< x) xs) ++ [x] ++ quickSort'(filter (>= x) xs)
+quickSort' (x:xs) = quickSort' (filter (< x) xs) ++ [x] ++ quickSort' (filter (>= x) xs)
 
 -- Найдите суммарную длину списков, в которых чётное количество элементов
 -- имеют квадрат больше 100. Реализация должна быть без использования
@@ -221,7 +221,7 @@ quickSort' (x:xs) = quickSort'(filter (< x) xs) ++ [x] ++ quickSort'(filter (>= 
 -- >>> weird' [[1, 11, 12], [9, 10, 20]]
 -- 3
 weird':: [[Int]] -> Int
-weird' = sum'.map' length.filter(even.length.filter((>100).(^2)))
+weird' = sum' . map' length . filter (even . length . filter ((>100) . (^2)))
 
 
 -- 4) grep
@@ -270,7 +270,7 @@ isSubstringOf n s = pack n `isInfixOf` pack s
 -- >>> grepSubstringNoFilename "c" [("a.txt", ["a", "a"]), ("b.txt", ["b", "bab", "c"]), ("c.txt", ["c", "ccccc"])]
 -- ["c", "c", "ccccc"]
 grepSubstringNoFilename :: String -> [File] -> [String]
-grepSubstringNoFilename needl files = grep' (\_ s -> s) (isSubstringOf needl) files
+grepSubstringNoFilename needl = grep' (\_ s -> s) (isSubstringOf needl)
  
 -- Вариант, когда ищется точное совпадение и нужно ко всем подходящим строкам
 -- дописать имя файла через ":".
@@ -280,4 +280,4 @@ grepSubstringNoFilename needl files = grep' (\_ s -> s) (isSubstringOf needl) fi
 -- >>> grepExactMatchWithFilename "c" [("a.txt", ["a", "a"]), ("b.txt", ["b", "bab", "c"]), ("c.txt", ["c", "ccccc"])]
 -- ["b.txt:c", "c.txt:c"]
 grepExactMatchWithFilename :: String -> [File] -> [String]
-grepExactMatchWithFilename needle files = grep' (\name s -> map' (\string -> (name ++ ":") ++ string) s) (== needle) files
+grepExactMatchWithFilename needle = grep' (\name s -> map' (\string -> (name ++ ":") ++ string) s) (== needle)
