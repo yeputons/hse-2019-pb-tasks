@@ -20,7 +20,7 @@ concat' = concat'' []
 concat'' :: [a] -> [[a]] -> [a]
 concat'' ini [] = ini
 concat'' ini [x] = x ++ ini
-concat'' ini (x:y:xs) = concat'' ini ((x ++ y):xs)
+concat'' ini (x:y:xs) = concat'' ini $ (x ++ y):xs
 
 
 p :: Int
@@ -36,7 +36,7 @@ hash'' ini (x:xs) = ord x + p * hash'' ini xs
 
 foldr' :: (a -> b -> b) -> b -> [a] -> b
 foldr' _ ini [] = ini
-foldr' f ini (x:xs) = f x (foldr' f ini xs)
+foldr' f ini (x:xs) = f x $ foldr' f ini xs
 
 
 map' :: (a -> b) -> [a] -> [b]
@@ -59,16 +59,13 @@ secondElement xs = case tryTail xs of
 
 
 thirdElementOfSecondList :: [[a]] -> Maybe a
-thirdElementOfSecondList xs = case tryTail xs of 
-                                    Just xss -> thirdElementOfFirstList xss 
+thirdElementOfSecondList xss = case tryTail xss of 
+                                    Just xs -> case tryHead xs of
+                                                Just x  -> case tryTail x of
+                                                            Just a  -> secondElement a
+                                                            Nothing -> Nothing
+                                                Nothing -> Nothing
                                     Nothing  -> Nothing
-                            where 
-                                thirdElementOfFirstList xss = case tryHead xss of
-                                                                    Just x  -> thirdElement x
-                                                                    Nothing -> Nothing
-                                thirdElement xs = case tryTail xs of
-                                                        Just a  -> secondElement a
-                                                        Nothing -> Nothing
 
 
 fifthElement :: [a] -> Maybe a
@@ -81,27 +78,17 @@ fifthElement = element 4
 
 
 (~~>) :: Maybe a -> (a -> Maybe b) -> Maybe b
-(~~>) ma f = case ma of 
-                Just ma -> f ma
-                Nothing -> Nothing
+(~~>) (Just ma) f = f ma
+(~~>) Nothing _ = Nothing
 
 
 thirdElementOfSecondList' :: [[a]] -> Maybe a
-thirdElementOfSecondList' xs = element 1 xs ~~> element 2
-            where
-                element 0 xs = tryHead xs
-                element num xs = case tryTail xs of
-                                        Just xs -> element (num - 1) xs
-                                        Nothing -> Nothing
+thirdElementOfSecondList' xs = tryTail xs ~~> tryHead ~~> tryTail ~~> tryTail ~~> tryHead
 
 
 nubBy' :: (a -> a -> Bool) -> [a] -> [a]
 nubBy' _ [] = []
-nubBy' eq (x:xs) = x : nubBy' eq (filter' (eq x) xs)
-            where 
-                filter' _ [] = []
-                filter' f (x:xs) | f x = filter' f xs
-                                 | otherwise = x : filter' f xs
+nubBy' eq (x:xs) = x : nubBy' eq (filter (not . (eq x)) xs)
 
 
 quickSort' :: Ord a => [a] -> [a]
@@ -110,17 +97,14 @@ quickSort' (x:xs) = quickSort' (filter (<= x) xs) ++ [x] ++ quickSort' (filter (
 
 
 weird':: [[Int]] -> Int
-weird' [] = 0
-weird' xs = foldr' ((+) . snd) 0 (filter (even . length . fst) (zip (map' (filter ((> 10) . abs)) xs) (map' length xs))) 
+weird' xs = foldr' ((+) . snd) 0 $ filter (even . length . fst) $ zip (map' (filter ((> 10) . abs)) xs) $ map' length xs
 
 
 type File = (String, [String])
 
 
 grep' :: (String -> [String] -> [String]) -> (String -> Bool) -> [File] -> [String]
-grep' _ _ [] = []
-grep' format match [file] = format (fst file) (filter match (snd file))
-grep' format match (file:files) = format (fst file) (filter match (snd file)) ++ grep' format match files
+grep' format match files = concat' $ map' (\ file -> format (fst file) (filter match (snd file))) files
 
 
 isSubstringOf :: String -> String -> Bool
@@ -128,8 +112,8 @@ isSubstringOf n s = pack n `isInfixOf` pack s
 
 
 grepSubstringNoFilename :: String -> [File] -> [String]
-grepSubstringNoFilename needle = grep' (\ _ s -> s) (isSubstringOf needle)
+grepSubstringNoFilename needle = grep' (\ _ s -> s) $ isSubstringOf needle
  
 
 grepExactMatchWithFilename :: String -> [File] -> [String]
-grepExactMatchWithFilename needle = grep' (\ fn s -> map' ((fn ++ [':']) ++ ) s) (needle == )
+grepExactMatchWithFilename needle = grep' (\ fn -> map' ((fn ++ [':']) ++ )) (needle == )
