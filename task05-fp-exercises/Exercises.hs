@@ -130,8 +130,8 @@ thirdElementOfSecondList :: [[a]] -> Maybe a
 thirdElementOfSecondList xs = case secondElement xs of
                                 Nothing -> Nothing
                                 Just xs -> case tryTail xs of
+                                             Nothing -> Nothing
                                              Just xs -> secondElement xs
-                                             _      -> Nothing
 
 -- Функцию fifthElement, которая возвращает пятый элемент списка или Nothing,
 -- если пятого элемента в списке нет.
@@ -195,9 +195,9 @@ nubBy' eq = foldr' (\x ys -> x:filter (not . eq x) ys) []
 -- "aabbc"
 quickSort' :: Ord a => [a] -> [a]
 quickSort' []     = []
-quickSort' (x:xs) = quickSort' (partition' (< x) (x:xs)) ++
+quickSort' (x:xs) = quickSort' [y | y <- x:xs, y < x] ++
                     partition' (== x) (x:xs) ++
-                    quickSort' (partition' (> x) (x:xs))
+                    quickSort' [y | y <- x:xs, y > x]
 
 partition' :: (a -> Bool) -> [a] -> [a]
 partition' comp xs = [x | x <- xs, comp x]
@@ -273,7 +273,5 @@ grepSubstringNoFilename needle = grep' (\_ s -> s) (isSubstringOf needle)
 -- >>> grepExactMatchWithFilename "c" [("a.txt", ["a", "a"]), ("b.txt", ["b", "bab", "c"]), ("c.txt", ["c", "ccccc"])]
 -- ["b.txt:c", "c.txt:c"]
 grepExactMatchWithFilename :: String -> [File] -> [String]
-grepExactMatchWithFilename needle = grep' format match
-                                    where
-                                      match s = s == needle
-                                      format name = map' (\s -> name ++ ":" ++ s)
+grepExactMatchWithFilename needle = grep' (\name -> map' (\s -> name ++ ":" ++ s))  (== needle)
+                                    --where format name = map' (\s -> name ++ ":" ++ s)
