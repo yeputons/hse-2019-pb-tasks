@@ -215,7 +215,7 @@ quickSort' (x:xs) = quickSort' (filter (< x) xs) ++ x:quickSort' (filter (== x) 
 -- >>> weird' [[1, 11, 12], [9, 10, 20]]
 -- 3
 weird':: [[Int]] -> Int
-weird'  = sum' . map' length . filter (even . (length . filter (> 100) . map' (^2)))
+weird'  = sum' . map' length . filter (even . length . filter (> 100) . map' (^2))
 
 
 -- 4) grep
