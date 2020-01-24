@@ -133,18 +133,18 @@ secondElement xs = case tryTail xs of
 
 thirdElementOfSecondList :: [[a]] -> Maybe a
 thirdElementOfSecondList xs = nthElementMaybe 3 (nthElement 2 xs)
-								where
-									nthElement 1 (x:xs)  = Just x
-									nthElement n (x:xs)  = nthElement (n-1) xs 
-									nthElement _ _       = Nothing
+                                where
+                                    nthElement 1 (x:xs)  = Just x
+                                    nthElement n (x:xs)  = nthElement (n-1) xs 
+                                    nthElement _ _       = Nothing
 
-									nthElementMaybe n xs = case xs of
-													   	    Just a -> nthElement n a
-													  	    _      -> Nothing
+                                    nthElementMaybe n xs = case xs of
+                                                            Just a -> nthElement n a
+                                                            _      -> Nothing
 
 
-							  
-							 
+                              
+                             
 
 
 -- Функцию fifthElement, которая возвращает пятый элемент списка или Nothing,
@@ -156,21 +156,17 @@ thirdElementOfSecondList xs = nthElementMaybe 3 (nthElement 2 xs)
 -- >>> fifthElement [1, 2, 3, 4, 5]
 -- Just 5
 fifthElement :: [a] -> Maybe a
-fifthElement xs = nthElement 5 xs
-					where
-						nthElement 1 (x:xs)  = Just x
-						nthElement n (x:xs)  = nthElement (n-1) xs 
-						nthElement _ _       = Nothing
-
-						nthElementMaybe n xs = case xs of
-										   	    Just a -> nthElement n a
-										  	    _      -> Nothing
+fifthElement = nthElement 5 
+                    where
+                        nthElement 1 (x:xs)  = Just x
+                        nthElement n (x:xs)  = nthElement (n-1) xs 
+                        nthElement _ _       = Nothing
 
 -- Выделите общую логику в оператор ~~>.
 (~~>) :: Maybe a -> (a -> Maybe b) -> Maybe b
 (~~>) ma f = case ma of
-			 Just a -> f a
-			 _	    -> Nothing
+             Just a -> f a
+             _      -> Nothing
 
 -- Перепишите функцию thirdElementOfSecondList в thirdElementOfSecondList' используя
 -- только tryHead, tryTail, применение функций и оператор ~~>, но не используя
@@ -196,9 +192,9 @@ nubBy' eq []     = []
 nubBy' eq (x:xs) = x: nubBy' eq (delEquiv eq x xs)
 
 delEquiv :: (a -> a -> Bool) -> a -> [a] -> [a] 
-delEquiv equiv y [] 				= []
-delEquiv equiv y (x:xs) | equiv y x =    delEquiv equiv y xs
-						| otherwise = x:(delEquiv equiv y xs)
+delEquiv equiv y []                 = []
+delEquiv equiv y (x:xs) | equiv y x =   delEquiv equiv y xs
+                        | otherwise = x:delEquiv equiv y xs
 -- Реализуйте функцию quickSort, которая принимает на вход список, и 
 -- возвращает список, в котором элементы отсортированы при помощи алгоритма
 -- быстрой сортировки.
@@ -219,9 +215,9 @@ delEquiv equiv y (x:xs) | equiv y x =    delEquiv equiv y xs
 quickSort' :: Ord a => [a] -> [a]
 quickSort' [] = []
 quickSort' (x:xs) = leftPart ++ [x] ++ rightPart
-					  where
-					    leftPart  = quickSort' (filter (<= x) xs)
-					    rightPart = quickSort' (filter (> x)  xs)
+                      where
+                        leftPart  = quickSort' (filter (<= x) xs)
+                        rightPart = quickSort' (filter (> x)  xs)
 
 -- Найдите суммарную длину списков, в которых чётное количество элементов
 -- имеют квадрат больше 100. Реализация должна быть без использования
