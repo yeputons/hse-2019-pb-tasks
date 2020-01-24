@@ -88,12 +88,12 @@ thirdElementOfSecondList' xs = tryTail xs ~~> tryHead ~~> tryTail ~~> tryTail ~~
 
 nubBy' :: (a -> a -> Bool) -> [a] -> [a]
 nubBy' _ [] = []
-nubBy' eq (x:xs) = x : nubBy' eq (filter (not . (eq x)) xs)
+nubBy' eq (x:xs) = x : nubBy' eq (filter (not . eq x) xs)
 
 
 quickSort' :: Ord a => [a] -> [a]
 quickSort' [] = []
-quickSort' (x:xs) = quickSort' (filter (<= x) xs) ++ [x] ++ quickSort' (filter (>x) xs)
+quickSort' (x:xs) = quickSort' (filter (<= x) xs) ++ [x] ++ quickSort' (filter (> x) xs)
 
 
 weird':: [[Int]] -> Int
