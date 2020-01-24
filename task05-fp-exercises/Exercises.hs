@@ -178,13 +178,7 @@ thirdElementOfSecondList' xs = tryTail xs ~~> tryHead ~~> tryTail ~~> tryTail ~~
 -- nubBy' (\x y -> x == y || x + y == 10) [2, 3, 5, 7, 8, 2]
 -- [2,3,5]
 nubBy' :: (a -> a -> Bool) -> [a] -> [a]
-nubBy' eq = foldr' (\x xs -> x:nubBy'' x eq xs) []
-
-nubBy'' :: a -> (a -> a -> Bool) -> [a] -> [a] 
-nubBy'' elem eq []     = []
-nubBy'' elem eq (x:xs) | eq elem x = next
-                       | otherwise = x : next
-                       where next = nubBy'' elem eq xs
+nubBy' eq = foldr' (\x xs -> x:filter (not . eq x) xs) []
 
 -- Реализуйте функцию quickSort, которая принимает на вход список, и 
 -- возвращает список, в котором элементы отсортированы при помощи алгоритма
@@ -281,4 +275,4 @@ grepSubstringNoFilename needle = grep' (\_ strs -> strs) (isSubstringOf needle)
 -- >>> grepExactMatchWithFilename "c" [("a.txt", ["a", "a"]), ("b.txt", ["b", "bab", "c"]), ("c.txt", ["c", "ccccc"])]
 -- ["b.txt:c", "c.txt:c"]
 grepExactMatchWithFilename :: String -> [File] -> [String]
-grepExactMatchWithFilename needle = grep' (\name strs -> map' ((name ++ ":") ++) strs) (needle ==)
+grepExactMatchWithFilename needle = grep' (\name -> map' ((name ++ ":") ++)) (needle ==)
