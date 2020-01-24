@@ -199,7 +199,7 @@ nubBy' eq = foldr' (\x xs -> x : filter (not . eq x) xs) []
 -- >>> quickSort' "babca"
 -- "aabbc"
 quickSort' :: Ord a => [a] -> [a]
-quickSort' [] = []
+quickSort' []     = []
 quickSort' (x:xs) = quickSort' (filter (x >) xs) ++ 
                     x:filter (x ==) xs           ++ 
                     quickSort' (filter (x <) xs)
