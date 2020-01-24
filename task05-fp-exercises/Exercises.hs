@@ -58,7 +58,7 @@ hash'' ini (x:xs) = ord x + p * hash'' ini xs
 -- Выделите общую логику предыдущих функций и реализуйте функцию высшего порядка foldr',
 -- не используя никаких стандартных функций.
 foldr' :: (a -> b -> b) -> b -> [a] -> b
-foldr' f ini [] = ini
+foldr' f ini []     = ini
 foldr' f ini (x:xs) = f x (foldr' f ini xs)
 
 -- Реализуйте функцию map' (которая делает то же самое, что обычный map)
@@ -157,7 +157,7 @@ fifthElement = nthElement 4
 -- Выделите общую логику в оператор ~~>.
 (~~>) :: Maybe a -> (a -> Maybe b) -> Maybe b
 (~~>) (Just a) f = f a
-(~~>) _ f = Nothing
+(~~>) _ f        = Nothing
 
 -- Перепишите функцию thirdElementOfSecondList в thirdElementOfSecondList' используя
 -- только tryHead, tryTail, применение функций и оператор ~~>, но не используя
@@ -200,12 +200,9 @@ nubBy' eq = foldr' (\x xs -> x : filter (not . eq x) xs) []
 -- "aabbc"
 quickSort' :: Ord a => [a] -> [a]
 quickSort' [] = []
-quickSort' xs = quickSort' xs1 ++ xs2 ++ quickSort' xs3 
-    where
-        (xs1, xs2, xs3) = partition' (head xs) xs 
-            where
-                partition' :: Ord a => a -> [a] -> ([a], [a], [a])
-                partition' x xs = (filter (x >) xs, filter (x ==) xs, filter (x < ) xs)
+quickSort' (x:xs) = quickSort' (filter (x >) xs) ++ 
+                    x:filter (x ==) xs           ++ 
+                    quickSort' (filter (x <) xs)
 
 -- Найдите суммарную длину списков, в которых чётное количество элементов
 -- имеют квадрат больше 100. Реализация должна быть без использования
@@ -247,7 +244,7 @@ type File = (String, [String])
 -- Здесь (\_ s -> s) --- это лямбда-функция, которая игнорирует первый
 -- параметр и возвращает второй.
 grep' :: (String -> [String] -> [String]) -> (String -> Bool) -> [File] -> [String]
-grep' format match = concat' . map' (\file -> format (fst file) (filter match $ snd file))
+grep' format match = concat' . map' (\(name, xs) -> format name (filter match xs))
 -- map' (format fst (filter match snd)) files
 
 -- Также вам предоставлена функция для проверки вхождения подстроки в строку.
