@@ -272,3 +272,4 @@ grepSubstringNoFilename needle = grep' (\_ s -> s) (isSubstringOf needle)
 -- ["b.txt:c", "c.txt:c"]
 grepExactMatchWithFilename :: String -> [File] -> [String]
 grepExactMatchWithFilename needle = grep' (\filename strings -> map' (\string -> filename ++ ":" ++ string) strings) (== needle)
+
