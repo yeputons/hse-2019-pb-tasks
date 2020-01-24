@@ -65,7 +65,7 @@ foldr' f ini (x:xs) = f x $ foldr' f ini xs
 -- через функцию foldr', не используя стандартных функций.
 map' :: (a -> b) -> [a] -> [b]
 map' f [] = []
-map' f xs = foldr' (\ n ms -> ( (f n) : ms ) ) [] xs
+map' f xs = foldr' (\ n ms -> ( f n : ms ) ) [] xs
 
 -- 2) Maybe
 -- Maybe a - это специальный тип данных, который может принимать либо
@@ -179,7 +179,7 @@ thirdElementOfSecondList' xs = ((((Just xs ~~> tryTail) ~~> tryHead) ~~> tryTail
 -- [2,3,5]
 nubBy' :: (a -> a -> Bool) -> [a] -> [a]
 nubBy' eq [] = []
-nubBy' eq (x:xs) = x : (nubBy' eq $ filter (\ n -> not $ eq x n) xs)
+nubBy' eq (x:xs) = x : nubBy' eq (filter (not . eq x) xs)
 
 -- Реализуйте функцию quickSort, которая принимает на вход список, и 
 -- возвращает список, в котором элементы отсортированы при помощи алгоритма
@@ -246,7 +246,7 @@ type File = (String, [String])
 -- Здесь (\_ s -> s) --- это лямбда-функция, которая игнорирует первый
 -- параметр и возвращает второй.
 grep' :: (String -> [String] -> [String]) -> (String -> Bool) -> [File] -> [String]
-grep' format match files = concat $ map (\ (a, b) -> format a b) (zip (map fst files) (map (filter match . snd) files)) 
+grep' format match = concatMap (uncurry format . (fst &&& (filter match . snd)))
 
 -- Также вам предоставлена функция для проверки вхождения подстроки в строку.
 -- >>> isSubstringOf "a" "bac"
@@ -267,7 +267,7 @@ isSubstringOf n s = pack n `isInfixOf` pack s
 -- >>> grepSubstringNoFilename "c" [("a.txt", ["a", "a"]), ("b.txt", ["b", "bab", "c"]), ("c.txt", ["c", "ccccc"])]
 -- ["c", "c", "ccccc"]
 grepSubstringNoFilename :: String -> [File] -> [String]
-grepSubstringNoFilename needle files = grep' (\ _ s -> s) (\ s -> isSubstringOf needle s) files
+grepSubstringNoFilename needle = grep' (\ _ s -> s) (isSubstringOf needle)
  
 -- Вариант, когда ищется точное совпадение и нужно ко всем подходящим строкам
 -- дописать имя файла через ":".
@@ -277,4 +277,4 @@ grepSubstringNoFilename needle files = grep' (\ _ s -> s) (\ s -> isSubstringOf 
 -- >>> grepExactMatchWithFilename "c" [("a.txt", ["a", "a"]), ("b.txt", ["b", "bab", "c"]), ("c.txt", ["c", "ccccc"])]
 -- ["b.txt:c", "c.txt:c"]
 grepExactMatchWithFilename :: String -> [File] -> [String]
-grepExactMatchWithFilename needle files = grep' (\ n s -> map ((n ++ ":") ++) s) (== needle) files 
+grepExactMatchWithFilename needle = grep' (\ n s -> map ((n ++ ":") ++) s) (== needle)
