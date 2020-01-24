@@ -16,7 +16,8 @@ sum' :: [Int] -> Int
 sum' = sum'' 0
 
 sum'' :: Int -> [Int] -> Int
-sum'' ini xs = undefined
+sum'' ini (x:xs) = ini + x + sum'' 0 xs
+sum'' ini []     = ini
 
 -- Функция concat' принимает на вход список списков и возвращает конкатенацию
 -- этих списков. Она использует функцию concat'', которая дополнительно
@@ -29,7 +30,8 @@ concat' :: [[a]] -> [a]
 concat' = concat'' []
 
 concat'' :: [a] -> [[a]] -> [a]
-concat'' ini xs = undefined
+concat'' ini (x:xs) = x ++ concat'' ini xs
+concat'' ini []     = ini
 
 -- Функция hash' принимает на вход строку s и считает полиномиальный
 -- хэш от строки по формуле hash' s_0...s_{n - 1} =
@@ -50,17 +52,19 @@ hash' :: String -> Int
 hash' = hash'' 0
 
 hash'' :: Int -> String -> Int
-hash'' ini xs = undefined
+hash'' ini (x:xs) = (ord x) + (p * hash'' ini xs)
+hash'' ini []     = ini
 
 -- Выделите общую логику предыдущих функций и реализуйте функцию высшего порядка foldr',
 -- не используя никаких стандартных функций.
 foldr' :: (a -> b -> b) -> b -> [a] -> b
-foldr' f ini xs = undefined
+foldr' f ini (x:xs) = f x (foldr' f ini xs)
+foldr' f ini []     = ini
 
 -- Реализуйте функцию map' (которая делает то же самое, что обычный map)
 -- через функцию foldr', не используя стандартных функций.
 map' :: (a -> b) -> [a] -> [b]
-map' f xs = undefined
+map' f = foldr' (\x ys -> f x : ys) []
 
 -- 2) Maybe
 -- Maybe a - это специальный тип данных, который может принимать либо
@@ -122,8 +126,15 @@ secondElement xs = case tryTail xs of
 -- Nothing
 -- >>> thirdElementOfSecondList [["a"], ["b", "c", "d"]]
 -- Just "d"
+
 thirdElementOfSecondList :: [[a]] -> Maybe a
-thirdElementOfSecondList xs = undefined
+thirdElementOfSecondList xs = case secondElement xs of
+                                   Just a -> thirdElement a
+                                   _      -> Nothing
+                                   where thirdElement xs = case tryTail xs of
+                                                                Just a  -> secondElement a
+                                                                _       -> Nothing
+
 
 -- Функцию fifthElement, которая возвращает пятый элемент списка или Nothing,
 -- если пятого элемента в списке нет.
@@ -134,11 +145,15 @@ thirdElementOfSecondList xs = undefined
 -- >>> fifthElement [1, 2, 3, 4, 5]
 -- Just 5
 fifthElement :: [a] -> Maybe a
-fifthElement xs = undefined
+fifthElement xs = nElem 5 xs
+             where nElem 1 (x:xs) = Just x
+                   nElem n (x:xs) = nElem (n - 1) xs
+                   nElem _ []     = Nothing 
 
 -- Выделите общую логику в оператор ~~>.
 (~~>) :: Maybe a -> (a -> Maybe b) -> Maybe b
-(~~>) ma f = undefined
+(~~>) (Just ma) f = f ma
+(~~>) _ f  = Nothing
 
 -- Перепишите функцию thirdElementOfSecondList в thirdElementOfSecondList' используя
 -- только tryHead, tryTail, применение функций и оператор ~~>, но не используя
@@ -160,7 +175,11 @@ thirdElementOfSecondList' xs = undefined
 -- nubBy' (\x y -> x == y || x + y == 10) [2, 3, 5, 7, 8, 2]
 -- [2,3,5]
 nubBy' :: (a -> a -> Bool) -> [a] -> [a]
-nubBy' eq xs = undefined
+nubBy' eq (x:xs) = x : nubBy' eq (nubBy'' eq x xs)
+             where nubBy'' f x [] = []      
+                   nubBy'' f y (x:xs) | f y x     = nubBy'' f y xs
+                                      | otherwise = x : nubBy'' f y xs
+nubBy' _  [] = []
 
 -- Реализуйте функцию quickSort, которая принимает на вход список, и 
 -- возвращает список, в котором элементы отсортированы при помощи алгоритма
@@ -180,7 +199,9 @@ nubBy' eq xs = undefined
 -- >>> quickSort' "babca"
 -- "aabbc"
 quickSort' :: Ord a => [a] -> [a]
-quickSort' xs = undefined
+quickSort' []     = []
+--quickSort' x:[]   = x
+quickSort' (x:xs) = (quickSort' (filter (<= x) xs)) ++ [x] ++ (quickSort' (filter (> x) xs))
 
 -- Найдите суммарную длину списков, в которых чётное количество элементов
 -- имеют квадрат больше 100. Реализация должна быть без использования
@@ -195,7 +216,7 @@ quickSort' xs = undefined
 -- >>> weird' [[1, 11, 12], [9, 10, 20]]
 -- 3
 weird':: [[Int]] -> Int
-weird' xs = undefined
+weird' = sum' . map' length . filter ( even . length . filter (> 10))
 
 
 -- 4) grep
