@@ -64,7 +64,7 @@ foldr' f ini (x:xs) = f x (foldr' f ini xs)
 -- Реализуйте функцию map' (которая делает то же самое, что обычный map)
 -- через функцию foldr', не используя стандартных функций.
 map' :: (a -> b) -> [a] -> [b]
-map' f = foldr' (\ x y -> f x : y) []
+map' f = foldr' (\x ys -> f x:ys) []
 
 -- 2) Maybe
 -- Maybe a - это специальный тип данных, который может принимать либо
@@ -128,14 +128,10 @@ secondElement xs = case tryTail xs of
 -- Just "d"
 thirdElementOfSecondList :: [[a]] -> Maybe a
 thirdElementOfSecondList xs = case secondElement xs of
-                                Just a -> thirdElement a
-                                _      -> Nothing
-                                where
-                                  thirdElement xs = case tryTail xs of
-                                                      Just a -> secondElement a
-                                                      _      -> Nothing
-
-
+                                Nothing -> Nothing
+                                Just a -> case tryTail a of
+                                            Nothing -> Nothing
+                                            Just b -> secondElement b
 
 -- Функцию fifthElement, которая возвращает пятый элемент списка или Nothing,
 -- если пятого элемента в списке нет.
@@ -148,22 +144,20 @@ thirdElementOfSecondList xs = case secondElement xs of
 fifthElement :: [a] -> Maybe a
 fifthElement xs = nthElement xs 5
                   where
-                    nthElement [] _ = Nothing
+                    nthElement [] _     = Nothing
                     nthElement (x:xs) 1 = Just x
-                    nthElement (x:xs) n = nthElement xs (n-1)
+                    nthElement (x:xs) n = nthElement xs (n - 1)
 
 -- Выделите общую логику в оператор ~~>.
 (~~>) :: Maybe a -> (a -> Maybe b) -> Maybe b
-(~~>) Nothing f = Nothing
+(~~>) Nothing f  = Nothing
 (~~>) (Just a) f = f a
 
 -- Перепишите функцию thirdElementOfSecondList в thirdElementOfSecondList' используя
 -- только tryHead, tryTail, применение функций и оператор ~~>, но не используя
 -- сопоставление с образом (pattern matching) ни в каком виде, case, if, guards.
 thirdElementOfSecondList' :: [[a]] -> Maybe a
-thirdElementOfSecondList' xs = tailOfSecondList xs ~~> secondElement
-                               where
-                                tailOfSecondList xs = secondElement xs ~~> tryTail
+thirdElementOfSecondList' xs = tryTail xs ~~> tryHead ~~> tryTail ~~> tryTail ~~> tryHead
 
 -- 3) Несколько упражнений
 -- Реализуйте функцию nubBy', которая принимает на вход функцию для сравнения 
@@ -179,7 +173,7 @@ thirdElementOfSecondList' xs = tailOfSecondList xs ~~> secondElement
 -- nubBy' (\x y -> x == y || x + y == 10) [2, 3, 5, 7, 8, 2]
 -- [2,3,5]
 nubBy' :: (a -> a -> Bool) -> [a] -> [a]
-nubBy' eq = foldr' (\ x xs -> x:filter (not . eq x) xs) []
+nubBy' eq = foldr' (\x xs -> x:filter (not . eq x) xs) []
 
 -- Реализуйте функцию quickSort, которая принимает на вход список, и 
 -- возвращает список, в котором элементы отсортированы при помощи алгоритма
@@ -220,7 +214,7 @@ quickSort' xs = left ++ mid ++ right
 -- >>> weird' [[1, 11, 12], [9, 10, 20]]
 -- 3
 weird':: [[Int]] -> Int
-weird' = sum' . map' length . filter (even . length . filter ((> 100) . (^2))) 
+weird' = sum' . map' length . filter (even . length . filter ((> 100) . (^2)))
 
 -- 4) grep
 -- Нужно реализовать несколько вариаций grep'а.
@@ -246,7 +240,7 @@ type File = (String, [String])
 -- Здесь (\_ s -> s) --- это лямбда-функция, которая игнорирует первый
 -- параметр и возвращает второй.
 grep' :: (String -> [String] -> [String]) -> (String -> Bool) -> [File] -> [String]
-grep' format match = concat' . map' (\ file -> format (fst file) $ filter match $ snd file)
+grep' format match = concat' . map' (\file -> format (fst file) $ filter match $ snd file)
 
 -- Также вам предоставлена функция для проверки вхождения подстроки в строку.
 -- >>> isSubstringOf "a" "bac"
@@ -277,4 +271,4 @@ grepSubstringNoFilename needle = grep' (\_ s -> s) (isSubstringOf needle)
 -- >>> grepExactMatchWithFilename "c" [("a.txt", ["a", "a"]), ("b.txt", ["b", "bab", "c"]), ("c.txt", ["c", "ccccc"])]
 -- ["b.txt:c", "c.txt:c"]
 grepExactMatchWithFilename :: String -> [File] -> [String]
-grepExactMatchWithFilename needle = grep' (\ filename found -> map' (\s -> filename ++ ":" ++ s) found) (== needle) 
+grepExactMatchWithFilename needle = grep' (\filename -> map' (\s -> filename ++ ":" ++ s)) (== needle) 
