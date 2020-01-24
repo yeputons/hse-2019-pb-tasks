@@ -175,7 +175,7 @@ thirdElementOfSecondList' xs = tryTail xs ~~> tryHead ~~> tryTail ~~> tryTail ~~
 -- nubBy' (\x y -> x == y || x + y == 10) [2, 3, 5, 7, 8, 2]
 -- [2,3,5]
 nubBy' :: (a -> a -> Bool) -> [a] -> [a]
-nubBy' eq [] = []
+nubBy' eq []       = []
 nubBy' eq (x : xs) = x : nubBy' eq (filter (not . eq x) xs)
 
 -- Реализуйте функцию quickSort, которая принимает на вход список, и 
@@ -196,7 +196,7 @@ nubBy' eq (x : xs) = x : nubBy' eq (filter (not . eq x) xs)
 -- >>> quickSort' "babca"
 -- "aabbc"
 quickSort' :: Ord a => [a] -> [a]
-quickSort' [] = []
+quickSort' []       = []
 quickSort' (x : xs) = quickSort' (filter (<= x) xs) ++ [x] ++ quickSort' (filter (> x) xs)
 
 -- Найдите суммарную длину списков, в которых чётное количество элементов
@@ -239,7 +239,7 @@ type File = (String, [String])
 -- Здесь (\_ s -> s) --- это лямбда-функция, которая игнорирует первый
 -- параметр и возвращает второй.
 grep' :: (String -> [String] -> [String]) -> (String -> Bool) -> [File] -> [String]
-grep' _ _ [] = []
+grep' _ _ []             = []
 grep' format match files = concat' $ map' (\(filename, strings) -> format filename (filter match strings)) files
 
 -- Также вам предоставлена функция для проверки вхождения подстроки в строку.
