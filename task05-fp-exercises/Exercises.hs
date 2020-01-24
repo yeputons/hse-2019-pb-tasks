@@ -178,7 +178,8 @@ thirdElementOfSecondList' xs = ((((Just xs ~~> tryTail) ~~> tryHead) ~~> tryTail
 -- nubBy' (\x y -> x == y || x + y == 10) [2, 3, 5, 7, 8, 2]
 -- [2,3,5]
 nubBy' :: (a -> a -> Bool) -> [a] -> [a]
-nubBy' eq xs = undefined
+nubBy' eq [] = []
+nubBy' eq (x:xs) = x : (nubBy' eq $ filter (\ n -> not $ eq x n) xs)
 
 -- Реализуйте функцию quickSort, которая принимает на вход список, и 
 -- возвращает список, в котором элементы отсортированы при помощи алгоритма
@@ -198,7 +199,13 @@ nubBy' eq xs = undefined
 -- >>> quickSort' "babca"
 -- "aabbc"
 quickSort' :: Ord a => [a] -> [a]
-quickSort' xs = undefined
+quickSort' [] = []
+quickSort' xs = quickSort' lesserpart ++ equalpart ++ quickSort' greaterpart
+    where 
+        x           = head xs
+        lesserpart  = filter ( < x) xs
+        equalpart   = filter ( == x) xs
+        greaterpart = filter ( > x) xs
 
 -- Найдите суммарную длину списков, в которых чётное количество элементов
 -- имеют квадрат больше 100. Реализация должна быть без использования
@@ -213,8 +220,7 @@ quickSort' xs = undefined
 -- >>> weird' [[1, 11, 12], [9, 10, 20]]
 -- 3
 weird':: [[Int]] -> Int
-weird' xs = undefined
-
+weird' xs = sum (map length (filter (even . length . filter (> 100) . map (^2)) xs ))
 
 -- 4) grep
 -- Нужно реализовать несколько вариаций grep'а.
