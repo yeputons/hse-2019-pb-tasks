@@ -35,7 +35,7 @@ hash'' ini (x:xs) = ord x + p * hash'' ini xs
 
 
 foldr' :: (a -> b -> b) -> b -> [a] -> b
-foldr' f ini [] = ini
+foldr' _ ini [] = ini
 foldr' f ini (x:xs) = f x (foldr' f ini xs)
 
 
@@ -54,53 +54,54 @@ tryTail _      = Nothing
 
 secondElement :: [a] -> Maybe a
 secondElement xs = case tryTail xs of
-                     Just a  -> tryHead a
-                     _       -> Nothing
+                           Just a  -> tryHead a
+                           _       -> Nothing
 
 
 thirdElementOfSecondList :: [[a]] -> Maybe a
 thirdElementOfSecondList xs = case tryTail xs of 
-	                                 Just xss -> thirdElementOfFirstList xss 
-	                                 Nothing  -> Nothing
-	                          where thirdElementOfFirstList xss = case tryHead xss of
-	                             	                                   Just x  -> thirdElement x
-	                             	                                   Nothing -> Nothing
-                                	thirdElement xs = case tryTail xs of
-                                                         Just a  -> secondElement a
-                                                         Nothing -> Nothing
+                                    Just xss -> thirdElementOfFirstList xss 
+                                    Nothing  -> Nothing
+                            where 
+                                thirdElementOfFirstList xss = case tryHead xss of
+                                                                    Just x  -> thirdElement x
+                                                                    Nothing -> Nothing
+                                thirdElement xs = case tryTail xs of
+                                                        Just a  -> secondElement a
+                                                        Nothing -> Nothing
 
 
 fifthElement :: [a] -> Maybe a
 fifthElement = element 4
-               where 
-               	element 0 xs = tryHead xs
-               	element num xs = case tryTail xs of
-               		                  Just xs -> element (num - 1) xs
-               		                  Nothing -> Nothing
+            where 
+                element 0 xs = tryHead xs
+                element num xs = case tryTail xs of
+                                        Just xs -> element (num - 1) xs
+                                        Nothing -> Nothing
 
 
 (~~>) :: Maybe a -> (a -> Maybe b) -> Maybe b
 (~~>) ma f = case ma of 
-	              Just ma -> f ma
-	              Nothing -> Nothing
+                Just ma -> f ma
+                Nothing -> Nothing
 
 
 thirdElementOfSecondList' :: [[a]] -> Maybe a
 thirdElementOfSecondList' xs = element 1 xs ~~> element 2
-              where
-               	element 0 xs = tryHead xs
-               	element num xs = case tryTail xs of
-               		                  Just xs -> element (num - 1) xs
-               		                  Nothing -> Nothing
+            where
+                element 0 xs = tryHead xs
+                element num xs = case tryTail xs of
+                                        Just xs -> element (num - 1) xs
+                                        Nothing -> Nothing
 
 
 nubBy' :: (a -> a -> Bool) -> [a] -> [a]
-nubBy' eq [] = []
+nubBy' _ [] = []
 nubBy' eq (x:xs) = x : nubBy' eq (filter' (eq x) xs)
-           where 
-           	filter' f [] = []
-           	filter' f (x:xs) | f x = filter' f xs
-           	                 | otherwise = x : filter' f xs
+            where 
+                filter' _ [] = []
+                filter' f (x:xs) | f x = filter' f xs
+                                 | otherwise = x : filter' f xs
 
 
 quickSort' :: Ord a => [a] -> [a]
@@ -117,6 +118,7 @@ type File = (String, [String])
 
 
 grep' :: (String -> [String] -> [String]) -> (String -> Bool) -> [File] -> [String]
+grep' _ _ [] = []
 grep' format match [file] = format (fst file) (filter match (snd file))
 grep' format match (file:files) = format (fst file) (filter match (snd file)) ++ grep' format match files
 
