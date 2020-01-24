@@ -16,8 +16,8 @@ sum' :: [Int] -> Int
 sum' = sum'' 0
 
 sum'' :: Int -> [Int] -> Int
-sum'' ini [] = ini
-sum'' ini (x:xs) = sum'' (ini + x) xs
+sum'' ini []     = ini
+sum'' ini (x:xs) = x + sum'' ini xs
 
 -- Функция concat' принимает на вход список списков и возвращает конкатенацию
 -- этих списков. Она использует функцию concat'', которая дополнительно
@@ -30,8 +30,8 @@ concat' :: [[a]] -> [a]
 concat' = concat'' []
 
 concat'' :: [a] -> [[a]] -> [a]
-concat'' ini [] = ini
-concat'' ini (x:xs) = x ++ concat'' [] xs ++ ini
+concat'' ini []      = ini
+concat'' ini (x:xs)  = x ++ concat'' [] xs ++ ini
 
 -- Функция hash' принимает на вход строку s и считает полиномиальный
 -- хэш от строки по формуле hash' s_0...s_{n - 1} =
@@ -52,14 +52,14 @@ hash' :: String -> Int
 hash' = hash'' 0
 
 hash'' :: Int -> String -> Int
-hash'' ini [] = ini
-hash'' ini (x:xs) = ord x + p * hash'' ini xs
+hash'' ini []       = ini
+hash'' ini (x:xs)   = ord x + p * hash'' ini xs
 
 -- Выделите общую логику предыдущих функций и реализуйте функцию высшего порядка foldr',
 -- не используя никаких стандартных функций.
 foldr' :: (a -> b -> b) -> b -> [a] -> b
-foldr' f ini [] = ini
-foldr' f ini (x:xs) = f x $ foldr' f ini xs
+foldr' f ini []      = ini
+foldr' f ini (x:xs)  = f x $ foldr' f ini xs
 
 -- Реализуйте функцию map' (которая делает то же самое, что обычный map)
 -- через функцию foldr', не используя стандартных функций.
@@ -178,7 +178,7 @@ thirdElementOfSecondList' xs = ((((Just xs ~~> tryTail) ~~> tryHead) ~~> tryTail
 -- nubBy' (\x y -> x == y || x + y == 10) [2, 3, 5, 7, 8, 2]
 -- [2,3,5]
 nubBy' :: (a -> a -> Bool) -> [a] -> [a]
-nubBy' eq [] = []
+nubBy' eq []     = []
 nubBy' eq (x:xs) = x : nubBy' eq (filter (not . eq x) xs)
 
 -- Реализуйте функцию quickSort, которая принимает на вход список, и 
