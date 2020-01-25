@@ -130,7 +130,7 @@ thirdElementOfSecondList :: [[a]] -> Maybe a
 thirdElementOfSecondList xs = case secondElement xs of --take secondList
 				Just a -> thirdElementOfList a
 				_      -> Nothing
-			      where 
+			        where 
 				thirdElementOfList :: [a] -> Maybe a
 				thirdElementOfList a = case tryTail a of --take tail + secondElement == thirdElement 
 				  Just b -> secondElement b
@@ -148,7 +148,7 @@ fifthElement :: [a] -> Maybe a
 fifthElement xs = case tryTail xs of
 		    Just a -> fourthElement a
 		    _      -> Nothing
-		  where 
+		    where 
 		    fourthElement xs = case tryTail xs of 
 					Just a -> thirdElement a
 					_      -> Nothing
@@ -225,7 +225,7 @@ quickSort' (x:xs) = quickSort' (filter (< x) xs) ++ [x] ++ quickSort' (filter (>
 -- >>> weird' [[1, 11, 12], [9, 10, 20]]
 -- 3
 weird':: [[Int]] -> Int
-weird' = sum' . map' length . filter ( even . length . filter  ((>100) . (^2)))
+weird' = sum' . map' length . filter (even . length . filter  ((>100) . (^2)))
 
 
 -- 4) grep
@@ -283,4 +283,5 @@ grepSubstringNoFilename needle = grep' (\_ str -> str) (isSubstringOf needle)
 -- >>> grepExactMatchWithFilename "c" [("a.txt", ["a", "a"]), ("b.txt", ["b", "bab", "c"]), ("c.txt", ["c", "ccccc"])]
 -- ["b.txt:c", "c.txt:c"]
 grepExactMatchWithFilename :: String -> [File] -> [String]
-grepExactMatchWithFilename needle = grep' (\file line -> map' (\str -> file ++ ":" ++ str) line) (==needle)
+grepExactMatchWithFilename needle = grep' (\file lines -> map' ((file ++ ":") ++) lines) (== needle)
+					
