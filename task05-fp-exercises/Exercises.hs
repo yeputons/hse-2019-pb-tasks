@@ -63,8 +63,7 @@ foldr' f ini (x:xs) = f x (foldr' f ini xs)
 -- Реализуйте функцию map' (которая делает то же самое, что обычный map)
 -- через функцию foldr', не используя стандартных функций.
 map' :: (a -> b) -> [a] -> [b]
-map' f [] = []
-map' f xs =  foldr' (\y ys -> f y:ys) [] xs
+map' f =  foldr' (\x ys -> f x:ys) []
 
 -- 2) Maybe
 -- Maybe a - это специальный тип данных, который может принимать либо
@@ -128,11 +127,10 @@ secondElement xs = case tryTail xs of
 -- Just "d"
 thirdElementOfSecondList :: [[a]] -> Maybe a
 thirdElementOfSecondList xs = case secondElement xs of
-                                Just a -> thirdElement a
-                                _      -> Nothing
-                              where thirdElement ys = case tryTail ys of
-                                                        Just a  -> secondElement a
-                                                        _       -> Nothing
+                                Nothing -> Nothing
+                                Just a  -> case tryTail a of
+                                             Nothing -> Nothing
+                                             Just a  -> secondElement a
 
 -- Функцию fifthElement, которая возвращает пятый элемент списка или Nothing,
 -- если пятого элемента в списке нет.
@@ -143,15 +141,13 @@ thirdElementOfSecondList xs = case secondElement xs of
 -- >>> fifthElement [1, 2, 3, 4, 5]
 -- Just 5
 fifthElement :: [a] -> Maybe a
-fifthElement xs = case tryTail t of
-                    Just a -> thirdElement a
-                    _      -> Nothing
-                  where t = case tryTail xs of
-                              Just a -> a
-                              _      -> []
-                        thirdElement ys = case tryTail ys of
-                                            Just a  -> secondElement a
-                                            _       -> Nothing
+fifthElement xs = case tryTail xs of
+                    Nothing -> Nothing
+                    Just a  -> case tryTail a of
+                                 Nothing -> Nothing
+                                 Just a  -> case tryTail a of
+                                              Nothing -> Nothing
+                                              Just a  -> secondElement a
 
 -- Выделите общую логику в оператор ~~>.
 (~~>) :: Maybe a -> (a -> Maybe b) -> Maybe b
@@ -178,8 +174,8 @@ thirdElementOfSecondList' xs = tryTail xs ~~> tryHead ~~> tryTail ~~> tryTail ~~
 -- nubBy' (\x y -> x == y || x + y == 10) [2, 3, 5, 7, 8, 2]
 -- [2,3,5]
 nubBy' :: (a -> a -> Bool) -> [a] -> [a]
-nubBy' _ []      = []
-nubBy' eq (x:xs) = x:nubBy' eq (filter (not . eq x ) xs)
+nubBy' eq = foldr' (\y ys -> y:filter (not . eq y) ys) []
+
 -- Реализуйте функцию quickSort, которая принимает на вход список, и 
 -- возвращает список, в котором элементы отсортированы при помощи алгоритма
 -- быстрой сортировки.
@@ -199,9 +195,7 @@ nubBy' eq (x:xs) = x:nubBy' eq (filter (not . eq x ) xs)
 -- "aabbc"
 quickSort' :: Ord a => [a] -> [a]
 quickSort' []  = []
-quickSort' [x] = [x]
-quickSort' xs  = quickSort' (filter (< mid) xs) ++ filter (== mid) xs ++ quickSort' ( filter (> mid) xs)
-                    where mid = xs !! (length xs `div` 2)
+quickSort' (x:xs)  = quickSort' (filter (< x) xs) ++ x:filter (== x) xs ++ quickSort' ( filter (> x) xs)
 
 -- Найдите суммарную длину списков, в которых чётное количество элементов
 -- имеют квадрат больше 100. Реализация должна быть без использования
@@ -274,4 +268,4 @@ grepSubstringNoFilename needle = grep' (\_ s -> s) (isSubstringOf needle)
 -- >>> grepExactMatchWithFilename "c" [("a.txt", ["a", "a"]), ("b.txt", ["b", "bab", "c"]), ("c.txt", ["c", "ccccc"])]
 -- ["b.txt:c", "c.txt:c"]
 grepExactMatchWithFilename :: String -> [File] -> [String]
-grepExactMatchWithFilename needle = grep' (\name s -> map' ((name ++ ":") ++) s) (needle ==)
+grepExactMatchWithFilename needle = grep' (\name -> map' ((name ++ ":") ++)) (needle ==)
