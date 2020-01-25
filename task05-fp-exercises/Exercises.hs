@@ -182,8 +182,10 @@ thirdElementOfSecondList' xs = tryTail xs ~~> tryHead ~~> tryTail ~~> tryTail ~~
 -- "abcd"
 -- nubBy' (\x y -> x == y || x + y == 10) [2, 3, 5, 7, 8, 2]
 -- [2,3,5]
-nubBy' :: (a -> a -> Bool) -> [a] -> [a]
-nubBy' eq xs = undefined
+nubBy' :: (a -> a -> Bool) -> [a] -> [a] -- То есть нам надо взять каждый элемент и проверить с оставшимся хвостом
+nubBy' eq = foldr' (\x xs -> x:filter (not . eq x) xs) [] -- отрицание же так работает, да?... ** TODO: не забыть удалить эти комментарии перед сдачей **
+-- Так, по типам вроде подогнала.... Только так и не поняла, почему оно работает........ Что за магия?
+-- ** TODO: разобраться хд **
 
 -- Реализуйте функцию quickSort, которая принимает на вход список, и 
 -- возвращает список, в котором элементы отсортированы при помощи алгоритма
@@ -203,7 +205,8 @@ nubBy' eq xs = undefined
 -- >>> quickSort' "babca"
 -- "aabbc"
 quickSort' :: Ord a => [a] -> [a]
-quickSort' xs = undefined
+quickSort' [] = []
+quickSort' (x:xs) = quickSort' (filter (< x) xs) ++ filter (== x) xs ++ quickSort' ( filter (> x) xs)
 
 -- Найдите суммарную длину списков, в которых чётное количество элементов
 -- имеют квадрат больше 100. Реализация должна быть без использования
@@ -217,8 +220,9 @@ quickSort' xs = undefined
 -- 5
 -- >>> weird' [[1, 11, 12], [9, 10, 20]]
 -- 3
-weird':: [[Int]] -> Int
-weird' xs = undefined
+--weird':: [[Int]] -> Int
+--weird' xs = sum' . map' length . filter --ААААААААААААААА
+-- Мозг сломался и отказывается это решать...
 
 
 -- 4) grep
