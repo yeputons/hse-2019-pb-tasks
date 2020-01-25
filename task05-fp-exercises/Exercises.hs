@@ -16,7 +16,8 @@ sum' :: [Int] -> Int
 sum' = sum'' 0
 
 sum'' :: Int -> [Int] -> Int
-sum'' ini xs = ini + sum''(head xs)(tail xs)
+sum'' ini [] = ini
+sum'' ini (x:xs) = x + sum'' ini xs
 
 -- Функция concat' принимает на вход список списков и возвращает конкатенацию
 -- этих списков. Она использует функцию concat'', которая дополнительно
@@ -29,7 +30,8 @@ concat' :: [[a]] -> [a]
 concat' = concat'' []
 
 concat'' :: [a] -> [[a]] -> [a]
-concat'' ini xs = head xs ++ concat'' ini (tail xs)
+concat'' ini []     = ini
+concat'' ini (x:xs) = x ++ concat'' ini xs
 
 -- Функция hash' принимает на вход строку s и считает полиномиальный
 -- хэш от строки по формуле hash' s_0...s_{n - 1} =
@@ -228,7 +230,7 @@ quickSort' xs
 -- >>> weird' [[1, 11, 12], [9, 10, 20]]
 -- 3
 weird':: [[Int]] -> Int
-weird' xs = length . concat . filter (even . length . filter (> 100) . map (^2))
+weird' = sum' . map' length . filter (even . length . filter (> 100) . map' (^ 2))
 
 
 -- 4) grep
@@ -255,7 +257,7 @@ type File = (String, [String])
 -- Здесь (\_ s -> s) --- это лямбда-функция, которая игнорирует первый
 -- параметр и возвращает второй.
 grep' :: (String -> [String] -> [String]) -> (String -> Bool) -> [File] -> [String]
-grep' format match files = concat [format (fst file) (filter match (snd file)) | file <- files]
+grep' format match files = concat' [format (fst file) (filter match (snd file)) | file <- files]
 
 -- Также вам предоставлена функция для проверки вхождения подстроки в строку.
 -- >>> isSubstringOf "a" "bac"
@@ -276,7 +278,7 @@ isSubstringOf n s = pack n `isInfixOf` pack s
 -- >>> grepSubstringNoFilename "c" [("a.txt", ["a", "a"]), ("b.txt", ["b", "bab", "c"]), ("c.txt", ["c", "ccccc"])]
 -- ["c", "c", "ccccc"]
 grepSubstringNoFilename :: String -> [File] -> [String]
-grepSubstringNoFilename needle files = grep' (curry snd) (isSubstringOf needle)
+grepSubstringNoFilename needle = grep' (curry snd) $ isSubstringOf needle
  
 -- Вариант, когда ищется точное совпадение и нужно ко всем подходящим строкам
 -- дописать имя файла через ":".
@@ -286,4 +288,4 @@ grepSubstringNoFilename needle files = grep' (curry snd) (isSubstringOf needle)
 -- >>> grepExactMatchWithFilename "c" [("a.txt", ["a", "a"]), ("b.txt", ["b", "bab", "c"]), ("c.txt", ["c", "ccccc"])]
 -- ["b.txt:c", "c.txt:c"]
 grepExactMatchWithFilename :: String -> [File] -> [String]
-grepExactMatchWithFilename needle files = grep' (\ name strings -> map ((name ++ ":") ++) strings) (== needle)
+grepExactMatchWithFilename needle = grep' (\x -> map' ((x ++ ":") ++)) (== needle)
