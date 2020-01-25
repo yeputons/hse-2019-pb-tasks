@@ -163,7 +163,7 @@ fifthElement xs = case tryTail xs of
 -- только tryHead, tryTail, применение функций и оператор ~~>, но не используя
 -- сопоставление с образом (pattern matching) ни в каком виде, case, if, guards.
 thirdElementOfSecondList' :: [[a]] -> Maybe a
-thirdElementOfSecondList' xs = ((secondElement xs ~~>) tryTail) ~~> secondElement
+thirdElementOfSecondList' xs = (secondElement xs ~~>) tryTail ~~> secondElement
 
 -- 3) Несколько упражнений
 -- Реализуйте функцию nubBy', которая принимает на вход функцию для сравнения 
