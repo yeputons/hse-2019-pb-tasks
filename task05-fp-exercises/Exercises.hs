@@ -31,7 +31,7 @@ concat' = concat'' []
 
 concat'' :: [a] -> [[a]] -> [a]
 concat'' x [] = x
-concat'' ini (x:xs) = (++) x $ (concat'' ini xs)
+concat'' ini (x:xs) = (++) x (concat'' ini xs)
 
 -- Функция hash' принимает на вход строку s и считает полиномиальный
 -- хэш от строки по формуле hash' s_0...s_{n - 1} =
@@ -53,7 +53,7 @@ hash' = hash'' 0
 
 hash'' :: Int -> String -> Int
 hash'' x [] = x
-hash'' ini (x:xs) = ord x + (p * (hash'' ini xs))
+hash'' ini (x:xs) = ord x + (p * hash'' ini xs)
 
 -- Выделите общую логику предыдущих функций и реализуйте функцию высшего порядка foldr',
 -- не используя никаких стандартных функций.
@@ -65,7 +65,7 @@ foldr' f ini (x:xs) = f x $ foldr' f ini xs
 -- Реализуйте функцию map' (которая делает то же самое, что обычный map)
 -- через функцию foldr', не используя стандартных функций.
 map' :: (a -> b) -> [a] -> [b]
-map' f xs = foldr' (\x xs -> f x : xs) [] xs
+map' f = foldr' (\x xs -> f x : xs) []
 
 -- 2) Maybe
 -- Maybe a - это специальный тип данных, который может принимать либо
@@ -201,7 +201,7 @@ nubBy' eq (x:xs) = x:nubBy' eq (filter (not.eq x) xs)
 -- "aabbc"
 quickSort' :: Ord a => [a] -> [a]
 quickSort' [] = []
-quickSort' (x:xs) = (quickSort' lx) ++ (filter (== x) (x:xs)) ++ quickSort' rx
+quickSort' (x:xs) = quickSort' lx ++ filter (== x) (x:xs) ++ quickSort' rx
                 where lx = filter (< x) xs
                       rx = filter (> x) xs
 
@@ -267,7 +267,7 @@ isSubstringOf n s = pack n `isInfixOf` pack s
 -- ["c", "c", "ccccc"]
 grepSubstringNoFilename :: String -> [File] -> [String]
 grepSubstringNoFilename needle = grep' format match
-                               where format _ str = str
+                               where format = (\_ str -> str)
                                      match        = isSubstringOf needle
  
 -- Вариант, когда ищется точное совпадение и нужно ко всем подходящим строкам
@@ -278,5 +278,5 @@ grepSubstringNoFilename needle = grep' format match
 -- >>> grepExactMatchWithFilename "c" [("a.txt", ["a", "a"]), ("b.txt", ["b", "bab", "c"]), ("c.txt", ["c", "ccccc"])]
 -- ["b.txt:c", "c.txt:c"]
 grepExactMatchWithFilename :: String -> [File] -> [String]
-grepExactMatchWithFilename needle = grep' format (== needle)
-                                  where format file = map' (\line -> file ++ ":" ++ line)
+grepExactMatchWithFilename needle = grep' format (== needle) 
+                                  where format = (\filename -> map' (\s -> filename ++ ":" ++ s))
