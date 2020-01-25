@@ -17,7 +17,7 @@ sum' = sum'' 0
 
 sum'' :: Int -> [Int] -> Int
 sum'' ini [] = ini
-sum'' ini xs = head xs + sum'' ini (tail xs)
+sum'' ini (x:xs) = x + sum'' ini xs
 
 -- Функция concat' принимает на вход список списков и возвращает конкатенацию
 -- этих списков. Она использует функцию concat'', которая дополнительно
@@ -31,7 +31,7 @@ concat' = concat'' []
 
 concat'' :: [a] -> [[a]] -> [a]
 concat'' ini [] = ini 
-concat'' ini xs = head xs ++ concat'' ini (tail xs)
+concat'' ini (x:xs) = x ++ concat'' ini xs
 
 -- Функция hash' принимает на вход строку s и считает полиномиальный
 -- хэш от строки по формуле hash' s_0...s_{n - 1} =
@@ -53,12 +53,12 @@ hash' = hash'' 0
 
 hash'' :: Int -> String -> Int
 hash'' ini [] = ini
-hash'' ini xs = ord (head xs) + p * hash'' ini (tail xs)
+hash'' ini (x:xs) = ord x + p * hash'' ini xs
 
 -- Выделите общую логику предыдущих функций и реализуйте функцию высшего порядка foldr',
 -- не используя никаких стандартных функций.
 foldr' :: (a -> b -> b) -> b -> [a] -> b
-foldr' f ini [] = ini
+foldr' f ini []     = ini
 foldr' f ini (x:xs) = f x (foldr' f ini xs)
 
 -- Реализуйте функцию map' (которая делает то же самое, что обычный map)
@@ -155,7 +155,7 @@ fifthElement xs = tryHeadMB $ tryTailMB $ tryTailMB $ tryTailMB $ tryTail xs
 -- Выделите общую логику в оператор ~~>.
 (~~>) :: Maybe a -> (a -> Maybe b) -> Maybe b
 (~~>) (Just ma) f = f ma 
-(~~>) _ _         = Nothing
+(~~>) _         _ = Nothing
 
 -- Перепишите функцию thirdElementOfSecondList в thirdElementOfSecondList' используя
 -- только tryHead, tryTail, применение функций и оператор ~~>, но не используя
@@ -198,9 +198,8 @@ nubBy' eq = foldr' (\x xs -> x:filter (not . eq x) xs) []
 -- "aabbc"
 quickSort' :: Ord a => [a] -> [a]
 quickSort' [] = []
-quickSort' xs = quickSort' [x | x <- s, x <= p] ++ [p] ++ quickSort' [x | x <- s, x > p]
-                  where p = head xs
-                        s = tail xs
+quickSort' (x:xs) = quickSort' [y | y <- xs, y <= x] ++ [x] ++ quickSort' [y | y <- xs, y > x]
+
 
 -- Найдите суммарную длину списков, в которых чётное количество элементов
 -- имеют квадрат больше 100. Реализация должна быть без использования
@@ -274,4 +273,4 @@ grepSubstringNoFilename needle = grep' (\_ s -> s) (isSubstringOf needle)
 -- >>> grepExactMatchWithFilename "c" [("a.txt", ["a", "a"]), ("b.txt", ["b", "bab", "c"]), ("c.txt", ["c", "ccccc"])]
 -- ["b.txt:c", "c.txt:c"]
 grepExactMatchWithFilename :: String -> [File] -> [String]
-grepExactMatchWithFilename needle = grep' (\fn -> map' ((fn++":")++)) (== needle)
+grepExactMatchWithFilename needle = grep' (\fn -> map' ((fn ++ ":") ++)) (== needle)
