@@ -150,7 +150,7 @@ fifthElement xs = nthElement xs 5
 
 -- Выделите общую логику в оператор ~~>.
 (~~>) :: Maybe a -> (a -> Maybe b) -> Maybe b
-(~~>) Nothing f  = Nothing
+(~~>) Nothing  f = Nothing
 (~~>) (Just a) f = f a
 
 -- Перепишите функцию thirdElementOfSecondList в thirdElementOfSecondList' используя
