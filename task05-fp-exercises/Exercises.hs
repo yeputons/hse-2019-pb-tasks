@@ -245,7 +245,7 @@ type File = (String, [String])
 -- Здесь (\_ s -> s) --- это лямбда-функция, которая игнорирует первый
 -- параметр и возвращает второй.
 grep' :: (String -> [String] -> [String]) -> (String -> Bool) -> [File] -> [String]
-grep' format match ((file, lines):files) = format file (filter match lines) ++ grep' format match files
+grep' format match = concat' . map' (\file -> format (fst file) $ filter match $ snd file)
 
 -- Также вам предоставлена функция для проверки вхождения подстроки в строку.
 -- >>> isSubstringOf "a" "bac"
@@ -266,9 +266,8 @@ isSubstringOf n s = pack n `isInfixOf` pack s
 -- >>> grepSubstringNoFilename "c" [("a.txt", ["a", "a"]), ("b.txt", ["b", "bab", "c"]), ("c.txt", ["c", "ccccc"])]
 -- ["c", "c", "ccccc"]
 grepSubstringNoFilename :: String -> [File] -> [String]
-grepSubstringNoFilename needle = grep' format match
-                               where format = (\_ str -> str)
-                                     match        = isSubstringOf needle
+grepSubstringNoFilename needle = grep' (\ _ str -> str) match
+                               where match        = isSubstringOf needle
  
 -- Вариант, когда ищется точное совпадение и нужно ко всем подходящим строкам
 -- дописать имя файла через ":".
@@ -278,5 +277,4 @@ grepSubstringNoFilename needle = grep' format match
 -- >>> grepExactMatchWithFilename "c" [("a.txt", ["a", "a"]), ("b.txt", ["b", "bab", "c"]), ("c.txt", ["c", "ccccc"])]
 -- ["b.txt:c", "c.txt:c"]
 grepExactMatchWithFilename :: String -> [File] -> [String]
-grepExactMatchWithFilename needle = grep' format (== needle) 
-                                  where format = (\filename -> map' (\s -> filename ++ ":" ++ s))
+grepExactMatchWithFilename needle = grep' (\ filename -> map' (\ s -> filename ++ ":" ++ s)) (== needle) 
