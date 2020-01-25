@@ -16,7 +16,7 @@ sum' :: [Int] -> Int
 sum' = sum'' 0
 
 sum'' :: Int -> [Int] -> Int
-sum'' ini [] = ini
+sum'' ini []     = ini
 sum'' ini (x:xs) = x + sum'' ini xs
 
 -- Функция concat' принимает на вход список списков и возвращает конкатенацию
@@ -52,19 +52,18 @@ hash' :: String -> Int
 hash' = hash'' 0
 
 hash'' :: Int -> String -> Int
-hash'' ini "" = ini
-hash'' ini xs = p * hash'' ini (tail xs) + ord (head xs)
+hash'' ini ""     = ini
+hash'' ini (x:xs) = p * hash'' ini xs + ord x
 
 -- Выделите общую логику предыдущих функций и реализуйте функцию высшего порядка foldr',
 -- не используя никаких стандартных функций.
 foldr' :: (a -> b -> b) -> b -> [a] -> b
 foldr' f ini [] = ini
-foldr' f ini xs = f (head xs) (foldr' f ini (tail xs))
+foldr' f ini (x:xs) = f x (foldr' f ini xs)
 
 -- Реализуйте функцию map' (которая делает то же самое, что обычный map)
 -- через функцию foldr', не используя стандартных функций.
 map' :: (a -> b) -> [a] -> [b]
-map' f [] = []
 map' f xs = foldr' (\y ys -> f y : ys) [] xs
 
 -- 2) Maybe
@@ -131,8 +130,7 @@ thirdElementOfSecondList :: [[a]] -> Maybe a
 thirdElementOfSecondList xs = case secondElement xs of
                                 Just xs -> thirdElement xs
                                 _       -> Nothing
-    where 
-        thirdElement xs = case tryTail xs of
+    where thirdElement xs = case tryTail xs of
                             Just as -> secondElement as
                             _       -> Nothing
 
@@ -158,9 +156,9 @@ fifthElement xs = case tryTail xs of
 
 -- Выделите общую логику в оператор ~~>.
 (~~>) :: Maybe a -> (a -> Maybe b) -> Maybe b
-(~~>) ma f = case ma of 
+(~~>) ma f = case ma of
                Just a -> f a
-               _       -> Nothing
+               _      -> Nothing
 
 -- Перепишите функцию thirdElementOfSecondList в thirdElementOfSecondList' используя
 -- только tryHead, tryTail, применение функций и оператор ~~>, но не используя
@@ -187,9 +185,9 @@ nubBy' eq [] = []
 nubBy' eq (x:xs) = x : nubBy' eq (nubBy'' eq x xs)
 
 nubBy'' eq _ [] = []
-nubBy'' eq element (x:xs) 
-        | eq element x    = nubBy'' eq element xs
-        | otherwise       = x:nubBy'' eq element xs
+nubBy'' eq element (x:xs)
+        | eq element x = nubBy'' eq element xs
+        | otherwise    = x:nubBy'' eq element xs
 
 -- Реализуйте функцию quickSort, которая принимает на вход список, и 
 -- возвращает список, в котором элементы отсортированы при помощи алгоритма
@@ -211,8 +209,8 @@ nubBy'' eq element (x:xs)
 quickSort' :: Ord a => [a] -> [a]
 quickSort' xs 
         | null xs   = []
-        | otherwise = quickSort' [x | x <- xs, x < h] ++ 
-          [x | x <- xs, x == h] ++ 
+        | otherwise = quickSort' [x | x <- xs, x < h] ++
+          [x | x <- xs, x == h] ++
           quickSort' [x | x <- xs, x > h]
         where 
             h = head xs
