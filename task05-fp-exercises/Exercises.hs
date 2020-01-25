@@ -53,7 +53,7 @@ hash' = hash'' 0
 
 hash'' :: Int -> String -> Int
 hash'' ini []     = ini 
-hash'' ini (x:xs) =  (ord x) + p * (hash'' ini xs)
+hash'' ini (x:xs) = ord x + p * hash'' ini xs
 
 -- Выделите общую логику предыдущих функций и реализуйте функцию высшего порядка foldr',
 -- не используя никаких стандартных функций.
@@ -64,7 +64,7 @@ foldr' f ini (x:xs) = f x (foldr' f ini xs)
 -- Реализуйте функцию map' (которая делает то же самое, что обычный map)
 -- через функцию foldr', не используя стандартных функций.
 map' :: (a -> b) -> [a] -> [b]
-map' f (xs) = foldr' (\ x ys -> (f x):ys) [] (xs)   
+map' f xs = foldr' (\ x ys -> f x : ys) [] xs   
 
 -- 2) Maybe
 -- Maybe a - это специальный тип данных, который может принимать либо
@@ -200,7 +200,7 @@ nubBy' eq (x:xs) = x : filter (not . eq x) (nubBy' eq xs)
 -- "aabbc"
 quickSort' :: Ord a => [a] -> [a]
 quickSort' []     = []
-quickSort' (x:xs) = quickSort' [y | y <- xs, y < x] ++ (x : (quickSort' [z | z <- xs, z >= x]))
+quickSort' (x:xs) = quickSort' [y | y <- xs, y < x] ++ (x : quickSort' [z | z <- xs, z >= x])
 -- Найдите суммарную длину списков, в которых чётное количество элементов
 -- имеют квадрат больше 100. Реализация должна быть без использования
 -- list comprehension, лямбда-функций, вспомогательных функций или явного
@@ -249,7 +249,7 @@ filecontent (_, lines) = lines
 -- параметр и возвращает второй.
 grep' :: (String -> [String] -> [String]) -> (String -> Bool) -> [File] -> [String]
 grep' format match []           = []
-grep' format match (file:files) = format (filename file) [fc | fc <- (filecontent file), match fc] ++ grep' format match files
+grep' format match (file:files) = format (filename file) [fc | fc <- filecontent file, match fc] ++ grep' format match files
 
 -- Также вам предоставлена функция для проверки вхождения подстроки в строку.
 -- >>> isSubstringOf "a" "bac"
