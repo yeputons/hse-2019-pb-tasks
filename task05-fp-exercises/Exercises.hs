@@ -64,10 +64,10 @@ foldr' f ini (x:xs) = f x $ foldr' f ini xs
 -- Реализуйте функцию map' (которая делает то же самое, что обычный map)
 -- через функцию foldr', не используя стандартных функций.
 map' :: (a -> b) -> [a] -> [b]
-map' f xs = foldr' (map'' f) [] xs
+map' f = foldr' (map'' f) []
 
 map'' :: (a -> b) -> a -> [b] -> [b]
-map'' f x y = (f x):y
+map'' f x y = f x:y
 -- 2) Maybe
 -- Maybe a - это специальный тип данных, который может принимать либо
 -- значение Nothing, либо значение Just x, где x --- значение типа a.
