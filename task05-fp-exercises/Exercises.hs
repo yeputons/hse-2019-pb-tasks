@@ -185,7 +185,7 @@ thirdElementOfSecondList' xs = tryTail xs ~~> tryHead ~~> tryTail ~~> tryTail ~~
 -- [2,3,5]
 nubBy' :: (a -> a -> Bool) -> [a] -> [a]
 nubBy' _ []        = []
-nubBy' eq (x : xs) = x : nubBy' eq (filter(not . (eq x)) xs)
+nubBy' eq (x : xs) = x : nubBy' eq (filter(not . eq x) xs)
 
 -- Реализуйте функцию quickSort, которая принимает на вход список, и 
 -- возвращает список, в котором элементы отсортированы при помощи алгоритма
@@ -270,7 +270,7 @@ isSubstringOf n s = pack n `isInfixOf` pack s
 -- >>> grepSubstringNoFilename "c" [("a.txt", ["a", "a"]), ("b.txt", ["b", "bab", "c"]), ("c.txt", ["c", "ccccc"])]
 -- ["c", "c", "ccccc"]
 grepSubstringNoFilename :: String -> [File] -> [String]
-grepSubstringNoFilename pattern = grep' (\ _ s -> s) (isSubstringOf pattern)
+grepSubstringNoFilename needle = grep' (\ _ s -> s) (isSubstringOf needle)
  
 -- Вариант, когда ищется точное совпадение и нужно ко всем подходящим строкам
 -- дописать имя файла через ":".
@@ -280,4 +280,4 @@ grepSubstringNoFilename pattern = grep' (\ _ s -> s) (isSubstringOf pattern)
 -- >>> grepExactMatchWithFilename "c" [("a.txt", ["a", "a"]), ("b.txt", ["b", "bab", "c"]), ("c.txt", ["c", "ccccc"])]
 -- ["b.txt:c", "c.txt:c"]
 grepExactMatchWithFilename :: String -> [File] -> [String]
-grepExactMatchWithFilename pattern = grep' (\ file_name s -> map' (\ str -> file_name ++ ":" ++ str) s) (== pattern)
+grepExactMatchWithFilename needle = grep' (\ file_name s -> map' (\ str -> file_name ++ ":" ++ str) s) (== needle)
