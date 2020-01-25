@@ -67,9 +67,7 @@ foldr' f ini (x:xs) = f x (foldr' f ini xs)
 -- Реализуйте функцию map' (которая делает то же самое, что обычный map)
 -- через функцию foldr', не используя стандартных функций.
 map' :: (a -> b) -> [a] -> [b]
-map' f []     = []
--- не знаю, как реализовать через foldr'
-map' f (x:xs) = f x : map' f xs
+map' f = foldr' (\x xs -> f x : xs) []
  
 
 -- 2) Maybe
@@ -210,7 +208,7 @@ nubBy' eq (x:xs) = x : nubBy' eq (removeEq eq x xs)
 
 quickSort' :: Ord a => [a] -> [a]
 quickSort' []     = []
-quickSort' (x:xs) = quickSort' (filter (<= x) xs) ++ x : (filter (> x) xs)
+quickSort' (x:xs) = quickSort' (filter (<= x) xs) ++ x : filter (> x) xs
 
 -- Найдите суммарную длину списков, в которых чётное количество элементов
 -- имеют квадрат больше 100. Реализация должна быть без использования
