@@ -128,10 +128,10 @@ secondElement xs = case tryTail xs of
 -- Just "d"
 thirdElementOfSecondList :: [[a]] -> Maybe a
 thirdElementOfSecondList xs = case secondElement xs of 
-                                Just ys -> case tryTail ys of
-                                             Just zs -> secondElement zs
-                                             _       -> Nothing
                                 Nothing -> Nothing
+                                Just ys -> case tryTail ys of
+                                             Nothing -> Nothing
+                                             Just zs -> secondElement zs
                                 
 -- Функцию fifthElement, которая возвращает пятый элемент списка или Nothing,
 -- если пятого элемента в списке нет.
@@ -143,23 +143,25 @@ thirdElementOfSecondList xs = case secondElement xs of
 -- Just 5
 fifthElement :: [a] -> Maybe a
 fifthElement xs = case tryTail xs of
-                    Just ys -> case tryTail ys of
-                                 Just zs -> case tryTail zs of
-                                              Just s  -> secondElement s
-                                              Nothing -> Nothing
-                                 Nothing -> Nothing
                     Nothing -> Nothing
+                    Just ys -> case tryTail ys of
+                                Nothing -> Nothing
+                                Just zs -> case tryTail zs of
+                                              Nothing -> Nothing
+                                              Just s  -> secondElement s
 
 -- Выделите общую логику в оператор ~~>.
 (~~>) :: Maybe a -> (a -> Maybe b) -> Maybe b
-(~~>) ma f = maybe Nothing f ma
+(~~>) ma f = case ma of
+               Just na -> f na
+               Nothing -> Nothing
 
 -- Перепишите функцию thirdElementOfSecondList в thirdElementOfSecondList' используя
 -- только tryHead, tryTail, применение функций и оператор ~~>, но не используя
 -- сопоставление с образом (pattern matching) ни в каком виде, case, if, guards.
 
 thirdElementOfSecondList' :: [[a]] -> Maybe a
-thirdElementOfSecondList' xs = secondElement xs ~~> tryTail ~~> secondElement  
+thirdElementOfSecondList' xs = tryTail xs ~~> tryHead ~~> tryTail ~~> tryTail ~~> tryHead 
 
 -- 3) Несколько упражнений
 -- Реализуйте функцию nubBy', которая принимает на вход функцию для сравнения 
@@ -198,7 +200,7 @@ nubBy' eq (x:xs) =  x : nubBy' eq (filter (not . eq x) xs)
 -- "aabbc"
 quickSort' :: Ord a => [a] -> [a]
 quickSort' []     = []
-quickSort' (x:xs) = quickSort' (filter (< x) xs) ++ x : quickSort' (filter (>= x) xs)
+quickSort' (x:xs) = quickSort' (filter (< x) xs) ++ [x] ++ quickSort' (filter (>= x) xs)
 
 -- Найдите суммарную длину списков, в которых чётное количество элементов
 -- имеют квадрат больше 100. Реализация должна быть без использования
@@ -272,4 +274,4 @@ grepSubstringNoFilename needle = grep' (\_ s -> s) (isSubstringOf needle)
 -- >>> grepExactMatchWithFilename "c" [("a.txt", ["a", "a"]), ("b.txt", ["b", "bab", "c"]), ("c.txt", ["c", "ccccc"])]
 -- ["b.txt:c", "c.txt:c"]
 grepExactMatchWithFilename :: String -> [File] -> [String]
-grepExactMatchWithFilename needle = grep' (\name lines -> map' (\s -> name ++ ":" ++ s) lines) (== needle) 
+grepExactMatchWithFilename needle = grep' (\name lines -> map' ((name ++ ":") ++) lines) (== needle) 
