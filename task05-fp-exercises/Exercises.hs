@@ -53,13 +53,13 @@ hash' = hash'' 0
 
 hash'' :: Int -> String -> Int
 hash'' ini []     = ini
-hash'' ini (x:xs) = ord x + p * hash'' ini xs 
+hash'' ini (x:xs) = ord x + p * hash'' ini xs
 
 -- Выделите общую логику предыдущих функций и реализуйте функцию высшего порядка foldr',
 -- не используя никаких стандартных функций.
 foldr' :: (a -> b -> b) -> b -> [a] -> b
 foldr' f ini []     = ini
-foldr' f ini (x:xs) = f x $ foldr' f ini xs  
+foldr' f ini (x:xs) = f x $ foldr' f ini xs
 
 -- Реализуйте функцию map' (которая делает то же самое, что обычный map)
 -- через функцию foldr', не используя стандартных функций.
@@ -130,8 +130,8 @@ thirdElementOfSecondList :: [[a]] -> Maybe a
 thirdElementOfSecondList xs = case secondElement xs of
                                 Nothing -> Nothing
                                 Just ys -> case tryTail ys of
+                                            Nothing  -> Nothing
                                             Just ys' -> secondElement ys'
-                                            _        -> Nothing  
 
 -- Функцию fifthElement, которая возвращает пятый элемент списка или Nothing,
 -- если пятого элемента в списке нет.
@@ -145,8 +145,8 @@ fifthElement :: [a] -> Maybe a
 fifthElement xs = fe xs 5
                    where fe xs 1 = tryHead xs
                          fe xs n = case tryTail xs of
-                                     Just ys' -> fe (tail xs) $ n - 1 
-                                     Nothing  -> Nothing  
+                                     Just ys' -> fe (tail xs) $ n - 1
+                                     Nothing  -> Nothing
                      
 
 -- Выделите общую логику в оператор ~~>.
@@ -159,7 +159,7 @@ fifthElement xs = fe xs 5
 -- только tryHead, tryTail, применение функций и оператор ~~>, но не используя
 -- сопоставление с образом (pattern matching) ни в каком виде, case, if, guards.
 thirdElementOfSecondList' :: [[a]] -> Maybe a
-thirdElementOfSecondList' xs = tryTail xs ~~> tryHead ~~> tryTail ~~> tryTail ~~> tryHead   
+thirdElementOfSecondList' xs = tryTail xs ~~> tryHead ~~> tryTail ~~> tryTail ~~> tryHead
 -- (tryTail xs) ~~> tryHead) == secondElement - вернет maybe второй_элемент
 -- (tryTail ((tryTail xs) ~~> tryHead)) == хвост от секонд элемента
 -- 3) Несколько упражнений
@@ -176,8 +176,7 @@ thirdElementOfSecondList' xs = tryTail xs ~~> tryHead ~~> tryTail ~~> tryTail ~~
 -- nubBy' (\x y -> x == y || x + y == 10) [2, 3, 5, 7, 8, 2]
 -- [2,3,5]
 nubBy' :: (a -> a -> Bool) -> [a] -> [a]
-nubBy' _ [] = [] 
-nubBy' eq (x:xs) = x : nubBy' eq (filter (not . eq x) xs)
+nubBy' eq  = foldr' (\ x xs -> x:filter (not . eq x) xs) []
 
 
 -- Реализуйте функцию quickSort, которая принимает на вход список, и 
@@ -186,7 +185,7 @@ nubBy' eq (x:xs) = x : nubBy' eq (filter (not . eq x) xs)
 -- Рандом или быстрый partition использовать не нужно, выберите максимально
 -- простую реализацию.
 --
--- Требование Ord a => означает, что для типа a можно использовать знаки
+-- Требование Ord a => означает, что для тип	а a можно использовать знаки
 -- сравнения (>, <, == и т.д.).
 --
 -- >>> [x + 1 | x <- [1..10], x > 5]
@@ -199,8 +198,7 @@ nubBy' eq (x:xs) = x : nubBy' eq (filter (not . eq x) xs)
 -- "aabbc"
 quickSort' :: Ord a => [a] -> [a]
 quickSort' []     = []
-quickSort' [x]    = [x]  
-quickSort' (x:xs) = quickSort' (filter (< x) xs) ++ [x] ++ quickSort' (filter (>= x) xs)   
+quickSort' (x:xs) = quickSort' (filter (< x) xs) ++ [x] ++ quickSort' (filter (>= x) xs)
 
 
 -- Найдите суммарную длину списков, в которых чётное количество элементов
@@ -216,7 +214,7 @@ quickSort' (x:xs) = quickSort' (filter (< x) xs) ++ [x] ++ quickSort' (filter (>
 -- >>> weird' [[1, 11, 12], [9, 10, 20]]
 -- 3
 weird':: [[Int]] -> Int
-weird' = sum'.map' length . filter (even . length . filter ( (>100) . (^2) ) )  
+weird' = sum' . map' length . filter (even . length . filter ((>100) . (^2)))
 
 -- 4) grep
 -- Нужно реализовать несколько вариаций grep'а.
@@ -242,9 +240,7 @@ type File = (String, [String])
 -- Здесь (\_ s -> s) --- это лямбда-функция, которая игнорирует первый
 -- параметр и возвращает второй.
 grep' :: (String -> [String] -> [String]) -> (String -> Bool) -> [File] -> [String]
-
-grep' _      _      []                       = []
-grep' format match ((filename, strings) : xs) = format filename (filter match strings) ++ grep' format match xs
+grep' format match  = concat' . map' (\ (filename, strings) -> format filename $ filter match strings) 
 
 
 
@@ -277,7 +273,4 @@ grepSubstringNoFilename needle = grep' (\_ s -> s) (isSubstringOf needle)
 -- >>> grepExactMatchWithFilename "c" [("a.txt", ["a", "a"]), ("b.txt", ["b", "bab", "c"]), ("c.txt", ["c", "ccccc"])]
 -- ["b.txt:c", "c.txt:c"]
 grepExactMatchWithFilename :: String -> [File] -> [String]
-grepExactMatchWithFilename needle = grep' format (needle ==)
-                                            where format filename = map' ((filename++":")++) 
-
- 
+grepExactMatchWithFilename needle = grep' (\ filename -> map'((filename ++ ":") ++ )) (needle ==)
