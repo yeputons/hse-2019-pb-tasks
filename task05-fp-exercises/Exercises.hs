@@ -128,8 +128,8 @@ secondElement xs = case tryTail xs of
 -- Just "d"
 thirdElementOfSecondList :: [[a]] -> Maybe a
 thirdElementOfSecondList xs = case secondElement xs of
-                              Just x2s -> case tryTail x2s of
-                                         Just x23s -> secondElement x23s
+                              Just ys -> case tryTail ys of
+                                         Just zs -> secondElement zs
                                          _       -> Nothing
                               _       -> Nothing
 
@@ -143,9 +143,9 @@ thirdElementOfSecondList xs = case secondElement xs of
 -- Just 5
 fifthElement :: [a] -> Maybe a
 fifthElement xs = case tryTail xs of
-                  Just x2s -> case tryTail x2s of
-                             Just x3s -> case tryTail x3s of
-                                     Just x5s -> secondElement x5s
+                  Just ys -> case tryTail ys of
+                             Just zs -> case tryTail zs of
+                                     Just ws -> secondElement ws
                                      _       -> Nothing
                              _       -> Nothing
                   _       -> Nothing
@@ -159,7 +159,7 @@ fifthElement xs = case tryTail xs of
 -- только tryHead, tryTail, применение функций и оператор ~~>, но не используя
 -- сопоставление с образом (pattern matching) ни в каком виде, case, if, guards.
 thirdElementOfSecondList' :: [[a]] -> Maybe a
-thirdElementOfSecondList' xs = Just xs ~~> secondElement ~~> tryTail ~~> secondElement
+thirdElementOfSecondList' xs = tryTail xs ~~> tryHead ~~> tryTail ~~> tryTail ~~> tryHead
 
 -- 3) Несколько упражнений
 -- Реализуйте функцию nubBy', которая принимает на вход функцию для сравнения 
@@ -176,7 +176,7 @@ thirdElementOfSecondList' xs = Just xs ~~> secondElement ~~> tryTail ~~> secondE
 -- [2,3,5]
 nubBy' :: (a -> a -> Bool) -> [a] -> [a]
 nubBy' eq []     = []
-nubBy' eq (x:xs) = x : nubBy' eq (filter (not . eq x) xs)
+nubBy' eq (x:xs) = x:nubBy' eq (filter (not . eq x) xs)
 
 -- Реализуйте функцию quickSort, которая принимает на вход список, и 
 -- возвращает список, в котором элементы отсортированы при помощи алгоритма
@@ -197,7 +197,7 @@ nubBy' eq (x:xs) = x : nubBy' eq (filter (not . eq x) xs)
 -- "aabbc"
 quickSort' :: Ord a => [a] -> [a]
 quickSort' []     = []
-quickSort' (x:xs) = quickSort' (filter (<=x) xs) ++ [x] ++ quickSort' (filter (>x) xs)
+quickSort' (x:xs) = quickSort' (filter (<=x) xs) ++ x:quickSort' (filter (>x) xs)
 
 -- Найдите суммарную длину списков, в которых чётное количество элементов
 -- имеют квадрат больше 100. Реализация должна быть без использования
@@ -270,4 +270,4 @@ grepSubstringNoFilename needle = grep' (\_ s -> s) (isSubstringOf needle)
 -- >>> grepExactMatchWithFilename "c" [("a.txt", ["a", "a"]), ("b.txt", ["b", "bab", "c"]), ("c.txt", ["c", "ccccc"])]
 -- ["b.txt:c", "c.txt:c"]
 grepExactMatchWithFilename :: String -> [File] -> [String]
-grepExactMatchWithFilename needle = grep' (\file -> map' $ \line -> file ++ ":" ++ line) (== needle)
+grepExactMatchWithFilename needle = grep' (\file -> map' ((file ++ ":") ++)) (== needle)
