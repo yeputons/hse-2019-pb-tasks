@@ -13,10 +13,10 @@ import Prelude hiding (sum, concat, foldr, map)
 -- >>> sum'' 10 [2, 3]
 -- 15
 sum' :: [Int] -> Int
-sum'= sum'' 0
+sum' = sum'' 0
 
 sum'' :: Int -> [Int] -> Int
-sum'' ini [] = ini
+sum'' ini []     = ini
 sum'' ini (x:xs) = sum'' (ini + x) xs
 
 -- Функция concat' принимает на вход список списков и возвращает конкатенацию
@@ -52,13 +52,13 @@ hash' :: String -> Int
 hash' = hash'' 0
 
 hash'' :: Int -> String -> Int
-hash'' ini [] = ini
+hash'' ini []     = ini
 hash'' ini (x:xs) = ord x + p * hash'' ini xs
 
 -- Выделите общую логику предыдущих функций и реализуйте функцию высшего порядка foldr',
 -- не используя никаких стандартных функций.
 foldr' :: (a -> b -> b) -> b -> [a] -> b
-foldr' f ini []   = ini
+foldr' f ini []     = ini
 foldr' f ini (x:xs) = f x (foldr' f ini xs)
 
 -- Реализуйте функцию map' (которая делает то же самое, что обычный map)
