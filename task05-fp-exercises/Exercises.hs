@@ -163,7 +163,7 @@ fifthElement xs = case tryTail xs of
 -- только tryHead, tryTail, применение функций и оператор ~~>, но не используя
 -- сопоставление с образом (pattern matching) ни в каком виде, case, if, guards.
 thirdElementOfSecondList' :: [[a]] -> Maybe a
-thirdElementOfSecondList' xs = Just xs ~~> secondElement ~~> tryTail ~~> secondElement
+thirdElementOfSecondList' xs = tryTail xs ~~> tryHead ~~> tryTail ~~> tryTail ~~> tryHead
 
 
 -- 3) Несколько упражнений
@@ -227,6 +227,7 @@ weird' = sum' . map' length . filter (even . length . filter ((>100) . (^2)))
 -- (Можно считать, что File -- это typedef для кортежа из строки и списка строк).
 type File = (String, [String])
 
+
 -- Функция grep' принимает на вход:
 -- * Функцию match :: String -> Bool, которая возвращает True,
 --   если параметр-строчка файла является искомым
@@ -275,6 +276,4 @@ grepSubstringNoFilename needle = grep' (\_ x -> x) (isSubstringOf needle)
 -- >>> grepExactMatchWithFilename "c" [("a.txt", ["a", "a"]), ("b.txt", ["b", "bab", "c"]), ("c.txt", ["c", "ccccc"])]
 -- ["b.txt:c", "c.txt:c"]
 grepExactMatchWithFilename :: String -> [File] -> [String]
-grepExactMatchWithFilename needle = grep' (map' . fmt) (==needle)
-                                  where fmt name line = name ++ ':':line
-
+grepExactMatchWithFilename needle = grep' (map' . (\name line -> name ++ ':':line)) (==needle)
