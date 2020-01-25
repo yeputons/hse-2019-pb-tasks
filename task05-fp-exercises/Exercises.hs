@@ -17,7 +17,7 @@ sum' = sum'' 0
 
 sum'' :: Int -> [Int] -> Int
 sum'' ini [] = ini
-sum'' ini xs = ini + sum'' (head xs) (tail xs)
+sum'' ini (x:xs) = ini + sum'' x xs
 
 -- Функция concat' принимает на вход список списков и возвращает конкатенацию
 -- этих списков. Она использует функцию concat'', которая дополнительно
@@ -31,7 +31,7 @@ concat' = concat'' []
 
 concat'' :: [a] -> [[a]] -> [a]
 concat'' ini [] = ini
-concat'' ini xs = head xs ++ concat'' ini (tail xs)
+concat'' ini (x:xs) = x ++ concat'' ini xs
 
 -- Функция hash' принимает на вход строку s и считает полиномиальный
 -- хэш от строки по формуле hash' s_0...s_{n - 1} =
@@ -53,7 +53,7 @@ hash' = hash'' 0
 
 hash'' :: Int -> String -> Int
 hash'' ini "" = ini
-hash'' ini xs = p * hash'' ini (tail xs) + ord (head xs)
+hash'' ini (x:xs) = p * hash'' ini xs + ord x
 
 -- hashIterative ini "" it = ini
 -- hashIterative ini xs it = hashIterative (ini + ord (head xs) * p ^ it) (tail xs) (it + 1)
@@ -62,15 +62,14 @@ hash'' ini xs = p * hash'' ini (tail xs) + ord (head xs)
 -- не используя никаких стандартных функций.
 foldr' :: (a -> b -> b) -> b -> [a] -> b
 foldr' f ini [] = ini
-foldr' f ini xs = f (head xs) (foldr' f ini (tail xs))
+foldr' f ini (x:xs) = f x (foldr' f ini xs)
 
 
 -- Реализуйте функцию map' (которая делает то же самое, что обычный map)
 -- через функцию foldr', не используя стандартных функций.
 map' :: (a -> b) -> [a] -> [b]
 
-map' f [] = []
-map' f xs = foldr' (\y ys -> f y : ys) [] xs
+map' f  = foldr' (\y ys -> f y : ys) []
 
 -- 2) Maybe
 -- Maybe a - это специальный тип данных, который может принимать либо
@@ -133,15 +132,13 @@ secondElement xs = case tryTail xs of
 -- >>> thirdElementOfSecondList [["a"], ["b", "c", "d"]]
 -- Just "d"
 
-thirdElement :: [a] -> Maybe a
-thirdElement xs = case tryTail xs of
-                    Just a -> secondElement a
-                    _      -> Nothing
-
 thirdElementOfSecondList :: [[a]] -> Maybe a
 thirdElementOfSecondList xs = case secondElement xs of
                                 Just a -> thirdElement a
                                 _      -> Nothing
+                                where thirdElement xs = case tryTail xs of
+                                                          Just a -> secondElement a
+                                                          _      -> Nothing
 
 -- Функцию fifthElement, которая возвращает пятый элемент списка или Nothing,
 -- если пятого элемента в списке нет.
@@ -155,18 +152,20 @@ fifthElement :: [a] -> Maybe a
 fifthElement xs = case secondElement xs of
                     Just a -> thirdElement (tail (tail xs))
                     _      -> Nothing
+                    where thirdElement xs = case tryTail xs of
+                                              Just a -> secondElement a
+                                              _      -> Nothing
 
 -- Выделите общую логику в оператор ~~>.
-(~~>) :: Maybe a -> (a -> Maybe b) -> Maybe b
-(~~>) ma f = case ma of
-               Just a -> f a
-               _      -> Nothing
+
+(~~>) (Just ma) f = f ma
+(~~>) _ f         = Nothing
 
 -- Перепишите функцию thirdElementOfSecondList в thirdElementOfSecondList' используя
 -- только tryHead, tryTail, применение функций и оператор ~~>, но не используя
 -- сопоставление с образом (pattern matching) ни в каком виде, case, if, guards.
 thirdElementOfSecondList' :: [[a]] -> Maybe a
-thirdElementOfSecondList' xs = secondElement xs ~~> thirdElement
+thirdElementOfSecondList' xs = secondElement xs ~~> tryTail ~~> tryTail ~~> tryHead
 
 -- 3) Несколько упражнений
 -- Реализуйте функцию nubBy', которая принимает на вход функцию для сравнения 
@@ -185,8 +184,7 @@ thirdElementOfSecondList' xs = secondElement xs ~~> thirdElement
 removeEqual xs a eq = filter (not . eq a) xs
 
 nubBy' :: (a -> a -> Bool) -> [a] -> [a]
-nubBy' eq [] = []
-nubBy' eq xs = head xs : nubBy' eq (removeEqual (tail xs) (head xs) eq)
+nubBy' eq = foldr' (\x xs -> x:filter (not . eq x) xs) []
 
 -- Реализуйте функцию quickSort, которая принимает на вход список, и 
 -- возвращает список, в котором элементы отсортированы при помощи алгоритма
@@ -207,11 +205,8 @@ nubBy' eq xs = head xs : nubBy' eq (removeEqual (tail xs) (head xs) eq)
 -- "aabbc"
 
 quickSort' :: Ord a => [a] -> [a]
-quickSort' xs
-    | length xs <= 1 = xs
-    | otherwise = concat [quickSort' (filter (<mid) xs), filter (==mid) xs, quickSort' (filter (>mid) xs)]
-        where
-            mid = xs !! (length xs `div` 2)
+quickSort' [] = []
+quickSort' (x:xs) = concat [quickSort' (filter (<x) (x:xs)), filter (==x) (x:xs), quickSort' (filter (>x) (x:xs))]
 
 -- Найдите суммарную длину списков, в которых чётное количество элементов
 -- имеют квадрат больше 100. Реализация должна быть без использования
@@ -253,7 +248,7 @@ type File = (String, [String])
 -- Здесь (\_ s -> s) --- это лямбда-функция, которая игнорирует первый
 -- параметр и возвращает второй.
 grep' :: (String -> [String] -> [String]) -> (String -> Bool) -> [File] -> [String]
-grep' format match files = concat [format (fst file) (filter match (snd file)) | file <- files]
+grep' format match files = concat [format name (filter match content) | (name, content) <- files]
 
 -- Также вам предоставлена функция для проверки вхождения подстроки в строку.
 -- >>> isSubstringOf "a" "bac"
@@ -285,4 +280,4 @@ grepSubstringNoFilename needle = grep' (curry snd) (isSubstringOf needle)
 -- >>> grepExactMatchWithFilename "c" [("a.txt", ["a", "a"]), ("b.txt", ["b", "bab", "c"]), ("c.txt", ["c", "ccccc"])]
 -- ["b.txt:c", "c.txt:c"]
 grepExactMatchWithFilename :: String -> [File] -> [String]
-grepExactMatchWithFilename needle = grep' (\ name strings -> map ((name ++ ":") ++) strings) (== needle)
+grepExactMatchWithFilename needle = grep' (\ name -> map ((name ++ ":") ++)) (== needle)
