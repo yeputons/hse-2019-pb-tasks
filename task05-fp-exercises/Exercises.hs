@@ -64,7 +64,7 @@ foldr' f ini (x:xs) = f x (foldr' f ini xs)
 -- Реализуйте функцию map' (которая делает то же самое, что обычный map)
 -- через функцию foldr', не используя стандартных функций.
 map' :: (a -> b) -> [a] -> [b]
-map' f xs = foldr' (\ x ys -> f x : ys) [] xs   
+map' f = foldr' (\ x xs -> f x : xs) []   
 
 -- 2) Maybe
 -- Maybe a - это специальный тип данных, который может принимать либо
@@ -127,14 +127,14 @@ secondElement xs = case tryTail xs of
 -- Just "d"
 thirdElementOfSecondList :: [[a]] -> Maybe a
 thirdElementOfSecondList xs = case tryTail xs of
+                              Nothing  -> Nothing
                               Just [a] -> case tryTail a of
-                                          Just a -> case tryTail a of
-                                                    Just a -> tryHead a
-                                                    _      -> Nothing
-                                          _      -> Nothing
-                              _        -> Nothing
+                                          Nothing -> Nothing
+                                          Just a  -> case tryTail a of
+                                                    Nothing -> Nothing
+                                                    Just a  -> tryHead a
 
--- Функцию fifthElement, которая возвращает пятый элемент списка или Nothing,
+--Функцию fifthElement, которая возвращает пятый элемент списка или Nothing,
 -- если пятого элемента в списке нет.
 -- >>> fifthElement []
 -- Nothing
@@ -144,14 +144,14 @@ thirdElementOfSecondList xs = case tryTail xs of
 -- Just 5
 fifthElement :: [a] -> Maybe a
 fifthElement xs = case tryTail xs of
-                  Just a -> case tryTail a of
-                            Just a -> case tryTail a of
-                                      Just a -> case tryTail a of
-                                                Just a -> tryHead a
-                                                _      -> Nothing
-                                      _      -> Nothing
-                            _      -> Nothing
-                  _        -> Nothing
+                  Nothing -> Nothing
+                  Just a  -> case tryTail a of
+                            Nothing -> Nothing
+                            Just a  -> case tryTail a of
+                                       Nothing -> Nothing
+                                       Just a  -> case tryTail a of
+                                                Nothing -> Nothing
+                                                Just a  -> tryHead a                 
 
 -- Выделите общую логику в оператор ~~>.
 (~~>) :: Maybe a -> (a -> Maybe b) -> Maybe b
@@ -228,7 +228,6 @@ filename :: File -> String
 filename (name, _) = name
 
 filecontent :: File -> [String]
-filecontent (_, [])    = []
 filecontent (_, lines) = lines
 
 -- Функция grep' принимает на вход:
@@ -270,8 +269,7 @@ isSubstringOf n s = pack n `isInfixOf` pack s
 -- >>> grepSubstringNoFilename "c" [("a.txt", ["a", "a"]), ("b.txt", ["b", "bab", "c"]), ("c.txt", ["c", "ccccc"])]
 -- ["c", "c", "ccccc"]
 grepSubstringNoFilename :: String -> [File] -> [String]
-grepSubstringNoFilename needle []    = []
-grepSubstringNoFilename needle files = grep' (\_ s -> s) (isSubstringOf needle) files
+grepSubstringNoFilename needle = grep' (\_ s -> s) (isSubstringOf needle)
 
 -- Вариант, когда ищется точное совпадение и нужно ко всем подходящим строкам
 -- дописать имя файла через ":".
@@ -281,8 +279,7 @@ grepSubstringNoFilename needle files = grep' (\_ s -> s) (isSubstringOf needle) 
 -- >>> grepExactMatchWithFilename "c" [("a.txt", ["a", "a"]), ("b.txt", ["b", "bab", "c"]), ("c.txt", ["c", "ccccc"])]
 -- ["b.txt:c", "c.txt:c"]
 grepExactMatchWithFilename :: String -> [File] -> [String]
-grepExactMatchWithFilename needle []    = []
-grepExactMatchWithFilename needle files = grep' (\ fname str -> [fname ++ ":" ++ s | s <- str]) (== needle) files
+grepExactMatchWithFilename needle = grep' (\ fname str -> [fname ++ ":" ++ s | s <- str]) (== needle)
 
 -- grepExactMatchWithFilename needle []           = []
 -- grepExactMatchWithFilename needle (file:files) = [(filename file) ++ ":" ++ fc | fc <- (filecontent file), isSubstringOf needle fc] ++ grepSubstringNoFilename needle files
