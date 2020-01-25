@@ -243,7 +243,7 @@ type File = (String, [String])
 -- параметр и возвращает второй.
 grep' :: (String -> [String] -> [String]) -> (String -> Bool) -> [File] -> [String]
 grep' format match []           = []
-grep' format match (file:files) = concat'' (grep' format match files) [format (fst file) (filter match (snd file))]
+grep' format match files = [lines | file <- files, lines <- format (fst file) (filter match (snd file))]
 
 -- Также вам предоставлена функция для проверки вхождения подстроки в строку.
 -- >>> isSubstringOf "a" "bac"
@@ -274,4 +274,5 @@ grepSubstringNoFilename needle = grep' (\_ s -> s) (isSubstringOf needle)
 -- >>> grepExactMatchWithFilename "c" [("a.txt", ["a", "a"]), ("b.txt", ["b", "bab", "c"]), ("c.txt", ["c", "ccccc"])]
 -- ["b.txt:c", "c.txt:c"]
 grepExactMatchWithFilename :: String -> [File] -> [String]
-grepExactMatchWithFilename needle = grep' format (== needle) where format file = map' (\ s -> file ++ ":" ++ s)
+grepExactMatchWithFilename needle = grep' format (== needle) 
+                                    where format file = map' ((file ++ ":") ++)
