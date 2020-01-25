@@ -31,7 +31,7 @@ concat' = concat'' []
 
 concat'' :: [a] -> [[a]] -> [a]
 concat'' ini []     = ini
-concat'' ini (x:xs) = concat'' (x ++ ini) xs
+concat'' ini (x:xs) = x ++ concat'' ini xs
 
 -- Функция hash' принимает на вход строку s и считает полиномиальный
 -- хэш от строки по формуле hash' s_0...s_{n - 1} =
@@ -53,7 +53,7 @@ hash' = hash'' 0
 
 hash'' :: Int -> String -> Int
 hash'' ini []     = ini
-hash'' ini (x:xs) = ini * hash'' ini xs + ord x
+hash'' ini (x:xs) = p * hash'' ini xs + ord x
 
 -- Выделите общую логику предыдущих функций и реализуйте функцию высшего порядка foldr',
 -- не используя никаких стандартных функций.
@@ -65,7 +65,7 @@ foldr' f ini (x:xs) = f x (foldr' f ini xs)
 -- через функцию foldr', не используя стандартных функций.
 map' :: (a -> b) -> [a] -> [b]
 map' f []     = []
-map' f (x:xs) = [f x] ++ map' f xs
+map' f (x:xs) = f x : map' f xs
 
 -- 2) Maybe
 -- Maybe a - это специальный тип данных, который может принимать либо
@@ -206,10 +206,10 @@ nubBy' eq = foldr' (\x xs -> x:filter (not . eq x) xs) [] -- отрицание 
 -- "aabbc"
 quickSort' :: Ord a => [a] -> [a]
 quickSort' []     = []
-quickSort' (x:xs) = quickSort' (filter (< x) xs) ++ filter (== x) xs ++ quickSort' ( filter (> x) xs)
+quickSort' (x:xs) = quickSort' (filter (<= x) xs) ++ x:quickSort' ( filter (> x) xs)
 
 -- Найдите суммарную длину списков, в которых чётное количество элементов
--- имеют квадрат больше 100. Реализация должна быть без использования
+-- имеют квадрат больше 100. Реализация должна быть без использованияасти не проходят тесты из условия, то эта часть автоматически оценивается в 0 баллов. Попробуйте вбить в терминал ghci RunTe
 -- list comprehension, лямбда-функций, вспомогательных функций или явного
 -- упоминания параметра weird': только композиция, частичное применение
 -- функций и операторов.
@@ -220,10 +220,13 @@ quickSort' (x:xs) = quickSort' (filter (< x) xs) ++ filter (== x) xs ++ quickSor
 -- 5
 -- >>> weird' [[1, 11, 12], [9, 10, 20]]
 -- 3
---weird':: [[Int]] -> Int
+weird':: [[Int]] -> Int
 --weird' xs = sum' . map' length . filter --ААААААААААААААА
 -- Мозг сломался и отказывается это решать...
 
+-- Так, а теперь это кажется пора сделать...
+
+weird' = sum' . map' length . filter (even . length . filter ((>100) . (^2))) -- Кажется, что-то такое должнобыть похоже на правду.....
 
 -- 4) grep
 -- Нужно реализовать несколько вариаций grep'а.
