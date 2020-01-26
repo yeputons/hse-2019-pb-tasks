@@ -64,10 +64,7 @@ foldr' f ini (x:xs) = f x $ foldr' f ini xs
 -- Реализуйте функцию map' (которая делает то же самое, что обычный map)
 -- через функцию foldr', не используя стандартных функций.
 map' :: (a -> b) -> [a] -> [b]
-map' f = foldr' (map'' f) []
-
-map'' :: (a -> b) -> a -> [b] -> [b]
-map'' f x y = f x : y
+map' f = foldr' (\x y -> f x : y) []
 
 -- 2) Maybe
 -- Maybe a - это специальный тип данных, который может принимать либо
@@ -137,7 +134,7 @@ thirdElementOfSecondList xs = case tryTail xs of
                                              Just b  -> get b 3 
                                                         where 
                                                           get :: [a] -> Int -> Maybe a
-                                                          get [] _       = Nothing 
+                                                          get []     _   = Nothing 
                                                           get (x:xs) 1   = Just x 
                                                           get (x:xs) ind = get xs (ind - 1)
                                                       
@@ -186,7 +183,7 @@ thirdElementOfSecondList' xs = tryTail xs ~~> tryHead ~~> tryTail ~~> tryTail ~~
 -- nubBy' (\x y -> x == y || x + y == 10) [2, 3, 5, 7, 8, 2]
 -- [2,3,5]
 nubBy' :: (a -> a -> Bool) -> [a] -> [a]
-nubBy' eq = foldr' (\x list -> x : filter (not . eq x) list) [] 
+nubBy' eq = foldr' (\x -> (x :) . filter (not . eq x)) [] 
 
 -- Реализуйте функцию quickSort, которая принимает на вход список, и 
 -- возвращает список, в котором элементы отсортированы при помощи алгоритма
@@ -208,17 +205,7 @@ nubBy' eq = foldr' (\x list -> x : filter (not . eq x) list) []
 quickSort' :: Ord a => [a] -> [a]
 quickSort' []     = []
 quickSort' [x]    = [x]
-quickSort' (x:xs) = quickSort' left ++ [x] ++ quickSort' right
-                    where 
-                      (left, right) = partition x xs
-
-partition :: Ord a => a -> [a] -> ([a], [a])
-partition x [] = ([], [])
-partition x (xx:xs)
-  | xx <= x   = (xx:left, right)
-  | otherwise = (left, xx:right)
-  where 
-    (left, right) = partition x xs
+quickSort' (x:xs) = quickSort' (filter (<= x) xs) ++ [x] ++ quickSort' (filter (> x) xs)
 
 
 -- Найдите суммарную длину списков, в которых чётное количество элементов
@@ -234,7 +221,7 @@ partition x (xx:xs)
 -- >>> weird' [[1, 11, 12], [9, 10, 20]]
 -- 3
 weird':: [[Int]] -> Int
-weird' = sum' . map' length . filter ((== 0) . flip mod 2 . length . filter ((>100) . (^2)))
+weird' = sum' . map' length . filter (even . length . filter ((>100) . (^2)))
 
 
 -- 4) grep
@@ -261,7 +248,7 @@ type File = (String, [String])
 -- Здесь (\_ s -> s) --- это лямбда-функция, которая игнорирует первый
 -- параметр и возвращает второй.
 grep' :: (String -> [String] -> [String]) -> (String -> Bool) -> [File] -> [String]
-grep' format match files = concat' (map' (\(filename, lines) -> format filename (filter match lines)) files)
+grep' format match files = concat' $ map' (\(filename, lines) -> format filename (filter match lines)) files
 
 -- Также вам предоставлена функция для проверки вхождения подстроки в строку.
 -- >>> isSubstringOf "a" "bac"
@@ -292,4 +279,4 @@ grepSubstringNoFilename needle = grep' (\_ s -> s) (isSubstringOf needle)
 -- >>> grepExactMatchWithFilename "c" [("a.txt", ["a", "a"]), ("b.txt", ["b", "bab", "c"]), ("c.txt", ["c", "ccccc"])]
 -- ["b.txt:c", "c.txt:c"]
 grepExactMatchWithFilename :: String -> [File] -> [String]
-grepExactMatchWithFilename needle = grep' (\filename lines -> map' (\line -> filename ++ ":" ++ line) lines) (== needle)
+grepExactMatchWithFilename needle = grep' (\filename -> map' ((filename ++ ":")++)) (== needle)
