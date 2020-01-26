@@ -126,13 +126,11 @@ secondElement xs = case tryTail xs of
 -- >>> thirdElementOfSecondList [["a"], ["b", "c", "d"]]
 -- Just "d"
 thirdElementOfSecondList :: [[a]] -> Maybe a
-thirdElementOfSecondList xs = case tryTail xs of
-                              Nothing  -> Nothing
-                              Just [a] -> case tryTail a of
-                                          Nothing -> Nothing
-                                          Just a  -> case tryTail a of
-                                                    Nothing -> Nothing
-                                                    Just a  -> tryHead a
+thirdElementOfSecondList xs = case secondElement xs of
+                              Nothing -> Nothing
+                              Just as -> case tryTail as of
+                                         Nothing -> Nothing
+                                         Just a  -> secondElement a
 
 --Функцию fifthElement, которая возвращает пятый элемент списка или Nothing,
 -- если пятого элемента в списке нет.
@@ -146,12 +144,12 @@ fifthElement :: [a] -> Maybe a
 fifthElement xs = case tryTail xs of
                   Nothing -> Nothing
                   Just a  -> case tryTail a of
-                            Nothing -> Nothing
-                            Just a  -> case tryTail a of
-                                       Nothing -> Nothing
-                                       Just a  -> case tryTail a of
-                                                Nothing -> Nothing
-                                                Just a  -> tryHead a                 
+                             Nothing -> Nothing
+                             Just a  -> case tryTail a of
+                                        Nothing -> Nothing
+                                        Just a  -> case tryTail a of
+                                                   Nothing -> Nothing
+                                                   Just a  -> tryHead a                 
 
 -- Выделите общую логику в оператор ~~>.
 (~~>) :: Maybe a -> (a -> Maybe b) -> Maybe b
