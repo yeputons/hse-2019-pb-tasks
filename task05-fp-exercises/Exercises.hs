@@ -155,16 +155,15 @@ thirdElementOfSecondList xs = case secondElement xs of
 fifthElement :: [a] -> Maybe a
 fifthElement = cut 4
     where 
-        cut _ []                = Nothing
-        cut 0 (x:korben_Dallas) = Just x
-        cut n (x:korben_Dallas) = cut (n-1) korben_Dallas
+        cut _ []     = Nothing
+        cut 0 (x:xs) = Just x
+        cut n (x:xs) = cut (n-1) xs
 
 
 -- Выделите общую логику в оператор ~~>.
 (~~>) :: Maybe a -> (a -> Maybe b) -> Maybe b
-(~~>) ma f = case ma of
-               Just a -> f a
-               _      -> Nothing
+(~~>) (Just a) f = f a
+(~~>) _ _      = Nothing
 
 -- Перепишите функцию thirdElementOfSecondList в thirdElementOfSecondList' используя
 -- только tryHead, tryTail, применение функций и оператор ~~>, но не используя
@@ -189,8 +188,7 @@ thirdElementOfSecondList' xs = tryTail xs ~~> tryHead ~~> tryTail ~~> tryTail ~~
 filter' p xs = [x | x <- xs, p x]
 
 nubBy' :: (a -> a -> Bool) -> [a] -> [a]
-nubBy' _ []  = []
-nubBy' eq xs = foldr' (\x xs -> x:filter'(not.eq x) xs) [] xs
+nubBy' eq = foldr' (\x xs -> x:filter'(not.eq x) xs) []
 
 
 -- Реализуйте функцию quickSort, которая принимает на вход список, и 
