@@ -107,8 +107,8 @@ tryTail _      = Nothing
 -- Just 'b'
 secondElement :: [a] -> Maybe a
 secondElement xs = case tryTail xs of
-   Just a  -> tryHead a
-   _       -> Nothing
+                     Just a  -> tryHead a
+                     _       -> Nothing
 
 -- Используя функции tryHead и tryTail, а также case и сопоставление с
 -- образцом (pattern matching) только для Maybe (но не для списков) реализуйте
