@@ -13,7 +13,7 @@ import Prelude hiding (sum, concat, foldr, map)
 -- >>> sum'' 10 [2, 3]
 -- 15
 sum' :: [Int] -> Int
-sum' xs = sum'' 0 xs
+sum' = sum'' 0
 
 sum'' :: Int -> [Int] -> Int
 sum'' ini [] = ini 
@@ -27,11 +27,11 @@ sum'' ini xs = sum'' (ini + head xs) (tail xs)
 -- >>> concat'' "c" ["a", "b"]
 -- "abc"
 concat' :: [[a]] -> [a]
-concat' xs = concat'' [] xs
+concat' = concat'' []
 
 concat'' :: [a] -> [[a]] -> [a]
 concat'' ini [] = ini 
-concat'' ini xs = head xs ++ concat'' (ini) (tail xs)
+concat'' ini xs = head xs ++ concat'' ini (tail xs)
 
 -- Функция hash' принимает на вход строку s и считает полиномиальный
 -- хэш от строки по формуле hash' s_0...s_{n - 1} =
@@ -49,22 +49,22 @@ p :: Int
 p = 17
 
 hash' :: String -> Int
-hash' xs = hash'' 0 xs
+hash' = hash'' 0
 
 hash'' :: Int -> String -> Int
 hash'' ini "" = ini
-hash'' ini xs = ord(head xs) + (hash'' (ini) (tail xs)) * p
+hash'' ini xs = ord(head xs) + hash'' ini (tail xs) * p
 
 -- Выделите общую логику предыдущих функций и реализуйте функцию высшего порядка foldr',
 -- не используя никаких стандартных функций.
 foldr' :: (a -> b -> b) -> b -> [a] -> b
 foldr' f ini [] = ini
-foldr' f ini xs = f (head xs) (foldr' (f) (ini) (tail xs)) 
+foldr' f ini xs = f (head xs) (foldr' f ini (tail xs)) 
  
 -- Реализуйте функцию map' (которая делает то же самое, что обычный map)
 -- через функцию foldr', не используя стандартных функций.
 map' :: (a -> b) -> [a] -> [b]
-map' f xs = foldr' (\a xs -> [f a] ++ xs) [] xs
+map' f = foldr' (\a xs -> f a : xs) []
 
 
 -- 2) Maybe
@@ -107,8 +107,8 @@ tryTail _      = Nothing
 -- Just 'b'
 secondElement :: [a] -> Maybe a
 secondElement xs = case tryTail xs of
-	Just a  -> tryHead a
-	_       -> Nothing
+   Just a  -> tryHead a
+   _       -> Nothing
 
 -- Используя функции tryHead и tryTail, а также case и сопоставление с
 -- образцом (pattern matching) только для Maybe (но не для списков) реализуйте
@@ -130,13 +130,13 @@ secondElement xs = case tryTail xs of
 
 thirdElement :: [a] -> Maybe a
 thirdElement xs = case tryTail xs of
-	Just a -> secondElement a
-	_      -> Nothing
+   Just a -> secondElement a
+   _      -> Nothing
 
 thirdElementOfSecondList :: [[a]] -> Maybe a
 thirdElementOfSecondList xs = case secondElement xs of
-	Just a -> thirdElement a
-	_      -> Nothing
+   Just a -> thirdElement a
+   _      -> Nothing
 
 -- Функцию fifthElement, которая возвращает пятый элемент списка или Nothing,
 -- если пятого элемента в списке нет.
@@ -149,11 +149,11 @@ thirdElementOfSecondList xs = case secondElement xs of
 
 fifthElement :: [a] -> Maybe a
 fifthElement xs = case tryTail xs of
-	Just a -> case tryTail a of 
-		Just b -> thirdElement b
-		_      -> Nothing
-	_      -> Nothing
-	                   
+   Just a -> case tryTail a of 
+      Just b -> thirdElement b
+      _      -> Nothing
+   _      -> Nothing
+                  
 -- Выделите общую логику в оператор ~~>.
 (~~>) :: Maybe a -> (a -> Maybe b) -> Maybe b
 (~~>) Nothing f = Nothing
@@ -181,13 +181,13 @@ thirdElementOfSecondList' xs = (tryTail xs ~~> tryHead) ~~> thirdElement
 
 foldl' :: (b -> a -> b) -> b -> [a] -> b
 foldl' f ini [] = ini
-foldl' f ini xs = foldl' (f) (f (ini) (head xs)) (tail xs) 
+foldl' f ini xs = foldl' f (f ini (head xs)) (tail xs) 
 
 nubBy' :: (a -> a -> Bool) -> [a] -> [a]
-nubBy' eq xs = foldl' f [] xs
-	where f b a = case filter (eq a) b of
-		[] -> b ++ [a]
-		_  -> b
+nubBy' eq = foldl' f []
+        where f b a = case filter (eq a) b of
+                [] -> b ++ [a]
+                _  -> b
 
 -- Реализуйте функцию quickSort, которая принимает на вход список, и 
 -- возвращает список, в котором элементы отсортированы при помощи алгоритма
@@ -265,10 +265,10 @@ filename' :: File -> String
 filename' (file, _) = file
 
 filenames' :: [File] -> [String]
-filenames' files = [filename | file <- files, filename <- filestrings' (file)]
+filenames' files = [filename | file <- files, filename <- filestrings' file]
 
 matched_strings :: (String -> Bool) -> File -> [String]
-matched_strings match file = filter (match) (filestrings' file)
+matched_strings match file = filter match (filestrings' file)
 
 grep' :: (String -> [String] -> [String]) -> (String -> Bool) -> [File] -> [String]
 grep' format match files = [string | file <- files, string <- format (filename' file) (matched_strings match file)] 
@@ -292,7 +292,7 @@ isSubstringOf n s = pack n `isInfixOf` pack s
 -- >>> grepSubstringNoFilename "c" [("a.txt", ["a", "a"]), ("b.txt", ["b", "bab", "c"]), ("c.txt", ["c", "ccccc"])]
 -- ["c", "c", "ccccc"]
 grepSubstringNoFilename :: String -> [File] -> [String]
-grepSubstringNoFilename needle files = grep' (\_ s -> s) (isSubstringOf (needle)) (files)
+grepSubstringNoFilename needle = grep' (\_ s -> s) (isSubstringOf needle)
  
 -- Вариант, когда ищется точное совпадение и нужно ко всем подходящим строкам
 -- дописать имя файла через ":".
@@ -302,4 +302,4 @@ grepSubstringNoFilename needle files = grep' (\_ s -> s) (isSubstringOf (needle)
 -- >>> grepExactMatchWithFilename "c" [("a.txt", ["a", "a"]), ("b.txt", ["b", "bab", "c"]), ("c.txt", ["c", "ccccc"])]
 -- ["b.txt:c", "c.txt:c"]
 grepExactMatchWithFilename :: String -> [File] -> [String]
-grepExactMatchWithFilename needle files = grep' (\filename strings -> [filename ++ ":" ++ str | str <- strings]) (==needle) (files)
+grepExactMatchWithFilename needle = grep' (\filename strings -> [filename ++ ":" ++ str | str <- strings]) (==needle)
