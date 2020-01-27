@@ -13,7 +13,7 @@ import Prelude hiding (sum, concat, foldr, map)
 -- >>> sum'' 10 [2, 3]
 -- 15
 sum' :: [Int] -> Int
-sum' = sum'' 0                                 -- !!! where is the list in the arguments !!! -- 
+sum' = sum'' 0                    
 
 sum'' :: Int -> [Int] -> Int
 sum'' ini []     = ini
@@ -31,7 +31,7 @@ concat' = concat'' []
 
 concat'' :: [a] -> [[a]] -> [a]
 concat'' ini []     = ini
-concat'' ini (x:xs) = x ++ concat'' [] xs ++ ini   
+concat'' ini (x:xs) = x ++ concat'' ini xs
 
 -- Функция hash' принимает на вход строку s и считает полиномиальный
 -- хэш от строки по формуле hash' s_0...s_{n - 1} =
@@ -210,13 +210,8 @@ nubBy'' eq element (x:xs)
 -- >>> quickSort' "babca"
 -- "aabbc"
 quickSort' :: Ord a => [a] -> [a]
-quickSort' xs 
-        | null xs   = []
-        | otherwise = quickSort' [x | x <- xs, x < h] ++ 
-          [x | x <- xs, x == h] ++ 
-          quickSort' [x | x <- xs, x > h]
-        where 
-            h = head xs
+quickSort' []     = []
+quickSort' (x:xs) = quickSort' [y | y <- xs, y < x] ++ [y | y <- x:xs, y == x] ++ quickSort' [y | y <- xs, y > x]
 
 -- Найдите суммарную длину списков, в которых чётное количество элементов
 -- имеют квадрат больше 100. Реализация должна быть без использования
