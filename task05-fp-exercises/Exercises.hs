@@ -182,15 +182,10 @@ thirdElementOfSecondList' xs = tryTail xs ~~> tryHead ~~> tryTail ~~> tryTail ~~
 -- nubBy' (\x y -> x == y || x + y == 10) [2, 3, 5, 7, 8, 2]
 -- [2,3,5]
 nubBy' :: (a -> a -> Bool) -> [a] -> [a]
-nubBy'' :: (a -> a -> Bool) -> a -> [a] -> [a]
 
-nubBy' eq [] = []
-nubBy' eq (x:xs) = x : nubBy' eq (nubBy'' eq x xs)
+nubBy' _ []      = []
+nubBy' eq (x:xs) = x : nubBy' eq (filter (not . eq x) xs)
 
-nubBy'' eq _ [] = []
-nubBy'' eq element (x:xs) 
-        | eq element x    = nubBy'' eq element xs
-        | otherwise       = x:nubBy'' eq element xs
 
 -- Реализуйте функцию quickSort, которая принимает на вход список, и 
 -- возвращает список, в котором элементы отсортированы при помощи алгоритма
@@ -252,9 +247,10 @@ type File = (String, [String])
 --
 -- Здесь (\_ s -> s) --- это лямбда-функция, которая игнорирует первый
 -- параметр и возвращает второй.
+
 grep' :: (String -> [String] -> [String]) -> (String -> Bool) -> [File] -> [String]
 grep' _      _     []    = []
-grep' format match (first:others) = format (fst first) (filter match (snd first)) ++ grep' format match others 
+grep' format match ((name, lines):other) = format name (filter match lines) ++ grep' format match other
 
 -- Также вам предоставлена функция для проверки вхождения подстроки в строку.
 -- >>> isSubstringOf "a" "bac"
