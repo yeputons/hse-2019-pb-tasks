@@ -127,12 +127,12 @@ secondElement xs = case tryTail xs of
 -- >>> thirdElementOfSecondList [["a"], ["b", "c", "d"]]
 -- Just "d"
 thirdElementOfSecondList xs = case secondElement xs of
-                              Just y -> thirdElement y
-                              _      -> Nothing
-                              where
-                                  thirdElement xs = case tryTail xs of
-                                                      Just y -> secondElement y
-                                                      _      -> Nothing
+                                Just y -> thirdElement y
+                                _      -> Nothing
+                                where
+                                    thirdElement xs = case tryTail xs of
+                                                        Just y -> secondElement y
+                                                        _      -> Nothing
 
 -- Функцию fifthElement, которая возвращает пятый элемент списка или Nothing,
 -- если пятого элемента в списке нет.
@@ -147,12 +147,12 @@ fifthElement xs = case tryTail xs of
                     Just y -> fourthElement y
                     _      -> Nothing
                     where
-                        thirdElement xs  = case tryTail xs of
-                                             Just y -> secondElement y
-                                             _      -> Nothing
-                        fourthElement xs = case tryTail xs of
-                                             Just y -> thirdElement y
-                                             _      -> Nothing
+                      thirdElement xs  = case tryTail xs of
+                                           Just y -> secondElement y
+                                           _      -> Nothing
+                      fourthElement xs = case tryTail xs of
+                                           Just y -> thirdElement y
+                                           _      -> Nothing
 
 -- Выделите общую логику в оператор ~~>.
 (~~>) :: Maybe a -> (a -> Maybe b) -> Maybe b
@@ -179,13 +179,7 @@ thirdElementOfSecondList' xs = tryTail xs ~~> tryHead ~~> tryTail ~~> tryTail ~~
 -- nubBy' (\x y -> x == y || x + y == 10) [2, 3, 5, 7, 8, 2]
 -- [2,3,5]
 nubBy' :: (a -> a -> Bool) -> [a] -> [a]
-nubBy' eq = foldr' (\x xs -> x:nubBy'' x eq xs) []
-
-nubBy'' :: a -> (a -> a -> Bool) -> [a] -> [a]
-nubBy'' elem eq []     = []
-nubBy'' elem eq (x:xs) | eq elem x = next
-                       | otherwise = x : next
-                       where next = nubBy'' elem eq xs
+nubBy' eq = foldr' (\x list -> x : filter (not . eq x) list) []
 
 -- Реализуйте функцию quickSort, которая принимает на вход список, и 
 -- возвращает список, в котором элементы отсортированы при помощи алгоритма
@@ -247,7 +241,7 @@ type File = (String, [String])
 -- Здесь (\_ s -> s) --- это лямбда-функция, которая игнорирует первый
 -- параметр и возвращает второй.
 grep' :: (String -> [String] -> [String]) -> (String -> Bool) -> [File] -> [String]
-grep' format match files = undefined
+grep' format match  = concat' . map' (\ (filename, strings) -> format filename $ filter match strings)
 
 -- Также вам предоставлена функция для проверки вхождения подстроки в строку.
 -- >>> isSubstringOf "a" "bac"
@@ -268,7 +262,7 @@ isSubstringOf n s = pack n `isInfixOf` pack s
 -- >>> grepSubstringNoFilename "c" [("a.txt", ["a", "a"]), ("b.txt", ["b", "bab", "c"]), ("c.txt", ["c", "ccccc"])]
 -- ["c", "c", "ccccc"]
 grepSubstringNoFilename :: String -> [File] -> [String]
-grepSubstringNoFilename needle files = undefined
+grepSubstringNoFilename needl = grep' (\_ s -> s) (isSubstringOf needl)
  
 -- Вариант, когда ищется точное совпадение и нужно ко всем подходящим строкам
 -- дописать имя файла через ":".
@@ -278,4 +272,4 @@ grepSubstringNoFilename needle files = undefined
 -- >>> grepExactMatchWithFilename "c" [("a.txt", ["a", "a"]), ("b.txt", ["b", "bab", "c"]), ("c.txt", ["c", "ccccc"])]
 -- ["b.txt:c", "c.txt:c"]
 grepExactMatchWithFilename :: String -> [File] -> [String]
-grepExactMatchWithFilename needle files = undefined
+grepExactMatchWithFilename needle = grep' (\name s -> map' (\x -> name ++ ":" ++ x) s) (== needle)
