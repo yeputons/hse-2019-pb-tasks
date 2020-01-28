@@ -126,14 +126,11 @@ secondElement xs = case tryTail xs of
 -- Nothing
 -- >>> thirdElementOfSecondList [["a"], ["b", "c", "d"]]
 -- Just "d"
-thirdElement :: [a] -> Maybe a
-thirdElement xs = case tryTail xs of
-                    Just ys -> secondElement ys
-                    _       -> Nothing
-
 thirdElementOfSecondList :: [[a]] -> Maybe a
 thirdElementOfSecondList xs = case secondElement xs of
-                                Just ys -> thirdElement ys
+                                Just ys -> case tryTail ys of
+                                             Just zs -> secondElement zs
+                                             _       -> Nothing
                                 _       -> Nothing
 
 -- Функцию fifthElement, которая возвращает пятый элемент списка или Nothing,
@@ -153,7 +150,7 @@ fifthElement xs = fifthElement' xs 5
 -- Выделите общую логику в оператор ~~>.
 (~~>) :: Maybe a -> (a -> Maybe b) -> Maybe b
 (~~>) (Just ma) f = f ma
-(~~>) _ f         = Nothing
+(~~>) _         f = Nothing
 
 -- Перепишите функцию thirdElementOfSecondList в thirdElementOfSecondList' используя
 -- только tryHead, tryTail, применение функций и оператор ~~>, но не используя
@@ -175,8 +172,7 @@ thirdElementOfSecondList' xs = tryTail xs ~~> tryHead ~~> tryTail ~~> tryTail ~~
 -- nubBy' (\x y -> x == y || x + y == 10) [2, 3, 5, 7, 8, 2]
 -- [2,3,5]
 nubBy' :: (a -> a -> Bool) -> [a] -> [a]
-nubBy' eq []       = []
-nubBy' eq (x : xs) = x : nubBy' eq (filter (not . eq x) xs)
+nubBy' eq = foldr' (\x xs -> x : filter (not . eq x) xs) []
 
 -- Реализуйте функцию quickSort, которая принимает на вход список, и 
 -- возвращает список, в котором элементы отсортированы при помощи алгоритма
@@ -239,7 +235,6 @@ type File = (String, [String])
 -- Здесь (\_ s -> s) --- это лямбда-функция, которая игнорирует первый
 -- параметр и возвращает второй.
 grep' :: (String -> [String] -> [String]) -> (String -> Bool) -> [File] -> [String]
-grep' _ _ []             = []
 grep' format match files = concat' $ map' (\(filename, strings) -> format filename (filter match strings)) files
 
 -- Также вам предоставлена функция для проверки вхождения подстроки в строку.
@@ -271,5 +266,4 @@ grepSubstringNoFilename needle = grep' (\_ s -> s) (isSubstringOf needle)
 -- >>> grepExactMatchWithFilename "c" [("a.txt", ["a", "a"]), ("b.txt", ["b", "bab", "c"]), ("c.txt", ["c", "ccccc"])]
 -- ["b.txt:c", "c.txt:c"]
 grepExactMatchWithFilename :: String -> [File] -> [String]
-grepExactMatchWithFilename needle = grep' (\filename strings -> map' (\string -> filename ++ ":" ++ string) strings) (== needle)
-
+grepExactMatchWithFilename needle = grep' (\filename -> map' ((filename ++ ":") ++ )) (== needle)
