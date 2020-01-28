@@ -163,7 +163,7 @@ fifthElement xs = case tryTail xs of
 -- только tryHead, tryTail, применение функций и оператор ~~>, но не используя
 -- сопоставление с образом (pattern matching) ни в каком виде, case, if, guards.
 thirdElementOfSecondList' :: [[a]] -> Maybe a
-thirdElementOfSecondList' xs = (secondElement xs ~~>) tryTail ~~> secondElement
+thirdElementOfSecondList' xs = tryTail xs ~~> tryHead ~~> tryTail ~~> tryTail ~~> tryHead
 
 -- 3) Несколько упражнений
 -- Реализуйте функцию nubBy', которая принимает на вход функцию для сравнения 
@@ -199,11 +199,8 @@ nubBy' eq = foldr' (\x list -> x : filter (not . eq x) list) []
 -- >>> quickSort' "babca"
 -- "aabbc"
 quickSort' :: Ord a => [a] -> [a]
-quickSort' [] = []
-quickSort' xs = fir ++ filter (== pivot) xs ++ sec
-              where pivot = head xs 
-                    fir   = quickSort' (filter (< pivot) xs)
-                    sec   = quickSort' (filter (> pivot) xs)
+quickSort' []     = []
+quickSort' (x:xs) = quickSort' [y | y <- xs, y < x] ++ [x] ++ quickSort' [y | y <- xs, y >= x]
 
 -- Найдите суммарную длину списков, в которых чётное количество элементов
 -- имеют квадрат больше 100. Реализация должна быть без использования
@@ -276,4 +273,4 @@ grepSubstringNoFilename needle = grep' (\_ s -> s) (isSubstringOf needle)
 -- >>> grepExactMatchWithFilename "c" [("a.txt", ["a", "a"]), ("b.txt", ["b", "bab", "c"]), ("c.txt", ["c", "ccccc"])]
 -- ["b.txt:c", "c.txt:c"]
 grepExactMatchWithFilename :: String -> [File] -> [String]
-grepExactMatchWithFilename needle = grep' (\filename -> map' (\n -> filename ++ ":" ++ n)) (== needle)
+grepExactMatchWithFilename needle = grep' (\filename str -> map' ((filename ++ ":") ++) str) (== needle)
