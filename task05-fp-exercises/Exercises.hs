@@ -14,10 +14,10 @@ import Prelude hiding (sum, concat, foldr, map)
 -- 15
 sum' :: [Int] -> Int
 sum' = sum'' 0
- 
+
 sum'' :: Int -> [Int] -> Int
-sum'' int []     = int
-sum'' int (x:xs) = sum'' int xs + x 
+sum'' ini []     = ini
+sum'' ini (x:xs) = x + sum'' ini xs 
 
 -- Функция concat' принимает на вход список списков и возвращает конкатенацию
 -- этих списков. Она использует функцию concat'', которая дополнительно
@@ -64,7 +64,7 @@ foldr' f ini (x:xs) = f x (foldr' f ini xs)
 -- Реализуйте функцию map' (которая делает то же самое, что обычный map)
 -- через функцию foldr', не используя стандартных функций.
 map' :: (a -> b) -> [a] -> [b]
-map' f = foldr' (\ x  xs -> f x : xs) []
+map' f = foldr' (\ x  xs -> f x:xs) []
 
 -- 2) Maybe
 -- Maybe a - это специальный тип данных, который может принимать либо
@@ -79,8 +79,8 @@ map' f = foldr' (\ x  xs -> f x : xs) []
 -- >>> tryHead [1, 2, 3]
 -- Just 1
 tryHead :: [a] -> Maybe a
-tryHead (x : _) = Just x
-tryHead _       = Nothing
+tryHead (x:_) = Just x
+tryHead _     = Nothing
 
 --
 -- >>> tryTail []
@@ -180,7 +180,7 @@ thirdElementOfSecondList' xs = Just xs ~~> tryTail ~~> tryHead ~~> tryTail ~~> t
 
 nubBy' :: (a -> a -> Bool) -> [a] -> [a]
 nubBy' eq []     = []
-nubBy' eq (x:xs) = x : nubBy' eq (filter (not.eq x) xs)
+nubBy' eq (x:xs) = x:nubBy' eq (filter (not . eq x) xs)
 
 -- Реализуйте функцию quickSort, которая принимает на вход список, и 
 -- возвращает список, в котором элементы отсортированы при помощи алгоритма
@@ -201,7 +201,7 @@ nubBy' eq (x:xs) = x : nubBy' eq (filter (not.eq x) xs)
 -- "aabbc"
 quickSort' :: Ord a => [a] -> [a]
 quickSort' []     = []
-quickSort' (x:xs) = quickSort' (filter ( < x) xs) ++ x : quickSort' (filter ( >= x) xs)
+quickSort' (x:xs) = quickSort' (filter ( < x) xs) ++ x:quickSort' (filter ( >= x) xs)
 
 -- Найдите суммарную длину списков, в которых чётное количество элементов
 -- имеют квадрат больше 100. Реализация должна быть без использования
