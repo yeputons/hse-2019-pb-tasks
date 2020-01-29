@@ -64,7 +64,7 @@ foldr' f ini (x:xs) = f x (foldr' f ini xs)
 -- Реализуйте функцию map' (которая делает то же самое, что обычный map)
 -- через функцию foldr', не используя стандартных функций.
 map' :: (a -> b) -> [a] -> [b]
-map' f = foldr' (\x xs -> f x : xs) []
+map' f = foldr' (\x ys -> f x : ys) []
 
 -- 2) Maybe
 -- Maybe a - это специальный тип данных, который может принимать либо
@@ -130,11 +130,9 @@ thirdElementOfSecondList :: [[a]] -> Maybe a
 thirdElementOfSecondList xs = case secondElement xs of
                     Just a  -> thirdElement a
                     _       -> Nothing
-
-thirdElement :: [a] -> Maybe a
-thirdElement xs = case tryTail xs of
-                    Just a  -> secondElement a
-                    _       -> Nothing
+                    where thirdElement a = case tryTail a of
+                                    Just a  -> secondElement a
+                                    _       -> Nothing
 
 -- Функцию fifthElement, которая возвращает пятый элемент списка или Nothing,
 -- если пятого элемента в списке нет.
@@ -148,23 +146,23 @@ fifthElement :: [a] -> Maybe a
 fifthElement xs = case tryTail xs of
                     Just a  -> thirdElementMaybe (tryTail a)
                     _       -> Nothing
-
-thirdElementMaybe :: Maybe [a] -> Maybe a
-thirdElementMaybe xs = case xs of
-                    Just a  -> thirdElement a
-                    _       -> Nothing
+                    where thirdElementMaybe xs = case xs of
+                                    Just a  -> thirdElement a
+                                    _       -> Nothing
+                                    where thirdElement a = case tryTail a of
+                                                    Just a  -> secondElement a
+                                                    _       -> Nothing
 
 -- Выделите общую логику в оператор ~~>.
 (~~>) :: Maybe a -> (a -> Maybe b) -> Maybe b
-(~~>) ma f = case ma of
-                    Just a  -> f a
-                    _       -> Nothing
+(~~>) (Just ma) f = f ma
+(~~>) _         f = Nothing
 
 -- Перепишите функцию thirdElementOfSecondList в thirdElementOfSecondList' используя
 -- только tryHead, tryTail, применение функций и оператор ~~>, но не используя
 -- сопоставление с образом (pattern matching) ни в каком виде, case, if, guards.
 thirdElementOfSecondList' :: [[a]] -> Maybe a
-thirdElementOfSecondList' xs = (~~>) (  (~~>) ( (~~>) ( (~~>) (tryTail xs) tryHead ) tryTail ) tryTail ) tryHead
+thirdElementOfSecondList' xs = tryTail xs ~~> tryHead  ~~> tryTail  ~~> tryTail ~~> tryHead
 
 -- 3) Несколько упражнений
 -- Реализуйте функцию nubBy', которая принимает на вход функцию для сравнения 
@@ -217,7 +215,7 @@ quickSort' (x:xs) = quickSort' (filter (< x) xs) ++ x:quickSort' (filter (>= x) 
 -- >>> weird' [[1, 11, 12], [9, 10, 20]]
 -- 3
 weird':: [[Int]] -> Int
-weird' xs = sum' . map' length $ filter (even . length . filter ((.) (>100) (^2))) xs
+weird' = sum' . map' length . filter (even . length . filter ((>100) . (^2)))
 
 
 -- 4) grep
@@ -245,8 +243,7 @@ type File = (String, [String])
 -- параметр и возвращает второй.
 grep' :: (String -> [String] -> [String]) -> (String -> Bool) -> [File] -> [String]
 grep' format match [] = []
-grep' format match (file:files) = format (fst file) (filter  match $ snd file)
-                    ++ grep' format match files
+grep' format match ((f,s):files) = format f (filter match s) ++ grep' format match files
 
 -- Также вам предоставлена функция для проверки вхождения подстроки в строку.
 -- >>> isSubstringOf "a" "bac"
@@ -277,4 +274,4 @@ grepSubstringNoFilename needle = grep' (\_ s -> s) (isSubstringOf needle)
 -- >>> grepExactMatchWithFilename "c" [("a.txt", ["a", "a"]), ("b.txt", ["b", "bab", "c"]), ("c.txt", ["c", "ccccc"])]
 -- ["b.txt:c", "c.txt:c"]
 grepExactMatchWithFilename :: String -> [File] -> [String]
-grepExactMatchWithFilename needle = grep' (\name s -> map' (\x -> name ++ ":" ++ x) s) (== needle)
+grepExactMatchWithFilename needle = grep' (\name -> map' (\x -> name ++ ":" ++ x)) (== needle)
