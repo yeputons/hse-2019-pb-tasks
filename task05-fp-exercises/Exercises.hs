@@ -127,19 +127,13 @@ secondElement xs = case tryTail xs of
 -- >>> thirdElementOfSecondList [["a"], ["b", "c", "d"]]
 -- Just "d"
 thirdElementOfSecondList :: [[a]] -> Maybe a
-thirdElementOfSecondList xs = case tryTail xs of
-                                  Just a -> thirdElementOfFirstList a
-                                  _      -> Nothing
-
-thirdElementOfFirstList :: [[a]] -> Maybe a
-thirdElementOfFirstList xs = case tryHead xs of
-                                 Just a -> thirdElement a
-                                 _      -> Nothing
-
-thirdElement :: [a] -> Maybe a
-thirdElement xs = case tryTail xs of
-                      Just a  -> secondElement a
-                      _       -> Nothing 
+thirdElementOfSecondList xs = maybeTryHead $ maybeTryTail $ maybeTryTail $ maybeTryHead $ maybeTryTail $ Just xs
+							  where maybeTryHead xs = case xs of
+                                                        Just xs -> tryHead xs
+                                                        _       -> Nothing
+                                    maybeTryTail xs = case xs of
+                                                        Just xs -> tryTail xs
+                                                        _       -> Nothing
 
 -- Функцию fifthElement, которая возвращает пятый элемент списка или Nothing,
 -- если пятого элемента в списке нет.
@@ -150,32 +144,24 @@ thirdElement xs = case tryTail xs of
 -- >>> fifthElement [1, 2, 3, 4, 5]
 -- Just 5
 fifthElement :: [a] -> Maybe a
-fifthElement xs = case tryTail xs of
-                      Just a  -> fourthElement a
-                      _       -> Nothing
-
-fourthElement :: [a] -> Maybe a
-fourthElement xs = case tryTail xs of
-                       Just a  -> thirdElement a
-                       _       -> Nothing
+fifthElement xs = tryHeadMaybe $ tryTailMaybe $ tryTailMaybe $ tryTailMaybe $ tryTail xs
+                     where tryHeadMaybe xs = case xs of
+                                               Just a -> tryHead a
+                                               _      -> Nothing
+                           tryTailMaybe xs = case xs of
+                                               Just a -> tryTail a
+                                               _      -> Nothing
 
 -- Выделите общую логику в оператор ~~>.
 (~~>) :: Maybe a -> (a -> Maybe b) -> Maybe b
-(~~>) ma f = case ma of 
-                 Just a  -> f a
-                 _       -> Nothing
+(~~>) (Just ma) f = f ma
+(~~>) _         f = Nothing
 
 -- Перепишите функцию thirdElementOfSecondList в thirdElementOfSecondList' используя
 -- только tryHead, tryTail, применение функций и оператор ~~>, но не используя
 -- сопоставление с образом (pattern matching) ни в каком виде, case, if, guards.
 thirdElementOfSecondList' :: [[a]] -> Maybe a
-thirdElementOfSecondList' xs = (~~>) (tryTail xs) thirdElementOfFirstList'
-
-thirdElementOfFirstList' :: [[a]] -> Maybe a
-thirdElementOfFirstList' xs = (~~>) (tryHead xs) thirdElement'
-
-thirdElement' :: [a] -> Maybe a
-thirdElement' xs = (~~>) (tryTail xs) secondElement
+thirdElementOfSecondList' xs = tryTail xs ~~> tryHead ~~> tryTail ~~> tryTail ~~> tryHead
 
 -- 3) Несколько упражнений
 -- Реализуйте функцию nubBy', которая принимает на вход функцию для сравнения 
@@ -191,13 +177,7 @@ thirdElement' xs = (~~>) (tryTail xs) secondElement
 -- nubBy' (\x y -> x == y || x + y == 10) [2, 3, 5, 7, 8, 2]
 -- [2,3,5]
 nubBy' :: (a -> a -> Bool) -> [a] -> [a]
-nubBy' _ [] = []
-nubBy' eq (x:xs) = x : nubBy' eq (nubBy'' eq x xs)
-
-nubBy'' :: (a -> a -> Bool) -> a -> [a] -> [a]
-nubBy'' _ _ [] = []
-nubBy'' eq v (x:xs) | eq v x    = nubBy'' eq v xs
-                    | otherwise = x : nubBy'' eq v xs
+nubBy' eq = foldr' (\x xs -> x:filter (not . eq x) xs) []
 
 -- Реализуйте функцию quickSort, которая принимает на вход список, и 
 -- возвращает список, в котором элементы отсортированы при помощи алгоритма
@@ -290,4 +270,4 @@ grepSubstringNoFilename needle = grep' (\_ line -> line) (isSubstringOf needle)
 -- >>> grepExactMatchWithFilename "c" [("a.txt", ["a", "a"]), ("b.txt", ["b", "bab", "c"]), ("c.txt", ["c", "ccccc"])]
 -- ["b.txt:c", "c.txt:c"]
 grepExactMatchWithFilename :: String -> [File] -> [String]
-grepExactMatchWithFilename needle = grep' (\name lines -> map' ((name ++ ":") ++) lines) (== needle)
+grepExactMatchWithFilename needle = grep' (\name -> map' ((name ++ ":") ++)) (== needle)
