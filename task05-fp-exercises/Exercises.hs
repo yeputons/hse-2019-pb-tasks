@@ -16,7 +16,7 @@ sum' :: [Int] -> Int
 sum' = sum'' 0
 
 sum'' :: Int -> [Int] -> Int
-sum'' ini [] = ini
+sum'' ini []     = ini
 sum'' ini (x:xs) = ini + sum'' x xs
 
 -- Функция concat' принимает на вход список списков и возвращает конкатенацию
@@ -30,7 +30,7 @@ concat' :: [[a]] -> [a]
 concat' = concat'' []
 
 concat'' :: [a] -> [[a]] -> [a]
-concat'' ini [] = ini
+concat'' ini []     = ini
 concat'' ini (x:xs) = x ++ concat'' ini xs
 
 -- Функция hash' принимает на вход строку s и считает полиномиальный
@@ -52,19 +52,19 @@ hash' :: String -> Int
 hash' = hash'' 0
 
 hash'' :: Int -> String -> Int
-hash'' ini "" = ini
-hash'' ini (x:xs) = (ord x) + p * (hash'' ini xs)
+hash'' ini ""     = ini
+hash'' ini (x:xs) = (ord x) + p * hash'' ini xs
 
 -- Выделите общую логику предыдущих функций и реализуйте функцию высшего порядка foldr',
 -- не используя никаких стандартных функций.
 foldr' :: (a -> b -> b) -> b -> [a] -> b
-foldr' f ini [] = ini
+foldr' f ini []     = ini
 foldr' f ini (x:xs) = x `f` foldr' f ini xs
 
 -- Реализуйте функцию map' (которая делает то же самое, что обычный map)
 -- через функцию foldr', не используя стандартных функций.
 map' :: (a -> b) -> [a] -> [b]
-map' f xs = foldr' (\x acc -> (f x) : acc) [] xs
+map' f = foldr' (\x acc -> f x : acc) []
 
 -- 2) Maybe
 -- Maybe a - это специальный тип данных, который может принимать либо
@@ -159,7 +159,7 @@ fifthElement xs = case tryTail xs of
 
 -- Выделите общую логику в оператор ~~>.
 (~~>) :: Maybe a -> (a -> Maybe b) -> Maybe b
-(~~>) Nothing f = Nothing
+(~~>) Nothing _   = Nothing
 (~~>) (Just a)  f = f a
 
 -- Перепишите функцию thirdElementOfSecondList в thirdElementOfSecondList' используя
@@ -182,8 +182,8 @@ thirdElementOfSecondList' xs = tryTail xs ~~> tryHead ~~> tryTail ~~> tryTail ~~
 -- nubBy' (\x y -> x == y || x + y == 10) [2, 3, 5, 7, 8, 2]
 -- [2,3,5]
 nubBy' :: (a -> a -> Bool) -> [a] -> [a]
-nubBy' eq [] = []
-nubBy' eq (x:xs) = x : filter (not . (eq x)) (nubBy' eq xs)
+nubBy' eq []     = []
+nubBy' eq (x:xs) = x:filter (not . eq x) (nubBy' eq xs)
 
 -- Реализуйте функцию quickSort, которая принимает на вход список, и 
 -- возвращает список, в котором элементы отсортированы при помощи алгоритма
@@ -204,7 +204,7 @@ nubBy' eq (x:xs) = x : filter (not . (eq x)) (nubBy' eq xs)
 -- "aabbc"
 quickSort' :: Ord a => [a] -> [a]
 quickSort' [] = []
-quickSort' (x:xs) = quickSort' [y | y <- xs, y <= x] ++ (x : quickSort' [c | c <- xs, c > x])
+quickSort' (x:xs) = quickSort' [y | y <- xs, y <= x] ++ x:quickSort' [c | c <- xs, c > x]
 
 -- Найдите суммарную длину списков, в которых чётное количество элементов
 -- имеют квадрат больше 100. Реализация должна быть без использования
@@ -219,7 +219,7 @@ quickSort' (x:xs) = quickSort' [y | y <- xs, y <= x] ++ (x : quickSort' [c | c <
 -- >>> weird' [[1, 11, 12], [9, 10, 20]]
 -- 3
 weird':: [[Int]] -> Int
-weird' = sum' . map' length . filter (even . length . filter (>10))
+weird' = sum' . map' length . filter (even . length . filter ((>10) . abs))
 
 -- 4) grep
 -- Нужно реализовать несколько вариаций grep'а.
@@ -245,15 +245,9 @@ type File = (String, [String])
 -- Здесь (\_ s -> s) --- это лямбда-функция, которая игнорирует первый
 -- параметр и возвращает второй.
 
-file_name :: File -> String
-file_name (name, _) = name
-
-file_content :: File -> [String]
-file_content (_, content) = content
-
 grep' :: (String -> [String] -> [String]) -> (String -> Bool) -> [File] -> [String]
 grep' format match [] = []
-grep' format match (f:files) = format (file_name f) (filter match (file_content f)) ++ grep' format match files
+grep' format match (f:files) = format (fst f) (filter match (snd f)) ++ grep' format match files
 
 -- Также вам предоставлена функция для проверки вхождения подстроки в строку.
 -- >>> isSubstringOf "a" "bac"
@@ -278,11 +272,12 @@ grepSubstringNoFilename needle files = grep' (\_ s -> s) (isSubstringOf needle) 
  
 -- Вариант, когда ищется точное совпадение и нужно ко всем подходящим строкам
 -- дописать имя файла через ":".
---
+
 -- >>> grepExactMatchWithFilename "b" [("a.txt", ["a", "b"])]
 -- ["a.txt:b"]
 -- >>> grepExactMatchWithFilename "c" [("a.txt", ["a", "a"]), ("b.txt", ["b", "bab", "c"]), ("c.txt", ["c", "ccccc"])]
 -- ["b.txt:c", "c.txt:c"]
 grepExactMatchWithFilename :: String -> [File] -> [String]
-grepExactMatchWithFilename needle files = grep' (\name -> map' (\s -> name ++ ":" ++ s)) ((== needle)) files
+grepExactMatchWithFilename needle = grep' (\name -> map' (\s -> name ++ ":" ++ s)) ((== needle))
+--grepExactMatchWithFilename needle = grep' (\name -> map' (++":"++ name)) ((== needle))
 
