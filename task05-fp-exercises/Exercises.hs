@@ -203,7 +203,7 @@ nubBy' eq (x:xs) = x:filter (not . eq x) (nubBy' eq xs)
 -- >>> quickSort' "babca"
 -- "aabbc"
 quickSort' :: Ord a => [a] -> [a]
-quickSort' [] = []
+quickSort' []     = []
 quickSort' (x:xs) = quickSort' [y | y <- xs, y <= x] ++ x:quickSort' [c | c <- xs, c > x]
 
 -- Найдите суммарную длину списков, в которых чётное количество элементов
@@ -246,7 +246,7 @@ type File = (String, [String])
 -- параметр и возвращает второй.
 
 grep' :: (String -> [String] -> [String]) -> (String -> Bool) -> [File] -> [String]
-grep' format match [] = []
+grep' format match []        = []
 grep' format match (f:files) = format (fst f) (filter match (snd f)) ++ grep' format match files
 
 -- Также вам предоставлена функция для проверки вхождения подстроки в строку.
@@ -278,6 +278,5 @@ grepSubstringNoFilename needle files = grep' (\_ s -> s) (isSubstringOf needle) 
 -- >>> grepExactMatchWithFilename "c" [("a.txt", ["a", "a"]), ("b.txt", ["b", "bab", "c"]), ("c.txt", ["c", "ccccc"])]
 -- ["b.txt:c", "c.txt:c"]
 grepExactMatchWithFilename :: String -> [File] -> [String]
-grepExactMatchWithFilename needle = grep' (\name -> map' (\s -> name ++ ":" ++ s)) ((== needle))
---grepExactMatchWithFilename needle = grep' (\name -> map' (++":"++ name)) ((== needle))
+grepExactMatchWithFilename needle = grep' (\name -> map' ((name ++ ":") ++ )) ((== needle))
 
