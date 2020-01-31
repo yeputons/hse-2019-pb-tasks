@@ -16,8 +16,8 @@ sum' :: [Int] -> Int
 sum' = sum'' 0
 
 sum'' :: Int -> [Int] -> Int
-sum'' ini [] = ini
-sum'' ini xs = head xs + sum'' ini (tail xs)
+sum'' ini []     = ini
+sum'' ini (x:xs) = x + sum'' ini xs
 
 -- Функция concat' принимает на вход список списков и возвращает конкатенацию
 -- этих списков. Она использует функцию concat'', которая дополнительно
@@ -30,8 +30,8 @@ concat' :: [[a]] -> [a]
 concat' = concat'' []
 
 concat'' :: [a] -> [[a]] -> [a]
-concat'' ini [] = ini 
-concat'' ini xs = head xs ++ concat'' ini (tail xs)
+concat'' ini []     = ini 
+concat'' ini (x:xs) = x ++ concat'' ini xs
 
 -- Функция hash' принимает на вход строку s и считает полиномиальный
 -- хэш от строки по формуле hash' s_0...s_{n - 1} =
@@ -52,14 +52,14 @@ hash' :: String -> Int
 hash' = hash'' 0
 
 hash'' :: Int -> String -> Int
-hash'' ini [] = ini
-hash'' ini xs = ord (head xs) + p * hash'' ini (tail xs)
+hash'' ini []     = ini
+hash'' ini (x:xs) = ord x + p * hash'' ini xs
 
 -- Выделите общую логику предыдущих функций и реализуйте функцию высшего порядка foldr',
 -- не используя никаких стандартных функций.
 foldr' :: (a -> b -> b) -> b -> [a] -> b
-foldr' f ini [] = ini
-foldr' f ini xs = f (head xs) (foldr' f ini (tail xs))  
+foldr' f ini []     = ini
+foldr' f ini (x:xs) = f x (foldr' f ini xs)  
 
 -- Реализуйте функцию map' (которая делает то же самое, что обычный map)
 -- через функцию foldr', не используя стандартных функций.
@@ -126,14 +126,14 @@ secondElement xs = case tryTail xs of
 -- Nothing
 -- >>> thirdElementOfSecondList [["a"], ["b", "c", "d"]]
 -- Just "d"
-thirdElement a = case tryTail a of 
-                   Just a -> secondElement a
-                   _      -> Nothing
 
 thirdElementOfSecondList :: [[a]] -> Maybe a
 thirdElementOfSecondList xs = case secondElement xs of
-                                Just a -> thirdElement a 
+                                Just a -> case tryTail a of 
+                                            Just a -> secondElement a
+                                            _      -> Nothing 
                                 _      -> Nothing 
+
 
 
 
@@ -152,7 +152,9 @@ fifthElement xs = case tryTail xs of
                     _      -> Nothing
                     where
                         fourthElement a = case tryTail a of
-                                            Just a -> thirdElement a
+                                            Just a -> case tryTail a of 
+                                                        Just a -> secondElement a
+                                                        _      -> Nothing
                                             _      -> Nothing
  
 -- Выделите общую логику в оператор ~~>.
@@ -165,7 +167,7 @@ fifthElement xs = case tryTail xs of
 -- только tryHead, tryTail, применение функций и оператор ~~>, но не используя
 -- сопоставление с образом (pattern matching) ни в каком виде, case, if, guards.
 thirdElementOfSecondList' :: [[a]] -> Maybe a
-thirdElementOfSecondList' xs = secondElement xs ~~> tryTail ~~> tryTail ~~> tryHead
+thirdElementOfSecondList' xs = tryTail xs ~~> tryHead ~~> tryTail ~~> tryTail ~~> tryHead
 
 
 -- 3) Несколько упражнений
@@ -205,7 +207,6 @@ nubBy' eq (x:xs) = x : nubBy' eq (filter (not . eq x) xs)
 -- "aabbc"
 quickSort' :: Ord a => [a] -> [a]
 quickSort' []     = []
-quickSort' [x]    = [x]
 quickSort' (x:xs) = quickSort' (filter (< x) (x:xs)) ++ filter (== x) (x:xs) ++ quickSort' (filter (> x) (x:xs))
 
 -- Найдите суммарную длину списков, в которых чётное количество элементов
@@ -248,8 +249,8 @@ type File = (String, [String])
 -- Здесь (\_ s -> s) --- это лямбда-функция, которая игнорирует первый
 -- параметр и возвращает второй.
 grep' :: (String -> [String] -> [String]) -> (String -> Bool) -> [File] -> [String]
-grep' format match []        = []
-grep' format match (f:files) = format (fst f) (filter match (snd f)) ++ grep' format match files
+grep' format match []                              = []
+grep' format match ((file_name, file_lines):files) = format file_name (filter match file_lines) ++ grep' format match files
 
 -- Также вам предоставлена функция для проверки вхождения подстроки в строку.
 -- >>> isSubstringOf "a" "bac"
@@ -270,7 +271,7 @@ isSubstringOf n s = pack n `isInfixOf` pack s
 -- >>> grepSubstringNoFilename "c" [("a.txt", ["a", "a"]), ("b.txt", ["b", "bab", "c"]), ("c.txt", ["c", "ccccc"])]
 -- ["c", "c", "ccccc"]
 grepSubstringNoFilename :: String -> [File] -> [String]
-grepSubstringNoFilename needle = foldr' ((++) . filter (isSubstringOf needle) . snd) []
+grepSubstringNoFilename needle = grep' seq (isSubstringOf needle)
  
 -- Вариант, когда ищется точное совпадение и нужно ко всем подходящим строкам
 -- дописать имя файла через ":".
@@ -280,4 +281,4 @@ grepSubstringNoFilename needle = foldr' ((++) . filter (isSubstringOf needle) . 
 -- >>> grepExactMatchWithFilename "c" [("a.txt", ["a", "a"]), ("b.txt", ["b", "bab", "c"]), ("c.txt", ["c", "ccccc"])]
 -- ["b.txt:c", "c.txt:c"]
 grepExactMatchWithFilename :: String -> [File] -> [String]
-grepExactMatchWithFilename needle = foldr' (\f y -> map' ((fst f ++ ":") ++) (filter (needle ==) (snd f)) ++ y) []
+grepExactMatchWithFilename needle = grep' (\file_name -> map' ((file_name ++ ":") ++)) (== needle)
