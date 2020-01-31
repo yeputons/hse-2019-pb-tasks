@@ -17,7 +17,7 @@ sum' = sum'' 0
 
 sum'' :: Int -> [Int] -> Int
 sum'' ini (x:xs) = ini + x + sum'' 0 xs
-sum'' ini []     = ini
+sum'' ini _      = ini
 
 -- Функция concat' принимает на вход список списков и возвращает конкатенацию
 -- этих списков. Она использует функцию concat'', которая дополнительно
@@ -31,7 +31,7 @@ concat' = concat'' []
 
 concat'' :: [a] -> [[a]] -> [a]
 concat'' ini (x:xs) = x ++ concat'' ini xs
-concat'' ini []     = ini
+concat'' ini _      = ini
 
 -- Функция hash' принимает на вход строку s и считает полиномиальный
 -- хэш от строки по формуле hash' s_0...s_{n - 1} =
@@ -52,19 +52,19 @@ hash' :: String -> Int
 hash' = hash'' 0
 
 hash'' :: Int -> String -> Int
-hash'' ini (x:xs) = (ord x) + (p * hash'' ini xs)
-hash'' ini []     = ini
+hash'' ini (x:xs) = ord x + p * hash'' ini xs
+hash'' ini _      = ini
 
 -- Выделите общую логику предыдущих функций и реализуйте функцию высшего порядка foldr',
 -- не используя никаких стандартных функций.
 foldr' :: (a -> b -> b) -> b -> [a] -> b
 foldr' f ini (x:xs) = f x (foldr' f ini xs)
-foldr' f ini []     = ini
+foldr' f ini _      = ini
 
 -- Реализуйте функцию map' (которая делает то же самое, что обычный map)
 -- через функцию foldr', не используя стандартных функций.
 map' :: (a -> b) -> [a] -> [b]
-map' f = foldr' (\x ys -> f x : ys) []
+map' f = foldr' (\x ys -> f x:ys) []
 
 -- 2) Maybe
 -- Maybe a - это специальный тип данных, который может принимать либо
@@ -152,14 +152,14 @@ fifthElement xs = nElem 5 xs
 
 -- Выделите общую логику в оператор ~~>.
 (~~>) :: Maybe a -> (a -> Maybe b) -> Maybe b
-(~~>) (Just ma) f = f ma
-(~~>) _ f  = Nothing
+(~~>) (Just a) f = f a
+(~~>) _ f        = Nothing
 
 -- Перепишите функцию thirdElementOfSecondList в thirdElementOfSecondList' используя
 -- только tryHead, tryTail, применение функций и оператор ~~>, но не используя
 -- сопоставление с образом (pattern matching) ни в каком виде, case, if, guards.
 thirdElementOfSecondList' :: [[a]] -> Maybe a
-thirdElementOfSecondList' xs = undefined
+thirdElementOfSecondList' xs = tryTail xs ~~> tryHead ~~> tryTail ~~> tryTail ~~> tryHead
 
 -- 3) Несколько упражнений
 -- Реализуйте функцию nubBy', которая принимает на вход функцию для сравнения 
@@ -176,10 +176,9 @@ thirdElementOfSecondList' xs = undefined
 -- [2,3,5]
 nubBy' :: (a -> a -> Bool) -> [a] -> [a]
 nubBy' eq (x:xs) = x : nubBy' eq (nubBy'' eq x xs)
-             where nubBy'' f x [] = []      
+             where nubBy'' _ _ [] = []      
                    nubBy'' f y (x:xs) | f y x     = nubBy'' f y xs
                                       | otherwise = x : nubBy'' f y xs
-nubBy' _  [] = []
 
 -- Реализуйте функцию quickSort, которая принимает на вход список, и 
 -- возвращает список, в котором элементы отсортированы при помощи алгоритма
@@ -216,7 +215,7 @@ quickSort' (x:xs) = (quickSort' (filter (<= x) xs)) ++ [x] ++ (quickSort' (filte
 -- >>> weird' [[1, 11, 12], [9, 10, 20]]
 -- 3
 weird':: [[Int]] -> Int
-weird' = sum' . map' length . filter ( even . length . filter (> 10))
+weird' = sum' . map' length . filter ( even . length . filter (\x -> (x*x > 100)))
 
 
 -- 4) grep
