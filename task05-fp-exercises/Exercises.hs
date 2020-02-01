@@ -64,8 +64,7 @@ foldr' f ini (x:xs) = f x (foldr' f ini xs)
 -- Реализуйте функцию map' (которая делает то же самое, что обычный map)
 -- через функцию foldr', не используя стандартных функций.
 map' :: (a -> b) -> [a] -> [b]
-map' f [] = []
-map' f xs = foldr' (\y ys -> f y : ys) [] xs
+map' f = foldr' (\x ys -> f x : ys) []
 
 -- 2) Maybe
 -- Maybe a - это специальный тип данных, который может принимать либо
@@ -144,8 +143,11 @@ thirdElementOfSecondList xs = case secondElement xs of
 -- >>> fifthElement [1, 2, 3, 4, 5]
 -- Just 5
 fifthElement :: [a] -> Maybe a
-fifthElement (first:second:third:fourth:fifth:xs) = Just fifth
-fifthElement _ = Nothing
+fifthElement xs = nthElement xs 5
+                  where nthElement xs 1 = tryHead xs
+                        nthElement xs n = case tryTail xs of
+                                            Just ys -> nthElement ys (n - 1)
+                                            _       -> Nothing
 
 -- Выделите общую логику в оператор ~~>.
 (~~>) :: Maybe a -> (a -> Maybe b) -> Maybe b
@@ -156,7 +158,7 @@ fifthElement _ = Nothing
 -- только tryHead, tryTail, применение функций и оператор ~~>, но не используя
 -- сопоставление с образом (pattern matching) ни в каком виде, case, if, guards.
 thirdElementOfSecondList' :: [[a]] -> Maybe a
-thirdElementOfSecondList' xs = secondElement xs ~~> tryTail ~~> secondElement 
+thirdElementOfSecondList' xs = tryTail xs ~~> tryHead ~~> tryTail ~~> tryTail ~~> tryHead 
 
 -- 3) Несколько упражнений
 -- Реализуйте функцию nubBy', которая принимает на вход функцию для сравнения 
@@ -194,7 +196,7 @@ nubBy' eq (x:xs) = x : nubBy' eq (filter (not . eq x) xs)
 -- "aabbc"
 quickSort' :: Ord a => [a] -> [a]
 quickSort' []      = []
-quickSort' xs      = quickSort' [y | y <- xs, y < head xs] ++ [m | m <- xs, m == head xs] ++ quickSort' [z | z <- xs, z > head xs]
+quickSort' (x:xs)  = quickSort' [y | y <- xs, y < x] ++ [m | m <- (x:xs), m == x] ++ quickSort' [z | z <- xs, z > x]
 
 -- Найдите суммарную длину списков, в которых чётное количество элементов
 -- имеют квадрат больше 100. Реализация должна быть без использования
@@ -209,7 +211,7 @@ quickSort' xs      = quickSort' [y | y <- xs, y < head xs] ++ [m | m <- xs, m ==
 -- >>> weird' [[1, 11, 12], [9, 10, 20]]
 -- 3
 weird':: [[Int]] -> Int
-weird' xs = length $ mconcat $ filter (even . length . filter ((<) 100 . (^) 2)) xs 
+weird' = length . mconcat . filter (even . length . filter ((<) 100 . (^) 2))
 
 -- 4) grep
 -- Нужно реализовать несколько вариаций grep'а.
@@ -256,7 +258,7 @@ isSubstringOf n s = pack n `isInfixOf` pack s
 -- >>> grepSubstringNoFilename "c" [("a.txt", ["a", "a"]), ("b.txt", ["b", "bab", "c"]), ("c.txt", ["c", "ccccc"])]
 -- ["c", "c", "ccccc"]
 grepSubstringNoFilename :: String -> [File] -> [String]
-grepSubstringNoFilename needle = grep' (\fname lines -> lines) $ isSubstringOf needle
+grepSubstringNoFilename needle = grep' (\_ lines -> lines) $ isSubstringOf needle
  
 -- Вариант, когда ищется точное совпадение и нужно ко всем подходящим строкам
 -- дописать имя файла через ":".
@@ -266,4 +268,4 @@ grepSubstringNoFilename needle = grep' (\fname lines -> lines) $ isSubstringOf n
 -- >>> grepExactMatchWithFilename "c" [("a.txt", ["a", "a"]), ("b.txt", ["b", "bab", "c"]), ("c.txt", ["c", "ccccc"])]
 -- ["b.txt:c", "c.txt:c"]
 grepExactMatchWithFilename :: String -> [File] -> [String]
-grepExactMatchWithFilename needle = grep' (\fname lines -> fmap (\line -> fname ++ ":" ++ line) lines) $ (==) needle
+grepExactMatchWithFilename needle = grep' (\fname -> fmap (\line -> fname ++ ":" ++ line)) $ (==) needle
