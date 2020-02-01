@@ -16,8 +16,8 @@ sum' :: [Int] -> Int
 sum' = sum'' 0
 
 sum'' :: Int -> [Int] -> Int
-sum'' x [] = x
-sum'' ini (x:xs) = (+) x $ sum'' ini xs
+sum'' ini [] = ini
+sum'' ini (x:xs) = x + sum'' ini xs
 
 -- Функция concat' принимает на вход список списков и возвращает конкатенацию
 -- этих списков. Она использует функцию concat'', которая дополнительно
@@ -31,7 +31,7 @@ concat' = concat'' []
 
 concat'' :: [a] -> [[a]] -> [a]
 concat'' x [] = x
-concat'' ini (x:xs) = (++) x (concat'' ini xs)
+concat'' ini (x:xs) = x ++ concat'' ini xs
 
 -- Функция hash' принимает на вход строку s и считает полиномиальный
 -- хэш от строки по формуле hash' s_0...s_{n - 1} =
@@ -53,7 +53,7 @@ hash' = hash'' 0
 
 hash'' :: Int -> String -> Int
 hash'' x [] = x
-hash'' ini (x:xs) = ord x + (p * hash'' ini xs)
+hash'' ini (x:xs) = ord x + p * hash'' ini xs
 
 -- Выделите общую логику предыдущих функций и реализуйте функцию высшего порядка foldr',
 -- не используя никаких стандартных функций.
@@ -65,7 +65,7 @@ foldr' f ini (x:xs) = f x $ foldr' f ini xs
 -- Реализуйте функцию map' (которая делает то же самое, что обычный map)
 -- через функцию foldr', не используя стандартных функций.
 map' :: (a -> b) -> [a] -> [b]
-map' f = foldr' (\x xs -> f x : xs) []
+map' f = foldr' (\x ys -> f x:ys) []
 
 -- 2) Maybe
 -- Maybe a - это специальный тип данных, который может принимать либо
@@ -155,15 +155,15 @@ fifthElement xs = maybeTryHead $ maybeTryTail $ maybeTryTail $ maybeTryTail $ tr
 
 -- Выделите общую логику в оператор ~~>.
 (~~>) :: Maybe a -> (a -> Maybe b) -> Maybe b
-(~~>) ma f = case ma of 
-		Just a -> f a 
-		_      -> Nothing
+
+(~~>) Nothing  f = Nothing
+(~~>) (Just a) f = f a
 
 -- Перепишите функцию thirdElementOfSecondList в thirdElementOfSecondList' используя
 -- только tryHead, tryTail, применение функций и оператор ~~>, но не используя
 -- сопоставление с образом (pattern matching) ни в каком виде, case, if, guards.
 thirdElementOfSecondList' :: [[a]] -> Maybe a
-thirdElementOfSecondList' xs = Just xs ~~> tryTail ~~> tryHead ~~> tryTail ~~> tryTail ~~> tryHead
+thirdElementOfSecondList' xs = tryTail ~~> tryHead ~~> tryTail ~~> tryTail ~~> tryHead
 
 -- 3) Несколько упражнений
 -- Реализуйте функцию nubBy', которая принимает на вход функцию для сравнения 
@@ -245,7 +245,7 @@ type File = (String, [String])
 -- Здесь (\_ s -> s) --- это лямбда-функция, которая игнорирует первый
 -- параметр и возвращает второй.
 grep' :: (String -> [String] -> [String]) -> (String -> Bool) -> [File] -> [String]
-grep' format match = concat' . map' (\file -> format (fst file) $ filter match $ snd file)
+grep' format match = concat' . map' (\(filename, lines) -> format filename $ filter match lines)
 
 -- Также вам предоставлена функция для проверки вхождения подстроки в строку.
 -- >>> isSubstringOf "a" "bac"
@@ -266,8 +266,7 @@ isSubstringOf n s = pack n `isInfixOf` pack s
 -- >>> grepSubstringNoFilename "c" [("a.txt", ["a", "a"]), ("b.txt", ["b", "bab", "c"]), ("c.txt", ["c", "ccccc"])]
 -- ["c", "c", "ccccc"]
 grepSubstringNoFilename :: String -> [File] -> [String]
-grepSubstringNoFilename needle = grep' (\ _ str -> str) match
-                               where match        = isSubstringOf needle
+grepSubstringNoFilename needle = grep' (\ _ str -> str) (isSubstringOf needle)
  
 -- Вариант, когда ищется точное совпадение и нужно ко всем подходящим строкам
 -- дописать имя файла через ":".
