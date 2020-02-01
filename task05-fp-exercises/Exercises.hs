@@ -149,11 +149,11 @@ fifthElement xs = case tryTail xs of
                     _      -> Nothing
 
                     where 
-                        fourthElement xs = case tryTail xs of
+                      fourthElement xs = case tryTail xs of
                                              Just a -> thirdElement a
                                              _      -> Nothing
 
-                        thirdElement xs  = case tryTail xs of
+                      thirdElement xs  = case tryTail xs of
                                              Just a -> secondElement a
                                              _      -> Nothing
 
