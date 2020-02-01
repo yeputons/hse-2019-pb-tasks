@@ -36,3 +36,9 @@ script:
 - if [ "$TRAVIS_PULL_REQUEST" != "false" ] ; then ./RunTests; else echo Skipping running tests for non-PRs; fi
 - hlint "--ignore=Unnecessary hiding" "--ignore=Use foldr" Exercises.hs
 - popd
+- pushd task06-fp-yat
+- ghc -W -Wno-unused-matches -Wno-unused-imports Yat.hs
+- ghc -W RunTests.hs
+- if [ "$TRAVIS_PULL_REQUEST" != "false" ] ; then ./RunTests; else echo Skipping running tests for non-PRs; fi
+- hlint "--ignore=Avoid lambda" Yat.hs
+- popd
