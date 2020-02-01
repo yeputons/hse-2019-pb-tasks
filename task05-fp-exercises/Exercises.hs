@@ -16,7 +16,7 @@ sum' :: [Int] -> Int
 sum' = sum'' 0
 
 sum'' :: Int -> [Int] -> Int
-sum'' ini [] = ini
+sum'' ini []     = ini
 sum'' ini (x:xs) = x + sum'' ini xs
 
 -- Функция concat' принимает на вход список списков и возвращает конкатенацию
@@ -30,8 +30,8 @@ concat' :: [[a]] -> [a]
 concat' = concat'' []
 
 concat'' :: [a] -> [[a]] -> [a]
-concat'' x [] = x
-concat'' ini (x:xs) = x ++ concat'' ini xs
+concat'' ini []     = ini
+concat'' ini (x:xs) = x ++ concat'' ini xs 
 
 -- Функция hash' принимает на вход строку s и считает полиномиальный
 -- хэш от строки по формуле hash' s_0...s_{n - 1} =
@@ -52,14 +52,14 @@ hash' :: String -> Int
 hash' = hash'' 0
 
 hash'' :: Int -> String -> Int
-hash'' x [] = x
-hash'' ini (x:xs) = ord x + p * hash'' ini xs
+hash'' x []       = x
+hash'' ini (x:xs) = ord x + p * hash'' ini xs  
 
 -- Выделите общую логику предыдущих функций и реализуйте функцию высшего порядка foldr',
 -- не используя никаких стандартных функций.
 foldr' :: (a -> b -> b) -> b -> [a] -> b
 
-foldr' f ini [] = ini
+foldr' f ini []     = ini
 foldr' f ini (x:xs) = f x $ foldr' f ini xs
 
 -- Реализуйте функцию map' (которая делает то же самое, что обычный map)
