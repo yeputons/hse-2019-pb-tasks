@@ -16,8 +16,8 @@ sum' :: [Int] -> Int
 sum' xs = sum'' 0 xs
 
 sum'' :: Int -> [Int] -> Int
-sum'' ini xs | (take 1 xs) /= [] = ini + sum'' (head xs) (drop 1 xs)
-	     | otherwise = ini
+sum'' ini (x:xs) = (sum'' x xs) + ini
+sum'' ini [] = ini
 
 -- Функция concat' принимает на вход список списков и возвращает конкатенацию
 -- этих списков. Она использует функцию concat'', которая дополнительно
@@ -52,8 +52,8 @@ hash' :: String -> Int
 hash' xs = hash'' 0 xs
 
 hash'' :: Int -> String -> Int
-hash'' ini xs | xs == [] = ini 
-	      | otherwise = ini *p ^ (length xs) + (hash'' (ord(last xs)) (reverse(drop 1 (reverse(xs)))))
+hash'' ini [] = ini 
+hash'' ini xs = ini *p ^ (length xs) + (hash'' (ord(last xs)) (reverse(drop 1 (reverse(xs)))))
 
 -- Выделите общую логику предыдущих функций и реализуйте функцию высшего порядка foldr',
 -- не используя никаких стандартных функций.
@@ -177,7 +177,7 @@ thirdElementOfSecondList' xs = tryTail xs ~~> tryHead ~~> tryTail ~~> tryTail ~~
 -- [2,3,5]
 nubBy' :: (a -> a -> Bool) -> [a] -> [a]
 nubBy' eq [] = []
-nubBy' eq xs = head xs : nubBy' eq (filter (not . eq (head xs)) (tail xs))
+nubBy' eq (x:xs) = x : nubBy' eq (filter (not . eq x) xs)
 
 -- Реализуйте функцию quickSort, которая принимает на вход список, и 
 -- возвращает список, в котором элементы отсортированы при помощи алгоритма
@@ -198,7 +198,7 @@ nubBy' eq xs = head xs : nubBy' eq (filter (not . eq (head xs)) (tail xs))
 -- "aabbc"
 quickSort' :: Ord a => [a] -> [a]
 quickSort' [] = []
-quickSort' xs = (quickSort' (filter (< (head xs)) xs)) ++ filter (== (head xs)) xs ++ quickSort' ((filter (> (head xs)) xs))
+quickSort' (x:xs) = (quickSort' (filter (< x) (x:xs))) ++ filter (== x) (x:xs) ++ quickSort' ((filter (> x) (x:xs)))
 
 -- Найдите суммарную длину списков, в которых чётное количество элементов
 -- имеют квадрат больше 100. Реализация должна быть без использования
@@ -213,7 +213,7 @@ quickSort' xs = (quickSort' (filter (< (head xs)) xs)) ++ filter (== (head xs)) 
 -- >>> weird' [[1, 11, 12], [9, 10, 20]]
 -- 3
 weird':: [[Int]] -> Int
-weird' = sum'. map' length . filter (even . length . filter ((>100) . (^2)))
+weird' = sum' . map' length . filter (even . length . filter ((>100) . (^2)))
 
 -- 4) grep
 -- Нужно реализовать несколько вариаций grep'а.
