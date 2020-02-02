@@ -4,6 +4,9 @@ import Data.Maybe
 import Data.Bifunctor
 import Debug.Trace
 
+{-# ANN module "HLint: ignore Use first" #-}
+{-# ANN module "HLint: ignore Use second" #-}
+
 -- В логических операциях 0 считается ложью, всё остальное - истиной.
 -- При этом все логические операции могут вернуть только 0 или 1.
 
@@ -167,9 +170,10 @@ parseArgs _ _ _ _ = undefined
 evalExpression :: State -> [FunctionDefinition] -> Expression -> (State, Integer)
 evalExpression scope      funcs                         (Number num)                      = (scope, num)
 evalExpression []         _                             (Reference name)                  = undefined
+
 evalExpression (sc:scope) funcs                         (Reference name)                  | fst sc == name = (sc:scope, snd sc)
-                                                                                          | otherwise        = (sc:fst value, snd value)
-                                                                                          where value        = evalExpression scope funcs (Reference name)
+                                                                                          | otherwise      = (sc:fst value, snd value)
+                                                                                          where value      = evalExpression scope funcs (Reference name)
 
 evalExpression scope      funcs                         (Assign name expr)                = ((name, snd value):fst value, snd value) 
                                                                                           where value = evalExpression scope funcs expr
@@ -191,10 +195,10 @@ evalExpression _          _                             (FunctionCall _ _)      
 
 evalExpression scope      funcs                         (Conditional cond ifTrue ifFalse) | snd value /= 0 = evalExpression (fst value) funcs ifTrue
                                                                                           | otherwise      = evalExpression (fst value) funcs ifFalse
-                                                                                            where value = evalExpression scope funcs cond 
+                                                                                            where value    = evalExpression scope funcs cond 
 
 evalExpression scope      _                             (Block [])                        = (scope, 0)
-evalExpression scope      funcs                         (Block [expr])                 = evalExpression scope funcs expr
+evalExpression scope      funcs                         (Block [expr])                    = evalExpression scope funcs expr
 evalExpression scope      funcs                         (Block (expr:exprs))              = evalExpression newScope funcs (Block exprs)
                                                                                           where newScope = fst $ evalExpression scope funcs expr  
 
