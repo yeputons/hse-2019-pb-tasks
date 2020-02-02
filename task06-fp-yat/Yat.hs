@@ -114,4 +114,4 @@ evalExpression = undefined
 
 -- Реализуйте eval: запускает программу и возвращает её значение.
 eval :: Program -> Integer
-eval _ = 0
+eval = undefined
