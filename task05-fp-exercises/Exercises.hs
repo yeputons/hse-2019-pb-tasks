@@ -200,6 +200,7 @@ nubBy' eq (x:xs) = x:nubBy' eq (filter (not.eq x) xs)
 -- >>> quickSort' "babca"
 -- "aabbc"
 quickSort' :: Ord a => [a] -> [a]
+
 quickSort' [] = []
 quickSort' (x:xs) = quickSort' lx ++ filter (== x) (x:xs) ++ quickSort' rx
                 where lx = filter (< x) xs
@@ -218,6 +219,7 @@ quickSort' (x:xs) = quickSort' lx ++ filter (== x) (x:xs) ++ quickSort' rx
 -- >>> weird' [[1, 11, 12], [9, 10, 20]]
 -- 3
 weird':: [[Int]] -> Int
+
 weird' = sum' . map' length . filter (even . length . filter ((> 100) . (^2)))
 
 
