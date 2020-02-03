@@ -130,11 +130,11 @@ thirdElementOfSecondList :: [[a]] -> Maybe a
 thirdElementOfSecondList xs = case secondElement xs of --take secondList
                                 Just a -> thirdElementOfList a
                                 _      -> Nothing
-			        where 
-				  thirdElementOfList :: [a] -> Maybe a
-				  thirdElementOfList a = case tryTail a of --take tail + secondElement == thirdElement 
-				                           Just b -> secondElement b
-				                           _ 	 -> Nothing	   	
+                                where 
+                                  thirdElementOfList :: [a] -> Maybe a
+                                  thirdElementOfList a = case tryTail a of --take tail + secondElement == thirdElement 
+                                                           Just b -> secondElement b
+                                                           _ 	 -> Nothing	   	
 
 -- Функцию fifthElement, которая возвращает пятый элемент списка или Nothing,
 -- если пятого элемента в списке нет.
@@ -149,12 +149,12 @@ fifthElement xs = case tryTail xs of
 		    Just a -> fourthElement a
 		    _      -> Nothing
 		    where 
-		    fourthElement xs = case tryTail xs of 
-					 Just a -> thirdElement a
-					 _      -> Nothing
-		    thirdElement xs = case tryTail xs of	
-					Just a -> secondElement a
-					_      -> Nothing   		
+		      fourthElement xs = case tryTail xs of 
+			       		   Just a -> thirdElement a
+					   _      -> Nothing
+		      thirdElement xs = case tryTail xs of	
+					  Just a -> secondElement a
+					  _      -> Nothing   		
 
 -- Выделите общую логику в оператор ~~>.
 (~~>) :: Maybe a -> (a -> Maybe b) -> Maybe b
