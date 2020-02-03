@@ -96,109 +96,129 @@ def test_integrate_file_grep_regex(tmp_path, monkeypatch, capsys):
     assert out == 'pref needle suf\n'
 
 
-def test_integrate_files_grep_files_only(tmp_path, monkeypatch, capsys):
+def test_substr_search_0():
+    assert grep.substr_search('needle', 'pref needle suf', False, False) is True
+
+
+def test_substr_search_1():
+    assert grep.substr_search('needle', 'pref NeEdLe suf', True, False) is True
+
+
+def test_substr_search_2():
+    assert grep.substr_search('needle', 'pref needle suf', False, True) is False
+
+
+def test_substr_search_3():
+    assert grep.substr_search('needle', 'NEEdle', True, True) is True
+
+
+def test_parse_lines():
+    assert grep.parse_lines(['line 1\n', 'line 2\n']) == ['line 1', 'line 2']
+
+
+def test_match_string():
+    assert grep.match_string('needle', 'pref NeEdlEsuf', False, True, False, False) is True
+
+
+def test_read_files(tmp_path, monkeypatch):
     (tmp_path / 'a.txt').write_text('pref needle\nneedle suf\n')
-    (tmp_path / 'b.txt').write_text('the needl\npref neeoaoaodle suf')
+    (tmp_path / 'b.txt').write_text('the needl\npref needle suf')
     monkeypatch.chdir(tmp_path)
-    grep.main(['-l', 'needle', 'b.txt', 'a.txt'])
+    assert grep.read_files(['a.txt', 'b.txt']) == {'a.txt': ['pref needle', 'needle suf'],
+                                                   'b.txt': ['the needl', 'pref needle suf']}
+
+
+def test_read_stdin(monkeypatch):
+    monkeypatch.setattr('sys.stdin',
+                        io.StringIO('pref needle\nneedle suf\nthe needl\npref needle suf'))
+    assert grep.read_stdin() == {'': ['pref needle', 'needle suf',
+                                      'the needl', 'pref needle suf']}
+
+
+def test_filter_lines():
+    lines = {'a.txt': ['NeEdLe line', 'NeedlE'],
+             'b.txt': ['needle', 'kek'],
+             'c.txt': ['yjturklhgjn;', 'kkkk']}
+    assert grep.filter_lines(lines, 'needle',
+                             False, True, True, True) == {'a.txt': ['NeEdLe line'],
+                                                          'b.txt': ['kek'],
+                                                          'c.txt': ['yjturklhgjn;', 'kkkk']}
+
+
+def test_print_answer_count(capsys):
+    filtered_lines = {'a.txt': ['NeEdLe line'],
+                      'b.txt': ['kek'],
+                      'c.txt': ['yjturklhgjn;', 'kkkk']}
+    grep.print_answer_count(filtered_lines)
     out, err = capsys.readouterr()
     assert err == ''
-    assert out == 'a.txt\n'
+    assert out == 'a.txt:1\nb.txt:1\nc.txt:2\n'
 
 
-def test_integrate_files_grep_regex_files_only(tmp_path, monkeypatch, capsys):
-    (tmp_path / 'a.txt').write_text('pref needle\nneedle suf\n')
-    (tmp_path / 'b.txt').write_text('the needl\npref neeoaoaodle suf\n')
-    (tmp_path / 'c.txt').write_text('needlejf\na needle b\nneedle\n')
-    monkeypatch.chdir(tmp_path)
-    grep.main(['-E', '-l', 'needle', 'b.txt', 'a.txt', 'c.txt'])
+def test_print_answer_files_only(capsys):
+    filtered_lines = {'a.txt': [''],
+                      'b.txt': [],
+                      'c.txt': ['', 'asdfad', '12341234'],
+                      'd.txt': []}
+    grep.print_answer_files_only(filtered_lines, True)
     out, err = capsys.readouterr()
     assert err == ''
-    assert out == 'a.txt\nc.txt\n'
+    assert out == 'b.txt\nd.txt\n'
 
 
-def test_integrate_files_grep_ignore_files_only(tmp_path, monkeypatch, capsys):
-    (tmp_path / 'a.txt').write_text('pref needle\nneedle suf\n')
-    (tmp_path / 'b.txt').write_text('the needl\npref neeoaoaodle suf\n')
-    (tmp_path / 'c.txt').write_text('a o a o NEEDLE LEL\na needle b\nneedle\n')
-    monkeypatch.chdir(tmp_path)
-    grep.main(['-i', '-l', 'needle', 'b.txt', 'a.txt', 'c.txt'])
+def test_print_answer_default_0(capsys):
+    filtered_lines = {'a.txt': ['NeEdLe line'],
+                      'b.txt': ['kek'],
+                      'c.txt': ['yjturklhgjn;', 'kkkk']}
+    grep.print_answer_default(filtered_lines)
     out, err = capsys.readouterr()
     assert err == ''
-    assert out == 'a.txt\nc.txt\n'
+    assert out == 'a.txt:NeEdLe line\nb.txt:kek\nc.txt:yjturklhgjn;\nc.txt:kkkk\n'
 
 
-def test_integrate_files_grep_fullmatch_files_only(tmp_path, monkeypatch, capsys):
-    (tmp_path / 'a.txt').write_text('pref needle\nneedle suf\n')
-    (tmp_path / 'b.txt').write_text('the needl\npref neeoaoaodle suf\n')
-    (tmp_path / 'c.txt').write_text('a o a o NEEDLE LEL\na needle b\nneedle\n')
-    monkeypatch.chdir(tmp_path)
-    grep.main(['-x', '-l', 'needle', 'b.txt', 'a.txt', 'c.txt'])
+def test_print_answer_default_1(capsys):
+    filtered_lines = {'': ['filtered line', 'filtered line 2']}
+    grep.print_answer_default(filtered_lines)
     out, err = capsys.readouterr()
     assert err == ''
-    assert out == 'c.txt\n'
+    assert out == 'filtered line\nfiltered line 2\n'
 
 
-def test_integrate_files_grep_ignore_reverse_strings_files_only(tmp_path, monkeypatch, capsys):
-    (tmp_path / 'a.txt').write_text('pref needle\nneedle suf\n')
-    (tmp_path / 'b.txt').write_text('the needl\npref neeoaoaodle suf\n')
-    (tmp_path / 'c.txt').write_text('a o a o NEEDLE LEL\na needle b\nneedle\n')
-    monkeypatch.chdir(tmp_path)
-    grep.main(['-i', '-v', '-l', 'needle', 'b.txt', 'a.txt', 'c.txt'])
+def test_print_answer_0(capsys):
+    filtered_lines = {'a.txt': ['NeEdLe line'],
+                      'b.txt': ['kek'],
+                      'c.txt': ['yjturklhgjn;', 'kkkk']}
+    grep.print_answer(filtered_lines, True, False, False)
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'a.txt:1\nb.txt:1\nc.txt:2\n'
+
+
+def test_print_answer_1(capsys):
+    filtered_lines = {'a.txt': ['NeEdLe line'],
+                      'b.txt': ['kek'],
+                      'c.txt': ['yjturklhgjn;', 'kkkk']}
+    grep.print_answer(filtered_lines, False, True, False)
+    out, err = capsys.readouterr()
+    assert err == ''
+    assert out == 'a.txt\nb.txt\nc.txt\n'
+
+
+def test_print_answer_2(capsys):
+    filtered_lines = {'a.txt': [''],
+                      'b.txt': [],
+                      'c.txt': ['yjturklhgjn;', 'kkkk']}
+    grep.print_answer(filtered_lines, False, False, True)
     out, err = capsys.readouterr()
     assert err == ''
     assert out == 'b.txt\n'
 
 
-def test_integrate_files_grep_ignore_reverse_strings_reverse_files_only(tmp_path, monkeypatch, capsys):
-    (tmp_path / 'a.txt').write_text('pref needle\nneedle suf\n')
-    (tmp_path / 'b.txt').write_text('the needl\npref neeoaoaodle suf\n')
-    (tmp_path / 'c.txt').write_text('a o a o NEEDLE LEL\na needle b\nneedle\n')
-    monkeypatch.chdir(tmp_path)
-    grep.main(['-i', '-v', '-L', 'needle', 'b.txt', 'a.txt', 'c.txt'])
+def test_print_answer_3(capsys):
+    filtered_lines = {'a.txt': ['NeEdLe line'],
+                      'b.txt': [],
+                      'c.txt': ['yjturklhgjn;', 'kkkk']}
+    grep.print_answer(filtered_lines, False, False, False)
     out, err = capsys.readouterr()
     assert err == ''
-    assert out == 'a.txt\nc.txt\n'
-
-
-def test_integrate_files_grep_fullmatch_reverse_files_only(tmp_path, monkeypatch, capsys):
-    (tmp_path / 'a.txt').write_text('pref needle\nneedle suf\n')
-    (tmp_path / 'b.txt').write_text('the needl\npref neeoaoaodle suf\n')
-    (tmp_path / 'c.txt').write_text('a o a o NEEDLE LEL\na needle b\nneedle\n')
-    monkeypatch.chdir(tmp_path)
-    grep.main(['-x', '-L', 'needle', 'b.txt', 'a.txt', 'c.txt'])
-    out, err = capsys.readouterr()
-    assert err == ''
-    assert out == 'b.txt\na.txt\n'
-
-
-def test_integrate_files_grep_ignore_reverse_files_only(tmp_path, monkeypatch, capsys):
-    (tmp_path / 'a.txt').write_text('pref needle\nneedle suf\n')
-    (tmp_path / 'b.txt').write_text('the needl\npref neeoaoaodle suf\n')
-    (tmp_path / 'c.txt').write_text('a o a o NEEDLE LEL\na needle b\nneedle\n')
-    monkeypatch.chdir(tmp_path)
-    grep.main(['-i', '-L', 'needle', 'b.txt', 'a.txt', 'c.txt'])
-    out, err = capsys.readouterr()
-    assert err == ''
-    assert out == 'b.txt\n'
-
-
-def test_integrate_files_grep_regex_reverse_files_only(tmp_path, monkeypatch, capsys):
-    (tmp_path / 'a.txt').write_text('pref needle\nneedle suf\n')
-    (tmp_path / 'b.txt').write_text('the needl\npref neeoaoaodle suf\n')
-    (tmp_path / 'c.txt').write_text('needlejf\na needle b\nneedle\n')
-    monkeypatch.chdir(tmp_path)
-    grep.main(['-E', '-L', 'needle', 'b.txt', 'a.txt', 'c.txt'])
-    out, err = capsys.readouterr()
-    assert err == ''
-    assert out == 'b.txt\n'
-
-
-def test_integrate_files_grep_reverse_files_only(tmp_path, monkeypatch, capsys):
-    (tmp_path / 'a.txt').write_text('pref needle\nneedle suf\n')
-    (tmp_path / 'b.txt').write_text('the needl\npref neeoaoaodle suf')
-    monkeypatch.chdir(tmp_path)
-    grep.main(['-L', 'needle', 'b.txt', 'a.txt'])
-    out, err = capsys.readouterr()
-    assert err == ''
-    assert out == 'b.txt\n'
+    assert out == 'a.txt:NeEdLe line\nc.txt:yjturklhgjn;\nc.txt:kkkk\n'
