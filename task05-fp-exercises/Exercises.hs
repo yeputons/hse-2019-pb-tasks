@@ -128,8 +128,8 @@ secondElement xs = case tryTail xs of
 -- Just "d"
 thirdElementOfSecondList :: [[a]] -> Maybe a
 thirdElementOfSecondList xs = case secondElement xs of --take secondList
-				Just a -> thirdElementOfList a
-				_      -> Nothing
+                                Just a -> thirdElementOfList a
+                                _      -> Nothing
 			        where 
 				  thirdElementOfList :: [a] -> Maybe a
 				  thirdElementOfList a = case tryTail a of --take tail + secondElement == thirdElement 
