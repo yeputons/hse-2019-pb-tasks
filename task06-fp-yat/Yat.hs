@@ -176,6 +176,5 @@ evalProgram (fs, Conditional e t f) state | toBool cond = evalProgram (fs, t) ne
                                                             where (cond, new_state)  = evalProgram (fs, e) state
 evalProgram (fs, Block es) state                        = foldl (\(_, new_state) e -> evalProgram (fs, e) new_state) (0, state) es
 
-
 eval :: Program -> Integer
 eval program = fst $ evalProgram program []
