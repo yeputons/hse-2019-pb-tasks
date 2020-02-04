@@ -3,7 +3,7 @@ import Data.List
 import Data.Maybe
 import Data.Bifunctor
 import Debug.Trace
-
+import Control.Exception
 -- В логических операциях 0 считается ложью, всё остальное - истиной.
 -- При этом все логические операции могут вернуть только 0 или 1.
 
@@ -12,7 +12,6 @@ data Binop = Add | Mul | Sub | Div | Mod | Lt | Le | Gt | Ge | Eq | Ne | And | O
 
 -- Все возможные унарные операции: смена знака числа и логическое "не".
 data Unop = Neg | Not
-
 data Expression = Number Integer  -- Возвращает число, побочных эффектов нет.
                 | Reference Name  -- Возвращает значение соответствующей переменной в текущем scope, побочных эффектов нет.
                 | Assign Name Expression  -- Вычисляет операнд, а потом изменяет значение соответствующей переменной и возвращает его. Если соответствующей переменной нет, она создаётся.
@@ -46,9 +45,29 @@ showUnop :: Unop -> String
 showUnop Neg = "-"
 showUnop Not = "!"
 
+addTabs :: String -> String
+addTabs = intercalate "\n" . map ("\t"++) . lines
+
+showExpression :: Expression -> String
+showExpression (Number n) = show n
+showExpression (Reference name) = name
+showExpression (Assign name e) = "let " ++ name ++ " = " ++ showExpression e ++ " tel"
+showExpression (BinaryOperation op l r) = "(" ++ showExpression l ++ " " ++ showBinop op ++ " " ++ showExpression r ++ ")"
+showExpression (UnaryOperation op e) = showUnop op ++ showExpression e
+showExpression (FunctionCall name es) = name ++ "(" ++ intercalate ", " (map showExpression es) ++ ")"
+showExpression (Conditional e t f) = "if " ++ showExpression e ++ " then " ++ showExpression t ++ " else " ++ showExpression f ++ " fi"
+showExpression (Block []) = "{\n}"
+showExpression (Block es) = "{\n" ++ intercalate ";\n" (map (addTabs . showExpression) es) ++ "\n}"
+
+showFunction :: FunctionDefinition -> String
+showFunction (name, args, e) = "func " ++ name ++ "(" ++ intercalate ", " args ++ ") = " ++ showExpression e
+
+showFunctions :: [FunctionDefinition] -> String
+showFunctions = concatMap showFunction
+
 -- Верните текстовое представление программы (см. условие).
 showProgram :: Program -> String
-showProgram = undefined
+showProgram (functions, expression) = intercalate "\n" $ filter (not . null) [showFunctions functions, showExpression expression]
 
 toBool :: Integer -> Bool
 toBool = (/=) 0
@@ -113,5 +132,57 @@ evalExpression = undefined
 -} -- Удалите эту строчку, если решаете бонусное задание.
 
 -- Реализуйте eval: запускает программу и возвращает её значение.
+
+readFromState :: Name -> State -> Integer
+readFromState _ []                                         = undefined
+readFromState name ((val_name, val):xs) | name == val_name = val
+                                        | otherwise        = readFromState name xs
+
+addToState :: Name -> Integer -> State -> State
+addToState name val state = case findIndex ((==)name . fst) state of
+                                Just i -> take i state ++ [(name, val)] ++ drop (i + 1) state
+                                otherwise  -> (name, val) : state
+
+findFunction :: Name -> [FunctionDefinition] -> FunctionDefinition
+findFunction name = head . filter (\(f_name, _, _) -> f_name == name)
+
+addNamedArgsToState :: [Name] -> [Integer] -> State -> State
+addNamedArgsToState [] _ state                         = state
+addNamedArgsToState _ [] state                         = state
+addNamedArgsToState (name:names) (value:values) state  = addToState name value $ addNamedArgsToState names values state
+
+(++++) :: Integer -> ([Integer], State) -> ([Integer], State)
+(++++) a (xs, state) = (a:xs, state)
+
+getAllValuesAndEndState :: [Expression] -> [FunctionDefinition] -> State -> ([Integer], State)
+getAllValuesAndEndState [] _ state  = ([], state)
+getAllValuesAndEndState (e:es) fs state = val ++++ getAllValuesAndEndState es fs new_state
+                                        where (val, new_state) = evalProgram (fs, e) state
+
+callFuntion :: FunctionDefinition -> [FunctionDefinition] -> [Expression] -> State -> (Integer, State)
+callFuntion (name, args_name, func_e) fs args state = (fst $ evalProgram (fs, func_e) (addNamedArgsToState args_name values new_state), new_state)
+                                                    where (values, new_state) = getAllValuesAndEndState args fs state
+
+evalProgram :: Program -> State -> (Integer, State)
+evalProgram (_, Number n) state                         = (n, state)
+evalProgram (_, Reference name) state                   = (readFromState name state, state)
+evalProgram (fs, Assign name e) state                   = (val, addToState name val new_state)
+                                                            where (val, new_state)   = evalProgram (fs, e) state
+evalProgram (fs, BinaryOperation op l r) state          = (toBinaryFunction op val val', new_state')
+                                                            where (val, new_state)   = evalProgram (fs, l) state
+                                                                  (val', new_state') = evalProgram (fs, r) new_state
+evalProgram (fs, UnaryOperation unop e) state           = (toUnaryFunction unop val, new_state)
+                                                            where (val, new_state)   = evalProgram (fs, e) state
+evalProgram (fs, FunctionCall name args) state          = callFuntion (findFunction name fs) fs args state
+evalProgram (fs, Conditional e t f) state | toBool cond = evalProgram (fs, t) new_state
+                                          | otherwise   = evalProgram (fs, f) new_state
+                                                            where (cond, new_state)  = evalProgram (fs, e) state
+evalProgram (fs, Block es) state                        = foldl (\(val, state) e -> evalProgram (fs, e) state) (0, state) es
+--evalProgram (fs, Block []) state                      = (0, state)
+--evalProgram (fs, Block (e:es)) state                  = evalProgram (fs, Block es) new_state
+--                                                            where new_state          = snd $ evalProgram (fs, e) state 
+
+
+
 eval :: Program -> Integer
-eval = undefined
+eval program = fst $ evalProgram program []
