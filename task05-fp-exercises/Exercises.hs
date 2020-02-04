@@ -52,13 +52,13 @@ hash' :: String -> Int
 hash' = hash'' 0
 
 hash'' :: Int -> String -> Int
-hash'' ini [] 		= ini
-hash'' ini (x:xs) 	= ord x + hash'' ini xs * p 
+hash'' ini []     = ini
+hash'' ini (x:xs) = ord x + hash'' ini xs * p 
 
 -- Выделите общую логику предыдущих функций и реализуйте функцию высшего порядка foldr',
 -- не используя никаких стандартных функций.
 foldr' :: (a -> b -> b) -> b -> [a] -> b
-foldr' f ini [] = ini
+foldr' f ini []     = ini
 foldr' f ini (x:xs) = x `f` foldr' f ini xs
 
 -- Реализуйте функцию map' (которая делает то же самое, что обычный map)
@@ -146,21 +146,21 @@ thirdElementOfSecondList xs = case secondElement xs of --take secondList
 -- Just 5
 fifthElement :: [a] -> Maybe a
 fifthElement xs = case tryTail xs of
-		    Just a -> fourthElement a
-		    _      -> Nothing
-		    where 
-		      fourthElement xs = case tryTail xs of 
-			       		   Just a -> thirdElement a
-					   _      -> Nothing
-		      thirdElement xs = case tryTail xs of	
-					  Just a -> secondElement a
-					  _      -> Nothing   		
+                    Just a -> fourthElement a
+                    _      -> Nothing
+                    where 
+                      fourthElement xs = case tryTail xs of 
+                                           Just a -> thirdElement a
+                                           _      -> Nothing
+                      thirdElement xs  = case tryTail xs of	
+                                           Just a -> secondElement a
+                                           _      -> Nothing   		
 
 -- Выделите общую логику в оператор ~~>.
 (~~>) :: Maybe a -> (a -> Maybe b) -> Maybe b
 (~~>) ma f = case ma of 
-	       Just a -> f a
-	       _      -> Nothing			
+               Just a -> f a
+               _      -> Nothing			
 
 -- Перепишите функцию thirdElementOfSecondList в thirdElementOfSecondList' используя
 -- только tryHead, tryTail, применение функций и оператор ~~>, но не используя
