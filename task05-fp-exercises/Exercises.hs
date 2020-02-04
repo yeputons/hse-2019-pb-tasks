@@ -194,8 +194,8 @@ nubBy' eq = foldr' (\x list -> x : filter (not . eq x) list) []
 -- >>> quickSort' "babca"
 -- "aabbc"
 quickSort' :: Ord a => [a] -> [a]
-quickSort' [] = []
-quickSort' (x:xs) = quickSort' (filter (<=x) xs) ++ x:quickSort' (filter (>x) xs)
+quickSort' []     = []
+quickSort' (x:xs) = quickSort' (filter (<= x) xs) ++ x:quickSort' (filter (> x) xs)
 
 -- Найдите суммарную длину списков, в которых чётное количество элементов
 -- имеют квадрат больше 100. Реализация должна быть без использования
@@ -210,7 +210,7 @@ quickSort' (x:xs) = quickSort' (filter (<=x) xs) ++ x:quickSort' (filter (>x) xs
 -- >>> weird' [[1, 11, 12], [9, 10, 20]]
 -- 3
 weird':: [[Int]] -> Int
-weird' = sum' . map' length . filter (even . length . filter ((>100) . (^2)))
+weird' = sum' . map' length . filter (even . length . filter ((> 100) . (^ 2)))
 
 -- 4) grep
 -- Нужно реализовать несколько вариаций grep'а.
