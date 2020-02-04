@@ -1,9 +1,5 @@
 module Yat where  -- Вспомогательная строчка, чтобы можно было использовать функции в других файлах.
 import Data.List
-import Data.Maybe
-import Data.Bifunctor
-import Debug.Trace
-import Control.Exception
 -- В логических операциях 0 считается ложью, всё остальное - истиной.
 -- При этом все логические операции могут вернуть только 0 или 1.
 
@@ -49,15 +45,15 @@ addTabs :: String -> String
 addTabs = intercalate "\n" . map ("\t"++) . lines
 
 showExpression :: Expression -> String
-showExpression (Number n) = show n
-showExpression (Reference name) = name
-showExpression (Assign name e) = "let " ++ name ++ " = " ++ showExpression e ++ " tel"
+showExpression (Number n)               = show n
+showExpression (Reference name)         = name
+showExpression (Assign name e)          = "let " ++ name ++ " = " ++ showExpression e ++ " tel"
 showExpression (BinaryOperation op l r) = "(" ++ showExpression l ++ " " ++ showBinop op ++ " " ++ showExpression r ++ ")"
-showExpression (UnaryOperation op e) = showUnop op ++ showExpression e
-showExpression (FunctionCall name es) = name ++ "(" ++ intercalate ", " (map showExpression es) ++ ")"
-showExpression (Conditional e t f) = "if " ++ showExpression e ++ " then " ++ showExpression t ++ " else " ++ showExpression f ++ " fi"
-showExpression (Block []) = "{\n}"
-showExpression (Block es) = "{\n" ++ intercalate ";\n" (map (addTabs . showExpression) es) ++ "\n}"
+showExpression (UnaryOperation op e)    = showUnop op ++ showExpression e
+showExpression (FunctionCall name es)   = name ++ "(" ++ intercalate ", " (map showExpression es) ++ ")"
+showExpression (Conditional e t f)      = "if " ++ showExpression e ++ " then " ++ showExpression t ++ " else " ++ showExpression f ++ " fi"
+showExpression (Block [])               = "{\n}"
+showExpression (Block es)               = "{\n" ++ intercalate ";\n" (map (addTabs . showExpression) es) ++ "\n}"
 
 showFunction :: FunctionDefinition -> String
 showFunction (name, args, e) = "func " ++ name ++ "(" ++ intercalate ", " args ++ ") = " ++ showExpression e
@@ -140,8 +136,8 @@ readFromState name ((val_name, val):xs) | name == val_name = val
 
 addToState :: Name -> Integer -> State -> State
 addToState name val state = case findIndex ((==)name . fst) state of
-                                Just i -> take i state ++ [(name, val)] ++ drop (i + 1) state
-                                otherwise  -> (name, val) : state
+                                Just i     -> take i state ++ [(name, val)] ++ drop (i + 1) state
+                                _          -> (name, val) : state
 
 findFunction :: Name -> [FunctionDefinition] -> FunctionDefinition
 findFunction name = head . filter (\(f_name, _, _) -> f_name == name)
@@ -155,13 +151,14 @@ addNamedArgsToState (name:names) (value:values) state  = addToState name value $
 (++++) a (xs, state) = (a:xs, state)
 
 getAllValuesAndEndState :: [Expression] -> [FunctionDefinition] -> State -> ([Integer], State)
-getAllValuesAndEndState [] _ state  = ([], state)
+getAllValuesAndEndState [] _ state      = ([], state)
 getAllValuesAndEndState (e:es) fs state = val ++++ getAllValuesAndEndState es fs new_state
-                                        where (val, new_state) = evalProgram (fs, e) state
+                                            where (val, new_state) = evalProgram (fs, e) state
 
-callFuntion :: FunctionDefinition -> [FunctionDefinition] -> [Expression] -> State -> (Integer, State)
-callFuntion (name, args_name, func_e) fs args state = (fst $ evalProgram (fs, func_e) (addNamedArgsToState args_name values new_state), new_state)
-                                                    where (values, new_state) = getAllValuesAndEndState args fs state
+callFuntion :: Name -> [FunctionDefinition] -> [Expression] -> State -> (Integer, State)
+callFuntion name fs args state = (fst $ evalProgram (fs, func_e) (addNamedArgsToState args_name values new_state), new_state)
+                                                    where (_, args_name, func_e) = findFunction name fs
+                                                          (values, new_state)    = getAllValuesAndEndState args fs state
 
 evalProgram :: Program -> State -> (Integer, State)
 evalProgram (_, Number n) state                         = (n, state)
@@ -173,15 +170,11 @@ evalProgram (fs, BinaryOperation op l r) state          = (toBinaryFunction op v
                                                                   (val', new_state') = evalProgram (fs, r) new_state
 evalProgram (fs, UnaryOperation unop e) state           = (toUnaryFunction unop val, new_state)
                                                             where (val, new_state)   = evalProgram (fs, e) state
-evalProgram (fs, FunctionCall name args) state          = callFuntion (findFunction name fs) fs args state
+evalProgram (fs, FunctionCall name args) state          = callFuntion name fs args state
 evalProgram (fs, Conditional e t f) state | toBool cond = evalProgram (fs, t) new_state
                                           | otherwise   = evalProgram (fs, f) new_state
                                                             where (cond, new_state)  = evalProgram (fs, e) state
-evalProgram (fs, Block es) state                        = foldl (\(val, state) e -> evalProgram (fs, e) state) (0, state) es
---evalProgram (fs, Block []) state                      = (0, state)
---evalProgram (fs, Block (e:es)) state                  = evalProgram (fs, Block es) new_state
---                                                            where new_state          = snd $ evalProgram (fs, e) state 
-
+evalProgram (fs, Block es) state                        = foldl (\(_, new_state) e -> evalProgram (fs, e) new_state) (0, state) es
 
 
 eval :: Program -> Integer
