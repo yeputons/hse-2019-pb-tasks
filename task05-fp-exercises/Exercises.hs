@@ -16,7 +16,7 @@ sum' :: [Int] -> Int
 sum' = sum'' 0
 
 sum'' :: Int -> [Int] -> Int
-sum'' ini [] = ini
+sum'' ini []     = ini
 sum'' ini (x:xs) = x + sum'' ini xs
 
 -- Функция concat' принимает на вход список списков и возвращает конкатенацию
@@ -197,7 +197,7 @@ nubBy' eq = foldr' (\x xs -> x:filter (not . eq x) xs) []
 -- >>> quickSort' "babca"
 -- "aabbc"
 quickSort' :: Ord a => [a] -> [a]
-quickSort' [] = []
+quickSort' []     = []
 quickSort' (x:xs) = quickSort' [y | y <- xs, y <= x] ++ [x] ++ quickSort' [y | y <- xs, y > x]
 
 
@@ -214,7 +214,7 @@ quickSort' (x:xs) = quickSort' [y | y <- xs, y <= x] ++ [x] ++ quickSort' [y | y
 -- >>> weird' [[1, 11, 12], [9, 10, 20]]
 -- 3
 weird':: [[Int]] -> Int
-weird' = sum' . map' length . filter (even . length . filter ((>100) . (^2)))
+weird' = sum' . map' length . filter (even . length . filter ((> 100) . (^ 2)))
 --weird' xs = foldr' (+) 0 (map' length [x | x <- xs, even (length [el | el <- x, el ^ 2 > 100])])
 
 
