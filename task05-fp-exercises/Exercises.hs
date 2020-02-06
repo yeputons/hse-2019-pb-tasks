@@ -13,7 +13,7 @@ import Prelude hiding (sum, concat, foldr, map)
 -- >>> sum'' 10 [2, 3]
 -- 15
 sum' :: [Int] -> Int
-sum' xs = sum'' 0 xs
+sum' = sum'' 0
 
 sum'' :: Int -> [Int] -> Int
 sum'' ini (x:xs) = (sum'' x xs) + ini
@@ -27,7 +27,7 @@ sum'' ini [] = ini
 -- >>> concat'' "c" ["a", "b"]
 -- "abc"
 concat' :: [[a]] -> [a]
-concat' xs = concat'' [] xs
+concat' = concat'' []
 
 concat'' :: [a] -> [[a]] -> [a]
 concat'' ini (x:xs) = x ++ (concat'' ini xs)
@@ -49,7 +49,7 @@ p :: Int
 p = 17
 
 hash' :: String -> Int
-hash' xs = hash'' 0 xs
+hash' = hash'' 0
 
 hash'' :: Int -> String -> Int
 hash'' ini [] = ini 
@@ -64,7 +64,7 @@ foldr' f ini (x:xs) = f x (foldr' f ini xs)
 -- Реализуйте функцию map' (которая делает то же самое, что обычный map)
 -- через функцию foldr', не используя стандартных функций.
 map' :: (a -> b) -> [a] -> [b]
-map' f xs = foldr' (\y ys -> f y : ys) [] xs
+map' f = foldr' (\y ys -> f y : ys) []
 
 -- 2) Maybe
 -- Maybe a - это специальный тип данных, который может принимать либо
@@ -271,4 +271,4 @@ grepSubstringNoFilename needle = grep' (\ _ x -> x) (isSubstringOf needle)
 -- >>> grepExactMatchWithFilename "c" [("a.txt", ["a", "a"]), ("b.txt", ["b", "bab", "c"]), ("c.txt", ["c", "ccccc"])]
 -- ["b.txt:c", "c.txt:c"]
 grepExactMatchWithFilename :: String -> [File] -> [String]
-grepExactMatchWithFilename needle = grep' (\ filename strings -> map' ((filename ++ ":") ++ ) strings) (== needle)
+grepExactMatchWithFilename needle = grep' (\ filename -> map' ((filename ++ ":") ++ )) (== needle)
