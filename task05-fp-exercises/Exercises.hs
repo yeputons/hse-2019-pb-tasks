@@ -64,8 +64,7 @@ foldr' f ini (x:xs)  = f x $ foldr' f ini xs
 -- Реализуйте функцию map' (которая делает то же самое, что обычный map)
 -- через функцию foldr', не используя стандартных функций.
 map' :: (a -> b) -> [a] -> [b]
-map' f [] = []
-map' f xs = foldr' (\ n ms -> ( f n : ms ) ) [] xs
+map' f = foldr' (\ n ms -> ( f n : ms ) ) []
 
 -- 2) Maybe
 -- Maybe a - это специальный тип данных, который может принимать либо
@@ -154,15 +153,14 @@ fifthElement xs = nthElement xs 5
 
 -- Выделите общую логику в оператор ~~>.
 (~~>) :: Maybe a -> (a -> Maybe b) -> Maybe b
-(~~>) ma f = case ma of
-                Nothing -> Nothing
-                Just p  -> f p
+(~~>) Nothing _     = Nothing
+(~~>) (Just p) f    = f p
 
 -- Перепишите функцию thirdElementOfSecondList в thirdElementOfSecondList' используя
 -- только tryHead, tryTail, применение функций и оператор ~~>, но не используя
 -- сопоставление с образом (pattern matching) ни в каком виде, case, if, guards.
 thirdElementOfSecondList' :: [[a]] -> Maybe a
-thirdElementOfSecondList' xs = ((((Just xs ~~> tryTail) ~~> tryHead) ~~> tryTail) ~~> tryTail) ~~> tryHead
+thirdElementOfSecondList' xs = Just xs ~~> tryTail ~~> tryHead ~~> tryTail ~~> tryTail ~~> tryHead
 
 -- 3) Несколько упражнений
 -- Реализуйте функцию nubBy', которая принимает на вход функцию для сравнения 
