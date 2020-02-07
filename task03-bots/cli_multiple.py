@@ -13,7 +13,6 @@ def send_message(to_user_id: int, message: str) -> None:
 
 
 def main() -> None:
-    # bot = ChatBot(send_message=send_message)
     bot = UserIndependentBot(
         send_message=send_message,
         user_handler=AlarmUserHandler

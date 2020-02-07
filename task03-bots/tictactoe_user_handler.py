@@ -32,7 +32,7 @@ class TicTacToeUserHandler(UserHandler):
             if self.game.is_finished():
                 winner = self.game.winner()
                 message = 'Game is finished, '
-                if winner == None:
+                if winner is None:
                     message += 'draw'
                 else:
                     message += winner.name + ' wins'
@@ -47,10 +47,6 @@ class TicTacToeUserHandler(UserHandler):
         for row in range(3):
             for col in range(3):
                 if self.game.field[row][col]:
-                    # if self.game.field[row][col] == Player.X:
-                    #     message += 'X'
-                    # else:
-                    #     message += 'O'
                     message += self.game.field[row][col].name
                 else:
                     message += '.'
