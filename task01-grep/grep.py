@@ -5,7 +5,7 @@ import re
 import argparse
 
 
-def substr_search(needle: str, line: str, flags: bool, full_match: bool):
+def substr_search(needle: str, line: str, flags: bool, full_match: bool) -> bool:
     if flags:
         needle = needle.lower()
         line = line.lower()
@@ -16,7 +16,7 @@ def substr_search(needle: str, line: str, flags: bool, full_match: bool):
     return needle in line
 
 
-def parse_lines(lines: list):
+def parse_lines(lines: list) -> list:
     result = []
     for line in lines:
         line = line.rstrip('\n')
@@ -25,7 +25,7 @@ def parse_lines(lines: list):
 
 
 def match_string(needle: str, line: str, regex: bool,
-                 ignore_case: bool, reverse: bool, full_match: bool):
+                 ignore_case: bool, reverse: bool, full_match: bool) -> bool:
     if regex:
         if full_match:
             return bool(re.fullmatch(needle, line,
@@ -35,7 +35,7 @@ def match_string(needle: str, line: str, regex: bool,
         return substr_search(needle, line, flags=ignore_case, full_match=full_match) ^ reverse
 
 
-def read_files(files: list):
+def read_files(files: list) -> dict:
     lines = dict()
     for file in files:
         with open(file, 'r') as in_file:
@@ -43,14 +43,14 @@ def read_files(files: list):
     return lines
 
 
-def read_stdin():
+def read_stdin() -> dict:
     lines = dict()
     lines[''] = parse_lines(sys.stdin.readlines())
     return lines
 
 
 def filter_lines(lines: dict, needle: str, regex: bool,
-                 ignore_case: bool, reverse: bool, full_match: bool):
+                 ignore_case: bool, reverse: bool, full_match: bool) -> dict:
     result = dict()
     for file in lines:
         filtered_file = []
@@ -61,7 +61,7 @@ def filter_lines(lines: dict, needle: str, regex: bool,
     return result
 
 
-def print_answer_count(filtered_lines: dict):
+def print_answer_count(filtered_lines: dict) -> None:
     for file in filtered_lines:
         if len(filtered_lines) == 1:
             print(len(filtered_lines[file]))
@@ -69,13 +69,13 @@ def print_answer_count(filtered_lines: dict):
             print(f'{file}:{len(filtered_lines[file])}')
 
 
-def print_answer_files_only(filtered_lines: dict, reverse_files_only: bool):
+def print_answer_files_only(filtered_lines: dict, reverse_files_only: bool) -> None:
     for file in filtered_lines:
         if bool(len(filtered_lines[file])) ^ reverse_files_only:
             print(file)
 
 
-def print_answer_default(filtered_lines: dict):
+def print_answer_default(filtered_lines: dict) -> None:
     for file in filtered_lines:
         for line in filtered_lines[file]:
             if len(filtered_lines) == 1:
@@ -85,7 +85,7 @@ def print_answer_default(filtered_lines: dict):
 
 
 def print_answer(filtered_lines: dict, count_flag: bool,
-                 files_only: bool, reverse_files_only: bool):
+                 files_only: bool, reverse_files_only: bool) -> None:
     if count_flag:
         print_answer_count(filtered_lines)
     elif files_only or reverse_files_only:
