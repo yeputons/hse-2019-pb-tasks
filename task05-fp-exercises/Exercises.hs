@@ -198,12 +198,11 @@ nubBy' eq (x:xs) = x : nubBy' eq (filter (not . eq x) xs)
 -- "aabbc"
 quickSort' :: Ord a => [a] -> [a]
 quickSort' [] = []
-quickSort' xs = quickSort' lesserpart ++ equalpart ++ quickSort' greaterpart
+quickSort' (x:xs) = quickSort' lesserpart ++ equalpart ++ quickSort' greaterpart
     where 
-        x           = head xs
-        lesserpart  = filter ( < x) xs
-        equalpart   = filter ( == x) xs
-        greaterpart = filter ( > x) xs
+        lesserpart  = filter ( < x) (x:xs)
+        equalpart   = filter ( == x) (x:xs)
+        greaterpart = filter ( > x) (x:xs)
 
 -- Найдите суммарную длину списков, в которых чётное количество элементов
 -- имеют квадрат больше 100. Реализация должна быть без использования
@@ -275,4 +274,4 @@ grepSubstringNoFilename needle = grep' (\ _ s -> s) (isSubstringOf needle)
 -- >>> grepExactMatchWithFilename "c" [("a.txt", ["a", "a"]), ("b.txt", ["b", "bab", "c"]), ("c.txt", ["c", "ccccc"])]
 -- ["b.txt:c", "c.txt:c"]
 grepExactMatchWithFilename :: String -> [File] -> [String]
-grepExactMatchWithFilename needle = grep' (\ n s -> map ((n ++ ":") ++) s) (== needle)
+grepExactMatchWithFilename needle = grep' (\ n -> map ((n ++ ":") ++)) (== needle)
