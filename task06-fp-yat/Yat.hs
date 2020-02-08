@@ -76,7 +76,6 @@ showExpression (Reference name)                  = name
 showExpression (Assign name expr)                = concat ["let ", name, " = ", showExpression expr, " tel"]
 showExpression (BinaryOperation op left right)   = concat ["(", showExpression left, " ", showBinop op, " ", showExpression right, ")"]
 showExpression (UnaryOperation op expr)          = showUnop op ++ showExpression expr
-showExpression (FunctionCall name [])            = name ++ "()"
 showExpression (FunctionCall name args)          = concat [name, "(", intercalate ", " $ map showExpression args, ")"]
 showExpression (Conditional expr ifTrue ifFalse) = concat ["if ", showExpression expr, " then ", showExpression ifTrue, " else ", showExpression ifFalse, " fi"]
 showExpression (Block [])                        = "{\n}"
