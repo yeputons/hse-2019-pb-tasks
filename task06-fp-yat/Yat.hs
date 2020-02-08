@@ -53,7 +53,7 @@ showExpression (Assign name expr)                     = concat ["let ", name, " 
 showExpression (BinaryOperation binop expr1 expr2)    = concat ["(", showExpression expr1, " ", showBinop binop, " ", showExpression expr2, ")"]
 showExpression (UnaryOperation unop expr)             = showUnop unop ++ showExpression expr
 showExpression (FunctionCall name args)               = concat [name, "(", intercalate ", " (map showExpression args), ")"]
-showExpression (Conditional state ifState ifNotState) = concat ["if ", showExpression state, " then ", showExpression ifState, " else ", showExpression ifNotState, " fi"]
+showExpression (Conditional cond ifCond ifNotCond)    = concat ["if ", showExpression cond, " then ", showExpression ifCond, " else ", showExpression ifNotCond, " fi"]
 showExpression (Block exprs)                          = concat ["{\n", concatMap (("\t" ++) . (++ "\n")) (lines $ intercalate ";\n" (map showExpression exprs)), "}"]
 
 showFunction :: FunctionDefinition -> String
@@ -125,6 +125,45 @@ evalExpression :: Expression -> Eval Integer  -- Вычисляет выраже
 evalExpression = undefined
 -} -- Удалите эту строчку, если решаете бонусное задание.
 
+fst3 :: FunctionDefinition -> Name
+fst3 (name, _, _) = name
+
+snd3 :: FunctionDefinition -> [Name]
+snd3 (_, args, _) = args
+
+trd3 :: FunctionDefinition -> Expression
+trd3 (_, _, expr) = expr
+
+evalExpression :: State -> [FunctionDefinition] -> Expression -> (State, Integer)
+
+evalExpression state funcs (Number num)                        = (state, num)
+
+evalExpression state funcs (Reference name)                    = (state, snd $ fromJust $ find ((== name) . fst) state)
+
+evalExpression state funcs (Assign name expr)                  = ((name, newVal) : newState, newVal)
+                                                                    where (newState, newVal) = evalExpression state funcs expr
+
+evalExpression state funcs (BinaryOperation binop expr1 expr2) = (rightState, toBinaryFunction binop leftVal rightVal)
+                                                                    where 
+                                                                        (leftState, leftVal)   = evalExpression state funcs expr1
+                                                                        (rightState, rightVal) = evalExpression (state ++ leftState) funcs expr2
+
+evalExpression state funcs (UnaryOperation unop expr)          = (newState, toUnaryFunction unop val)
+                                                                    where (newState, val) = evalExpression state funcs expr
+
+evalExpression state funcs (FunctionCall name args)            = (new_state, snd $ evalExpression new_state funcs (trd3 func))
+                                                                    where
+                                                                        new_state = zip (snd3 func) (map (snd . evalExpression state funcs) args) ++ fst (evalExpression state funcs (Block args))
+                                                                        func = fromJust $ find ((== name) . fst3) funcs
+
+evalExpression state funcs (Conditional cond ifCond ifNotCond) | toBool val = evalExpression newState funcs ifCond
+                                                               | otherwise = evalExpression newState funcs ifNotCond
+                                                                    where (newState, val) = evalExpression state funcs cond
+
+evalExpression state funcs (Block []) = (state, 0)
+evalExpression state funcs (Block [expr]) = evalExpression state funcs expr
+evalExpression state funcs (Block (x:xs)) = evalExpression (fst (evalExpression state funcs x)) funcs (Block xs)
+                                                                                                                             
 -- Реализуйте eval: запускает программу и возвращает её значение.
 eval :: Program -> Integer
-eval = undefined
+eval (functions, expr) = snd $ evalExpression [] functions expr
