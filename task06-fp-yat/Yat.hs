@@ -46,47 +46,29 @@ showUnop :: Unop -> String
 showUnop Neg = "-"
 showUnop Not = "!"
 
-(/+) = BinaryOperation Add
-(/*) = BinaryOperation Mul
-(/-) = BinaryOperation Sub
-(|||) = BinaryOperation Or
-(===) = BinaryOperation Eq
-iff = Conditional
-(=:=) = Assign
-c = Number
-r = Reference
-call = FunctionCall
+showList' :: [a] -> String -> String -> (a -> String -> String) -> String
+showList' []     _    _    _  = ""
+showList' [x]    _    tabs sh = tabs ++ sh x tabs
+showList' (x:xs) next tabs sh = tabs ++ sh x tabs ++ next ++ showList' xs next tabs sh
 
-infixl 6 /+
-infixl 6 /-
-infixl 7 /*
-infixr 2 |||
-infix 4 ===
-infixr 1 =:=
+showExpression :: Expression -> String -> String
+showExpression (Number a)               tabs = show a
+showExpression (Reference a)            tabs = a
+showExpression (Assign var a)           tabs = "let " ++ var ++ " = " ++ showExpression a tabs ++ " tel"
+showExpression (BinaryOperation op a b) tabs = "(" ++ showExpression a tabs ++ " " ++ showBinop op ++ " " ++ showExpression b tabs ++ ")"
+showExpression (UnaryOperation uop a)   tabs = showUnop uop ++ showExpression a tabs
+showExpression (FunctionCall fun a)     tabs = fun ++ "(" ++ showList' a ", " "" showExpression ++ ")"
+showExpression (Conditional cond a b)   tabs = "if " ++ showExpression cond tabs ++ " then " ++ showExpression a tabs ++ " else " ++ showExpression b tabs ++ " fi"
+showExpression (Block [])               tabs = "{\n" ++ tabs ++ "}"
+showExpression (Block a)                tabs = "{\n" ++ showList' a ";\n" (tabs ++ "\t") showExpression ++ "\n" ++ tabs ++ "}"
 
-showList' :: [a] -> String -> (a -> String) -> String
-showList' [] _ _ = ""
-showList' [x] _ sh = sh x
-showList' (x:xs) next sh = sh x ++ next ++ (showList' xs next sh)
-
-showExpression :: Expression -> String
-showExpression (Number a) = show a
-showExpression (Reference a) = a
-showExpression (Assign var a) = "let " ++ var ++ " = " ++ showExpression a ++ " tel"
-showExpression (BinaryOperation op a b) = "(" ++ showExpression a ++ " " ++ showBinop op ++ " " ++ showExpression b ++ ")"
-showExpression (UnaryOperation uop a) = showUnop uop ++ showExpression a
-showExpression (FunctionCall fun a) = fun ++ "(" ++ (showList' a ", " showExpression) ++ ")"
-showExpression (Conditional cond a b) = "if " ++ showExpression cond ++ " then " ++ showExpression a ++ " else " ++ showExpression b ++ " fi"
-showExpression (Block []) = "{\n}"
-showExpression (Block a) = "{\n\t" ++ (showList' a ";\n\t" showExpression) ++ "\n}"
-
-showFunction :: FunctionDefinition -> String
-showFunction (fun, names, a) = "func " ++ fun ++ "(" ++ (showList' names ", " (\s -> s)) ++ ") = " ++ showExpression a
+showFunction :: FunctionDefinition -> String -> String
+showFunction (fun, names, a) tabs = "func " ++ fun ++ "(" ++ showList' names ", " "" (flip (++)) ++ ") = " ++ showExpression a tabs
 
 -- Верните текстовое представление программы (см. условие).
 showProgram :: Program -> String
-showProgram ([], body) = showExpression body
-showProgram (funcs, body) = (showList' funcs "\n" showFunction) ++ "\n" ++ showExpression body
+showProgram ([],    body) = showExpression body ""
+showProgram (funcs, body) = showList' funcs "\n" "" showFunction ++ "\n" ++ showExpression body ""
 
 toBool :: Integer -> Bool
 toBool = (/=) 0
@@ -155,16 +137,12 @@ modifyScope :: State -> String -> Integer -> State
 modifyScope scope var val = filter (\s -> var /= fst s) scope ++ zip (replicate 1 var) (replicate 1 val)
 
 functionScope :: State -> State -> State
-functionScope scope [] = scope
-functionScope scope (x:xs) = functionScope (modifyScope scope (fst x) (snd x)) xs
+functionScope = foldl (\ scope x -> uncurry (modifyScope scope) x)
 
 getValue :: State -> String -> Integer
 getValue scope var = case lookup var scope of
                                 Just a -> a
                                 _       -> 0
-
-getResult :: Expression -> State -> [FunctionDefinition] -> Integer
-getResult expr scope funcs = snd $ evalExpression scope funcs expr
 
 getName :: FunctionDefinition -> Name
 getName (name, _, _) = name
@@ -175,27 +153,36 @@ getArgs (_, args, _) = args
 getFunExpr :: FunctionDefinition -> Expression
 getFunExpr (_, _, expr) = expr
 
-evalList' :: State -> [FunctionDefinition] -> [Expression] -> [Integer]
-evalList' _ _ [] = []
-evalList' scope funcs (x:xs) = (replicate 1 (snd $ evalExpression scope funcs x)) ++ evalList' scope funcs xs
+evalArgs :: [Name] -> State -> [FunctionDefinition] -> [Expression] -> State
+evalArgs []     _     _     _            = undefined
+evalArgs _      _     _     []           = undefined
+evalArgs [a]    scope funcs [expr]       = modifyScope (fst calcul) a (snd calcul)
+                                         where calcul = evalExpression scope funcs expr
+evalArgs (a:as) scope funcs (expr:exprs) = evalArgs as (modifyScope (fst calcul) a (snd calcul)) funcs exprs
+                                         where calcul = evalExpression scope funcs expr
 
-workBitch :: [FunctionDefinition] -> [FunctionDefinition] -> State -> Name -> [Expression] -> Integer
-workBitch [] _ _ _ _ = undefined
-workBitch (x:xs) funcs scope funcName oper | getName x == funcName = snd $ evalExpression (functionScope scope (zip (getArgs x) (evalList' scope funcs oper))) funcs (getFunExpr x)
-                                           | otherwise = workBitch xs funcs scope funcName oper
+findFunction :: [FunctionDefinition] -> [FunctionDefinition] -> State -> Name -> [Expression] -> (State, Integer)
+findFunction []     _     _     _        _    = undefined
+findFunction (x:xs) funcs scope funcName oper | getName x == funcName = (fst $ evalExpression scope funcs (Block oper), snd $ evalExpression recur funcs (getFunExpr x))
+                                              | otherwise             = findFunction xs funcs scope funcName oper
+                                              where recur = evalArgs (getArgs x) scope funcs oper
 
 evalExpression :: State -> [FunctionDefinition] -> Expression -> (State, Integer)
-evalExpression scope _ (Number a) = (scope, a)
-evalExpression scope _ (Reference a) = (scope, getValue scope a)
-evalExpression scope funcs (Assign var val) = (modifyScope scope var (snd $ evalExpression scope funcs val), 0)
-evalExpression scope funcs (BinaryOperation op a b) = (scope, toBinaryFunction op (getResult a scope funcs) (getResult b scope funcs))
-evalExpression scope funcs (UnaryOperation uop a) = (scope, toUnaryFunction uop (getResult a scope funcs))
-evalExpression scope funcs  (FunctionCall fun a) = (scope, workBitch funcs funcs scope fun a)
-evalExpression scope funcs (Conditional cond a b) | (snd $ evalExpression scope funcs cond) == 0 = evalExpression scope funcs b
-                                                  | otherwise = evalExpression scope funcs a
-evalExpression scope _ (Block []) = (scope, 0)
-evalExpression scope funcs (Block [x]) = (scope, snd $ evalExpression scope funcs x)
-evalExpression scope funcs (Block (x:xs)) = evalExpression (fst $ evalExpression scope funcs x) funcs (Block xs)
+evalExpression scope _     (Number a)               = (scope, a)
+evalExpression scope _     (Reference a)            = (scope, getValue scope a)
+evalExpression scope funcs (Assign var val)         = (modifyScope (fst calcul) var (snd calcul), snd calcul)
+                                                    where calcul = evalExpression scope funcs val
+evalExpression scope funcs (BinaryOperation op a b) = second (toBinaryFunction op (snd acase))(evalExpression (fst acase) funcs b)
+                                                    where acase = evalExpression scope funcs a
+evalExpression scope funcs (UnaryOperation uop a)   = second (toUnaryFunction uop) calcul
+                                                    where calcul = evalExpression scope funcs a
+evalExpression scope funcs (FunctionCall fun a)     = findFunction funcs funcs scope fun a
+evalExpression scope funcs (Conditional cond a b)   | toBool(snd condition) = evalExpression (fst condition) funcs a
+                                                    | otherwise             = evalExpression (fst condition) funcs b
+                                                    where condition = evalExpression scope funcs cond
+evalExpression scope _     (Block [])               = (scope, 0)
+evalExpression scope funcs (Block [x])              = evalExpression scope funcs x
+evalExpression scope funcs (Block (x:xs))           = evalExpression (fst $ evalExpression scope funcs x) funcs (Block xs)
 
 eval :: Program -> Integer
-eval prog = snd $ evalExpression [] (fst prog) (snd prog)
+eval prog = snd $ uncurry (evalExpression []) prog
