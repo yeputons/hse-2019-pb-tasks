@@ -4,8 +4,6 @@ import Data.Maybe
 import Data.Bifunctor
 import Debug.Trace
 
--- import Text.Printf
-
 -- В логических операциях 0 считается ложью, всё остальное - истиной.
 -- При этом все логические операции могут вернуть только 0 или 1.
 
@@ -79,10 +77,6 @@ indent ind (x   :tl)   = x:indent ind tl
 
 showFunctionDefinition :: FunctionDefinition -> String
 showFunctionDefinition (name, args, expr) = concat ["func ", name, "(", intercalate ", " args, ") = ", showExpression expr, "\n"]
--- showFunctionDefinition (name, args, expr) = printf "func %s(%s) = %s\n" name (emptyFoldl1 (printf "%s, %s") args) (showExpression expr)
---                                            where showArgs [] = ""
---                                                  showArgs (arg:[]) = arg
---                                                  showArgs (arg:args) = printf "%s, " arg (showArgs args)
 
 showProgram :: Program -> String
 showProgram (f:fs, expr) = indent 0 (showFunctionDefinition f) ++ showProgram (fs, expr)
@@ -135,10 +129,9 @@ readState = Eval readState'
 
 addToState :: String -> Integer -> a -> Eval a  -- Добавляет/изменяет значение переменной на новое и возвращает константу.
 addToState name value a = Eval addToState'
-                          where addToState' _   []                          = (a, [(name, value)])
-                                addToState' fds ((ref, _):vs) | ref == name = (a, (name, value):vs)
-                                                              | otherwise   = (a, snd $ addToState' fds vs)
--- fix: push_front, not push_back
+                          where addToState' _   []                            = (a, [(name, value)])
+                                addToState' fds ((ref, val):vs) | ref == name = (a, (name, value):vs)
+                                                                | otherwise   = (a, (ref,val):snd (addToState' fds vs))
 
 readDefs :: Eval [FunctionDefinition]  -- Возвращает все определения функций.
 readDefs = Eval readDefs'
@@ -161,6 +154,7 @@ evalExpressionsL f a (e:es) = Eval evalExpressionsL'
                                                                where newA          = f a valE
                                                                      (valE, newSt) = runEval (evalExpression e) fds st
 
+
 evalExpression :: Expression -> Eval Integer  -- Вычисляет выражение.
 evalExpression (Number    n   )           = evaluated n
 evalExpression (Reference name)           = Eval evalExpression'
@@ -169,36 +163,37 @@ evalExpression (Reference name)           = Eval evalExpression'
                                                   lookup          ((ref, val):vs) | ref == name  = val
                                                                                   | otherwise    = lookup vs
 evalExpression (Assign    name expr)      = Eval evalExpression'
-                                            where evalExpression' fds st = runEval (addToState name valE valE) fds st
-                                                                           where (valE, _) = runEval (evalExpression expr) fds st
+                                            where evalExpression' fds st = runEval (addToState name valE valE) fds newSt
+                                                                           where (valE, newSt) = runEval (evalExpression expr) fds st
 evalExpression (BinaryOperation op e1 e2) = Eval evalExpression'
-                                            where evalExpression' fds st = (binF valE1 valE2, st)
-                                                                           where binF  = toBinaryFunction op
-                                                                                 (valE1, _) = runEval (evalExpression e1) fds st
-                                                                                 (valE2, _) = runEval (evalExpression e2) fds st
+                                            where evalExpression' fds st = (binF valE1 valE2, newSt2)
+                                                                           where binF            = toBinaryFunction op
+                                                                                 (valE1, newSt1) = runEval          (evalExpression e1) fds st
+                                                                                 (valE2, newSt2) = runEval          (evalExpression e2) fds newSt1
 evalExpression (UnaryOperation op expr)   = Eval evalExpression'
-                                            where evalExpression' fds st = (unF valE, st)
+                                            where evalExpression' fds st = (unF valE, newSt)
                                                                            where unF  = toUnaryFunction op
-                                                                                 (valE, _) = runEval (evalExpression expr) fds st
+                                                                                 (valE, newSt) = runEval (evalExpression expr) fds st
 evalExpression (FunctionCall name args)   = Eval evalExpression'
-                                            where evalExpression' fds st = (fRet, st)
+                                            where evalExpression' fds st = (fRet, newSt)
                                                                            where fLookup []                                         = undefined
                                                                                  fLookup ((fName, fArgs, fBody):fs) | fName == name = (fArgs, fBody)
                                                                                                                     | otherwise     = fLookup fs
                                                                                  (fRet, _)                              = runEval (evalExpression fBody) fds fState
                                                                                  (fArgNames, fBody)                     = fLookup fds
-                                                                                 fState                                 = extendState fArgNames args st
-                                                                                 extendState [] []                   st = st
+                                                                                 (fState, newSt)                        = extendState fArgNames args st
+                                                                                 extendState [] []                   st = (st, st)
                                                                                  extendState [] _                    _  = undefined
                                                                                  extendState _  []                   _  = undefined
-                                                                                 extendState (name:names) (arg:args) st = snd $ runEval (addToState name valE 0) fds nextState
-                                                                                                                          where valE = fst $ runEval (evalExpression arg) fds st
-                                                                                                                                nextState = extendState names args st
+                                                                                 extendState (name:names) (arg:args) st = (snd $ runEval (addToState name valE 0) fds fState', newSt')
+                                                                                                                          where (valE, tmpSt)     = runEval (evalExpression arg) fds st
+                                                                                                                                (fState', newSt') = extendState names args tmpSt
 evalExpression (Conditional c e1 e2)      = Eval evalExpression'
-                                            where evalExpression' fds st = if valC then valE1 else valE2
-                                                                           where valC  = toBool $ fst $ runEval (evalExpression c) fds st
-                                                                                 valE1 = runEval (evalExpression e1) fds st
-                                                                                 valE2 = runEval (evalExpression e2) fds st
+                                            where evalExpression' fds st = if toBool valC then valE1 else valE2
+                                                                           where (valC, newSt)  = runEval (evalExpression c)  fds st
+                                                                                 valE1          = runEval (evalExpression e1) fds newSt
+                                                                                 valE2          = runEval (evalExpression e2) fds newSt
+
 evalExpression (Block es)                 = Eval evalExpression'
                                             where evalExpression' = runEval (evalExpressionsL (\_ a -> a) 0 es) 
 
@@ -206,4 +201,4 @@ evalExpression (Block es)                 = Eval evalExpression'
 
 -- Реализуйте eval: запускает программу и возвращает её значение.
 eval :: Program -> Integer
-eval =  undefined
+eval (fds, expr) = fst $ runEval (evalExpression expr) fds []
