@@ -65,13 +65,6 @@ showUnop Not = "!"
 
 -- Аня, прости меня за этот код =(
 
-dropLast :: Int -> [a] -> [a]
-dropLast n x = take (length x - n) x
-
-showArgs :: [String] -> String
-showArgs []    = ""
-showArgs args  = dropLast 2 . concat $ map (++ ", ") args
-
 addTabs :: String -> String
 addTabs []      = []
 addTabs (s:str) | s == '\n' = s:'\t':addTabs str
@@ -84,14 +77,14 @@ showExpression (Assign name expr)                = concat ["let ", name, " = ", 
 showExpression (BinaryOperation op left right)   = concat ["(", showExpression left, " ", showBinop op, " ", showExpression right, ")"]
 showExpression (UnaryOperation op expr)          = showUnop op ++ showExpression expr
 showExpression (FunctionCall name [])            = name ++ "()"
-showExpression (FunctionCall name args)          = concat [name, "(", showArgs $ map showExpression args, ")"]
+showExpression (FunctionCall name args)          = concat [name, "(", intercalate ", " $ map showExpression args, ")"]
 showExpression (Conditional expr ifTrue ifFalse) = concat ["if ", showExpression expr, " then ", showExpression ifTrue, " else ", showExpression ifFalse, " fi"]
 showExpression (Block [])                        = "{\n}"
-showExpression (Block exprs)                     = concat ["{\n\t", addTabs . dropLast 2 . concat $ map ((++ ";\n") . showExpression) exprs, "\n}"]
+showExpression (Block exprs)                     = concat ["{\n\t", addTabs $ intercalate ";\n" $ map showExpression exprs, "\n}"]
 
 
 showFunction :: FunctionDefinition -> String
-showFunction (name, args, expr) = concat ["func ", name, "(", showArgs args, ") = ", showExpression expr]
+showFunction (name, args, expr) = concat ["func ", name, "(", intercalate ", " args, ") = ", showExpression expr]
 
 showProgram :: Program -> String
 showProgram (funcs, body) = concatMap ((++ "\n") . showFunction) funcs ++ showExpression body  
