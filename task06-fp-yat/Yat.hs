@@ -27,6 +27,10 @@ type FunctionDefinition = (Name, [Name], Expression)  -- Имя функции, 
 type State = [(String, Integer)]  -- Список пар (имя переменной, значение). Новые значения дописываются в начало, а не перезаписываютсpя
 type Program = ([FunctionDefinition], Expression)  -- Все объявленные функций и основное тело программы
 
+type Function = ([Name], Expression)
+type MyFunctionDefinition = (Name, Function)
+type FullState = (State, [MyFunctionDefinition])
+
 showBinop :: Binop -> String
 showBinop Add = "+"
 showBinop Mul = "*"
@@ -46,9 +50,38 @@ showUnop :: Unop -> String
 showUnop Neg = "-"
 showUnop Not = "!"
 
+applyHead _ []        = undefined
+applyHead head [x]    = [head x]
+applyHead head (x:xs) = head x : xs 
+
+applyEnd [] _       = undefined
+applyEnd [x] end    = [end x]
+applyEnd (x:xs) end = x : applyEnd xs end
+
+merge xs []        = xs
+merge [] xs        = xs
+merge [x] (xx:xss) = (x ++ xx) : xss
+merge (x:xs) xss   = x : merge xs xss
+
+showExpr :: Expression -> [String]
+showExpr (Number n)                                = [show n]
+showExpr (Reference name)                          = [name]
+showExpr (Assign name expr)                        = (("let " ++ name ++ " = ") ++) `applyHead` (showExpr expr) `applyEnd` (++ " tel")
+showExpr (BinaryOperation binop expr1 expr2)       = (("(" ++) `applyHead` (showExpr expr1)) `merge` (((" " ++ showBinop binop ++ " ") ++) `applyHead` (showExpr expr2) `applyEnd` (++ ")"))
+showExpr (UnaryOperation unop expr)                = (showUnop unop ++) `applyHead` (showExpr expr)
+showExpr (FunctionCall fName [])                   = [fName ++ "()"]
+showExpr (FunctionCall fName exprs)                = ((fName ++ "(") ++) `applyHead` (showExpr (head exprs)) `merge` (foldr (merge . applyHead (", " ++) . showExpr) [] (tail exprs)) `applyEnd` (++ ")")
+showExpr (Conditional condExpr trueExpr falseExpr) = ("if " ++) `applyHead` (showExpr condExpr) `merge` ((" then " ++) `applyHead` (showExpr trueExpr)) `merge` ((" else " ++) `applyHead` (showExpr falseExpr) `applyEnd` (++ " fi"))
+showExpr (Block [])                                = ["{","}"]
+showExpr (Block exprs)                             = ["{"] ++ (map ("\t" ++) (foldr1 ((++) . (`applyEnd` (++ ";"))) (map showExpr exprs))) ++ ["}"]
+
+
+showFunction :: FunctionDefinition -> [String]
+showFunction (fName, paramsNames, expr) = (("func " ++ fName ++ "(" ++ (intercalate ", " paramsNames) ++ ") = ") ++) `applyHead` (showExpr expr)
+
 -- Верните текстовое представление программы (см. условие).
 showProgram :: Program -> String
-showProgram = undefined
+showProgram (funcList, expr) = intercalate "\n" $ (concatMap showFunction funcList) ++ (showExpr expr)
 
 toBool :: Integer -> Bool
 toBool = (/=) 0
@@ -113,5 +146,54 @@ evalExpression = undefined
 -} -- Удалите эту строчку, если решаете бонусное задание.
 
 -- Реализуйте eval: запускает программу и возвращает её значение.
+
+applyFst func (x,y) = (func x, y)
+
+
+val :: Name -> FullState -> Integer
+val name (state,_) = findByName name state
+
+function :: Name -> FullState -> Function
+function name (_,funcs) = findByName name funcs
+
+findByName _ []        = undefined
+findByName name [x]    | name == fst x = snd x
+                       | otherwise     = undefined
+findByName name (x:xs) | name == fst x = snd x
+                       | otherwise     = findByName name xs
+
+
+callFunction :: Function -> [Integer] -> FullState -> Integer
+callFunction (names,expr) vals (state, funcs) = fst $ evalExpr expr state1
+                                                where state1 = ((zip names vals) ++ state, funcs)
+
+
+evalExprs :: [Expression] -> FullState -> ([Integer], FullState)
+evalExprs [] state     = ([], state)
+evalExprs [x] state    = ([value], state1)
+                       where (value, state1) = evalExpr x state
+evalExprs (x:xs) state = (value:valueList, state2)
+                       where (value, state1) = evalExpr x state
+                             (valueList, state2) = evalExprs xs state1
+
+
+evalExpr :: Expression -> FullState -> (Integer, FullState)
+evalExpr (Number n) state                                = (n, state)
+evalExpr (Reference name) state                          = (val name state, state)
+evalExpr (Assign name expr) state                        = (exprRet, applyFst ([(name, exprRet)] ++) stateRet)
+                                                         where (exprRet, stateRet) = evalExpr expr state
+evalExpr (BinaryOperation binop expr1 expr2) state       = (toBinaryFunction binop expr1Ret expr2Ret, state2)
+                                                         where (expr1Ret, state1) = evalExpr expr1 state
+                                                               (expr2Ret, state2) = evalExpr expr2 state1
+evalExpr (UnaryOperation unop expr) state                = (toUnaryFunction unop exprRet, stateRet)
+                                                         where (exprRet, stateRet) = evalExpr expr state
+evalExpr (FunctionCall fName exprs) state                = (callFunction (function fName state) params state1, state1)
+                                                         where (params, state1) = evalExprs exprs state
+evalExpr (Conditional condExpr trueExpr falseExpr) state | condVal == 0 = evalExpr falseExpr state1
+                                                         | otherwise    = evalExpr trueExpr state1
+                                                         where (condVal, state1) = evalExpr condExpr state
+evalExpr (Block []) state                                = (0, state)
+evalExpr (Block exprs) state                             = applyFst last (evalExprs exprs state)
+
 eval :: Program -> Integer
-eval = undefined
+eval (funcDef, expr) = fst $ evalExpr expr ([], map (\(a, b, c) -> (a, (b, c))) funcDef)
