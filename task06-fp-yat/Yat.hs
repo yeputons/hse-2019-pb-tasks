@@ -46,9 +46,38 @@ showUnop :: Unop -> String
 showUnop Neg = "-"
 showUnop Not = "!"
 
--- Верните текстовое представление программы (см. условие).
+
+functionsCall :: [Expression] -> String
+functionsCall []     = ""
+functionsCall [expr]    = showExpression expr ""
+functionsCall (expr:es) = showExpression expr "" ++ ", " ++ functionsCall es
+
+showListBlock :: [Expression] -> String -> String
+showListBlock [] _          = ""
+showListBlock [expr] indent    = indent ++ showExpression expr indent ++ "\n"
+showListBlock (expr:es) indent = indent ++ showExpression expr indent ++ ";\n" ++ showListBlock es indent
+
+showExpression :: Expression -> String -> String
+showExpression (Number n)                       indent = show n
+showExpression (Reference name)                 indent = name
+showExpression (Assign name expr)               indent = "let " ++ name ++ " = " ++ showExpression expr indent ++ " tel"
+showExpression (BinaryOperation op expr1 expr2) indent = "(" ++ showExpression expr1 indent ++ " " ++ showBinop op ++ " " ++ showExpression expr2 indent ++ ")"
+showExpression (UnaryOperation op expr)         indent = showUnop op ++ showExpression expr indent
+showExpression (FunctionCall name expr)         indent = name ++ "(" ++ functionsCall expr ++ ")"
+showExpression (Conditional cond x y)           indent = "if " ++ showExpression cond indent ++ " then " ++ showExpression x indent ++ " else " ++ showExpression y indent ++ " fi"
+showExpression (Block expr)                     indent = "{\n" ++ showListBlock expr (indent ++ "\t") ++ indent ++ "}"
+
+funcDefinitions :: [Name] -> String
+funcDefinitions []     = ""
+funcDefinitions [name]    = name
+funcDefinitions (name:ns) = name ++ ", " ++ funcDefinitions ns
+
+showFunctionDefenition :: FunctionDefinition -> String
+showFunctionDefenition (name, varnames, expr) = "func " ++ name ++ "(" ++ funcDefinitions varnames ++ ") = " ++ showExpression expr "" ++ "\n"
+
 showProgram :: Program -> String
-showProgram = undefined
+showProgram (definitions, expr) = (foldr ((++) . showFunctionDefenition) "" definitions) ++ showExpression expr ""
+
 
 toBool :: Integer -> Bool
 toBool = (/=) 0
@@ -112,6 +141,62 @@ evalExpression :: Expression -> Eval Integer  -- Вычисляет выраже
 evalExpression = undefined
 -} -- Удалите эту строчку, если решаете бонусное задание.
 
--- Реализуйте eval: запускает программу и возвращает её значение.
+getVar :: State -> Name -> Integer
+getVar [] _                                               = 0
+getVar ((varName, varValue):state) name | name == varName = varValue
+                                        | otherwise       = getVar state name 
+
+getBody :: [FunctionDefinition] -> Name -> Expression
+getBody [] _                                                           = Number 0
+getBody ((funcName, funcArgs, funcBody):funcs) name | name == funcName = funcBody
+                                                    | otherwise        = getBody funcs name 
+
+getFunctionArgs :: [FunctionDefinition] -> Name -> [Name]
+getFunctionArgs [] _                                                           = []
+getFunctionArgs ((funcName, funcArgs, funcBody):funcs) name | name == funcName = funcArgs
+                                                            | otherwise        = getFunctionArgs funcs name 
+
+evalFuncList :: [Expression] -> [Name] -> State -> [FunctionDefinition] -> ([Integer], State)
+evalFuncList [_] [] _ _                             = ([0], [])
+evalFuncList (_:_:_) [] _ _                         = ([0], [])
+evalFuncList [] _ state funcs                       = ([0], state)
+evalFuncList [expr] [name] state funcs              = ([fst result], snd result)
+                                                      where result = evalExpression expr state funcs
+evalFuncList (expr:others) (name:names) state funcs = (fst result:fst next, snd next)
+                                                      where result = evalExpression expr state funcs
+                                                            next   = evalFuncList others names (snd result) funcs
+
+
+makeStates :: Expression -> State -> [FunctionDefinition] -> (State, State)
+makeStates (FunctionCall name exprs) state funcs = (sstate, fstate)
+                                                            where res    = evalFuncList exprs (getFunctionArgs funcs name) state funcs
+                                                                  sstate = snd res
+                                                                  fstate = zip (getFunctionArgs funcs name) (fst res) ++ sstate
+makeStates exp _ _                               = ([], [])
+
+evalBlock :: [Expression] -> State -> [FunctionDefinition] -> (Integer, State)
+evalBlock [] state funcs              = (0, state)
+evalBlock [expr] state funcs          = evalExpression expr state funcs
+evalBlock (expr:commands) state funcs = evalBlock commands (snd (evalExpression expr state funcs)) funcs
+
+evalExpression :: Expression -> State -> [FunctionDefinition] -> (Integer, State)
+evalExpression (Number n) state funcs                       = (n, state)
+evalExpression (Reference name) state funcs                 = (getVar state name, state)
+evalExpression (Assign name expr) state funcs               = (fst result, (name, fst result):snd result)
+                                                             where result = evalExpression expr state funcs
+evalExpression (BinaryOperation op expr1 expr2) state funcs = (toBinaryFunction op (fst result1) (fst result2), snd result2)
+                                                             where result1 = evalExpression expr1 state funcs
+                                                                   result2 = evalExpression expr2 (snd result1) funcs 
+evalExpression (UnaryOperation op expr) state funcs         = (toUnaryFunction op (fst res), snd res)
+                                                             where res = evalExpression expr state funcs
+evalExpression (FunctionCall name exprs) state funcs        = (rv, sstate)
+                                                             where rv         = fst (evalExpression (getBody funcs name) (snd states) funcs)
+                                                                   states = makeStates (FunctionCall name exprs) state funcs
+                                                                   sstate     = fst states
+evalExpression (Conditional cond x y) state func            | toBool(fst condres)      = evalExpression x (snd condres) func
+                                                            | otherwise                = evalExpression y (snd condres) func
+                                                             where condres = evalExpression cond state func                                                         
+evalExpression (Block commands) state funcs                 = evalBlock commands state funcs
+
 eval :: Program -> Integer
-eval = undefined
+eval (definitions, expr) = fst (evalExpression expr [] definitions)
