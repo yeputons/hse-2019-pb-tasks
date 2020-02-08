@@ -4,6 +4,10 @@ import Data.Maybe
 import Data.Bifunctor
 import Debug.Trace
 
+-- {- HLINT ignore "Use ++" -}
+-- {-# HLINT ignore "Use ++" #-}
+-- I use concat!
+
 -- В логических операциях 0 считается ложью, всё остальное - истиной.
 -- При этом все логические операции могут вернуть только 0 или 1.
 
@@ -52,24 +56,22 @@ emptyFoldl1 :: (String -> String -> String) -> [String] -> String
 emptyFoldl1 _ [] = ""
 emptyFoldl1 f list = foldl1 f list
 
-{- HLINT ignore "Use ++" -}
-
 showExpression :: Expression -> String
 showExpression (Number n)               = show n
 showExpression (Reference name)         = name
 showExpression (Assign name expr)       = concat ["let ", name, " = ", showExpression expr, " tel"]
 showExpression (BinaryOperation op l r) = concat ["(", showExpression l, " ", showBinop op, " ", showExpression r, ")"]
-showExpression (UnaryOperation op expr) = concat [showUnop op, showExpression expr]
+showExpression (UnaryOperation op expr) = showUnop op ++ showExpression expr
 showExpression (FunctionCall name fs)   = concat [name, "(", intercalate ", " (map showExpression fs), ")"]
 showExpression (Conditional expr t f)   = concat ["if ", showExpression expr, " then ", showExpression t, " else ", showExpression f, " fi"]
 showExpression (Block fs)               = concat ["{", block' fs, "}"]
                                           where block' []     = ""
-                                                block' [f]    = concat ["\n", showExpression f]
+                                                block' [f]    = "\n" ++ showExpression f
                                                 block' (f:fs) = concat ["\n", showExpression f, ";", block' fs]
 
 indent :: Int -> String -> String
 indent _   ""          = ""
-indent ind ('{' :tl)   = concat ["{",  indent    (ind + 1)  tl]
+indent ind ('{' :tl)   = "{" ++ indent    (ind + 1)  tl
 indent ind ('}' :tl)   = concat ["\n", replicate (ind - 1) '\t', "}", indent (ind - 1) tl]
 indent ind ('\n':tl)   = concat ["\n", replicate ind       '\t', indent ind tl]
 indent ind (x   :tl)   = x:indent ind tl
