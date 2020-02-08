@@ -132,8 +132,11 @@ readState = Eval readState'
             where readState' _ st = (st, st)
 
 addToState :: String -> Integer -> a -> Eval a  -- Добавляет/изменяет значение переменной на новое и возвращает константу.
-addToState str val a = Eval addToState'
-                       where addToState' _ st = (a, (str, val):st)
+addToState name value a = Eval addToState'
+                          where addToState' _   []                          = (a, [(name, value)])
+                                addToState' fds ((ref, _):vs) | ref == name = (a, (name, value):vs)
+                                                              | otherwise   = (a, snd $ addToState' fds vs)
+-- fix: push_front, not push_back
 
 readDefs :: Eval [FunctionDefinition]  -- Возвращает все определения функций.
 readDefs = Eval readDefs'
@@ -152,10 +155,46 @@ andEvaluated ea f = Eval andEvaluated'
                           andEvaluated' fds st = first f $ runFirst fds st
 
 evalExpressionsL :: (a -> Integer -> a) -> a -> [Expression] -> Eval a  -- Вычисляет список выражений от первого к последнему.
-evalExpressionsL = 
+evalExpressionsL _ a []     = Eval evalExpressionsL' 
+                              where evalExpressionsL' _ st = (a, st)
+evalExpressionsL f a (e:es) = Eval evalExpressionsL'
+                              where evalExpressionsL' fds st = runEval (evalExpressionsL f newA es) fds newSt
+                                                               where newA  = f a valE
+                                                                     runE  = runEval (evalExpression e) fds st
+                                                                     valE  = fst runE
+                                                                     newSt = snd runE
 
 evalExpression :: Expression -> Eval Integer  -- Вычисляет выражение.
-evalExpression = undefined
+evalExpression (Number    n   )           = evaluated n
+evalExpression (Reference name)           = Eval evalExpression'
+                                            where evalExpression' _ st                           = (lookup st, st)
+                                                  lookup          []                             = undefined
+                                                  lookup          ((ref, val):vs) | ref == name  = val
+                                                                                  | otherwise    = lookup vs
+evalExpression (Assign    name expr)      = Eval evalExpression'
+                                            where evalExpression' fds st = runEval (addToState name valE valE) fds st
+                                                                           where valE  = fst $ runEval (evalExpression expr) fds st
+evalExpression (BinaryOperation op e1 e2) = Eval evalExpression'
+                                            where evalExpression' fds st = (binF valE1 valE2, st)
+                                                                           where binF  = toBinaryFunction op
+                                                                                 valE1 = fst $ runEval (evalExpression e1) fds st
+                                                                                 valE2 = fst $ runEval (evalExpression e2) fds st
+evalExpression (UnaryOperation op expr)   = Eval evalExpression'
+                                            where evalExpression' fds st = (unF valE, st)
+                                                                           where unF  = toUnaryFunction op
+                                                                                 valE = fst $ runEval (evalExpression expr) fds st
+evalExpression (FunctionCall name args)   = Eval evalExpression'
+                                            where evalExpression' fds st = (fst $ runEval (evalExpression fBody) fds fState, st)
+                                                                           where fLookup []                                       = undefined
+                                                                                 fLookup (fName, fArgs, fBody):fs | fst f == name = (fArgs, fBody)
+                                                                                                                  | otherwise     = fLookup fs
+                                                                                 fArgs = fst $ fLookup fds
+                                                                                 fBody = snd $ fLookup fds
+                                                                                 fState = expandState args st
+                                                                                 expandState 
+
+
+
 -- -} -- Удалите эту строчку, если решаете бонусное задание.
 
 -- Реализуйте eval: запускает программу и возвращает её значение.
