@@ -4,6 +4,8 @@ import Data.Maybe
 import Data.Bifunctor
 import Debug.Trace
 
+-- import Text.Printf
+
 -- В логических операциях 0 считается ложью, всё остальное - истиной.
 -- При этом все логические операции могут вернуть только 0 или 1.
 
@@ -47,8 +49,42 @@ showUnop Neg = "-"
 showUnop Not = "!"
 
 -- Верните текстовое представление программы (см. условие).
+
+emptyFoldl1 :: (String -> String -> String) -> [String] -> String
+emptyFoldl1 _ [] = ""
+emptyFoldl1 f list = foldl1 f list
+
+showExpression :: Expression -> String
+showExpression (Number n)               = show n
+showExpression (Reference name)         = name
+showExpression (Assign name expr)       = concat ["let ", name, " = ", showExpression expr, " tel"]
+showExpression (BinaryOperation op l r) = concat ["(", showExpression l, " ", showBinop op, " ", showExpression r, ")"]
+showExpression (UnaryOperation op expr) = concat [showUnop op, showExpression expr]
+showExpression (FunctionCall name fs)   = concat [name, "(", intercalate ", " (map showExpression fs), ")"]
+showExpression (Conditional expr t f)   = concat ["if ", showExpression expr, " then ", showExpression t, " else ", showExpression f, " fi"]
+showExpression (Block fs)               = concat ["{", (block' fs), "}"]
+                                          where block' []     = ""
+                                                block' (f:[]) = concat ["\n", showExpression f]
+                                                block' (f:fs) = concat ["\n", showExpression f, ";", block' fs]
+
+indent :: Int -> String -> String
+indent _   ""          = ""
+indent ind ('{' :tl)   = concat ["{",  indent    (ind + 1)  tl]
+indent ind ('}' :tl)   = concat ["\n", replicate (ind - 1) '\t', "}", indent (ind - 1) tl]
+indent ind ('\n':tl)   = concat ["\n", replicate ind       '\t', indent ind tl]
+indent ind (x   :tl)   = x:indent ind tl
+
+
+showFunctionDefinition :: FunctionDefinition -> String
+showFunctionDefinition (name, args, expr) = concat ["func ", name, "(", intercalate ", " args, ") = ", showExpression expr, "\n"]
+-- showFunctionDefinition (name, args, expr) = printf "func %s(%s) = %s\n" name (emptyFoldl1 (printf "%s, %s") args) (showExpression expr)
+--                                            where showArgs [] = ""
+--                                                  showArgs (arg:[]) = arg
+--                                                  showArgs (arg:args) = printf "%s, " arg (showArgs args)
+
 showProgram :: Program -> String
-showProgram = undefined
+showProgram ((f:fs), expr) = indent 0 (showFunctionDefinition f) ++ (showProgram (fs, expr))
+showProgram ([], expr)     = indent 0 $ showExpression expr
 
 toBool :: Integer -> Bool
 toBool = (/=) 0
@@ -81,37 +117,47 @@ toUnaryFunction Not = fromBool . not . toBool
 -- По минимуму используйте pattern matching для `Eval`, функции
 -- `runEval`, `readState`, `readDefs` и избегайте явной передачи состояния.
 
-{- -- Удалите эту строчку, если решаете бонусное задание.
+-- {- -- Удалите эту строчку, если решаете бонусное задание.
 newtype Eval a = Eval ([FunctionDefinition] -> State -> (a, State))  -- Как data, только эффективнее в случае одного конструктора.
 
 runEval :: Eval a -> [FunctionDefinition] -> State -> (a, State)
 runEval (Eval f) = f
 
 evaluated :: a -> Eval a  -- Возвращает значение без изменения состояния.
-evaluated = undefined
+evaluated a = Eval evaluated'
+              where evaluated' _ st = (a, st)
 
 readState :: Eval State  -- Возвращает состояние.
-readState = undefined
+readState = Eval readState'
+            where readState' _ st = (st, st)
 
 addToState :: String -> Integer -> a -> Eval a  -- Добавляет/изменяет значение переменной на новое и возвращает константу.
-addToState = undefined
+addToState str val a = Eval addToState'
+                       where addToState' _ st = (a, (str, val):st)
 
 readDefs :: Eval [FunctionDefinition]  -- Возвращает все определения функций.
-readDefs = undefined
+readDefs = Eval readDefs'
+           where readDefs' fds st = (fds, st)
 
 andThen :: Eval a -> (a -> Eval b) -> Eval b  -- Выполняет сначала первое вычисление, а потом второе.
-andThen = undefined
+andThen ea fe = Eval andThen'
+                where runFirst fds st = runEval ea fds st
+                      andThen' fds st = runEval eb fds newSt
+                                        where eb    = fe $ fst $ runFirst fds st
+                                              newSt = snd $ runFirst fds st
 
 andEvaluated :: Eval a -> (a -> b) -> Eval b  -- Выполняет вычисление, а потом преобразует результат чистой функцией.
-andEvaluated = undefined
+andEvaluated ea f = Eval andEvaluated'
+                    where runFirst      fds st = runEval ea fds st
+                          andEvaluated' fds st = first f $ runFirst fds st
 
 evalExpressionsL :: (a -> Integer -> a) -> a -> [Expression] -> Eval a  -- Вычисляет список выражений от первого к последнему.
-evalExpressionsL = undefined
+evalExpressionsL = 
 
 evalExpression :: Expression -> Eval Integer  -- Вычисляет выражение.
 evalExpression = undefined
--} -- Удалите эту строчку, если решаете бонусное задание.
+-- -} -- Удалите эту строчку, если решаете бонусное задание.
 
 -- Реализуйте eval: запускает программу и возвращает её значение.
 eval :: Program -> Integer
-eval = undefined
+eval =  undefined
