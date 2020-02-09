@@ -134,6 +134,15 @@ snd3 (_, args, _) = args
 trd3 :: FunctionDefinition -> Expression
 trd3 (_, _, expr) = expr
 
+getArgsValues :: State -> [FunctionDefinition] -> [Expression] -> (State, [Integer])
+getArgsValues state funcs [expr]    = (newState, [newVal])
+                                        where (newState, newVal) = evalExpression state funcs expr
+
+getArgsValues state funcs (expr:xs) = (finalState, val : newVals)
+                                        where 
+                                            (newState, val) = evalExpression state funcs expr
+                                            (finalState, newVals) = getArgsValues newState funcs xs
+
 evalExpression :: State -> [FunctionDefinition] -> Expression -> (State, Integer)
 
 evalExpression state funcs (Number num)                        = (state, num)
@@ -146,14 +155,15 @@ evalExpression state funcs (Assign name expr)                  = ((name, newVal)
 evalExpression state funcs (BinaryOperation binop expr1 expr2) = (rightState, toBinaryFunction binop leftVal rightVal)
                                                                     where 
                                                                         (leftState, leftVal)   = evalExpression state funcs expr1
-                                                                        (rightState, rightVal) = evalExpression (state ++ leftState) funcs expr2
+                                                                        (rightState, rightVal) = evalExpression leftState funcs expr2
 
 evalExpression state funcs (UnaryOperation unop expr)          = (newState, toUnaryFunction unop val)
                                                                     where (newState, val) = evalExpression state funcs expr
 
-evalExpression state funcs (FunctionCall name args)            = (new_state, snd $ evalExpression new_state funcs (trd3 func))
+evalExpression state funcs (FunctionCall name args)            = (newState, snd $ evalExpression funcState funcs (trd3 func))
                                                                     where
-                                                                        new_state = zip (snd3 func) (map (snd . evalExpression state funcs) args) ++ fst (evalExpression state funcs (Block args))
+                                                                        (newState, argVals) = getArgsValues state funcs args
+                                                                        funcState = zip (snd3 func) argVals ++ newState
                                                                         func = fromJust $ find ((== name) . fst3) funcs
 
 evalExpression state funcs (Conditional cond ifCond ifNotCond) | toBool val = evalExpression newState funcs ifCond
@@ -167,3 +177,5 @@ evalExpression state funcs (Block (x:xs)) = evalExpression (fst (evalExpression 
 -- Реализуйте eval: запускает программу и возвращает её значение.
 eval :: Program -> Integer
 eval (functions, expr) = snd $ evalExpression [] functions expr
+
+eval' (functions, expr) = fst $ evalExpression [] functions expr
