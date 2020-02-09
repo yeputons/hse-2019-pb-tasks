@@ -47,8 +47,29 @@ showUnop Neg = "-"
 showUnop Not = "!"
 
 -- Верните текстовое представление программы (см. условие).
+
+putTabs :: String -> String
+putTabs []       = []
+putTabs (ch:str) | ch == '\n' = ch :'\t': putTabs str
+                 | otherwise  = ch : putTabs str
+
+showExpr :: Expression -> String
+
+showExpr (Number num)                  = show num
+showExpr (Reference name)              = name
+showExpr (Assign name expr)            = concat ["let ", name, " = ", showExpr expr, " tel"]
+showExpr (BinaryOperation op l r)      = concat ["(", showExpr l, " ", showBinop op, " ", showExpr r, ")"]
+showExpr (UnaryOperation unop expr)    = concat [showUnop unop, showExpr expr]
+showExpr (FunctionCall name exprs)     = concat [name, "(", intercalate ", " (map showExpr exprs), ")"]
+showExpr (Conditional expr true false) = concat ["if ", showExpr expr, " then ", showExpr true, " else ", showExpr false, " fi"]
+showExpr (Block [])                    = "{\n}"
+showExpr (Block exprs)                 = concat ["{\n\t", putTabs ( intercalate ";\n" $ map showExpr exprs), "\n}"]
+
+showFuncDef :: FunctionDefinition -> String
+showFuncDef (name, params, expr) = concat ["func ", name, "(", intercalate ", " params, ") = ", showExpr expr]
+
 showProgram :: Program -> String
-showProgram = undefined
+showProgram (functions, mainexpr) = concat [concatMap ((++ "\n") . showFuncDef) functions, showExpr mainexpr] 
 
 toBool :: Integer -> Bool
 toBool = (/=) 0
