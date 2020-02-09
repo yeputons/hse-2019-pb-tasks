@@ -62,27 +62,30 @@ showExpression' (BinaryOperation binop exprL exprR)     = "(" ++ showExpression'
 showExpression' (UnaryOperation unop expr)              = showUnop unop ++ showExpression' expr
 showExpression' (FunctionCall funcname expressions)     = funcname ++ "(" ++ intercalate ", " (map showExpression' expressions) ++ ")"
 showExpression' (Conditional exprIf exprThen exprElse)  = "if " ++ showExpression' exprIf ++ " then " ++ showExpression' exprThen ++ " else " ++ showExpression' exprElse ++ " fi"
-showExpression' (Block expressions)                     = "{\n" ++ showExpressionBlock' expressions ++ "\n}"
+showExpression' (Block expressions)                     = "{\n" ++ showExpressionBlock' expressions ++ "}"
 
 showExpressionBlock' :: [Expression] -> String
-showExpressionBlock' []         = ""
-showExpressionBlock' [expr]     = showExpression' expr
+showExpressionBlock' []         = "\n"
+showExpressionBlock' [expr]     = showExpression' expr ++ "\n"
 showExpressionBlock' (expr:exs) = showExpression' expr ++ ";\n" ++ showExpressionBlock' exs
 
 indentProgram :: String -> String
 indentProgram prog = indentProgram' (splitOn "\n" prog) 0
 
 indentProgram' :: [String] -> Int -> String
-indentProgram' [] depth                 = fillTabs depth ++ "\n"
-indentProgram' (('}':line):ls) depth    = case head line of
-                                            '}' -> "}aaa" ++ indentProgram' ls (depth - 1)
-                                            _   -> "}aaa" ++ indentProgram' ls depth
+indentProgram' [] depth                 = ""
+indentProgram' ['}':line] depth         = indentLine ("}" ++ line) (depth - 1)
+indentProgram' [line] depth             = indentLine line depth
+indentProgram' (('}':line):ls) depth    = case last line of
+                                            '{' -> indentLine ("}" ++ line) (depth - 1) ++ "\n" ++ indentProgram' ls depth
+                                            _   -> indentLine ("}" ++ line) (depth - 1) ++ "\n" ++ indentProgram' ls (depth - 1)
+indentProgram' ([]:ls) depth            = indentProgram' ls depth
 indentProgram' (line:ls) depth          = case last line of
-                                            '{' -> fillTabs depth ++ line ++ "\n" ++ indentProgram' ls (depth + 1)
-                                            _   -> fillTabs depth ++ line ++ "\n" ++ indentProgram' ls depth
+                                            '{' -> indentLine line depth ++ "\n" ++ indentProgram' ls (depth + 1)
+                                            _   -> indentLine line depth ++ "\n" ++ indentProgram' ls depth
 
 indentLine :: String -> Int -> String
-indentLine line depth = fillTabs depth ++ line ++ 
+indentLine line depth = fillTabs depth ++ line 
 
 fillTabs :: Int -> String
 fillTabs n = concat $ replicate n "\t"
