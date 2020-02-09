@@ -46,9 +46,28 @@ showUnop :: Unop -> String
 showUnop Neg = "-"
 showUnop Not = "!"
 
--- Верните текстовое представление программы (см. условие).
+putTabs :: String -> String
+putTabs [] = []
+putTabs (s:str) | s == '\n' = concat [[s], "\t", putTabs str]
+                | otherwise = s:putTabs str
+
+showExpr :: Expression -> String
+showExpr (Number n)                 = show n
+showExpr (Reference name)           = name
+showExpr (Assign name e)            = "let " ++ name ++ " = " ++ showExpr e ++ " tel"
+showExpr (BinaryOperation op l r)   = "(" ++ showExpr l ++ " " ++ showBinop op ++ " " ++ showExpr r ++ ")"
+showExpr (UnaryOperation op e)      = showUnop op ++ showExpr e
+showExpr (FunctionCall name args)   = name ++ "(" ++ intercalate ", " (map showExpr args) ++ ")"
+showExpr (Conditional e t f)        = "if " ++ showExpr e ++ " then " ++ showExpr t ++ " else " ++ showExpr f ++ " fi"
+showExpr (Block [])                 = "{\n}"
+showExpr (Block (x:xs))             = putTabs (concat ["{\n", showExpr x, concatMap ((++) ";\n" . showExpr) xs]) ++ "\n}"
+
+showFunctionDefenition :: FunctionDefinition -> String
+showFunctionDefenition (name, [], def)        = concat ["func ", name, "() = ", showExpr def]
+showFunctionDefenition (name, x:names, def)   = concat ["func ", name, "(", x, concatMap (", " ++) names, ") = ", showExpr def]
+
 showProgram :: Program -> String
-showProgram = undefined
+showProgram (funcs, body) = concatMap ((++ "\n") . showFunctionDefenition) funcs ++ showExpr body
 
 toBool :: Integer -> Bool
 toBool = (/=) 0
@@ -81,37 +100,49 @@ toUnaryFunction Not = fromBool . not . toBool
 -- По минимуму используйте pattern matching для `Eval`, функции
 -- `runEval`, `readState`, `readDefs` и избегайте явной передачи состояния.
 
-{- -- Удалите эту строчку, если решаете бонусное задание.
-newtype Eval a = Eval ([FunctionDefinition] -> State -> (a, State))  -- Как data, только эффективнее в случае одного конструктора.
-
-runEval :: Eval a -> [FunctionDefinition] -> State -> (a, State)
-runEval (Eval f) = f
-
-evaluated :: a -> Eval a  -- Возвращает значение без изменения состояния.
-evaluated = undefined
-
-readState :: Eval State  -- Возвращает состояние.
-readState = undefined
-
-addToState :: String -> Integer -> a -> Eval a  -- Добавляет/изменяет значение переменной на новое и возвращает константу.
-addToState = undefined
-
-readDefs :: Eval [FunctionDefinition]  -- Возвращает все определения функций.
-readDefs = undefined
-
-andThen :: Eval a -> (a -> Eval b) -> Eval b  -- Выполняет сначала первое вычисление, а потом второе.
-andThen = undefined
-
-andEvaluated :: Eval a -> (a -> b) -> Eval b  -- Выполняет вычисление, а потом преобразует результат чистой функцией.
-andEvaluated = undefined
-
-evalExpressionsL :: (a -> Integer -> a) -> a -> [Expression] -> Eval a  -- Вычисляет список выражений от первого к последнему.
-evalExpressionsL = undefined
-
-evalExpression :: Expression -> Eval Integer  -- Вычисляет выражение.
-evalExpression = undefined
--} -- Удалите эту строчку, если решаете бонусное задание.
+-- Удалите эту строчку, если решаете бонусное задание.
 
 -- Реализуйте eval: запускает программу и возвращает её значение.
+
+getVar :: State -> Name -> Integer
+getVar state name = snd (head (filter ((==) name . fst) state))
+
+getFuncDef :: Name -> [FunctionDefinition] -> ([Name], Expression)
+getFuncDef name funcs = f (head (filter (eq' name) funcs))
+                   where eq' name (n, names, e) = name == n
+                         f   (n, name, e)       = (name, e)
+
+createFuncScope :: State -> [Name] -> [Integer] -> State
+createFuncScope state params values = zip params values ++ state
+
+chainExpr :: [FunctionDefinition] -> State -> [Expression] -> ([Integer], State)
+chainExpr funcs state []         = ([], state)
+chainExpr funcs state (arg:args) = (fst argres:fst argsres, snd argsres)
+                               where argres  = evalExpr  funcs state        arg
+                                     argsres = chainExpr funcs (snd argres) args
+
+evalExpr :: [FunctionDefinition] -> State -> Expression -> (Integer, State)
+evalExpr funcs state (Number n)              = (n, state)
+evalExpr funcs state (Reference name)         = (getVar state name, state)
+evalExpr funcs state (Assign name e)          = (fst res, var:snd res)
+                                           where res = evalExpr funcs state e
+                                                 var = (name, fst res)
+evalExpr funcs state (BinaryOperation op l r) = (toBinaryFunction op (fst lres) (fst rres), snd rres)
+                                           where lres = evalExpr funcs state l
+                                                 rres = evalExpr funcs (snd lres) r
+evalExpr funcs state (UnaryOperation op e)    = (toUnaryFunction op (fst res), snd res)
+                                           where res = evalExpr funcs state e
+evalExpr funcs state (FunctionCall name args) = (fst (evalExpr funcs (createFuncScope (snd res) (fst func) (fst res)) (snd func)), snd res)
+                                           where func = getFuncDef name funcs
+                                                 res = chainExpr funcs state args
+evalExpr funcs state (Conditional e t f)      | toBool (fst er) = tr
+                                         | otherwise       = fr
+                                         where er = evalExpr funcs state e
+                                               tr = evalExpr funcs (snd er) t
+                                               fr = evalExpr funcs (snd er) f
+evalExpr funcs state (Block [])               = (0, state)
+evalExpr funcs state (Block [x])              = evalExpr funcs state x
+evalExpr funcs state (Block (e:es))           = evalExpr funcs (snd (evalExpr funcs state e)) (Block es)
+
 eval :: Program -> Integer
-eval = undefined
+eval f = fst (evalExpr (fst f) [] (snd f))
