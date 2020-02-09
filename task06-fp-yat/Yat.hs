@@ -59,7 +59,7 @@ showExpr (Number num)                  = show num
 showExpr (Reference name)              = name
 showExpr (Assign name expr)            = concat ["let ", name, " = ", showExpr expr, " tel"]
 showExpr (BinaryOperation op l r)      = concat ["(", showExpr l, " ", showBinop op, " ", showExpr r, ")"]
-showExpr (UnaryOperation unop expr)    = concat [showUnop unop, showExpr expr]
+showExpr (UnaryOperation unop expr)    = showUnop unop ++ showExpr expr
 showExpr (FunctionCall name exprs)     = concat [name, "(", intercalate ", " (map showExpr exprs), ")"]
 showExpr (Conditional expr true false) = concat ["if ", showExpr expr, " then ", showExpr true, " else ", showExpr false, " fi"]
 showExpr (Block [])                    = "{\n}"
@@ -69,7 +69,7 @@ showFuncDef :: FunctionDefinition -> String
 showFuncDef (name, params, expr) = concat ["func ", name, "(", intercalate ", " params, ") = ", showExpr expr]
 
 showProgram :: Program -> String
-showProgram (functions, mainexpr) = concat [concatMap ((++ "\n") . showFuncDef) functions, showExpr mainexpr] 
+showProgram (functions, mainexpr) = concatMap ((++ "\n") . showFuncDef) functions ++ showExpr mainexpr 
 
 toBool :: Integer -> Bool
 toBool = (/=) 0
@@ -174,7 +174,7 @@ evalExpr functions scope (UnaryOperation op expr) = (fst result, toUnaryFunction
 evalExpr ((fName, fArgs, fExpr):functions) scope (FunctionCall name args) | fName /= name    = evalExpr functions' scope (FunctionCall name args)
                                                                           | otherwise        = (snd scope', snd result)
                                                                             where func'      = (fName, fArgs, fExpr)
-                                                                                  functions' = concat [functions, [func']]
+                                                                                  functions' = functions ++ [func']
                                                                                   scope'     = parseArgs functions' scope func' args
                                                                                   result     = evalExpr functions' (fst scope') fExpr
 
