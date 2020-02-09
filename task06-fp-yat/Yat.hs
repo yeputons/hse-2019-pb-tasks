@@ -138,10 +138,10 @@ getVarFromScope name (s:scope) | name == fst s = snd s
 
 parseArgs :: [FunctionDefinition] -> State -> FunctionDefinition -> [Expression] -> (State, State)
 parseArgs funcs scope (_, [], _) _ = (scope, scope)
-parseArgs funcs scope (funcName, (nameArg:nameArgs), funcExpr) (arg:args) = (fst res, snd val ++ scope)
+parseArgs funcs scope (funcName, nameArg : nameArgs, funcExpr) (arg:args) = (fst res, snd val ++ scope)
                                                                           where val      = evalExpression funcs scope arg
                                                                                 func     = (funcName, nameArgs, funcExpr) 
-                                                                                newScope = ((nameArg, fst val):snd val)
+                                                                                newScope = (nameArg, fst val) : snd val
                                                                                 res      = parseArgs funcs newScope func args
 parseArgs _ _ _ _ = undefined
 
