@@ -59,4 +59,3 @@ class TicTacToeUserHandler(UserHandler):
             message = ''
         message = '\n'.join(rows)
         self.send_message(message)
-
