@@ -240,7 +240,7 @@ type File = (String, [String])
 -- параметр и возвращает второй.
 grep' :: (String -> [String] -> [String]) -> (String -> Bool) -> [File] -> [String]
 grep' format match [] = []
-grep' format match files = concat' (map' (\ file -> format  (fst file) (filter match (snd file))) files)
+grep' format match files = concat' (map' (\ (ft, sd) -> format ft (filter match sd)) files)
 
 -- Также вам предоставлена функция для проверки вхождения подстроки в строку.
 -- >>> isSubstringOf "a" "bac"
