@@ -1,8 +1,5 @@
 module Yat where  -- Вспомогательная строчка, чтобы можно было использовать функции в других файлах.
 import Data.List
-import Data.Maybe
-import Data.Bifunctor
-import Debug.Trace
 
 -- В логических операциях 0 считается ложью, всё остальное - истиной.
 -- При этом все логические операции могут вернуть только 0 или 1.
@@ -47,8 +44,29 @@ showUnop Neg = "-"
 showUnop Not = "!"
 
 -- Верните текстовое представление программы (см. условие).
+
+addTabs :: String -> String
+addTabs []      = []
+addTabs (s:str) | s == '\n' = s:'\t':addTabs str
+                | otherwise = s:addTabs str
+
+showExpression :: Expression -> String
+showExpression (Number n)                      = show n
+showExpression (Reference name)                = name
+showExpression (Assign name expr)              = concat ["let ", name, " = ", showExpression expr, " tel"]
+showExpression (BinaryOperation op left right) = concat ["(", showExpression left, " ", showBinop op, " ", showExpression right, ")"]
+showExpression (UnaryOperation op expr)        = showUnop op ++ showExpression expr
+showExpression (FunctionCall name args)        = concat [name, "(", intercalate ", " (map showExpression args), ")"]
+showExpression (Conditional expr ifT ifF)      = concat ["if ", showExpression expr, " then ", showExpression ifT, " else ", showExpression ifF, " fi"]
+showExpression (Block [])                      = "{\n}"
+showExpression (Block exprs)                   = concat ["{\n\t", addTabs $ intercalate ";\n" $ map showExpression exprs, "\n}"]
+                                          
+
+showFunctionDefinition :: FunctionDefinition -> String
+showFunctionDefinition (name, args, expr) = concat ["func ", name, "(", intercalate ", " args, ") = ", showExpression expr]
+
 showProgram :: Program -> String
-showProgram = undefined
+showProgram (funcs, body) = concatMap ((++ "\n") . showFunctionDefinition) funcs ++ showExpression body 
 
 toBool :: Integer -> Bool
 toBool = (/=) 0
@@ -76,6 +94,31 @@ toUnaryFunction :: Unop -> Integer -> Integer
 toUnaryFunction Neg = negate
 toUnaryFunction Not = fromBool . not . toBool
 
+-- Некоторые функции мне понадобилсь для реализации
+newtype Eval a = Eval ([FunctionDefinition] -> State -> (a, State))
+
+runEval :: Eval a -> [FunctionDefinition] -> State -> (a, State)
+runEval (Eval f) = f
+
+evaluated :: a -> Eval a
+evaluated a = Eval evaluated'
+              where evaluated' _ st = (a, st)
+
+addToState :: String -> Integer -> a -> Eval a
+addToState name value a = Eval addToState'
+                          where addToState' _   []                            = (a, [(name, value)])
+                                addToState' fds ((ref, val):vs) | ref == name = (a, (name, value):vs)
+                                                                | otherwise   = (a, (ref,val):snd (addToState' fds vs))
+
+evalExpressionsL :: (a -> Integer -> a) -> a -> [Expression] -> Eval a
+evalExpressionsL _ a []     = Eval evalExpressionsL' 
+                              where evalExpressionsL' _ st = (a, st)
+evalExpressionsL f a (e:es) = Eval evalExpressionsL'
+                              where evalExpressionsL' fds st = runEval (evalExpressionsL f newA es) fds newSt
+                                                               where newA          = f a valE
+                                                                     (valE, newSt) = runEval (evalExpression e) fds st
+
+
 -- Если хотите дополнительных баллов, реализуйте
 -- вспомогательные функции ниже и реализуйте evaluate через них.
 -- По минимуму используйте pattern matching для `Eval`, функции
@@ -88,7 +131,8 @@ runEval :: Eval a -> [FunctionDefinition] -> State -> (a, State)
 runEval (Eval f) = f
 
 evaluated :: a -> Eval a  -- Возвращает значение без изменения состояния.
-evaluated = undefined
+evaluated a = Eval evaluated'
+              where evaluated' _ st = (a, st)
 
 readState :: Eval State  -- Возвращает состояние.
 readState = undefined
@@ -113,5 +157,53 @@ evalExpression = undefined
 -} -- Удалите эту строчку, если решаете бонусное задание.
 
 -- Реализуйте eval: запускает программу и возвращает её значение.
+
+evalExpression :: Expression -> Eval Integer
+evalExpression (Number    n   )           = evaluated n
+evalExpression (Reference name)           = Eval evalExpression'
+                                            where evalExpression' _ st                           = (lookup st, st)
+                                                  lookup          []                             = undefined
+                                                  lookup          ((ref, val):vs) | ref == name  = val
+                                                                                  | otherwise    = lookup vs
+
+evalExpression (Assign    name expr)      = Eval evalExpression'
+                                            where evalExpression' fds st = runEval (addToState name valE valE) fds newSt
+                                                                           where (valE, newSt) = runEval (evalExpression expr) fds st
+
+evalExpression (BinaryOperation op left right) = Eval evalExpression'
+                                                 where evalExpression' fds st = (binF valLeft valRight, newString2)
+                                                                                where binF                   = toBinaryFunction op
+                                                                                      (valLeft, newString1)  = runEval          (evalExpression left) fds st
+                                                                                      (valRight, newString2) = runEval          (evalExpression right) fds newString1
+
+evalExpression (UnaryOperation op expr)   = Eval evalExpression'
+                                            where evalExpression' fds st = (unF valE, newString)
+                                                                           where unF  = toUnaryFunction op
+                                                                                 (valE, newString) = runEval (evalExpression expr) fds st
+
+evalExpression (FunctionCall name args)   = Eval evalExpression'
+                                            where evalExpression' fds st = (fRet, newString)
+                                                                           where fLookup []                                         = undefined
+                                                                                 fLookup ((fName, fArgs, fBody):fs) | fName == name = (fArgs, fBody)
+                                                                                                                    | otherwise     = fLookup fs
+                                                                                 (fRet, _)                              = runEval (evalExpression fBody) fds fState
+                                                                                 (fArgNames, fBody)                     = fLookup fds
+                                                                                 (fState, newString)                    = extendState fArgNames args st
+                                                                                 extendState [] []                   st = (st, st)
+                                                                                 extendState [] _                    _  = undefined
+                                                                                 extendState _  []                   _  = undefined
+                                                                                 extendState (name:names) (arg:args) st = (snd $ runEval (addToState name valE 0) fds fState', newString')
+                                                                                                                          where (valE, tmpString)     = runEval (evalExpression arg) fds st
+                                                                                                                                (fState', newString') = extendState names args tmpString
+evalExpression (Conditional c left right)      = Eval evalExpression'
+                                                 where evalExpression' fds st = if toBool valC then valLeft else valRight
+                                                                                where (valC, newString) = runEval (evalExpression c)  fds st
+                                                                                      valLeft           = runEval (evalExpression left) fds newString
+                                                                                      valRight          = runEval (evalExpression right) fds newString
+
+evalExpression (Block es)                 = Eval evalExpression'
+                                            where evalExpression' = runEval (evalExpressionsL (\_ a -> a) 0 es)
+
+
 eval :: Program -> Integer
-eval = undefined
+eval (fds, expr) = fst $ runEval (evalExpression expr) fds []
