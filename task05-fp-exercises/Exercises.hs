@@ -127,7 +127,7 @@ secondElement xs = case tryTail xs of
 -- >>> thirdElementOfSecondList [["a"], ["b", "c", "d"]]
 -- Just "d"
 thirdElementOfSecondList :: [[a]] -> Maybe a
-thirdElementOfSecondList xs = tryHeadMaybe $ tryTailMaybe $ tryTailMaybe $ tryHeadMaybe $ tryTail $ xs
+thirdElementOfSecondList xs = tryHeadMaybe $ tryTailMaybe $ tryTailMaybe $ tryHeadMaybe $ tryTail xs
                               where tryHeadMaybe xs = case xs of
                                                         Just a -> tryHead a
                                                         _      -> Nothing
