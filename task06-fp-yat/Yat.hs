@@ -46,9 +46,23 @@ showUnop :: Unop -> String
 showUnop Neg = "-"
 showUnop Not = "!"
 
--- Верните текстовое представление программы (см. условие).
+showExpr :: Expression -> String
+showExpr (Number numb) = show numb
+showExpr (Reference ref) = ref
+showExpr (Assign n expr) = "let " ++ n ++ " = " ++ showExpr expr ++ " tel"
+showExpr (BinaryOperation op l r) = "(" ++ showExpr l ++ " " ++ showBinop op ++ " " ++ showExpr r ++ ")"
+showExpr (UnaryOperation op expr) = showUnop op ++ showExpr expr
+showExpr (FunctionCall n []) = n ++ "()"
+showExpr (FunctionCall n expr) = n ++ "(" ++ intercalate ", " (map showExpr expr) ++ ")"
+showExpr (Conditional expr t f) = "if " ++ showExpr expr ++ " then " ++ showExpr t ++ " else " ++ showExpr f ++ " fi"
+showExpr (Block []) = "{\n}"
+showExpr (Block expr) = "{\n" ++ intercalate ";\n" (map (intercalate "\n" . map ("\t"++) . lines . showExpr) expr) ++ "\n}"
+
+showFunDecl :: FunctionDefinition -> String
+showFunDecl (n, param, expr) = "func " ++ n ++ "(" ++ intercalate "," param ++ ") = " ++ showExpr expr
+
 showProgram :: Program -> String
-showProgram = undefined
+showProgram (funcdefs, expr) = concatMap ((++ "\n") . showFunDecl) funcdefs ++ showExpr expr
 
 toBool :: Integer -> Bool
 toBool = (/=) 0
@@ -76,42 +90,51 @@ toUnaryFunction :: Unop -> Integer -> Integer
 toUnaryFunction Neg = negate
 toUnaryFunction Not = fromBool . not . toBool
 
--- Если хотите дополнительных баллов, реализуйте
--- вспомогательные функции ниже и реализуйте evaluate через них.
--- По минимуму используйте pattern matching для `Eval`, функции
--- `runEval`, `readState`, `readDefs` и избегайте явной передачи состояния.
+--eval realization
 
-{- -- Удалите эту строчку, если решаете бонусное задание.
-newtype Eval a = Eval ([FunctionDefinition] -> State -> (a, State))  -- Как data, только эффективнее в случае одного конструктора.
+assignToScope :: Name -> Integer -> State -> State
 
-runEval :: Eval a -> [FunctionDefinition] -> State -> (a, State)
-runEval (Eval f) = f
+findFuncSignature :: Name -> [FunctionDefinition] -> FunctionDefinition
+findFuncSignature name = head . filter (\(func, param, expr) -> func == name)
 
-evaluated :: a -> Eval a  -- Возвращает значение без изменения состояния.
-evaluated = undefined
+addArgs :: [Name] -> [Integer] -> State -> State
+addArgs [] args scope                  = scope
+addArgs names [] scope                 = scope
+addArgs (elem:names) (arg:args) scope  = assignToScope elem arg $ addArgs names args scope
 
-readState :: Eval State  -- Возвращает состояние.
-readState = undefined
+processArgs :: [Expression] -> [FunctionDefinition] -> State -> ([Integer], State)
+processArgs [] funcDef scope      = ([], scope)
+processArgs (elem : args) funcDef scope = add' value $ processArgs args funcDef scope'
+                                          where (value, scope') = evalFunction (funcDef, elem) scope
+                                                add' x (xs, s) = (x:xs, s)
 
-addToState :: String -> Integer -> a -> Eval a  -- Добавляет/изменяет значение переменной на новое и возвращает константу.
-addToState = undefined
+assignToScope name value scope = case findIndex ((==)name . fst) scope of
+                                Just i     -> take i scope ++ [(name, value)] ++ drop (i + 1) scope
+                                _          -> (name, value) : scope
 
-readDefs :: Eval [FunctionDefinition]  -- Возвращает все определения функций.
-readDefs = undefined
+evalFunction :: Program -> State -> (Integer, State)
+evalFunction (funcDef, Number numb) scope                         = (numb, scope)
+evalFunction (funcDef, Reference name) []                         = undefined
+evalFunction (funcDef, Reference name) (elem : scope)             | fst elem == name = (snd elem, elem : scope)
+                                                                  | otherwise        = (fst elem', elem : snd elem')
+                                                                  where elem' = evalFunction (funcDef, Reference name) scope
+evalFunction (funcDef, Assign name expr) scope                    = (value, assignToScope name value scope')
+                                                                  where (value, scope')   = evalFunction (funcDef, expr) scope
+evalFunction (funcDef, BinaryOperation op lOp rOp) scope          = (toBinaryFunction op lOp' rOp', scope'')
+                                                                  where (lOp', scope')   = evalFunction (funcDef, lOp) scope
+                                                                        (rOp', scope'') = evalFunction (funcDef, rOp) scope'
+evalFunction (funcDef, UnaryOperation op expr) scope              = (toUnaryFunction op value, scope')
+                                                                  where (value, scope')   = evalFunction (funcDef, expr) scope
+evalFunction (funcDef, FunctionCall name args) scope              = (fst $ evalFunction (funcDef, expr) (addArgs param newArgs scope'), scope')
+                                                                  where (_, param, expr) = findFuncSignature name funcDef
+                                                                        (newArgs, scope')    = processArgs args funcDef scope
+evalFunction (funcDef, Conditional expr t f) scope                | fst value /= 0 = evalFunction (funcDef, t) $ snd value
+                                                                  | otherwise      = evalFunction (funcDef, f) $ snd value
+                                                                  where value    = evalFunction (funcDef, expr) scope
+evalFunction (funcDef, Block []) scope                            = (0, scope)
+evalFunction (funcDef, Block [expr]) scope                        = evalFunction (funcDef, expr) scope
+evalFunction (funcDef, Block (elem:expr)) scope                   = evalFunction (funcDef, Block expr) scope'
+                                                                  where scope' = snd $ evalFunction (funcDef, elem) scope  
 
-andThen :: Eval a -> (a -> Eval b) -> Eval b  -- Выполняет сначала первое вычисление, а потом второе.
-andThen = undefined
-
-andEvaluated :: Eval a -> (a -> b) -> Eval b  -- Выполняет вычисление, а потом преобразует результат чистой функцией.
-andEvaluated = undefined
-
-evalExpressionsL :: (a -> Integer -> a) -> a -> [Expression] -> Eval a  -- Вычисляет список выражений от первого к последнему.
-evalExpressionsL = undefined
-
-evalExpression :: Expression -> Eval Integer  -- Вычисляет выражение.
-evalExpression = undefined
--} -- Удалите эту строчку, если решаете бонусное задание.
-
--- Реализуйте eval: запускает программу и возвращает её значение.
 eval :: Program -> Integer
-eval = undefined
+eval pr = fst (evalFunction pr [])
