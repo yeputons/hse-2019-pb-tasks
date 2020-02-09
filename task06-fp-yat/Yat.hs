@@ -46,9 +46,31 @@ showUnop :: Unop -> String
 showUnop Neg = "-"
 showUnop Not = "!"
 
+
+reworkList:: [String] -> String -> [String]
+reworkList []     sep   = []
+reworkList [x]    sep   = [x]
+reworkList (x:xs) sep   = [x ++ sep] ++ reworkList xs sep
+
+showExpression :: Expression -> String
+showExpression (Number n)               = show n
+showExpression (Reference name)         = name
+showExpression (Assign name expr)       = concat ["let ", name, " = ", showExpression expr, " tel"]
+showExpression (BinaryOperation op l r) = concat ["(", showExpression l, " ", showBinop op, " ", showExpression r, ")"]
+showExpression (UnaryOperation op expr) = showUnop op ++ showExpression expr
+showExpression (FunctionCall name args) = concat [name, "(", concat (reworkList (map showExpression args) ", "), ")"]
+showExpression (Conditional cond t f)   = concat ["if ", showExpression cond, " then ", showExpression t, " else ", showExpression f, " fi"]
+showExpression (Block expr)             = concat ["{\n", concat $ map (("\t" ++) . (++ "\n")) (lines $ concat (reworkList (map showExpression expr) ";\n")), "}"]
+
 -- Верните текстовое представление программы (см. условие).
+showFunctionDefenition :: FunctionDefinition -> String
+showFunctionDefenition (name, args, expr) = concat ["func ", name, "(", concat (reworkList args ", "), ") = ", showExpression expr, "\n"]
+
+
 showProgram :: Program -> String
-showProgram = undefined
+
+showProgram (funcs, expr) = concat (map showFunctionDefenition funcs) ++ showExpression expr
+
 
 toBool :: Integer -> Bool
 toBool = (/=) 0
@@ -113,5 +135,51 @@ evalExpression = undefined
 -} -- Удалите эту строчку, если решаете бонусное задание.
 
 -- Реализуйте eval: запускает программу и возвращает её значение.
+
+--type Name = String
+--type FunctionDefinition = (Name, [Name], Expression)  -- Имя функции, имена параметров, тело функции
+--type State = [(String, Integer)]  -- Список пар (имя переменной, значение). Новые значения дописываются в начало, а не перезаписываютсpя
+--type Program = ([FunctionDefinition], Expression)  -- Все объявленные функций и основное тело программы
+
+getName:: FunctionDefinition -> Name
+getName (name, _, _) = name
+
+getArgs :: FunctionDefinition -> [Name]
+getArgs (_, args, _) = args
+
+getBody :: FunctionDefinition -> Expression
+getBody (_, _, expr) = expr
+
+evalExpression :: State -> [FunctionDefinition] -> Expression -> (State, Integer)
+evalExpression scope funcs (Number n)               = (scope, n)
+
+evalExpression scope funcs (Reference name)         = case lookup name scope of
+                                                        Just numb -> (scope, numb)
+                                                        _         -> (scope, 0)   
+
+evalExpression scope funcs (Assign name expr)       = ((filter (\ var -> (fst var) /= name) (union (fst tmp_expr) scope)) ++ [(name, snd tmp_expr)], snd tmp_expr)
+                                                            where tmp_expr = evalExpression scope funcs expr
+
+evalExpression scope funcs (BinaryOperation op l r) = (fst tmp_r, toBinaryFunction op (snd tmp_l) (snd tmp_r))
+                                                            where tmp_l = evalExpression scope funcs l
+                                                                  tmp_r = evalExpression (union scope $ fst tmp_l) funcs r
+
+evalExpression scope funcs (UnaryOperation op expr) = (fst result, toUnaryFunction op $ snd result)
+                                                            where result = evalExpression scope funcs expr 
+
+evalExpression scope funcs (FunctionCall name args) = (new_scope, snd $ evalExpression new_scope funcs (getBody func))
+                                                                    where
+                                                                        new_scope = zip (getArgs func) (map (snd . evalExpression scope funcs) args) ++ fst (evalExpression scope funcs (Block args))
+                                                                        func = case find ((== name) . getName) funcs of
+                                                                        	       Just func' -> func'
+
+evalExpression scope funcs (Conditional cond t f)   | toBool(snd condition) = evalExpression (fst condition) funcs t
+                                                    | otherwise             = evalExpression (fst condition) funcs f
+                                                                    where condition = evalExpression scope funcs cond
+
+evalExpression scope funcs (Block [])               = (scope, 0)
+evalExpression scope funcs (Block [x])              = evalExpression scope funcs x
+evalExpression scope funcs (Block (x:xs))           = evalExpression  (fst $ evalExpression scope funcs x) funcs  (Block xs)
+
 eval :: Program -> Integer
-eval = undefined
+eval (funcs, expr) = snd $ evalExpression [] funcs expr
