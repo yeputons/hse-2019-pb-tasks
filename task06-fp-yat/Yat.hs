@@ -46,9 +46,41 @@ showUnop :: Unop -> String
 showUnop Neg = "-"
 showUnop Not = "!"
 
+showExpression :: Expression -> String
+showExpression (Number n)                 = show n
+showExpression (Reference n)              = n 
+showExpression (Assign name e)            = "let " ++ (name) ++ " = " ++ (showExpression e) ++ " tel" 
+showExpression (BinaryOperation bi e1 e2) = "(" ++ (showExpression e1) ++ " " ++ (showBinop bi) ++ " " ++ (showExpression e2) ++")"
+showExpression (UnaryOperation un n)      = (showUnop un) ++ showExpression n
+showExpression (FunctionCall name es)     = (name) ++ (showParams (map showExpression es))
+showExpression (Conditional cnd i e)      = "if " ++ (showExpression cnd) ++ " then " ++ (showExpression i) ++ " else " ++ showExpression e ++ " fi"
+showExpression (Block [])                 = "{\n}"
+showExpression (Block es)                 = "{\n" ++ (((concatWithElem "\n") . (map ((++) "\t")) . (lines) . (concatWithElem ";\n") . (map showExpression)) es) ++ "\n}"
+
+
+concatWithElem :: String -> [String] -> String
+concatWithElem _ []       = []
+concatWithElem _ [x]      = x
+concatWithElem a (x : xs) = x ++ a ++ concatWithElem a xs
+
+showParams :: [Name] -> String
+showParams []  = "()"
+showParams [n] = "(" ++ (n) ++ ")"
+showParams ns  = "(" ++ (concatWithElem ", " (map show ns)) ++ ")"
+
+fst3 :: (a, b, c) -> a
+fst3 (a, _, _ ) = a
+snd3 :: (a, b, c) -> b
+snd3 (_, b, _) = b
+thd3 :: (a, b, c) -> c
+thd3 (_, _, c) = c
+
+showFunctionDef :: FunctionDefinition -> String
+showFunctionDef fd = "func " ++ (fst3 fd) ++ (showParams (snd3 fd)) ++ " = " ++ (showExpression (thd3 fd))
+ 
 -- Верните текстовое представление программы (см. условие).
 showProgram :: Program -> String
-showProgram = undefined
+showProgram prog = (concat (map (flip (++) "\n") (map showFunctionDef (fst prog)))) ++ (showExpression (snd prog))
 
 toBool :: Integer -> Bool
 toBool = (/=) 0
