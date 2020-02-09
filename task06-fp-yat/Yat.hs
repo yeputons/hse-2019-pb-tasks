@@ -1,5 +1,6 @@
 module Yat where  -- Вспомогательная строчка, чтобы можно было использовать функции в других файлах.
 import Data.List
+import Data.List.Split
 import Data.Maybe
 import Data.Bifunctor
 import Debug.Trace
@@ -48,28 +49,43 @@ showUnop Not = "!"
 
 -- Верните текстовое представление программы (см. условие).
 showProgram :: Program -> String
-showProgram (funcs, expr) = concatMap showFunction funcs ++ showExpression expr
+showProgram (funcs, expr) = indentProgram $ concatMap showFunction' funcs ++ showExpression' expr
 
-showFunction :: FunctionDefinition -> String -- add \n to the end of string
-showFunction (funcname, argsnames, expr) = "func " ++ funcname ++ "(" ++ intercalate ", " argsnames ++ ") = " ++ showExpression expr ++ "\n"
+showFunction' :: FunctionDefinition -> String -- add \n to the end of string
+showFunction' (funcname, argsnames, expr) = "func " ++ funcname ++ "(" ++ intercalate ", " argsnames ++ ") = " ++ showExpression' expr ++ "\n"
 
-showExpression :: Expression -> String
-showExpression (Number value) = show value
-showExpression (Reference name) = name
-showExpression (Assign varname expr) = "let " ++ varname ++ " = " ++ showExpression expr ++ " tel"
-showExpression (BinaryOperation binop exprL exprR) = "(" ++ showExpression exprL ++ " " ++ showBinop binop ++ " " ++ showExpression exprR ++ ")"
-showExpression (UnaryOperation unop expr) = showUnop unop ++ showExpression expr
-showExpression (FunctionCall funcname expressions) = funcname ++ "(" ++ intercalate ", " (map showExpression expressions) ++ ")"
-showExpression (Conditional exprIf exprThen exprElse) = "if " ++ showExpression exprIf ++ " then " ++ showExpression exprThen ++ " else " ++ showExpression exprElse ++ " fi"
-showExpression (Block expressions) = "{\n" ++ showExpressionBlock expressions ++ "\n}"
+showExpression' :: Expression -> String -- no indentation
+showExpression' (Number value)                          = show value
+showExpression' (Reference name)                        = name
+showExpression' (Assign varname expr)                   = "let " ++ varname ++ " = " ++ showExpression' expr ++ " tel"
+showExpression' (BinaryOperation binop exprL exprR)     = "(" ++ showExpression' exprL ++ " " ++ showBinop binop ++ " " ++ showExpression' exprR ++ ")"
+showExpression' (UnaryOperation unop expr)              = showUnop unop ++ showExpression' expr
+showExpression' (FunctionCall funcname expressions)     = funcname ++ "(" ++ intercalate ", " (map showExpression' expressions) ++ ")"
+showExpression' (Conditional exprIf exprThen exprElse)  = "if " ++ showExpression' exprIf ++ " then " ++ showExpression' exprThen ++ " else " ++ showExpression' exprElse ++ " fi"
+showExpression' (Block expressions)                     = "{\n" ++ showExpressionBlock' expressions ++ "\n}"
 
-showExpressionBlock :: [Expression] -> String
-showExpressionBlock [] = "\t"
-showExpressionBlock [expr] = "\t" ++ showExpression expr
-showExpressionBlock (expr:exs) = "\t" ++ showExpression expr ++ ";\n" ++ showExpressionBlock exs
+showExpressionBlock' :: [Expression] -> String
+showExpressionBlock' []         = ""
+showExpressionBlock' [expr]     = showExpression' expr
+showExpressionBlock' (expr:exs) = showExpression' expr ++ ";\n" ++ showExpressionBlock' exs
 
-showExpressionBlock' :: [Expression] -> Integer -> String -- to handle extra offset
-showExpressionBlock' = undefined
+indentProgram :: String -> String
+indentProgram prog = indentProgram' (splitOn "\n" prog) 0
+
+indentProgram' :: [String] -> Int -> String
+indentProgram' [] depth                 = fillTabs depth ++ "\n"
+indentProgram' (('}':line):ls) depth    = case head line of
+                                            '}' -> "}aaa" ++ indentProgram' ls (depth - 1)
+                                            _   -> "}aaa" ++ indentProgram' ls depth
+indentProgram' (line:ls) depth          = case last line of
+                                            '{' -> fillTabs depth ++ line ++ "\n" ++ indentProgram' ls (depth + 1)
+                                            _   -> fillTabs depth ++ line ++ "\n" ++ indentProgram' ls depth
+
+indentLine :: String -> Int -> String
+indentLine line depth = fillTabs depth ++ line ++ 
+
+fillTabs :: Int -> String
+fillTabs n = concat $ replicate n "\t"
 
 toBool :: Integer -> Bool
 toBool = (/=) 0
