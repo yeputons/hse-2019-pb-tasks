@@ -72,22 +72,24 @@ TEST_CASE("ThreadsafeQueue multithreaded ping-pong") {
         for (int i = 0; i < PING_PONGS; ++i) {
             int var = i;
             threadsafe_queue_push(&qs[0], &var);
-            auto new_var = static_cast<int*>(threadsafe_queue_wait_and_pop(&qs[1]));
+            auto new_var =
+                static_cast<int *>(threadsafe_queue_wait_and_pop(&qs[1]));
             REQUIRE(new_var == &var);
             REQUIRE(var == i + 1);
         }
         return nullptr;
     };
 
-auto ponger = [](void *_qs) -> void * {
-    ThreadsafeQueue *qs = static_cast<ThreadsafeQueue *>(_qs);
-    for (int i = 0; i < PING_PONGS; ++i) {
-        auto var = static_cast<int*>(threadsafe_queue_wait_and_pop(&qs[0]));
-        (*var)++;
-        threadsafe_queue_push(&qs[1], var);
-    }
-    return nullptr;
-};
+    auto ponger = [](void *_qs) -> void * {
+        ThreadsafeQueue *qs = static_cast<ThreadsafeQueue *>(_qs);
+        for (int i = 0; i < PING_PONGS; ++i) {
+            auto var =
+                static_cast<int *>(threadsafe_queue_wait_and_pop(&qs[0]));
+            (*var)++;
+            threadsafe_queue_push(&qs[1], var);
+        }
+        return nullptr;
+    };
 
     pthread_t t1, t2;
     REQUIRE(pthread_create(&t1, nullptr, pinger, qs) == 0);
@@ -221,6 +223,3 @@ TEST_CASE("ThreadsafeQueue pushes and pops from multiple threads") {
 
     threadsafe_queue_destroy(&q);
 }
-
-
-
