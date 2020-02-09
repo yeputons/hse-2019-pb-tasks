@@ -48,7 +48,28 @@ showUnop Not = "!"
 
 -- Верните текстовое представление программы (см. условие).
 showProgram :: Program -> String
-showProgram = undefined
+showProgram (funcs, expr) = concatMap showFunction funcs ++ showExpression expr
+
+showFunction :: FunctionDefinition -> String -- add \n to the end of string
+showFunction (funcname, argsnames, expr) = "func " ++ funcname ++ "(" ++ intercalate ", " argsnames ++ ") = " ++ showExpression expr ++ "\n"
+
+showExpression :: Expression -> String
+showExpression (Number value) = show value
+showExpression (Reference name) = name
+showExpression (Assign varname expr) = "let " ++ varname ++ " = " ++ showExpression expr ++ " tel"
+showExpression (BinaryOperation binop exprL exprR) = "(" ++ showExpression exprL ++ " " ++ showBinop binop ++ " " ++ showExpression exprR ++ ")"
+showExpression (UnaryOperation unop expr) = showUnop unop ++ showExpression expr
+showExpression (FunctionCall funcname expressions) = funcname ++ "(" ++ intercalate ", " (map showExpression expressions) ++ ")"
+showExpression (Conditional exprIf exprThen exprElse) = "if " ++ showExpression exprIf ++ " then " ++ showExpression exprThen ++ " else " ++ showExpression exprElse ++ " fi"
+showExpression (Block expressions) = "{\n" ++ showExpressionBlock expressions ++ "\n}"
+
+showExpressionBlock :: [Expression] -> String
+showExpressionBlock [] = "\t"
+showExpressionBlock [expr] = "\t" ++ showExpression expr
+showExpressionBlock (expr:exs) = "\t" ++ showExpression expr ++ ";\n" ++ showExpressionBlock exs
+
+showExpressionBlock' :: [Expression] -> Integer -> String -- to handle extra offset
+showExpressionBlock' = undefined
 
 toBool :: Integer -> Bool
 toBool = (/=) 0
