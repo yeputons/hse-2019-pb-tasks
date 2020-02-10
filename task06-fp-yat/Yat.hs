@@ -75,7 +75,7 @@ showFunctionDef fd = "func " ++ fst3 fd ++ showParams (snd3 fd) ++ " = " ++ show
  
 -- Верните текстовое представление программы (см. условие).
 showProgram :: Program -> String
-showProgram prog = concatMap (("\n" ++ ) . showFunctionDef) (fst prog) ++ showExpression (snd prog)
+showProgram prog = concatMap ((++ "\n") . showFunctionDef) (fst prog) ++ showExpression (snd prog)
 
 toBool :: Integer -> Bool
 toBool = (/=) 0
