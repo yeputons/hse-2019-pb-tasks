@@ -206,7 +206,7 @@ nubBy' eq = foldr' (\x xs -> x:filter (not . eq x) xs) []
 
 quickSort' :: Ord a => [a] -> [a]
 quickSort' []     = []
-quickSort' (x:xs) = concat [quickSort' (filter (<x) (x:xs)), filter (==x) (x:xs), quickSort' (filter (>x) (x:xs))]
+quickSort' (x:xs) = quickSort' (filter ( < x) xs) ++ x:filter ( == x) xs ++ quickSort' (filter ( > x) xs)
 
 -- Найдите суммарную длину списков, в которых чётное количество элементов
 -- имеют квадрат больше 100. Реализация должна быть без использования
@@ -221,7 +221,7 @@ quickSort' (x:xs) = concat [quickSort' (filter (<x) (x:xs)), filter (==x) (x:xs)
 -- >>> weird' [[1, 11, 12], [9, 10, 20]]
 -- 3
 weird':: [[Int]] -> Int
-weird' = length . concat . filter (even . length . filter (> 100) . map (^2))
+weird' = length . concat' . filter (even . length . filter (> 100) . map' (^2))
 
 
 -- 4) grep
@@ -248,7 +248,7 @@ type File = (String, [String])
 -- Здесь (\_ s -> s) --- это лямбда-функция, которая игнорирует первый
 -- параметр и возвращает второй.
 grep' :: (String -> [String] -> [String]) -> (String -> Bool) -> [File] -> [String]
-grep' format match files = concat [format name (filter match content) | (name, content) <- files]
+grep' format match files = concat' [format name (filter match content) | (name, content) <- files]
 
 -- Также вам предоставлена функция для проверки вхождения подстроки в строку.
 -- >>> isSubstringOf "a" "bac"
@@ -280,4 +280,4 @@ grepSubstringNoFilename needle = grep' (curry snd) (isSubstringOf needle)
 -- >>> grepExactMatchWithFilename "c" [("a.txt", ["a", "a"]), ("b.txt", ["b", "bab", "c"]), ("c.txt", ["c", "ccccc"])]
 -- ["b.txt:c", "c.txt:c"]
 grepExactMatchWithFilename :: String -> [File] -> [String]
-grepExactMatchWithFilename needle = grep' (\ name -> map ((name ++ ":") ++)) (== needle)
+grepExactMatchWithFilename needle = grep' (\ name -> map' ((name ++ ":") ++)) (== needle)
