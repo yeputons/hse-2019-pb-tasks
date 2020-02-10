@@ -174,12 +174,13 @@ evalFunc (expr:others) (name:names) scope funcs = (fst result:fst next, snd next
                                                             next   = evalFunc others names (snd result) funcs
 															
 															
-ScopeForFunction :: Expression -> State -> [FunctionDefinition] -> (State, State)
-ScopeForFunction (FunctionCall name exprs) scope funcs = (sscope, fscope)
+makeScopeForFunction :: Expression -> State -> [FunctionDefinition] -> (State, State)
+makeScopeForFunction (FunctionCall name exprs) scope funcs = (sscope, fscope)
                                                             where res    = evalFunc exprs (getFuncArgs funcs name) scope funcs
                                                                   sscope = snd res
                                                                   fscope = zip (getFuncArgs funcs name) (fst res) ++ sscope
-ScopeForFunction exp _ _                               = ([], [])
+makeScopeForFunction exp _ _                               = ([], [])
+
 
 evalChainBlock :: [Expression] -> State -> [FunctionDefinition] -> (Integer, State)
 evalChainBlock [] scope funcs              = (0, scope)
@@ -199,7 +200,7 @@ evalExpression (UnaryOperation op expr) scope funcs         = (toUnaryFunction o
                                                              where result = evalExpression expr scope funcs
 evalExpression (FunctionCall name exprs) scope funcs        = (expr, sscope)
                                                              where expr       = fst (evalExpression (getFuncBody funcs name) fscope funcs)
-                                                                   new_scopes = ScopeForFunction (FunctionCall name exprs) scope funcs
+                                                                   new_scopes = makeScopeForFunction (FunctionCall name exprs) scope funcs
                                                                    fscope     = snd new_scopes
                                                                    sscope     = fst new_scopes															 
 evalExpression (Conditional e t f) scope funcs              | toBool(fst eres)         = tres
