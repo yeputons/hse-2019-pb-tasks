@@ -16,7 +16,7 @@ sum' :: [Int] -> Int
 sum' = sum'' 0
 
 sum'' :: Int -> [Int] -> Int
-sum'' ini [] = ini
+sum'' ini []     = ini
 sum'' ini (x:xs) = ini + sum'' x xs
 
 -- Функция concat' принимает на вход список списков и возвращает конкатенацию
@@ -30,7 +30,7 @@ concat' :: [[a]] -> [a]
 concat' = concat'' []
 
 concat'' :: [a] -> [[a]] -> [a]
-concat'' ini [] = ini
+concat'' ini []     = ini
 concat'' ini (x:xs) = x ++ concat'' ini xs
 
 -- Функция hash' принимает на вход строку s и считает полиномиальный
@@ -52,7 +52,7 @@ hash' :: String -> Int
 hash' = hash'' 0
 
 hash'' :: Int -> String -> Int
-hash'' ini "" = ini
+hash'' ini ""     = ini
 hash'' ini (x:xs) = p * hash'' ini xs + ord x
 
 -- hashIterative ini "" it = ini
@@ -61,7 +61,7 @@ hash'' ini (x:xs) = p * hash'' ini xs + ord x
 -- Выделите общую логику предыдущих функций и реализуйте функцию высшего порядка foldr',
 -- не используя никаких стандартных функций.
 foldr' :: (a -> b -> b) -> b -> [a] -> b
-foldr' f ini [] = ini
+foldr' f ini []     = ini
 foldr' f ini (x:xs) = f x (foldr' f ini xs)
 
 
@@ -205,7 +205,7 @@ nubBy' eq = foldr' (\x xs -> x:filter (not . eq x) xs) []
 -- "aabbc"
 
 quickSort' :: Ord a => [a] -> [a]
-quickSort' [] = []
+quickSort' []     = []
 quickSort' (x:xs) = concat [quickSort' (filter (<x) (x:xs)), filter (==x) (x:xs), quickSort' (filter (>x) (x:xs))]
 
 -- Найдите суммарную длину списков, в которых чётное количество элементов
