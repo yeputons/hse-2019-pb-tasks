@@ -159,10 +159,49 @@ eval :: Program -> Integer
 eval (funcs, expr) = fst $ evalExpression expr funcs Map.empty 
 
 evalExpression :: Expression -> [FunctionDefinition] -> State -> (Integer, State)
-evalExpression (Number value) _ state               = (value, state)
-evalExpression (Reference varname) _ state          = case Map.lookup varname state of
-                                                        Just value  -> (value, state)
-                                                        _           -> undefined -- variable not found
-evalExpression (Assign varname expr) funcs state    = (exprValue, Map.insert varname exprValue returnedState)
-    where (exprValue, returnedState) = evalExpression expr funcs state
-evalExpression (BinaryOperation binop exprL exprR) funcs state = undefined
+evalExpression (Number value) _ state                               = (value, state)
+evalExpression (Reference varname) _ state                          = case Map.lookup varname state of
+                                                                        Just value  -> (value, state)
+                                                                        _           -> undefined -- variable not found
+evalExpression (Assign varname expr) funcs state                    = (exprValue, Map.insert varname exprValue returnedState)
+    where 
+        (exprValue, returnedState) = evalExpression expr funcs state
+evalExpression (BinaryOperation binop exprL exprR) funcs state      = ((toBinaryFunction binop exprLvalue exprRvalue), returnedRstate)
+    where 
+        (exprLvalue, returnedLstate) = evalExpression exprL funcs state
+        (exprRvalue, returnedRstate) = evalExpression exprR funcs returnedLstate
+evalExpression (UnaryOperation unop expr) funcs state               = ((toUnaryFunction unop exprValue), returnedState)
+    where 
+        (exprValue, returnedState) = evalExpression expr funcs state
+evalExpression (FunctionCall funcname exprs) funcs state            = case lookupFunctionDefinition funcname funcs of
+                                                                        Just func   -> evalFunction func exprs funcs state
+                                                                        _           -> undefined -- function not found
+evalExpression (Conditional exprIf exprThen exprElse) funcs state   = case toBool exprIfValue of
+                                                                        True    -> evalExpression exprThen funcs returnedIfState
+                                                                        False   -> evalExpression exprElse funcs returnedIfState
+    where
+        (exprIfValue, returnedIfState) = evalExpression exprIf funcs state
+evalExpression (Block exprs) funcs state                            = evalBlock exprs funcs state
+
+lookupFunctionDefinition :: Name -> [FunctionDefinition] -> Maybe FunctionDefinition
+lookupFunctionDefinition _ []                                       = Nothing
+lookupFunctionDefinition funcname ((foundFuncname,args,expr):fs)    = if (foundFuncname == funcname) then Just (foundFuncname, args, expr) else (lookupFunctionDefinition funcname fs)
+
+evalFunction :: FunctionDefinition -> [Expression] -> [FunctionDefinition] -> State -> (Integer, State)
+evalFunction (funcname, argnames, funcexpr) argexprs funcs state = ((fst (evalExpression funcexpr funcs (Map.union returnedArgsState argsMapped))), returnedArgsState)
+    where
+        (argsMapped, returnedArgsState) = evalArguments (zip argnames argexprs) funcs state
+
+evalArguments :: [(Name, Expression)] -> [FunctionDefinition] -> State -> (Map.Map Name Integer, State)
+evalArguments [] _ state                            = (Map.empty, state)
+evalArguments ((argname, expr):args) funcs state    = ((Map.insert argname exprValue recursiveMap), recursiveState)
+    where 
+        (exprValue, returnedExprState) = evalExpression expr funcs state
+        (recursiveMap, recursiveState) = evalArguments args funcs returnedExprState
+
+evalBlock :: [Expression] -> [FunctionDefinition] -> State -> (Integer, State)
+evalBlock [] _ state                = (0, state)
+evalBlock [expr] funcs state        = evalExpression expr funcs state
+evalBlock (expr:exs) funcs state    = evalBlock exs funcs returnedState
+    where
+        (exprValue, returnedState) = evalExpression expr funcs state
