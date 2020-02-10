@@ -188,7 +188,7 @@ lookupFunctionDefinition _ []                                       = Nothing
 lookupFunctionDefinition funcname ((foundFuncname,args,expr):fs)    = if (foundFuncname == funcname) then Just (foundFuncname, args, expr) else (lookupFunctionDefinition funcname fs)
 
 evalFunction :: FunctionDefinition -> [Expression] -> [FunctionDefinition] -> State -> (Integer, State)
-evalFunction (funcname, argnames, funcexpr) argexprs funcs state = ((fst (evalExpression funcexpr funcs (Map.union returnedArgsState argsMapped))), returnedArgsState)
+evalFunction (funcname, argnames, funcexpr) argexprs funcs state = ((fst (evalExpression funcexpr funcs (Map.union argsMapped returnedArgsState))), returnedArgsState)
     where
         (argsMapped, returnedArgsState) = evalArguments (zip argnames argexprs) funcs state
 
