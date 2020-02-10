@@ -162,13 +162,6 @@ getFuncArgs [] _                                                           = []
 getFuncArgs ((funcName, funcArgs, funcBody):funcs) name | name == funcName = funcArgs
                                                             | otherwise    = getFuncArgs funcs name 
 
-ScopeForFunction :: Expression -> State -> [FunctionDefinition] -> (State, State)
-ScopeForFunction (FunctionCall name exprs) scope funcs = (sscope, fscope)
-                                                            where res    = evalFunc exprs (getFuncArgs funcs name) scope funcs
-                                                                  sscope = snd res
-                                                                  fscope = zip (getFuncArgs funcs name) (fst res) ++ sscope
-ScopeForFunction exp _ _                               = ([], [])
-
 
 evalFunc :: [Expression] -> [Name] -> State -> [FunctionDefinition] -> ([Integer], State)
 evalFunc [_] [] _ _                             = ([0], [])
@@ -179,6 +172,14 @@ evalFunc [expr] [name] scope funcs              = ([fst result], snd result)
 evalFunc (expr:others) (name:names) scope funcs = (fst result:fst next, snd next)
                                                       where result = evalExpression expr scope funcs
                                                             next   = evalFunc others names (snd result) funcs
+															
+															
+ScopeForFunction :: Expression -> State -> [FunctionDefinition] -> (State, State)
+ScopeForFunction (FunctionCall name exprs) scope funcs = (sscope, fscope)
+                                                            where res    = evalFunc exprs (getFuncArgs funcs name) scope funcs
+                                                                  sscope = snd res
+                                                                  fscope = zip (getFuncArgs funcs name) (fst res) ++ sscope
+ScopeForFunction exp _ _                               = ([], [])
 
 evalChainBlock :: [Expression] -> State -> [FunctionDefinition] -> (Integer, State)
 evalChainBlock [] scope funcs              = (0, scope)
