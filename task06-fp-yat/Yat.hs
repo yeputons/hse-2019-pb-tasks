@@ -69,8 +69,8 @@ addTabs (s:str) | s == '\n' = s:'\t':addTabs str
 
 FuncArgsDef :: [Name] -> String
 FuncArgsDef []     = ""
-FuncArgsDef [x]    = x
-FuncArgsDef (x:xs) = x ++ ", " ++ FuncArgsDef xs
+FuncArgsDef [n]    = n
+FuncArgsDef (n:ns) = n ++ ", " ++ FuncArgsDef ns
 
 showFuncDef :: FunctionDefinition -> String
 showFuncDef (name, args, expr) = "func " ++ name ++ "(" ++ FuncArgsDef args ++ ") = " ++ showExpression expr
