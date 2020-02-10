@@ -60,6 +60,7 @@ showExpression (BinaryOperation op expr1 expr2) = "(" ++ showExpression expr1 ++
 showExpression (UnaryOperation op expr)			= showUnop op ++ showExpression expr
 showExpression (FunctionCall name funcs)		= name ++ "(" ++ showFunc funcs ++ ")"
 showExpression (Conditional cond expr1 expr2)	= "if " ++ showExpression cond ++ " then " ++ showExpression expr1 ++ " else " ++ showExpression expr2 ++ " fi"
+showExpression (Block [])                       = "{\n}"
 showExpression (Block exprs)                    = "{\n\t" ++ addTabs $ intercalate ";\n" $ map showExpression exprs ++ "\n}"
 
 addTabs :: String -> String
@@ -67,17 +68,11 @@ addTabs []      = []
 addTabs (s:str) | s == '\n' = s:'\t':addTabs str
                 | otherwise = s:addTabs str
 
-FuncArgsDef :: [Name] -> String
-FuncArgsDef []     = ""
-FuncArgsDef [n]    = n
-FuncArgsDef (n:ns) = n ++ ", " ++ FuncArgsDef ns
-
-showFuncDef :: FunctionDefinition -> String
-showFuncDef (name, args, expr) = "func " ++ name ++ "(" ++ FuncArgsDef args ++ ") = " ++ showExpression expr
+showFunc :: FunctionDefinition -> String
+showFunc (name, args, expr) = "func " ++ name ++ "(" ++ intercalate ", " args ++ ") = " ++ showExpression expr
 
 showProgram :: Program -> String
-showProgram (funcs, exprs) = concatMap ((++ "\n") . showFuncDef) funcs ++ showExpression exprs 
-
+showProgram (funcs, exprs) = concatMap ((++ "\n") . showFunc) funcs ++ showExpression exprs  
 
 -- Верните текстовое представление программы (см. условие).
 --showProgram :: Program -> String
