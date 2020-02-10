@@ -51,10 +51,10 @@ showFuncCallArguments []      = ""
 showFuncCallArguments [e]     = showExpression e ""
 showFuncCallArguments (e:es)  = showExpression e "" ++ ", " ++ showFuncCallArguments es
 
-showBlockArgs :: [Expression] -> String ->String
-showBlockArgs [] _         = ""
-showBlockArgs [e] tabs     = tabs ++ showExpression e tabs ++ "\n"
-showBlockArgs (e:es) tabs  = tabs ++ showExpression e tabs ++ ";\n" ++ showBlockArgs es tabs
+showBlockArguments :: [Expression] -> String ->String
+showBlockArguments [] _         = ""
+showBlockArguments [e] tabs     = tabs ++ showExpression e tabs ++ "\n"
+showBlockArguments (e:es) tabs  = tabs ++ showExpression e tabs ++ ";\n" ++ showBlockArguments es tabs
 
 
 showExpression :: Expression -> String -> String
@@ -65,7 +65,7 @@ showExpression (BinaryOperation op l r) tabs         = "(" ++ showExpression l t
 showExpression (UnaryOperation op e) tabs            = showUnop op ++ showExpression e tabs
 showExpression (FunctionCall name expressions) tabs  = name ++ "(" ++ showFuncCallArguments expressions ++ ")"
 showExpression (Conditional e t f) tabs              = "if " ++ showExpression e tabs ++ " then " ++ showExpression t tabs ++ " else " ++ showExpression f tabs ++ " fi"
-showExpression (Block expressions) tabs              = "{\n" ++ showBlockArgs expressions (tabs ++ "\t") ++ tabs ++ "}"
+showExpression (Block expressions) tabs              = "{\n" ++ showBlockArguments expressions (tabs ++ "\t") ++ tabs ++ "}"
 
 
 showFunctionDefenition :: FunctionDefinition -> String
