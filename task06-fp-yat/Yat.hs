@@ -1,3 +1,4 @@
+  
 module Yat where  -- Вспомогательная строчка, чтобы можно было использовать функции в других файлах.
 import Data.List
 import Data.Maybe
@@ -99,31 +100,22 @@ toUnaryFunction Not = fromBool . not . toBool
 
 {- -- Удалите эту строчку, если решаете бонусное задание.
 newtype Eval a = Eval ([FunctionDefinition] -> State -> (a, State))  -- Как data, только эффективнее в случае одного конструктора.
-
 runEval :: Eval a -> [FunctionDefinition] -> State -> (a, State)
 runEval (Eval f) = f
-
 evaluated :: a -> Eval a  -- Возвращает значение без изменения состояния.
 evaluated = undefined
-
 readState :: Eval State  -- Возвращает состояние.
 readState = undefined
-
 addToState :: String -> Integer -> a -> Eval a  -- Добавляет/изменяет значение переменной на новое и возвращает константу.
 addToState = undefined
-
 readDefs :: Eval [FunctionDefinition]  -- Возвращает все определения функций.
 readDefs = undefined
-
 andThen :: Eval a -> (a -> Eval b) -> Eval b  -- Выполняет сначала первое вычисление, а потом второе.
 andThen = undefined
-
 andEvaluated :: Eval a -> (a -> b) -> Eval b  -- Выполняет вычисление, а потом преобразует результат чистой функцией.
 andEvaluated = undefined
-
 evalExpressionsL :: (a -> Integer -> a) -> a -> [Expression] -> Eval a  -- Вычисляет список выражений от первого к последнему.
 evalExpressionsL = undefined
-
 evalExpression :: Expression -> Eval Integer  -- Вычисляет выражение.
 evalExpression = undefined
 -} -- Удалите эту строчку, если решаете бонусное задание.
@@ -150,8 +142,9 @@ evalExpression scope _ (Reference ref)                  = (scope, getValue scope
 evalExpression scope funcs (Assign name ex)             = (filter (\ var -> fst var /= name) (fst tmp_expr `union` scope) ++ [(name, snd tmp_expr)], snd tmp_expr)
                                                             where tmp_expr = evalExpression scope funcs ex
 
-evalExpression scope funcs (BinaryOperation op a b)     = second (toBinaryFunction op (snd acase))(evalExpression (fst acase) funcs b)
-                                                            where acase = evalExpression scope funcs a
+evalExpression scope funcs (BinaryOperation op fir sec) = (fst tmp_r, toBinaryFunction op (snd tmp_l) (snd tmp_r))
+                                                            where tmp_l = evalExpression scope funcs fir
+                                                                  tmp_r = evalExpression (union scope $ fst tmp_l) funcs sec
 
 evalExpression scope funcs (UnaryOperation uop op)      = second (toUnaryFunction uop) calc
                                                             where calc = evalExpression scope funcs op
