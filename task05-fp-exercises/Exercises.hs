@@ -69,7 +69,7 @@ foldr' f ini (x:xs) = f x (foldr' f ini xs)
 -- через функцию foldr', не используя стандартных функций.
 map' :: (a -> b) -> [a] -> [b]
 
-map' f  = foldr' (\y ys -> f y : ys) []
+map' f  = foldr' (\x ys -> f x:ys) []
 
 -- 2) Maybe
 -- Maybe a - это специальный тип данных, который может принимать либо
