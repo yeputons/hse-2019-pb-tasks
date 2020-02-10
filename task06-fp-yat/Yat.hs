@@ -47,8 +47,24 @@ showUnop Neg = "-"
 showUnop Not = "!"
 
 -- Верните текстовое представление программы (см. условие).
+showParams :: [String] -> String
+showParams = ("("++) . (++")") . intercalate ", "
+showTabs :: Int -> String
+showTabs tabs = replicate tabs '\t' 
+showExpression :: Int -> Expression -> String 
+showExpression tabs (Number x) = show x
+showExpression tabs (Reference var) = var
+showExpression tabs (Assign var expr) = "let " ++ var ++ " = " ++ showExpression tabs expr ++ " tel" 
+showExpression tabs (BinaryOperation op expr1 expr2) = "(" ++ showExpression tabs expr1 ++ " " ++ showBinop op ++ " " ++ showExpression tabs expr2 ++ ")"
+showExpression tabs (UnaryOperation op expr) = showUnop op ++ showExpression tabs expr
+showExpression tabs (FunctionCall fn_name params) = fn_name ++ showParams (map (showExpression tabs) params)
+showExpression tabs (Conditional stat expr_true expr_false) = "if " ++ showExpression tabs stat ++ " then " ++ showExpression tabs expr_true ++ " else " ++ showExpression tabs expr_false ++ " fi"
+showExpression tabs (Block []) = "{\n" ++ showTabs tabs ++ "}"
+showExpression tabs (Block expressions) = "{\n" ++ showTabs (tabs + 1) ++ intercalate (";\n" ++ showTabs (tabs + 1)) (map (showExpression (tabs + 1)) expressions) ++ "\n" ++ showTabs tabs ++ "}"
+showFunction :: FunctionDefinition -> String
+showFunction (fn_name, params, expr) = "func " ++ fn_name ++ showParams params ++ " = " ++ showExpression 0 expr ++ "\n"
 showProgram :: Program -> String
-showProgram = undefined
+showProgram (funcs, expr) = (intercalate "\n" $ map showFunction funcs) ++ showExpression 0 expr
 
 toBool :: Integer -> Bool
 toBool = (/=) 0
