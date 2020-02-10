@@ -51,7 +51,7 @@ showExpr (Number val)                            = show val
 showExpr (Reference name)                        = name 
 showExpr (Assign name expr)                      = concat ["let ", name, " = ", showExpr expr, " tel"]
 showExpr (BinaryOperation op leftExpr rightExpr) = concat ["(", showExpr leftExpr, " ", showBinop op, " ", showExpr rightExpr, ")"]
-showExpr (UnaryOperation op expr)                = concat [showUnop op, showExpr expr]
+showExpr (UnaryOperation op expr)                = showUnop op ++ showExpr expr
 showExpr (FunctionCall name args)                = concat [name, "(", intercalate ", " (map showExpr args), ")"]
 showExpr (Conditional e t f)                     = concat ["if ", showExpr e, " then ", showExpr t, " else ", showExpr f, " fi"]
 showExpr (Block exprs)                           = concat ["{\n", concatMap (("\t" ++) . (++ "\n")) (lines $ intercalate ";\n" (map showExpr exprs)), "}"]
@@ -144,7 +144,7 @@ evalExpr state funcs (Assign name expr)                      = ((name, val) : ne
                                                                   where (newState, val) = evalExpr state funcs expr
 evalExpr state funcs (BinaryOperation op leftExpr rightExpr) = (rightState, toBinaryFunction op leftVal rightVal)
                                                                   where (leftState, leftVal)     = evalExpr state funcs leftExpr
-                                                                        (rightState, rightVal)   = evalExpr (union state $ leftState) funcs rightExpr
+                                                                        (rightState, rightVal)   = evalExpr (union state leftState) funcs rightExpr
 evalExpr state funcs (UnaryOperation op expr)                = (newState, toUnaryFunction op val)
                                                                   where (newState, val) = evalExpr state funcs expr
 evalExpr state funcs (FunctionCall name args)                = (newState, snd $ evalExpr newState funcs (getBody func))
