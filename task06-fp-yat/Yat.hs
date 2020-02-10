@@ -156,9 +156,12 @@ getFuncBody ((funcName, funcArgs, funcBody):funcs) name | name == funcName = fun
                                                             | otherwise        = getFuncBody funcs name 
 															
 															getFuncArgs :: [FunctionDefinition] -> Name -> [Name]
+
+getFuncArgs :: [FunctionDefinition] -> Name -> [Name]
 getFuncArgs [] _                                        = []
 getFuncArgs ((funcName, funcArgs, funcBody):funcs) name | name == funcName = funcArgs
-                                                            | otherwise        = getFuncArgs funcs name 
+                                                            | otherwise    = getFuncArgs funcs name 
+
 
 ScopeForFunction :: Expression -> State -> [FunctionDefinition] -> (State, State)
 ScopeForFunction (FunctionCall name exprs) scope funcs = (sscope, fscope)
@@ -166,6 +169,7 @@ ScopeForFunction (FunctionCall name exprs) scope funcs = (sscope, fscope)
                                                                   sscope = snd res
                                                                   fscope = zip (getFuncArgs funcs name) (fst res) ++ sscope
 ScopeForFunction exp _ _                               = ([], [])
+
 
 evalFunc :: [Expression] -> [Name] -> State -> [FunctionDefinition] -> ([Integer], State)
 evalFunc [_] [] _ _                             = ([0], [])
