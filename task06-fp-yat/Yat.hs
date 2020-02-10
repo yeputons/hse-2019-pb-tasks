@@ -46,9 +46,29 @@ showUnop :: Unop -> String
 showUnop Neg = "-"
 showUnop Not = "!"
 
+showFunctionWithParams :: Name -> [a] -> (a -> String) -> String
+showFunctionWithParams name params showParams = name ++ "(" ++ intercalate ", " (map showParams params) ++ ")"
+
+addTabs :: String -> String
+addTabs = intercalate "\n" . map ("\t" ++) . lines
+
+showExpression :: Expression -> String
+showExpression (Number          n        ) = show n
+showExpression (Reference       name     ) = name
+showExpression (Assign          name e   ) = "let " ++ name ++ " = " ++ showExpression e ++ " tel"
+showExpression (BinaryOperation op   l  r) = "(" ++ showExpression l ++ " " ++ showBinop op ++ " " ++ showExpression r ++ ")"
+showExpression (UnaryOperation  op   e   ) = showUnop op ++ showExpression e
+showExpression (FunctionCall    name es  ) = showFunctionWithParams name es showExpression
+showExpression (Conditional     e    t  f) = "if " ++ showExpression e ++ " then " ++ showExpression t ++ " else " ++ showExpression f ++ " fi"
+showExpression (Block           []       ) = "{\n}"
+showExpression (Block           es       ) = "{\n" ++ intercalate ";\n" (map (addTabs . showExpression) es) ++ "\n}"
+
+showFunctionDefinition :: FunctionDefinition -> String
+showFunctionDefinition (name, params, e) = "func " ++ showFunctionWithParams name params id ++ " = " ++ showExpression e ++ "\n"
+
 -- Верните текстовое представление программы (см. условие).
 showProgram :: Program -> String
-showProgram = undefined
+showProgram (fs, e) = concat (map showFunctionDefinition fs) ++ showExpression e
 
 toBool :: Integer -> Bool
 toBool = (/=) 0
