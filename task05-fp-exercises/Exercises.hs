@@ -64,7 +64,6 @@ foldr' f ini (x:xs) = f x (foldr' f ini xs)
 -- Реализуйте функцию map' (которая делает то же самое, что обычный map)
 -- через функцию foldr', не используя стандартных функций.
 map' :: (a -> b) -> [a] -> [b]
-map' _ [] = []
 map' f xs = foldr' ((:) . f) [] xs
 -- \x y -> f x : y = \x -> (:) $ f x = (:) . f 
 
@@ -134,8 +133,11 @@ secondElement xs = case tryTail xs of
 
 thirdElementOfSecondList :: [[a]] -> Maybe a
 thirdElementOfSecondList xs = case secondElement xs of
-                                Just (_:_:t:_) -> Just t
-                                _         -> Nothing
+                                Just xs -> thirdElement xs 
+                                _       -> Nothing
+                                where thirdElement xs = case tryTail xs of
+                                                           Just x -> secondElement x
+                                                           _      -> Nothing
 
 -- Функцию fifthElement, которая возвращает пятый элемент списка или Nothing,
 -- если пятого элемента в списке нет.
@@ -146,14 +148,19 @@ thirdElementOfSecondList xs = case secondElement xs of
 -- >>> fifthElement [1, 2, 3, 4, 5]
 -- Just 5
 fifthElement :: [a] -> Maybe a
-fifthElement (_:_:_:_:x:_) = Just x
-fifthElement _ = Nothing
+fifthElement xs = tryHeadMaybe $ tryTailMaybe $ tryTailMaybe $ tryTailMaybe $ tryTail xs
+                     where tryHeadMaybe xs = case xs of
+                                               Just a -> tryHead a
+                                               _      -> Nothing
+                           tryTailMaybe xs = case xs of
+                                               Just a -> tryTail a
+                                               _      -> Nothing
 
 -- Выделите общую логику в оператор ~~>.
 (~~>) :: Maybe a -> (a -> Maybe b) -> Maybe b
-(~~>) ma f = case ma of
-                Just a -> f a 
-                _      -> Nothing
+(~~>) (Just ma) f = f ma 
+(~~>) _       f = Nothing 
+
 
 -- Перепишите функцию thirdElementOfSecondList в thirdElementOfSecondList' используя
 -- только tryHead, tryTail, применение функций и оператор ~~>, но не используя
@@ -175,15 +182,15 @@ thirdElementOfSecondList' xs = tryTail xs ~~> tryHead ~~> tryTail ~~> tryTail ~~
 -- nubBy' (\x y -> x == y || x + y == 10) [2, 3, 5, 7, 8, 2]
 -- [2,3,5]
 
-filter' :: (a -> Bool) -> [a] -> [a]
-filter' _ [] = []
-filter' expr (x:xs) 
-    | expr x    = x : filter' expr xs 
-    | otherwise = filter' expr xs 
+-- filter' :: (a -> Bool) -> [a] -> [a]
+-- filter' _ [] = []
+-- filter' expr (x:xs) 
+--     | expr x    = x : filter' expr xs 
+--     | otherwise = filter' expr xs 
 
 nubBy' :: (a -> a -> Bool) -> [a] -> [a]
 nubBy' _ [] = []
-nubBy' eq (x:xs) = x : nubBy' eq (filter' (not . eq x) xs)
+nubBy' eq (x:xs) = x : nubBy' eq (filter (not . eq x) xs)
 
 -- Реализуйте функцию quickSort, которая принимает на вход список, и 
 -- возвращает список, в котором элементы отсортированы при помощи алгоритма
@@ -203,13 +210,12 @@ nubBy' eq (x:xs) = x : nubBy' eq (filter' (not . eq x) xs)
 -- >>> quickSort' "babca"
 -- "aabbc"
 
-partition :: Ord a => a -> [a] -> ([a], [a])
-partition mid xs = (filter' (< mid) xs, filter' (>= mid ) xs)
+-- partition :: Ord a => a -> [a] -> ([a], [a])
+-- partition mid xs = (filter (< mid) xs, filter' (>= mid ) xs)
 
 quickSort' :: Ord a => [a] -> [a]
 quickSort' [] = []
-quickSort' (x:xs) = quickSort' (fst $ partition x xs) ++ x : quickSort' (snd $ partition x xs)
-
+quickSort' (x:xs) = quickSort' [val | val <- xs, val < x] ++ x : quickSort' [val | val <- xs, val >= x]
 -- main :: IO()
 -- main = print $ quickSort' [1, 43, 5, 5, 32, 214, 5325, 546, 228, 1337]
 
@@ -257,7 +263,7 @@ quickSort' (x:xs) = quickSort' (fst $ partition x xs) ++ x : quickSort' (snd $ p
 -- f''' = sum' . map' length . f'' 
 
 weird' :: [[Int]] -> Int
-weird' = sum' . map' length . filter' (even . length . filter' ((> 100) . (^ 2))) 
+weird' = sum' . map' length . filter (even . length . filter ((> 100) . (^ 2))) 
 
 -- main :: IO()
 -- main = print $ f''' [[1, 2, 3, 4], [228, 10], [14, 15, 16]]
@@ -334,9 +340,9 @@ grepSubstringNoFilename needle = grep' (\_ x -> x) (isSubstringOf needle)
 -- >>> grepExactMatchWithFilename "c" [("a.txt", ["a", "a"]), ("b.txt", ["b", "bab", "c"]), ("c.txt", ["c", "ccccc"])]
 -- ["b.txt:c", "c.txt:c"]
 
-addFileName :: String -> [String] -> [String]
-addFileName filename  = map' (\x -> filename ++ ":" ++ x) 
+-- addFileName :: String -> [String] -> [String]
+-- addFileName filename  = map' ((filename ++ ":") ++ ) 
 
 grepExactMatchWithFilename :: String -> [File] -> [String]
-grepExactMatchWithFilename needle  = grep' addFileName (== needle) 
+grepExactMatchWithFilename needle  = grep' (\filename -> map' ((filename ++ ":") ++ )) (== needle) 
 
