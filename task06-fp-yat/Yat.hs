@@ -156,7 +156,7 @@ makeFunctionScope scope names values = zip names values ++ scope
 
 chainFunction :: [FunctionDefinition] -> State -> [Expression] -> ([Integer], State)
 chainFunction func scope []     = ([], scope)
-chainFunction func scope (e:es) = ((fst eresult:fst esresult), snd esresult)
+chainFunction func scope (e:es) = (fst eresult:fst esresult, snd esresult)
                               where
                                 eresult  = evalExpression func scope e
                                 esresult = chainFunction func (snd eresult) es
