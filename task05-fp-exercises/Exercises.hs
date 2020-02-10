@@ -2,7 +2,7 @@ module Exercises where  -- Вспомогательная строчка, что
 import Control.Arrow
 import Data.Char
 import Data.Text(isInfixOf, pack)
--- import Prelude hiding (sum, concat, foldr, map)
+import Prelude hiding (sum, concat, foldr, map)
 {- HLINT ignore "Use foldr" -}
 
 -- 1) Выделение функции высшего порядка.
