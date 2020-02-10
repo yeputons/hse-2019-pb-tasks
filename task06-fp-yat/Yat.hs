@@ -1,6 +1,7 @@
 module Yat where  -- Вспомогательная строчка, чтобы можно было использовать функции в других файлах.
 import Data.List
 import Data.List.Split
+import qualified Data.Map.Strict as Map
 import Data.Maybe
 import Data.Bifunctor
 import Debug.Trace
@@ -25,7 +26,7 @@ data Expression = Number Integer  -- Возвращает число, побоч
 
 type Name = String
 type FunctionDefinition = (Name, [Name], Expression)  -- Имя функции, имена параметров, тело функции
-type State = [(String, Integer)]  -- Список пар (имя переменной, значение). Новые значения дописываются в начало, а не перезаписываютсpя
+type State = Map.Map Name Integer  -- Список пар (имя переменной, значение). Новые значения дописываются в начало, а не перезаписываютсpя
 type Program = ([FunctionDefinition], Expression)  -- Все объявленные функций и основное тело программы
 
 showBinop :: Binop -> String
@@ -155,4 +156,13 @@ evalExpression = undefined
 
 -- Реализуйте eval: запускает программу и возвращает её значение.
 eval :: Program -> Integer
-eval = undefined
+eval (funcs, expr) = fst $ evalExpression expr funcs Map.empty 
+
+evalExpression :: Expression -> [FunctionDefinition] -> State -> (Integer, State)
+evalExpression (Number value) _ state               = (value, state)
+evalExpression (Reference varname) _ state          = case Map.lookup varname state of
+                                                        Just value  -> (value, state)
+                                                        _           -> undefined -- variable not found
+evalExpression (Assign varname expr) funcs state    = (exprValue, Map.insert varname exprValue returnedState)
+    where (exprValue, returnedState) = evalExpression expr funcs state
+evalExpression (BinaryOperation binop exprL exprR) funcs state = undefined
