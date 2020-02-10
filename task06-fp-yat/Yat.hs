@@ -135,6 +135,7 @@ trd3 :: FunctionDefinition -> Expression
 trd3 (_, _, expr) = expr
 
 getArgsValues :: State -> [FunctionDefinition] -> [Expression] -> (State, [Integer])
+getArgsValues state funcs []        = (state, [])
 getArgsValues state funcs [expr]    = (newState, [newVal])
                                         where (newState, newVal) = evalExpression state funcs expr
 
@@ -147,7 +148,7 @@ evalExpression :: State -> [FunctionDefinition] -> Expression -> (State, Integer
 
 evalExpression state funcs (Number num)                        = (state, num)
 
-evalExpression state funcs (Reference name)                    = (state, snd $ fromJust $ find ((== name) . fst) state)
+evalExpression state funcs (Reference name)                    = (state, fromJust $ lookup name state)
 
 evalExpression state funcs (Assign name expr)                  = ((name, newVal) : newState, newVal)
                                                                     where (newState, newVal) = evalExpression state funcs expr
@@ -170,12 +171,8 @@ evalExpression state funcs (Conditional cond ifCond ifNotCond) | toBool val = ev
                                                                | otherwise = evalExpression newState funcs ifNotCond
                                                                     where (newState, val) = evalExpression state funcs cond
 
-evalExpression state funcs (Block []) = (state, 0)
-evalExpression state funcs (Block [expr]) = evalExpression state funcs expr
-evalExpression state funcs (Block (x:xs)) = evalExpression (fst (evalExpression state funcs x)) funcs (Block xs)
+evalExpression state funcs (Block exprs)                       = foldl (\(st, val) expr -> evalExpression st funcs expr) (state, 0) exprs
                                                                                                                              
 -- Реализуйте eval: запускает программу и возвращает её значение.
 eval :: Program -> Integer
 eval (functions, expr) = snd $ evalExpression [] functions expr
-
-eval' (functions, expr) = fst $ evalExpression [] functions expr
