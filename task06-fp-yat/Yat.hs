@@ -75,7 +75,8 @@ indentProgram prog = indentProgram' (splitOn "\n" prog) 0
 indentProgram' :: [String] -> Int -> String
 indentProgram' [] depth                 = ""
 indentProgram' ['}':line] depth         = indentLine ("}" ++ line) (depth - 1)
-indentProgram' [line] depth             = indentLine line depth
+indentProgram' [line] depth             = indentLine line depth 
+indentProgram' ("}":ls) depth           = indentLine "}" (depth - 1) ++ "\n" ++ indentProgram' ls (depth - 1)
 indentProgram' (('}':line):ls) depth    = case last line of
                                             '{' -> indentLine ("}" ++ line) (depth - 1) ++ "\n" ++ indentProgram' ls depth
                                             _   -> indentLine ("}" ++ line) (depth - 1) ++ "\n" ++ indentProgram' ls (depth - 1)
