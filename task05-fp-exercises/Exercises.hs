@@ -134,11 +134,10 @@ secondElement xs = case tryTail xs of
 
 thirdElementOfSecondList :: [[a]] -> Maybe a
 thirdElementOfSecondList xs = case secondElement xs of
-                                Just a -> thirdElement a
-                                _      -> Nothing
-                                where thirdElement xs = case tryTail xs of
-                                                          Just a -> secondElement a
-                                                          _      -> Nothing
+                                Just [a]          -> Nothing
+                                Just [a, b]       -> Nothing
+                                Just [a, b, c]    -> Just c
+                                _                 -> Nothing
 
 -- Функцию fifthElement, которая возвращает пятый элемент списка или Nothing,
 -- если пятого элемента в списке нет.
