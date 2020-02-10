@@ -68,7 +68,7 @@ showFunctionDefinition (name, params, e) = "func " ++ showFunctionWithParams nam
 
 -- Верните текстовое представление программы (см. условие).
 showProgram :: Program -> String
-showProgram (fs, e) = concat (map showFunctionDefinition fs) ++ showExpression e
+showProgram (fs, e) = concatMap showFunctionDefinition fs ++ showExpression e
 
 toBool :: Integer -> Bool
 toBool = (/=) 0
@@ -132,6 +132,56 @@ evalExpression :: Expression -> Eval Integer  -- Вычисляет выраже
 evalExpression = undefined
 -} -- Удалите эту строчку, если решаете бонусное задание.
 
+getFirstElement :: (a, b, c) -> a
+getFirstElement (el, _, _) = el
+
+findVarInState :: Name -> ((String, Integer) -> Bool)
+findVarInState name var = fst var == name  
+
+getFuncDef :: Name -> [FunctionDefinition] -> FunctionDefinition
+getFuncDef name = head . filter (\fd -> getFirstElement fd == name)
+
+addVarToState :: Name -> Integer -> State -> State
+addVarToState name val st = (name, val):filter (not . findVarInState name) st
+
+addVarsToState :: [(Name, Integer)] -> State -> State
+addVarsToState []                 st = st
+addVarsToState ((name, val):vars) st = addVarsToState vars $ addVarToState name val st
+
+evalParams :: [(Name, Expression)] -> [FunctionDefinition] -> State -> ([(Name, Integer)], State)
+evalParams []                 fds st = ([], st)
+evalParams [(name, e)]        fds st = ([(name, val)], newState)
+                                       where (val, newState) = evalExpression e fds st
+evalParams ((name, e):params) fds st = ((name, val):paramsVals, resState)
+                                       where (val, newState) = evalExpression e fds st
+                                             (paramsVals, resState) = evalParams params fds newState
+
+evalIfCondition :: (Integer, State) -> Expression -> Expression -> [FunctionDefinition] -> (Integer, State)
+evalIfCondition (0, st) t f fds = evalExpression f fds st
+evalIfCondition (_, st) t f fds = evalExpression t fds st
+
+evaluate :: Expression -> [FunctionDefinition] -> State -> Integer
+evaluate e fds st = fst $ evalExpression e fds st
+
+evalExpression :: Expression -> [FunctionDefinition] -> State -> (Integer, State)
+evalExpression (Number          n         ) fds st = (n, st)
+evalExpression (Reference       name      ) fds st = (snd $ head $ filter (findVarInState name) st, st) 
+evalExpression (Assign          name  e   ) fds st = (val, addVarToState name val newState)
+                                                     where (val, newState) = evalExpression e fds st
+evalExpression (BinaryOperation op    l  r) fds st = (toBinaryFunction op lVal rVal, newState2)
+                                                     where (lVal, newState1) = evalExpression l fds st
+                                                           (rVal, newState2) = evalExpression r fds newState1
+evalExpression (UnaryOperation  op    e   ) fds st = (toUnaryFunction op val, newState)
+                                                     where (val, newState) = evalExpression e fds st
+evalExpression (FunctionCall    name  es  ) fds st = (evaluate body fds $ addVarsToState evaledParams newState, newState) 
+                                                     where funcDef                  = getFuncDef name fds
+                                                           (_, params, body)        = funcDef
+                                                           (evaledParams, newState) = evalParams (zip params es) fds st 
+evalExpression (Conditional     e     t  f) fds st = evalIfCondition (evalExpression e fds st) t f fds
+evalExpression (Block           []        ) fds st = (0, st)
+evalExpression (Block           [e]       ) fds st = evalExpression e fds st
+evalExpression (Block           (e:es)    ) fds st = evalExpression (Block es) fds $ snd $ evalExpression e fds st
+
 -- Реализуйте eval: запускает программу и возвращает её значение.
 eval :: Program -> Integer
-eval = undefined
+eval (fds, e) = evaluate e fds []
