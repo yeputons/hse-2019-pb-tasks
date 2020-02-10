@@ -118,11 +118,11 @@ andThen = undefined
 andEvaluated :: Eval a -> (a -> b) -> Eval b  -- Выполняет вычисление, а потом преобразует результат чистой функцией.
 andEvaluated = undefined
 
-evalExpressionsL :: (a -> Integer -> a) -> a -> [Expression] -> Eval a  -- Вычисляет список выражений от первого к последнему.
-evalExpressionsL = undefined
+evalExprsL :: (a -> Integer -> a) -> a -> [Expression] -> Eval a  -- Вычисляет список выражений от первого к последнему.
+evalExprsL = undefined
 
-evalExpression :: Expression -> Eval Integer  -- Вычисляет выражение.
-evalExpression = undefined
+evalExpr :: Expression -> Eval Integer  -- Вычисляет выражение.
+evalExpr = undefined
 -} -- Удалите эту строчку, если решаете бонусное задание.
 
 -- Реализуйте eval: запускает программу и возвращает её значение.
@@ -137,19 +137,20 @@ getBody :: FunctionDefinition -> Expression
 getBody (_, _, expr) = expr
 
 evalExpr :: State -> [FunctionDefinition] -> Expression -> (State, Integer)
+
 evalExpr state _     (Number val)                            = (state, val)
 evalExpr state _     (Reference name)                        = (state, snd $ fromJust $ find ((== name) . fst) state)
-evalExpr state funcs (Assign name expr)                      = ((name, val) : state, val)
-                                                                  where (state, val) = evalExpr state funcs expr
+evalExpr state funcs (Assign name expr)                      = ((name, val) : newState, val)
+                                                                  where (newState, val) = evalExpr state funcs expr
 evalExpr state funcs (BinaryOperation op leftExpr rightExpr) = (rightState, toBinaryFunction op leftVal rightVal)
-                                                                  where (leftState, leftVal)   = evalExpr state funcs leftExpr
-                                                                        (rightState, rightVal) = evalExpr leftState funcs rightExpr
+                                                                  where (leftState, leftVal)     = evalExpr state funcs leftExpr
+                                                                        (rightState, rightVal)   = evalExpr (union state $ leftState) funcs rightExpr
 evalExpr state funcs (UnaryOperation op expr)                = (newState, toUnaryFunction op val)
                                                                   where (newState, val) = evalExpr state funcs expr
 evalExpr state funcs (FunctionCall name args)                = (newState, snd $ evalExpr newState funcs (getBody func))
                                                                   where
-                                                                        newState = zip (getArgs func) (map (snd . evalExpr state funcs) args) ++ fst (evalExpr state funcs (Block args))
-                                                                        func     = fromJust $ find ((== name) . getName) funcs
+                                                                      newState = zip (getArgs func) (map (snd . evalExpr state funcs) args) ++ fst (evalExpr state funcs (Block args))
+                                                                      func     = fromJust $ find ((== name) . getName) funcs
 evalExpr state funcs (Conditional e t f)                     | toBool cond = evalExpr newState funcs t
                                                              | otherwise   = evalExpr newState funcs f
                                                                   where (newState, cond) = evalExpr state funcs e
