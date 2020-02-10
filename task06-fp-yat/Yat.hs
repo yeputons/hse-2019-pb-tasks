@@ -56,13 +56,13 @@ showExpr (Reference name)                  = name
 showExpr (Assign name e)                   = "let " ++ name ++ " = " ++ showExpr e ++ " tel"
 showExpr (BinaryOperation op l r)          = "(" ++ showExpr l ++ " " ++ showBinop op ++ " " ++ showExpr r ++ ")"
 showExpr (UnaryOperation op e)             = showUnop op ++ showExpr e
-showExpr (FunctionCall name args)          = name ++ "(" ++ concat (intersperse ", " (map showExpr args)) ++ ")"
+showExpr (FunctionCall name args)          = name ++ "(" ++ intersperse ", " (map showExpr args) ++ ")"
 showExpr (Conditional e t f)               = "if " ++ showExpr e ++ " then " ++ showExpr t ++ " else " ++ showExpr f ++ " fi"
 showExpr (Block [])                        = "{\n}"
-showExpr (Block exprs)                     = "{\n" ++ concat (intersperse ";\n" (map (addTabs . showExpr) exprs)) ++ "\n}"
+showExpr (Block exprs)                     = "{\n" ++ intersperse ";\n" (map (addTabs . showExpr) exprs) ++ "\n}"
 
 showFunc :: FunctionDefinition -> String
-showFunc (name, args, expr) = "func " ++ name ++ "(" ++ concat (intersperse ", " args) ++ ") = " ++ showExpr expr
+showFunc (name, args, expr) = "func " ++ name ++ "(" ++ intersperse ", " args ++ ") = " ++ showExpr expr
 
 -- Верните текстовое представление программы (см. условие).
 showProgram :: Program -> String
