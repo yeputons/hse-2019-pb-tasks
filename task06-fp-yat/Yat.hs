@@ -3,6 +3,7 @@ import Data.List
 import Data.Maybe
 import Data.Bifunctor
 import Debug.Trace
+import qualified Data.Map.Strict as Map
 
 -- В логических операциях 0 считается ложью, всё остальное - истиной.
 -- При этом все логические операции могут вернуть только 0 или 1.
@@ -24,7 +25,7 @@ data Expression = Number Integer  -- Возвращает число, побоч
 
 type Name = String
 type FunctionDefinition = (Name, [Name], Expression)  -- Имя функции, имена параметров, тело функции
-type State = [(String, Integer)]  -- Список пар (имя переменной, значение). Новые значения дописываются в начало, а не перезаписываютсpя
+type State = Map.Map String Integer -- Список пар (имя переменной, значение). Новые значения дописываются в начало, а не перезаписываютсpя
 type Program = ([FunctionDefinition], Expression)  -- Все объявленные функций и основное тело программы
 
 showBinop :: Binop -> String
@@ -97,37 +98,60 @@ toUnaryFunction Not = fromBool . not . toBool
 -- По минимуму используйте pattern matching для `Eval`, функции
 -- `runEval`, `readState`, `readDefs` и избегайте явной передачи состояния.
 
-{- -- Удалите эту строчку, если решаете бонусное задание.
 newtype Eval a = Eval ([FunctionDefinition] -> State -> (a, State))  -- Как data, только эффективнее в случае одного конструктора.
 
 runEval :: Eval a -> [FunctionDefinition] -> State -> (a, State)
 runEval (Eval f) = f
 
 evaluated :: a -> Eval a  -- Возвращает значение без изменения состояния.
-evaluated = undefined
+evaluated x = Eval (\_ state -> (x, state))
 
 readState :: Eval State  -- Возвращает состояние.
-readState = undefined
+readState = Eval (\_ state -> (state, state))
 
 addToState :: String -> Integer -> a -> Eval a  -- Добавляет/изменяет значение переменной на новое и возвращает константу.
-addToState = undefined
+addToState name val x = Eval (\funcs state -> (x, Map.insert name val state))
 
 readDefs :: Eval [FunctionDefinition]  -- Возвращает все определения функций.
-readDefs = undefined
+readDefs = Eval (\funcs state -> (funcs, state))
 
 andThen :: Eval a -> (a -> Eval b) -> Eval b  -- Выполняет сначала первое вычисление, а потом второе.
-andThen = undefined
+andThen f1 f2 = Eval (\funcs state ->
+                        let (f1_result, new_state) = runEval f1 funcs state
+                        in runEval (f2 f1_result) funcs new_state
+                     )
+(~~>) = andThen
 
 andEvaluated :: Eval a -> (a -> b) -> Eval b  -- Выполняет вычисление, а потом преобразует результат чистой функцией.
-andEvaluated = undefined
+andEvaluated eval func = Eval (\funcs state -> 
+                                 let (eval_result, new_state) = runEval eval funcs state
+                                 in (func eval_result, new_state)
+                              )
+(~~~>) = andEvaluated
 
 evalExpressionsL :: (a -> Integer -> a) -> a -> [Expression] -> Eval a  -- Вычисляет список выражений от первого к последнему.
-evalExpressionsL = undefined
+evalExpressionsL _ x [] = evaluated x
+evalExpressionsL func x (expr:exprs) = evalExpression expr ~~> (\res -> evalExpressionsL func x exprs ~~~> (flip func res))
+
+evalAssign name expr = evalExpression expr ~~> (\value -> addToState name value value)
 
 evalExpression :: Expression -> Eval Integer  -- Вычисляет выражение.
-evalExpression = undefined
--} -- Удалите эту строчку, если решаете бонусное задание.
-
+evalExpression (Number x) = evaluated x
+evalExpression (Reference name) = Eval (\funcs state -> (Data.Maybe.fromJust $ Map.lookup name state, state))
+evalExpression (Assign name expr) = evalAssign name expr
+evalExpression (BinaryOperation op expr1 expr2) = evalExpression expr1 ~~> (\expr1_res -> evalExpression expr2 ~~~> toBinaryFunction op expr1_res)
+evalExpression (UnaryOperation op expr) = evalExpression expr ~~~> toUnaryFunction op
+--evalExpression (FunctionCall name param_exprs) = Eval evalFunction'
+--                                          where 
+--                                            evalFunction' :: [FunctionDefinition] -> State -> (a, State)
+--                                            evalFunction' [] state = undefined
+--                                            evalFunction' ((fn_name, params, body):funcs) state 
+--                                              | fn_name == name = runEval $ foldl (\x y -> x ~~> (\_ -> y)) (evaluated 0) (map (uncurry evalAssign) (zip params param_exprs)) ~~> body 
+--                                              | otherwise = evalFunction' funcs state
+                                             
+                                           
+evalExpression (Conditional stat expr_true expr_false) = undefined
+evalExpression (Block exprs) = undefined 
 -- Реализуйте eval: запускает программу и возвращает её значение.
 eval :: Program -> Integer
-eval = undefined
+eval (funcs, expr) = fst (runEval (evalExpression expr) funcs Map.empty)
