@@ -135,7 +135,7 @@ andEvaluated eval func = Eval (\funcs state ->
 
 evalExpressionsL :: (a -> Integer -> a) -> a -> [Expression] -> Eval a  -- Вычисляет список выражений от первого к последнему.
 evalExpressionsL _ x [] = evaluated x
-evalExpressionsL func x (expr:exprs) = evalExpression expr ~~> (\res -> evalExpressionsL func x exprs ~~~> (flip func res))
+evalExpressionsL func x (expr:exprs) = evalExpression expr ~~> (\res -> evalExpressionsL func x exprs ~~~> (`func` res))
 
 evalAssign name expr = evalExpression expr ~~> (\value -> addToState name value value)
 
