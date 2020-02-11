@@ -46,9 +46,49 @@ showUnop :: Unop -> String
 showUnop Neg = "-"
 showUnop Not = "!"
 
+addTabs = intercalate "\n" . map ("\t"++) . lines
+addSemicolon = intercalate ";\n" . lines
+
+showExpression :: Expression -> String
+showExpression (Number num)                               = show num
+showExpression (Reference ref)                            = ref
+showExpression (Assign name expr)                         = concat ["let ", name, " = ", showExpression expr, " tel"]
+showExpression (BinaryOperation binop exprLeft exprRight) = concat ["(", 
+                                                                    showExpression exprLeft,
+                                                                    " ",
+                                                                    showBinop binop,
+                                                                    " ",
+                                                                    showExpression exprRight,
+                                                                    ")"]
+showExpression (UnaryOperation unop expr)                 = showUnop unop ++ showExpression expr
+showExpression (FunctionCall name exprs)                  = concat [name,
+                                                                    "(",
+                                                                    intercalate ", " (map showExpression exprs),
+                                                                    ")"]
+showExpression (Conditional condition exprTrue exprFalse) = concat ["if ",
+                                                                    showExpression condition,
+                                                                    " then ",
+                                                                    showExpression exprTrue,
+                                                                    " else ",
+                                                                    showExpression exprFalse,
+                                                                    " fi"]
+
+showExpression (Block exprs)                              = concat ["{\n",
+                                                                    concatMap
+                                                                        (\ a -> "\t" ++ a ++ "\n") (lines (intercalate ";\n" (map showExpression exprs))),
+                                                                    "}"]
+
+showFunctionDefinition :: FunctionDefinition -> String
+showFunctionDefinition (name, args, body) = concat ["func ",
+                                                  name,
+                                                  "(",
+                                                  intercalate ", " args,
+                                                  ") = ",
+                                                  showExpression body]
+
 -- Верните текстовое представление программы (см. условие).
 showProgram :: Program -> String
-showProgram = undefined
+showProgram (functions, body) = concatMap (\ f -> showFunctionDefinition f ++ "\n") functions ++ showExpression body
 
 toBool :: Integer -> Bool
 toBool = (/=) 0
