@@ -56,12 +56,12 @@ showExpression (Number num)                 = show num
 showExpression (Reference name)             = name
 showExpression (Assign name e)              = concat ["let ", name, " = ", showExpression e, " tel"]
 showExpression (BinaryOperation op l r)     = concat ["(", showExpression l, " ", showBinop op, " ", showExpression r, ")"]
-showExpression (UnaryOperation op e)        = concat [showUnop op, showExpression e]
+showExpression (UnaryOperation op e)        = showUnop op ++ showExpression e
 showExpression (FunctionCall name [])       = name ++ "()"
 showExpression (FunctionCall name args)     = concat [name, "(", intercalate ", " (map showExpression args), ")"]
 showExpression (Conditional e t f)          = concat ["if ", showExpression e, " then ", showExpression t, " else ", showExpression f, " fi"]
 showExpression (Block [])                   = "{\n}"
-showExpression (Block exprs)                = addTabs (concat ["{\n", intercalate ";\n" (map showExpression exprs)]) ++ "\n}"
+showExpression (Block exprs)                = addTabs ("{\n" ++ intercalate ";\n" (map showExpression exprs)) ++ "\n}"
 
 showFuncDef :: FunctionDefinition -> String
 showFuncDef (name, params, expr) = concat ["func ", name, "(", intercalate ", " params, ") = ", showExpression expr]
@@ -71,7 +71,7 @@ showFuncList = concatMap ((++ "\n") . showFuncDef)
 
 -- Верните текстовое представление программы (см. условие).
 showProgram :: Program -> String
-showProgram (funcs, expr) = concat [showFuncList funcs, showExpression expr] 
+showProgram (funcs, expr) = showFuncList funcs ++ showExpression expr 
 
 toBool :: Integer -> Bool
 toBool = (/=) 0
