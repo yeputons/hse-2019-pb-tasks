@@ -46,9 +46,35 @@ showUnop :: Unop -> String
 showUnop Neg = "-"
 showUnop Not = "!"
 
+interpose :: String -> [String] -> String
+interpose _ []             = ""
+interpose _ [s]            = s
+interpose separator (x:xs) = x ++ separator ++ interpose separator xs
+
+addTabs :: String -> String
+addTabs = interpose "\n" . map ("\t" ++) . lines
+
+showExpression :: Expression -> String
+showExpression (Number num)                               = show num
+showExpression (Reference ref)                            = ref
+showExpression (Assign name expr)                         = "let " ++ name ++ " = " ++ showExpression expr ++ " tel"
+showExpression (BinaryOperation binop leftExpr rightExpr) = "(" ++ showExpression leftExpr ++ " " ++ showBinop binop ++ " " ++ showExpression rightExpr ++ ")"
+showExpression (UnaryOperation unop expr)                 = showUnop unop ++ showExpression expr
+showExpression (FunctionCall name exprs)                  = name ++ "(" ++ interpose ", " (map showExpression exprs) ++ ")"
+showExpression (Conditional expr exprIfTrue exprIfFalse)  = "if " ++ showExpression expr ++ " then " ++ showExpression exprIfTrue ++ " else " ++ showExpression exprIfFalse ++ " fi"
+showExpression (Block [])                                 = "{\n}"
+showExpression (Block exprs)                              = "{\n" ++ addTabs (interpose ";\n" (map showExpression exprs)) ++ "\n}"
+
+showFunction :: FunctionDefinition -> String
+showFunction (name, args, expr) = "func " ++ name ++ "(" ++ interpose "," args ++ ") = " ++ showExpression expr
+
+showFunctions :: [FunctionDefinition] -> String
+showFunctions []    = ""
+showFunctions funcs = interpose "\n" (map showFunction funcs) ++ "\n"
+
 -- Верните текстовое представление программы (см. условие).
 showProgram :: Program -> String
-showProgram = undefined
+showProgram (funcs, body) = showFunctions funcs ++ showExpression body
 
 toBool :: Integer -> Bool
 toBool = (/=) 0
@@ -83,7 +109,6 @@ toUnaryFunction Not = fromBool . not . toBool
 
 {- -- Удалите эту строчку, если решаете бонусное задание.
 newtype Eval a = Eval ([FunctionDefinition] -> State -> (a, State))  -- Как data, только эффективнее в случае одного конструктора.
-
 runEval :: Eval a -> [FunctionDefinition] -> State -> (a, State)
 runEval (Eval f) = f
 
@@ -110,8 +135,60 @@ evalExpressionsL = undefined
 
 evalExpression :: Expression -> Eval Integer  -- Вычисляет выражение.
 evalExpression = undefined
--} -- Удалите эту строчку, если решаете бонусное задание.
+--} -- Удалите эту строчку, если решаете бонусное задание.
 
 -- Реализуйте eval: запускает программу и возвращает её значение.
+
+fst3 :: (a, b, c) -> a
+fst3 (a, _, _) = a
+
+snd3 :: (a, b, c) -> b
+snd3 (_, b, _) = b
+
+thd3 :: (a, b, c) -> c
+thd3 (_, _, c) = c
+
+getVariableFromState :: String -> State -> Integer
+getVariableFromState name []                     = undefined
+getVariableFromState name ((variable, value):xs) | variable == name = value 
+                                                 | otherwise        = getVariableFromState name xs
+
+assignVarInState :: String -> Integer -> State -> (Integer, State)
+assignVarInState name val state = case find ((==) name . fst) state of
+                                    Just indx   -> (val, (filter ((/=) name . fst) state) ++ [(name, val)]) 
+                                    _           -> (val, state ++ [(name, val)])
+
+evalArgsFunction :: State -> [FunctionDefinition] -> [Expression] -> (State, [Integer])
+evalArgsFunction state funcs []           = (state, [])
+evalArgsFunction state funcs [expr]       = (state', [val])
+                                              where
+                                                  (val, state') = evalPart (funcs, expr) state
+evalArgsFunction state funcs (expr:exprs) = (state'', [val] ++ vals)
+                                              where
+                                                  (val, state') = evalPart (funcs, expr) state
+                                                  (state'', vals) = evalArgsFunction state' funcs exprs
+
+evalPart :: Program -> State -> (Integer, State)
+evalPart (funcs, Number num) state                               = (num, state)
+evalPart (funcs, Reference name) state                           = (getVariableFromState name state, state)
+evalPart (funcs, Assign name expr) state                         = assignVarInState name val state'
+                                                                     where
+                                                                         (val, state') = evalPart (funcs, expr) state
+evalPart (funcs, BinaryOperation binop leftExpr rightExpr) state = (toBinaryFunction binop leftVal rightVal, state'')
+                                                                     where
+                                                                         (leftVal, state')   = evalPart (funcs, leftExpr) state
+                                                                         (rightVal, state'') = evalPart (funcs, rightExpr) state
+evalPart (funcs, UnaryOperation unop expr) state                 = (toUnaryFunction unop value, state')
+                                                                     where
+                                                                         (value, state') = evalPart (funcs, expr) state
+evalPart (funcs, FunctionCall name args) state                  = (fst $ evalPart (funcs, thd3 func) funcState, state')
+                                                                     where
+                                                                         (state', argsValues) = evalArgsFunction state funcs args
+                                                                         func                 = fromJust $ find ((==) name . fst3) funcs
+                                                                         funcState            = zip (snd3 func) argsValues ++ state'
+evalPart (funcs, Conditional exprCond exprTrue exprFalse) state  | toBool (fst (evalPart (funcs, exprCond) state)) = evalPart (funcs, exprTrue) state
+                                                                 | otherwise                                        = evalPart (funcs, exprFalse) state
+evalPart (funcs, Block exprs) state                              = foldl (\(val, state') expr -> evalPart (funcs, expr) state') (0, state) exprs
+
 eval :: Program -> Integer
-eval = undefined
+eval program = fst $ evalPart program [] 
