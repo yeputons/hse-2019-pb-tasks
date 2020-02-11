@@ -46,9 +46,33 @@ showUnop :: Unop -> String
 showUnop Neg = "-"
 showUnop Not = "!"
 
+-- FIRST PART --
+--Вспомогательные функции для первой части
+
+putTabs :: String -> String
+putTabs = intercalate "\n" . map ("\t" ++) . lines
+
+--Реализация show для всех видов Expression
+showExpression :: Expression -> String
+showExpression (Number          num)              = show num
+showExpression (Reference       var)              = var
+showExpression (Assign          varName expr)     = concat ["let ", varName, " = ", showExpression expr, " tel"]
+showExpression (BinaryOperation op lExpr rExpr)   = concat ["(", showExpression lExpr, " ", showBinop op, " ", showExpression rExpr, ")"]
+showExpression (UnaryOperation  unop expr)        = concat [showUnop unop, showExpression expr]
+showExpression (FunctionCall    funcName args)    = concat [funcName, "(", intercalate ", " (map showExpression args), ")"]
+showExpression (Conditional     cond fExpr sExpr) = concat ["if ", showExpression cond, " then ", showExpression fExpr, " else ", showExpression sExpr, " fi"]
+
+--pattern matching for Blocks
+showExpression (Block           [])               = "{\n}"
+showExpression (Block           exprs)            = concat ["{\n", intercalate ";\n" (map (putTabs . showExpression) exprs), "\n}"]
+
+--show для функции
+showFunction :: FunctionDefinition -> String
+showFunction(name, param, expr) = concat ["func ", name, "(", intercalate ", " param, ") = ", showExpression expr]
+
 -- Верните текстовое представление программы (см. условие).
 showProgram :: Program -> String
-showProgram = undefined
+showProgram(funcs, exprs) = concat [concatMap ((++ "\n") . showFunction) funcs, showExpression exprs]
 
 toBool :: Integer -> Bool
 toBool = (/=) 0
@@ -113,5 +137,59 @@ evalExpression = undefined
 -} -- Удалите эту строчку, если решаете бонусное задание.
 
 -- Реализуйте eval: запускает программу и возвращает её значение.
+
+
+--- SECOND PART ---
+-- Шаг 1: Хотим из списка функций уметь вычленять конкретную функцию по имени
+getFunctionDef :: Name -> [FunctionDefinition] -> ([Name], Expression)
+getFunctionDef name function = getFD(head (filter (byName) function))
+                               where byName(fName, fNames, expr) = name == fName
+                                     getFD (fName, name, expr)   = (name, expr)
+
+-- Шаг 2: Функция ++ Scope
+addFuncToScope :: State -> [Name] -> [Integer] -> State
+addFuncToScope scope params varValues = concat [zip params varValues, scope]
+
+--Шаг 3: Применение нескольких функций
+chainOfFunctions :: [FunctionDefinition] -> State -> [Expression] -> ([Integer], State)
+chainOfFunctions functions scope []             = ([], scope)
+chainOfFunctions functions scope (expr : exprs) = (fst exprRes : fst exprsRes, snd exprsRes)
+                                                where exprRes  = evalExpression functions scope expr
+                                                      exprsRes = chainOfFunctions functions (snd exprRes) exprs
+
+-- Шаг 3: Обработка переменных
+getVariable :: State -> Name -> Integer
+getVariable []                                  _                        = 0
+getVariable ((varName, varValue) : tailOfScope) vName | vName == varName = varValue
+                                                      | otherwise        = getVariable tailOfScope vName
+
+--Шаг 5: Разбор случаев
+evalExpression :: [FunctionDefinition] -> State -> Expression -> (Integer, State)
+evalExpression function scope (Number          num)              = (num, scope)
+evalExpression function scope (Reference       var)              = (getVariable scope var, scope)
+evalExpression function scope (Assign          varName expr)     = (fst val, var : snd val)
+                                                                 where val = evalExpression function scope expr
+                                                                       var = (varName, fst val)
+evalExpression function scope (BinaryOperation op lExpr rExpr)   = (toBinaryFunction op (fst leftRes) (fst rightRes), snd rightRes)
+                                                                 where leftRes  = evalExpression function scope lExpr
+                                                                       rightRes = evalExpression function (snd leftRes) rExpr
+evalExpression function scope (UnaryOperation unop expr)         = (toUnaryFunction unop (fst res), snd res)
+                                                                 where res = evalExpression function scope expr
+evalExpression function scope (FunctionCall funcName args)       = (fst res, snd resChainOfFunctions)
+                                                                 where resChainOfFunctions = chainOfFunctions function scope args
+                                                                       resGetFunctionDef = getFunctionDef funcName function
+                                                                       resAddFuncToScope = addFuncToScope (snd resChainOfFunctions) (fst resGetFunctionDef) (fst resChainOfFunctions)
+                                                                       res               = evalExpression function resAddFuncToScope (snd resGetFunctionDef) 
+evalExpression function scope (Conditional cond fExpr sExpr)     | toBool (fst condRes) = fExprRes
+                                                                 | otherwise = sExprRes
+                                                                 where condRes  = evalExpression function scope cond  
+                                                                       fExprRes = evalExpression function (snd condRes) fExpr 
+                                                                       sExprRes = evalExpression function (snd condRes) sExpr 
+-- Разные случаи для Block
+evalExpression function scope (Block [])                         = (0, scope)
+evalExpression function scope (Block [el])                       = evalExpression function scope el 
+evalExpression function scope (Block (expr : exprs))             = evalExpression function (snd exprRes) (Block exprs) 
+                                                                 where exprRes = evalExpression function scope expr
+
 eval :: Program -> Integer
-eval = undefined
+eval prog = fst (evalExpression (fst prog) [] (snd prog))
