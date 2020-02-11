@@ -155,7 +155,7 @@ getVariableFromState name ((variable, value):xs) | variable == name = value
 
 assignVarInState :: String -> Integer -> State -> (Integer, State)
 assignVarInState name val state = case find ((==) name . fst) state of
-                                    Just indx   -> (val, (filter ((/=) name . fst) state) ++ [(name, val)]) 
+                                    Just indx   -> (val, filter ((/=) name . fst) state ++ [(name, val)]) 
                                     _           -> (val, state ++ [(name, val)])
 
 evalArgsFunction :: State -> [FunctionDefinition] -> [Expression] -> (State, [Integer])
@@ -163,7 +163,7 @@ evalArgsFunction state funcs []           = (state, [])
 evalArgsFunction state funcs [expr]       = (state', [val])
                                               where
                                                   (val, state') = evalPart (funcs, expr) state
-evalArgsFunction state funcs (expr:exprs) = (state'', [val] ++ vals)
+evalArgsFunction state funcs (expr:exprs) = (state'', val : vals)
                                               where
                                                   (val, state') = evalPart (funcs, expr) state
                                                   (state'', vals) = evalArgsFunction state' funcs exprs
@@ -176,18 +176,20 @@ evalPart (funcs, Assign name expr) state                         = assignVarInSt
                                                                          (val, state') = evalPart (funcs, expr) state
 evalPart (funcs, BinaryOperation binop leftExpr rightExpr) state = (toBinaryFunction binop leftVal rightVal, state'')
                                                                      where
-                                                                         (leftVal, state')   = evalPart (funcs, leftExpr) state
-                                                                         (rightVal, state'') = evalPart (funcs, rightExpr) state
+                                                                         (leftVal, state') = evalPart (funcs, leftExpr) state
+                                                                         (rightVal, state'') = evalPart (funcs, rightExpr) state'
 evalPart (funcs, UnaryOperation unop expr) state                 = (toUnaryFunction unop value, state')
                                                                      where
                                                                          (value, state') = evalPart (funcs, expr) state
-evalPart (funcs, FunctionCall name args) state                  = (fst $ evalPart (funcs, thd3 func) funcState, state')
+evalPart (funcs, FunctionCall name args) state                   = (fst $ evalPart (funcs, thd3 func) funcState, state')
                                                                      where
                                                                          (state', argsValues) = evalArgsFunction state funcs args
                                                                          func                 = fromJust $ find ((==) name . fst3) funcs
                                                                          funcState            = zip (snd3 func) argsValues ++ state'
-evalPart (funcs, Conditional exprCond exprTrue exprFalse) state  | toBool (fst (evalPart (funcs, exprCond) state)) = evalPart (funcs, exprTrue) state
-                                                                 | otherwise                                        = evalPart (funcs, exprFalse) state
+evalPart (funcs, Conditional exprCond exprTrue exprFalse) state  | toBool (fst retCond) = evalPart (funcs, exprTrue) (snd retCond)
+                                                                 | otherwise            = evalPart (funcs, exprFalse) (snd retCond)
+                                                                     where
+                                                                         retCond = evalPart (funcs, exprCond) state
 evalPart (funcs, Block exprs) state                              = foldl (\(val, state') expr -> evalPart (funcs, expr) state') (0, state) exprs
 
 eval :: Program -> Integer
