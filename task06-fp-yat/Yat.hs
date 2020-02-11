@@ -72,7 +72,6 @@ showExpression (Conditional condition exprTrue exprFalse) = concat ["if ",
                                                                     " else ",
                                                                     showExpression exprFalse,
                                                                     " fi"]
-
 showExpression (Block exprs)                              = concat ["{\n",
                                                                     concatMap
                                                                         (\ a -> "\t" ++ a ++ "\n") (lines (intercalate ";\n" (map showExpression exprs))),
@@ -153,5 +152,15 @@ evalExpression = undefined
 -} -- Удалите эту строчку, если решаете бонусное задание.
 
 -- Реализуйте eval: запускает программу и возвращает её значение.
+
+evalExpression state funcs (Number num)                               = undefined
+evalExpression state funcs (Reference ref)                            = undefined
+evalExpression state funcs (Assign name expr)                         = undefined
+evalExpression state funcs (BinaryOperation binop exprLeft exprRight) = undefined
+evalExpression state funcs (UnaryOperation unop expr)                 = undefined
+evalExpression state funcs (FunctionCall name exprs)                  = undefined
+evalExpression state funcs (Conditional condition exprTrue exprFalse) = undefined
+evalExpression state funcs (Block exprs)                              = undefined
+
 eval :: Program -> Integer
 eval = undefined
