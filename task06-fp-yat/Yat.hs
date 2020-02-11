@@ -131,4 +131,41 @@ evalExpression = undefined
 
 -- Реализуйте eval: запускает программу и возвращает её значение.
 eval :: Program -> Integer
-eval = undefined
+eval (functions, expr) = snd (evalExpression [] functions expr)
+
+parseArgs :: State -> [FunctionDefinition] -> FunctionDefinition -> [Expression] -> (State, State)
+parseArgs scope funcs (_, [], _) _ = (scope, scope)
+parseArgs scope funcs (fName, name:names, fExpr) (arg:args) = (fst calced, fst value ++ scope)
+                                                                where value = evalExpression scope funcs arg
+                                                                      calced = parseArgs ((name, snd value):fst value) funcs (fName, names, fExpr) args
+
+evalExpression :: State -> [FunctionDefinition] -> Expression -> (State, Integer)
+evalExpression scope funcs (Number num)                        = (scope, num)
+
+evalExpression scope funcs (Reference name)                    = (scope, fromJust $ lookup name scope)
+
+evalExpression scope funcs (Assign name expr)                  = ((name, snd res):fst res, snd res)
+                                                                 where res = evalExpression scope funcs expr 
+
+evalExpression scope funcs (BinaryOperation op left right)     = (rState, toBinaryFunction op lVal rVal)
+                                                                    where 
+                                                                        (lState, lVal)  = evalExpression scope funcs left
+                                                                        (rState, rVal) = evalExpression lState funcs right
+
+evalExpression scope funcs (UnaryOperation op expr)            = (nScope, toUnaryFunction op val)
+                                                                    where (nScope, val) = evalExpression scope funcs expr
+
+evalExpression scope ((funcName, funcArgs, funcExpr):funcs) (FunctionCall name args)          | funcName /= name = evalExpression scope newFuncs (FunctionCall name args)
+                                                                                              | otherwise        = (snd newScope, snd value)
+                                                                                          where 
+                                                                                                newFuncs  = funcs ++ [(funcName, funcArgs, funcExpr)]
+                                                                                                newScope  = parseArgs scope newFuncs (funcName, funcArgs, funcExpr) args
+                                                                                                value     = evalExpression (fst newScope) newFuncs funcExpr
+
+evalExpression scope funcs (Conditional cond true false) | toBool val = evalExpression newState funcs true
+                                                               | otherwise = evalExpression newState funcs false
+                                                                    where (newState, val) = evalExpression scope funcs cond
+
+evalExpression scope funcs (Block exprs)                       = foldl (\(st, val) expr -> evalExpression st funcs expr) (scope, 0) exprs
+   
+
