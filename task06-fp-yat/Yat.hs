@@ -48,7 +48,32 @@ showUnop Not = "!"
 
 -- Верните текстовое представление программы (см. условие).
 showProgram :: Program -> String
-showProgram = undefined
+showProgram ([]      , expr) = showExpression expr
+showProgram (funcDefs, expr) = (showFunctionDefinition $ head funcDefs) ++ (showProgram $ ((tail funcDefs), expr))
+
+showFunctionDefinition :: FunctionDefinition -> String
+showFunctionDefinition (name, args, expr) = "func " ++ name ++ "(" ++ showArgs args ++ ") = " ++ showExpression expr ++ "\n"
+                                          where showArgs []     = ""
+                                                showArgs (x:[]) = x
+                                                showArgs (x:xs) = x ++ ", " ++ showArgs xs
+
+showExpression :: Expression -> String
+showExpression expr = showExpression' expr ""
+
+showExpression' :: Expression -> String -> String
+showExpression' (Number n)                       offset = show n
+showExpression' (Reference name)                 offset = name
+showExpression' (Assign name expr)               offset = "let " ++ name ++ " = " ++ showExpression' expr offset ++ " tel"
+showExpression' (BinaryOperation op expr1 expr2) offset = "(" ++ (showExpression' expr1 offset) ++ " " ++ (showBinop op) ++ " " ++ (showExpression' expr2 offset) ++ ")"
+showExpression' (UnaryOperation op expr)         offset = showUnop op ++ showExpression expr
+showExpression' (FunctionCall name exprs)        offset = name ++ "(" ++ (foldr (++) [] (map ((flip showExpression') offset) exprs)) ++ ")"
+showExpression' (Conditional expr1 expr2 expr3)  offset = "if " ++ (showExpression' expr1 offset) ++ " then " ++ (showExpression' expr2 offset) ++ " else " ++ (showExpression' expr3 offset) ++ " fi"
+showExpression' (Block exprs)                    offset = "{\n" ++ showBlock exprs (offset ++ "\t") ++ offset ++ "}" 
+
+showBlock :: [Expression] -> String -> String
+showBlock []     _      = ""
+showBlock (x:[]) offset = offset ++ (showExpression' x offset) ++ "\n"
+showBlock (x:xs) offset = offset ++ (showExpression' x offset) ++ ";\n" ++ (showBlock xs offset)
 
 toBool :: Integer -> Bool
 toBool = (/=) 0
@@ -114,4 +139,41 @@ evalExpression = undefined
 
 -- Реализуйте eval: запускает программу и возвращает её значение.
 eval :: Program -> Integer
-eval = undefined
+eval (funcDefs, expr) = snd (eval' funcDefs expr [])
+
+eval' :: [FunctionDefinition] -> Expression -> State -> (State, Integer)
+eval' funcDefs (Number n)                        state = (state, n)
+eval' funcDefs (Reference name)                  state = (state, findRef state name)
+eval' funcDefs (Assign name expr)               state = ((name, snd evaluated) : (fst evaluated), snd evaluated)
+                                                       where evaluated = eval' funcDefs expr state
+eval' funcDefs (BinaryOperation op l r)  state = ((fst $ eval' funcDefs r $ fst evaluated), (toBinaryFunction op) (snd (evaluated)) (snd $ eval' funcDefs r (fst evaluated)))
+                                                       where evaluated = eval' funcDefs l state
+eval' funcDefs (UnaryOperation op expr1)         state = (fst $ eval' funcDefs expr1 state, (toUnaryFunction op (snd $ eval' funcDefs expr1 state)))
+eval' funcDefs (FunctionCall name exprs)         state = (retState, retValue)
+                                                       where retValue      = snd $ eval' funcDefs getFuncExpr makeFuncState
+                                                             getFuncExpr   = (\(a, b, c) -> c) $ findFunc funcDefs name
+                                                             getFuncNames  = (\(a, b, c) -> b) $ findFunc funcDefs name
+                                                             makeFuncState = eval'' funcDefs exprs getFuncNames state
+                                                             retState      = fst (eval' funcDefs (Block exprs) state)
+eval' funcDefs (Conditional e t f)   state = if toBool $ snd $ eval' funcDefs e state then 
+                                                    eval' funcDefs t $ fst $ eval' funcDefs e state
+                                             else
+                                                    eval' funcDefs f $ fst $ eval' funcDefs e state
+eval' funcDefs (Block []     )                   state = (state, 0)
+eval' funcDefs (Block [e]    )                   state = eval' funcDefs e state
+eval' funcDefs (Block (e:xpr))                   state = eval' funcDefs (Block xpr) (fst (eval' funcDefs e state))
+
+eval'' :: [FunctionDefinition] -> [Expression] -> [Name] -> State -> State
+eval'' funcDefs exprs names state = zip names (map (snd. flipSecondThird eval' funcDefs state) exprs) ++ fst (eval' funcDefs (Block exprs) state)
+
+flipSecondThird :: (a -> b -> c -> d) -> a -> c -> b -> d
+flipSecondThird f x y z = f x z y
+
+findFunc :: [FunctionDefinition] -> Name -> FunctionDefinition
+findFunc funcDefs name = fromJust (find (\(a, b, c) -> a == name) funcDefs)
+
+findRef :: State -> Name -> Integer
+findRef state name = snd $ fromJust (find (\(a, b) -> a == name) state)
+
+                                 
+
