@@ -1,6 +1,3 @@
-
-
-
 module Exercises where  -- Вспомогательная строчка, чтобы можно было использовать функции в других файлах.
 import Control.Arrow
 import Data.Char
@@ -62,11 +59,11 @@ hash'' ini (x:xs) = ord x + p * hash'' ini xs
 -- не используя никаких стандартных функций.
 foldr' :: (a -> b -> b) -> b -> [a] -> b
 foldr' f ini [] = ini
-foldr' f ini (x:xs) = f x ( foldr' f ini xs)
+foldr' f ini (x:xs) = f x (foldr' f ini xs)
 
 -- Реализуйте функцию map' (которая делает то же самое, что обычный map)
 -- через функцию foldr', не используя стандартных функций.
-map' :: ( a -> b) -> [a] -> [b]
+map' :: (a -> b) -> [a] -> [b]
 map' f = foldr' (\x xs -> f x : xs) []
 
 -- 2) Maybe
@@ -167,9 +164,7 @@ fifthElement xs = case tryTail xs of
 -- только tryHead, tryTail, применение функций и оператор ~~>, но не используя
 -- сопоставление с образом (pattern matching) ни в каком виде, case, if, guards.
 thirdElementOfSecondList' :: [[a]] -> Maybe a
-thirdElementOfSecondList' xs = (~~>) ((~~>) (secondElement' xs) tryTail) secondElement'
-	where
-		secondElement' xs = (~~>) (tryTail xs) tryHead
+thirdElementOfSecondList' xs = tryTail xs ~~> tryHead ~~> tryTail ~~> tryTail ~~> tryHead
 
 -- 3) Несколько упражнений
 -- Реализуйте функцию nubBy', которая принимает на вход функцию для сравнения 
@@ -209,7 +204,7 @@ nubBy' eq (x:xs) = x:nubBy' eq (filter (not.eq x) xs)
 -- "aabbc"
 quickSort' :: Ord a => [a] -> [a]
 quickSort' [] = []
-quickSort' (x:xs) = (quickSort' left) ++ [x] ++ (quickSort' right)
+quickSort' (x:xs) = quickSort' left ++ [x] ++ quickSort' right
 	where
 		left  = filter ( <= x ) xs
 		right = filter ( > x ) xs
@@ -227,7 +222,7 @@ quickSort' (x:xs) = (quickSort' left) ++ [x] ++ (quickSort' right)
 -- >>> weird' [[1, 11, 12], [9, 10, 20]]
 -- 3
 weird':: [[Int]] -> Int
-weird' = sum' . map' length . filter ((== 0) . (flip mod) 2 . length . filter ((>100) . (^2)))
+weird' = sum' . map' length . filter ((== 0) . flip mod 2 . length . filter ((>100) . (^2)))
 
 
 -- 4) grep
@@ -255,7 +250,7 @@ type File = (String, [String])
 -- параметр и возвращает второй.
 grep' :: (String -> [String] -> [String]) -> (String -> Bool) -> [File] -> [String]
 grep' format match [] = []
-grep' format match ((name,lines):xs) = format name (filter match lines) ++ (grep' format match xs)
+grep' format match ((name,lines):xs) = format name (filter match lines) ++ grep' format match xs
 
 -- Также вам предоставлена функция для проверки вхождения подстроки в строку.
 -- >>> isSubstringOf "a" "bac"
@@ -277,7 +272,7 @@ isSubstringOf n s = pack n `isInfixOf` pack s
 -- ["c", "c", "ccccc"]
 
 grepSubstringNoFilename :: String -> [File] -> [String]
-grepSubstringNoFilename needle files = grep' (\_ s -> s) (\ str -> isSubstringOf needle str) files
+grepSubstringNoFilename needle files = grep' (\_ s -> s) (isSubstringOf needle) 
  
 -- Вариант, когда ищется точное совпадение и нужно ко всем подходящим строкам
 -- дописать имя файла через ":".
@@ -287,4 +282,4 @@ grepSubstringNoFilename needle files = grep' (\_ s -> s) (\ str -> isSubstringOf
 -- >>> grepExactMatchWithFilename "c" [("a.txt", ["a", "a"]), ("b.txt", ["b", "bab", "c"]), ("c.txt", ["c", "ccccc"])]
 -- ["b.txt:c", "c.txt:c"]
 grepExactMatchWithFilename :: String -> [File] -> [String]
-grepExactMatchWithFilename needle files = grep' (\ fileName strings -> map' ((fileName ++ ":") ++) strings) (\ str -> str == needle) files
+grepExactMatchWithFilename needle = grep' (\ fileName strings -> map' ((fileName ++ ":") ++) strings) (== needle)
