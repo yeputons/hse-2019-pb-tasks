@@ -58,7 +58,7 @@ showExpression (Number          num)              = show num
 showExpression (Reference       var)              = var
 showExpression (Assign          varName expr)     = concat ["let ", varName, " = ", showExpression expr, " tel"]
 showExpression (BinaryOperation op lExpr rExpr)   = concat ["(", showExpression lExpr, " ", showBinop op, " ", showExpression rExpr, ")"]
-showExpression (UnaryOperation  unop expr)        = concat [showUnop unop, showExpression expr]
+showExpression (UnaryOperation  unop expr)        = showUnop unop ++ showExpression expr
 showExpression (FunctionCall    funcName args)    = concat [funcName, "(", intercalate ", " (map showExpression args), ")"]
 showExpression (Conditional     cond fExpr sExpr) = concat ["if ", showExpression cond, " then ", showExpression fExpr, " else ", showExpression sExpr, " fi"]
 
@@ -72,7 +72,7 @@ showFunction(name, param, expr) = concat ["func ", name, "(", intercalate ", " p
 
 -- Верните текстовое представление программы (см. условие).
 showProgram :: Program -> String
-showProgram(funcs, exprs) = concat [concatMap ((++ "\n") . showFunction) funcs, showExpression exprs]
+showProgram(funcs, exprs) = concatMap ((++ "\n") . showFunction) funcs ++ showExpression exprs
 
 toBool :: Integer -> Bool
 toBool = (/=) 0
@@ -142,13 +142,13 @@ evalExpression = undefined
 --- SECOND PART ---
 -- Шаг 1: Хотим из списка функций уметь вычленять конкретную функцию по имени
 getFunctionDef :: Name -> [FunctionDefinition] -> ([Name], Expression)
-getFunctionDef name function = getFD(head (filter (byName) function))
+getFunctionDef name function = getFD(head (filter byName function))
                                where byName(fName, fNames, expr) = name == fName
                                      getFD (fName, name, expr)   = (name, expr)
 
 -- Шаг 2: Функция ++ Scope
 addFuncToScope :: State -> [Name] -> [Integer] -> State
-addFuncToScope scope params varValues = concat [zip params varValues, scope]
+addFuncToScope scope params varValues = zip params varValues ++ scope
 
 --Шаг 3: Применение нескольких функций
 chainOfFunctions :: [FunctionDefinition] -> State -> [Expression] -> ([Integer], State)
