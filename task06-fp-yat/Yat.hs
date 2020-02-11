@@ -48,7 +48,7 @@ showUnop Not = "!"
 
 -- Верните текстовое представление программы (см. условие).
 showProgram :: Program -> String
-showProgram (functions, expr) = concat [concatMap ((++ "\n") . showFunctionDefinition) functions, showExpression expr]  
+showProgram (functions, expr) = concatMap ((++ "\n") . showFunctionDefinition) functions ++ showExpression expr  
 
 showFunctionDefinition::FunctionDefinition -> String
 showFunctionDefinition (name, args, expr) = concat ["func ", name, "(", intercalate ", " args, ") = ", showExpression expr]
@@ -58,7 +58,7 @@ showExpression (Number n)                           = show n
 showExpression (Reference name)                     = name
 showExpression (Assign name expr)                   = concat ["let ", name, " = ", showExpression expr, " tel"]
 showExpression (BinaryOperation op left right)      = concat ["(", showExpression left, " ", showBinop op, " ", showExpression right, ")"]
-showExpression (UnaryOperation op expr)             = concat [showUnop op, showExpression expr]
+showExpression (UnaryOperation op expr)             = showUnop op ++ showExpression expr
 showExpression (FunctionCall name args)             = concat [name, "(", intercalate ", " (map showExpression args), ")"]
 showExpression (Conditional cond true false)        = concat ["if ", showExpression cond, " then ", showExpression true, " else ", showExpression false, " fi"]
 showExpression (Block [])                           = "{\n}"
@@ -134,9 +134,10 @@ eval :: Program -> Integer
 eval (functions, expr) = snd (evalExpression [] functions expr)
 
 parseArgs :: State -> [FunctionDefinition] -> FunctionDefinition -> [Expression] -> (State, State)
-parseArgs scope funcs (_, [], _) _ = (scope, scope)
+parseArgs _ _ (_, _ : _, _) [] = undefined
+parseArgs scope _ (_, [], _) _ = (scope, scope)
 parseArgs scope funcs (fName, name:names, fExpr) (arg:args) = (fst calced, fst value ++ scope)
-                                                                where value = evalExpression scope funcs arg
+                                                                where value  = evalExpression scope funcs arg
                                                                       calced = parseArgs ((name, snd value):fst value) funcs (fName, names, fExpr) args
 
 evalExpression :: State -> [FunctionDefinition] -> Expression -> (State, Integer)
@@ -149,12 +150,13 @@ evalExpression scope funcs (Assign name expr)                  = ((name, snd res
 
 evalExpression scope funcs (BinaryOperation op left right)     = (rState, toBinaryFunction op lVal rVal)
                                                                     where 
-                                                                        (lState, lVal)  = evalExpression scope funcs left
+                                                                        (lState, lVal) = evalExpression scope funcs left
                                                                         (rState, rVal) = evalExpression lState funcs right
 
 evalExpression scope funcs (UnaryOperation op expr)            = (nScope, toUnaryFunction op val)
                                                                     where (nScope, val) = evalExpression scope funcs expr
 
+evalExpression scope []                                     (FunctionCall _ _)                                   = undefined 
 evalExpression scope ((funcName, funcArgs, funcExpr):funcs) (FunctionCall name args)          | funcName /= name = evalExpression scope newFuncs (FunctionCall name args)
                                                                                               | otherwise        = (snd newScope, snd value)
                                                                                           where 
@@ -163,9 +165,9 @@ evalExpression scope ((funcName, funcArgs, funcExpr):funcs) (FunctionCall name a
                                                                                                 value     = evalExpression (fst newScope) newFuncs funcExpr
 
 evalExpression scope funcs (Conditional cond true false) | toBool val = evalExpression newState funcs true
-                                                               | otherwise = evalExpression newState funcs false
-                                                                    where (newState, val) = evalExpression scope funcs cond
+                                                         | otherwise  = evalExpression newState funcs false
+                                                            where (newState, val) = evalExpression scope funcs cond
 
-evalExpression scope funcs (Block exprs)                       = foldl (\(st, val) expr -> evalExpression st funcs expr) (scope, 0) exprs
+evalExpression scope funcs (Block exprs)                              = foldl (\(st, val) expr -> evalExpression st funcs expr) (scope, 0) exprs
    
 
