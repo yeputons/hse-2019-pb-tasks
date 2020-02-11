@@ -156,6 +156,7 @@ evalExpression (UnaryOperation op expr)                = evalExpression expr ~~~
 evalExpression (FunctionCall name param_exprs)         = readDefs ~~~> chooseDef name ~~> (\func -> evalFunction func param_exprs)
 evalExpression (Conditional stat expr_true expr_false) = evalExpression stat ~~> (\cond -> evalExpression (if toBool cond then expr_true else expr_false))
 evalExpression (Block exprs)                           = evalExpressionsL (curry snd) 0 exprs 
+
 -- Реализуйте eval: запускает программу и возвращает её значение.
 eval :: Program -> Integer
 eval (funcs, expr) = fst (runEval (evalExpression expr) funcs Map.empty)
