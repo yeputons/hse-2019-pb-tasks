@@ -50,15 +50,15 @@ showUnop Not = "!"
 
 -- Тут будет что-то происходить
 
-showExpression $ Number number                                    = show num
-showExpression $ Reference name                                   = name
-showExpression $ Assign name expression                           = concat ["let ", name, " = ", showExpression expression, " tell"]
-showExpression $ BinaryOperation binop lExpression rExpression    = concat ["(", showExpression lExpression, showBinop binop, showExpression rExpression, ")"]
-showExpression $ UnaryOperation unop expression                   = concat [showUnop unop, showExpression expression]
-showExpression $ FunctionCall functname args                      = concat [functname, "(", intercalate ", " (map showExpression args), ")"] -- побоялась здесь вместо скобок $ поставить... Хотя вроде как работало..
-showExpression $ Conditional expression happyPath sadPath         = caoncat ["if ", showExpression expression, " then ", showExpression happyPath, " else ", showExpression sadPath, " fi"] -- вроде как эти термины были не совсем про это, но они такие классные ^^
-showExpression $ Block expressions            | expressions == [] = "{\n}"
-                                              | otherwise         = concat ["{\n\t", addSpace $ intercalate ";\n" $ map showExpression exprs, "\n}"]
+showExpression (Number number)                                    = show number
+showExpression (Reference name)                                   = name
+showExpression (Assign name expression)                           = concat ["let ", name, " = ", showExpression expression, " tel"]
+showExpression (BinaryOperation binop lExpression rExpression)    = concat ["(", showExpression lExpression, " ", showBinop binop, " ", showExpression rExpression, ")"]
+showExpression (UnaryOperation unop expression )                  = concat [showUnop unop, showExpression expression]
+showExpression (FunctionCall functname args)                      = concat [functname, "(", intercalate ", " (map showExpression args), ")"] -- побоялась здесь вместо скобок $ поставить... Хотя вроде как работало..
+showExpression (Conditional expression happyPath sadPath)         = concat ["if ", showExpression expression, " then ", showExpression happyPath, " else ", showExpression sadPath, " fi"] -- вроде как эти термины были не совсем про это, но они такие классные ^^
+showExpression (Block [])                                         = "{\n}"
+showExpression (Block expressions)                                = concat ["{\n\t", addSpace $ intercalate ";\n" $ map showExpression expressions, "\n}"]
                                                                                where addSpace []                 = []
                                                                                      addSpace (x:xs) | x == '\n' = x:'\t':addSpace xs
                                                                                                      | otherwise = x:addSpace xs
