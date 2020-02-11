@@ -49,7 +49,7 @@ showUnop Not = "!"
 putTabs::String -> [String]
 putTabs xs = map ("\t" ++) (foldr putTabs' [] xs) 
 
-putTabs':: Char -> [[Char]] -> [[Char]]
+putTabs':: Char -> [String] -> [String]
 putTabs' '\n' xs       = [] : xs
 putTabs' x []          = [[x]]
 putTabs' x (xs : xss)  = (x : xs) : xss
@@ -142,14 +142,14 @@ getFun (_, arg, body) = (arg, body)
 getFunDef::[FunctionDefinition] -> Name -> ([Name], Expression)
 getFunDef func name   = fun (head (filter (equal name) func))
                           where equal name func = name == getName func
-                                fun func        = getFun func
+                                fun             = getFun 
 
 makeScope::State -> [Name] -> [Integer] -> State
 makeScope scope names values = zip names values ++ scope
 
 chainCall::[FunctionDefinition] -> State -> [Expression] -> ([Integer], State)
 chainCall func scope []      = ([], scope)
-chainCall func scope (e:es)  = (fst (x):fst (xs), snd xs)
+chainCall func scope (e:es)  = (fst x:fst xs, snd xs)
                                  where x  = evalExpression func scope e
                                        xs = chainCall func (snd x) es
 
@@ -161,18 +161,18 @@ evalExpression func state (Number n)               = (n, state)
 evalExpression func state (Reference name)         = case lookup name state of
                                                           Just a            -> (a, state)
                                                           Nothing           -> (0,state)
-evalExpression func state (Assign name e)          = (fst result, (name, fst result):snd result)
+evalExpression func state (Assign name e)          = second ((:) (name, fst result)) result
                                                           where result      = evalExpression func state e
-evalExpression func state (BinaryOperation op l r) = (toBinaryFunction op (fst lr) (fst rr), snd rr)
+evalExpression func state (BinaryOperation op l r) = first (toBinaryFunction op (fst lr)) rr
                                                           where lr          = evalExpression func state l
                                                                 rr          = evalExpression func (snd lr) r
-evalExpression func state (UnaryOperation op e)    = (toUnaryFunction op (fst res), snd res)
+evalExpression func state (UnaryOperation op e)    = first (toUnaryFunction op) res
                                                            where res        = evalExpression func state e
-evalExpression func state (FunctionCall name exp)  = (res, snd (newScope))
+evalExpression func state (FunctionCall name exp)  = (res, snd newScope)
                                                            where res        = fst (evalExpression func tempScope (snd fun))
                                                                  fun        = getFunDef func name
                                                                  newScope   = chainCall func state exp
-                                                                 tempScope  = makeScope (snd (newScope)) (fst fun) (fst (newScope))
+                                                                 tempScope  = makeScope (snd newScope) (fst fun) (fst newScope)
 evalExpression func state (Conditional e t f)      | toBool (fst res)       = evalExpression func (snd res) t
                                                    | otherwise              = evalExpression func (snd res) f
                                                             where res       = evalExpression func state e
