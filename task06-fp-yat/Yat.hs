@@ -149,10 +149,8 @@ getVariable ((varName, varValue):scope) name | name == varName = varValue
 getFuncBody :: [FunctionDefinition] -> Name -> Expression
 getFuncBody [] _                                        = Number 0
 getFuncBody ((funcName, funcArgs, funcBody):funcs) name | name == funcName = funcBody
-                                                            | otherwise        = getFuncBody funcs name 
+                                                            | otherwise    = getFuncBody funcs name 
 															
-															getFuncArgs :: [FunctionDefinition] -> Name -> [Name]
-
 getFuncArgs :: [FunctionDefinition] -> Name -> [Name]
 getFuncArgs [] _                                                           = []
 getFuncArgs ((funcName, funcArgs, funcBody):funcs) name | name == funcName = funcArgs
