@@ -46,9 +46,27 @@ showUnop :: Unop -> String
 showUnop Neg = "-"
 showUnop Not = "!"
 
--- Верните текстовое представление программы (см. условие).
+showParams :: [Name] -> String
+showParams [] = []
+showParams [x] = x
+showParams (p:params) = p ++ ", " ++ showParams params
+
+showFunction :: FunctionDefinition -> String
+showFunction (name, params, body) = "func " ++ name ++ "(" ++ (showParams params) ++ ") = " ++ showExpression body ++ "\n"
+
+showExpression :: Expression -> String
+showExpression (Number num)                     = show num
+showExpression (Reference name)                 = name
+showExpression (Assign name expression)         = "let " ++ name ++ " = " ++ showExpression expression ++ " tel"
+showExpression (BinaryOperation op expr1 expr2) = "(" ++ showExpression expr1 ++ " " ++ showBinop op ++ " " ++ showExpression expr2 ++ ")"
+showExpression (UnaryOperation op expr)         = showUnop op ++ showExpression expr
+showExpression (FunctionCall name exprs)        = name ++ "(" ++ showParams (map showExpression exprs) ++ ")"
+showExpression (Conditional cond expr1 expr2)   = "if " ++ showExpression cond ++ " then " ++ showExpression expr1 ++ " else " ++ showExpression expr2 ++ " fi"
+showExpression (Block [])                       = "{\n}"
+showExpression (Block exprs)                    = "{\n" ++ (intercalate "\n" . map ("\t" ++) . lines . intercalate ";\n" . map showExpression) exprs ++ "\n}"
+
 showProgram :: Program -> String
-showProgram = undefined
+showProgram (functions, expression) = (foldr (++) "" (map showFunction functions)) ++ showExpression expression
 
 toBool :: Integer -> Bool
 toBool = (/=) 0
@@ -113,5 +131,47 @@ evalExpression = undefined
 -} -- Удалите эту строчку, если решаете бонусное задание.
 
 -- Реализуйте eval: запускает программу и возвращает её значение.
+
+getVariable :: State -> Name -> Integer
+getVariable [] _  = 0
+getVariable (x:xs) name | name == fst x = snd x
+                        | otherwise     = getVariable xs name
+
+parseArgs :: [FunctionDefinition] -> State -> FunctionDefinition -> [Expression] -> (State, State)
+parseArgs functions scope (_, [], _) _ = (scope, scope)
+parseArgs functions scope (fName, argName : argNames, fExpr) (expr:exprs) = (fst result, fst evalResult ++ scope)
+                                                                          where evalResult      = evalExpr functions scope expr
+                                                                                function'       = (fName, argNames, fExpr) 
+                                                                                scope'          = (argName, snd evalResult) : fst evalResult
+                                                                                result          = parseArgs functions scope' function' exprs
+
+solveBlock :: [FunctionDefinition] -> State -> [Expression] -> (State, Integer)
+solveBlock functions scope []           = (scope, 0)
+solveBlock functions scope [oneExpr]    = evalExpr functions scope oneExpr
+solveBlock functions scope (expr:exprs) = solveBlock functions (fst (evalExpr functions scope expr)) exprs 
+
+
+
+evalExpr :: [FunctionDefinition] -> State -> Expression -> (State, Integer)
+evalExpr functions scope (Number num)                                                        = (scope, num) 
+evalExpr functions scope (Reference name)                                                    = (scope, getVariable scope name)
+evalExpr functions scope (Assign name expr)                                                  = ((name, snd result):fst result, snd result)
+                                                                                               where result = evalExpr functions scope expr
+evalExpr functions scope (BinaryOperation op left right)                                     = (fst result2, toBinaryFunction op (snd result1) (snd result2))
+                                                                                               where result1 = evalExpr functions scope left
+                                                                                                     result2 = evalExpr functions (fst result1) right
+evalExpr functions scope (UnaryOperation op expr)                                            = (fst result, toUnaryFunction op (snd result)) 
+                                                                                               where result = evalExpr functions scope expr
+evalExpr ((fName, fArgs, fExpr):functions) scope (FunctionCall name args) | fName /= name    = evalExpr functions' scope (FunctionCall name args)
+                                                                          | otherwise        = (snd scope', snd result)
+                                                                            where func'      = (fName, fArgs, fExpr)
+                                                                                  functions' = functions ++ [func']
+                                                                                  scope'     = parseArgs functions' scope func' args
+                                                                                  result     = evalExpr functions' (fst scope') fExpr
+evalExpr functions scope (Conditional expr true false) | toBool (snd result)                 = evalExpr functions (fst result) true
+                                                       | otherwise                           = evalExpr functions (fst result) false
+                                                         where result                        = evalExpr functions scope expr
+evalExpr functions scope (Block exprs)                                                       = solveBlock functions scope exprs 
+
 eval :: Program -> Integer
-eval = undefined
+eval (funcs, expr) = snd (evalExpr funcs [] expr)
