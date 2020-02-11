@@ -168,8 +168,10 @@ getFunctionName (name, _,    _   ) = name
 getFunctionArgs (_,    args, _   ) = args
 getFunctionBody (_,    _,    body) = body
 
-evalFuncCall   state funcs name exprs        []             params = (state, snd funcRes)
-                                                                     where funcRes = evalExpression (state ++ params) funcs (getFunctionBody (getFunction funcs name))
+evalFuncCall   state funcs name (expr:exprs) []             params = undefined
+evalFuncCall   state funcs name []           (pName:pNames) params = undefined
+evalFuncCall   state funcs name []           []             params = (state, snd funcRes)
+                                                                     where funcRes = evalExpression (params ++ state) funcs (getFunctionBody (getFunction funcs name))
 
 evalFuncCall   state funcs name (expr:exprs) (pName:pNames) params = funcRes
                                                                      where exprRes = evalExpression state funcs expr
