@@ -60,7 +60,7 @@ showExpr (UnaryOperation  op   expr  ) = showUnop op ++ showExpr expr
 showExpr (FunctionCall    name args  ) = name ++ "(" ++ concat (insertSeparators (map showExpr args) ", ") ++ ")"
 showExpr (Conditional     cond t    f) = "if " ++ showExpr cond ++ " then " ++ showExpr t ++ " else " ++ showExpr f ++ " fi"
 showExpr (Block           []         ) = "{\n}"
-showExpr (Block           exprs      ) = "{\n" ++ concatMap (("\t" ++) . (++ "\n")) (lines (concat (insertSeparators (map showExpr exprs) ";\n"))) ++ "}"
+showExpr (Block           exprs      ) = "{\n" ++ concatMap (("\t" ++) . (++ "\n")) (lines $ concat $ insertSeparators (map showExpr exprs) ";\n") ++ "}"
 
 showFunctionDefinition :: FunctionDefinition -> String
 showFunctionDefinition (name, args, expr) = "func " ++ name ++ "(" ++ concat (insertSeparators args ", ") ++ ") = " ++ showExpr expr
@@ -132,6 +132,45 @@ evalExpression :: Expression -> Eval Integer  -- Вычисляет выраже
 evalExpression = undefined
 -} -- Удалите эту строчку, если решаете бонусное задание.
 
+getVar :: State -> Name -> Integer
+getVar scope name = snd (head (filter ((==) name . fst) scope))
+
+getName :: FunctionDefinition -> Name
+getName (name, _, _) = name
+
+getArgs :: FunctionDefinition -> [Name]
+getArgs (_, args, _) = args
+
+getExpr :: FunctionDefinition -> Expression
+getExpr (_, _, expr) = expr
+
+evalExpr :: [FunctionDefinition] -> State -> Expression -> (Integer, State)
+evalExpr funcs scope (Number          n           ) = (n, scope)
+evalExpr funcs scope (Reference       name        ) = (getVar scope name, scope)
+
+evalExpr funcs scope (Assign          name  expr  ) = (fst retVal, (name, fst retVal):snd retVal)
+                                                      where retVal  = evalExpr funcs scope         expr
+
+evalExpr funcs scope (BinaryOperation op    l    r) = (toBinaryFunction op (fst retVal1) (fst retVal2), snd retVal2)
+                                                      where retVal1 = evalExpr funcs scope         l
+                                                            retVal2 = evalExpr funcs (snd retVal1) r
+
+evalExpr funcs scope (UnaryOperation  op    expr  ) = (toUnaryFunction  op (fst retVal), snd retVal)
+                                                      where retVal  = evalExpr funcs         scope expr
+ 
+evalExpr funcs scope (FunctionCall    name  args  ) = (fst (evalExpr funcs newScope (getExpr func)), newScope)
+                                                      where newScope = zip (getArgs func) (map (fst . evalExpr funcs scope) args) ++ snd (evalExpr funcs scope (Block args))
+                                                            func     = case find ((== name) . getName) funcs of 
+                                                                       Just func' -> func'
+
+evalExpr funcs scope (Conditional     cond  t    f) | toBool (fst retVal) = evalExpr funcs (snd retVal) t
+                                                    | otherwise           = evalExpr funcs (snd retVal) f
+                                                      where retVal        = evalExpr funcs scope        cond
+
+evalExpr funcs scope (Block           []          ) = (0, scope)
+evalExpr funcs scope (Block           [expr]      ) = evalExpr funcs scope expr
+evalExpr funcs scope (Block           (e:es)      ) = evalExpr funcs (snd $ evalExpr funcs scope e) (Block es)
+
 -- Реализуйте eval: запускает программу и возвращает её значение.
 eval :: Program -> Integer
-eval = undefined
+eval (definitions, expr) = fst (evalExpr definitions [] expr)
