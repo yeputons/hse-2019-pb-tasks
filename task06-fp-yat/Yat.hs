@@ -46,12 +46,6 @@ showUnop :: Unop -> String
 showUnop Neg = "-"
 showUnop Not = "!"
 
-
-showFunc :: [Expression] -> String
-showFunc []        = ""
-showFunc [expr]	   = showExpression expr
-showFunc (expr:es) = showExpression expr ++ ", " ++ showFunc es
-
 showExpression :: Expression -> String
 showExpression (Number x) 						= show x
 showExpression (Reference name)					= name 
