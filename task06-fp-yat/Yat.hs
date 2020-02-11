@@ -66,7 +66,7 @@ showExpression $ Block expressions            | expressions == [] = "{\n}"
 showFunction (name, args, expression) = concat ["func ", name, "(", intercalate ", " args, ") = ", showExpression expression]
 
 showProgram :: Program -> String
-showProgram = undefined
+showProgram (functs, body) = concatMap ((++ "\n") . showFunction) functs ++ showExpression body 
 
 toBool :: Integer -> Bool
 toBool = (/=) 0
