@@ -46,9 +46,29 @@ showUnop :: Unop -> String
 showUnop Neg = "-"
 showUnop Not = "!"
 
+insertSeparators :: [String] -> String -> [String]
+insertSeparators []     sep = []
+insertSeparators [x]    sep = [x]
+insertSeparators (x:xs) sep = (x ++ sep) : insertSeparators xs sep
+
+showExpr :: Expression -> String
+showExpr (Number          n          ) = show n
+showExpr (Reference       name       ) = name
+showExpr (Assign          name expr  ) = "let " ++ name ++ " = " ++ showExpr expr ++ " tel"
+showExpr (BinaryOperation op   l    r) = "(" ++ showExpr l ++ " " ++ showBinop op ++ " " ++ showExpr r ++ ")"
+showExpr (UnaryOperation  op   expr  ) = showUnop op ++ showExpr expr
+showExpr (FunctionCall    name args  ) = name ++ "(" ++ concat (insertSeparators (map showExpr args) ", ") ++ ")"
+showExpr (Conditional     cond t    f) = "if " ++ showExpr cond ++ " then " ++ showExpr t ++ " else " ++ showExpr f ++ " fi"
+showExpr (Block           []         ) = "{\n}"
+showExpr (Block           exprs      ) = "{\n" ++ concatMap (("\t" ++) . (++ "\n")) (lines (concat (insertSeparators (map showExpr exprs) ";\n"))) ++ "}"
+
+showFunctionDefinition :: FunctionDefinition -> String
+showFunctionDefinition (name, args, expr) = "func " ++ name ++ "(" ++ concat (insertSeparators args ", ") ++ ") = " ++ showExpr expr
+
 -- Верните текстовое представление программы (см. условие).
 showProgram :: Program -> String
-showProgram = undefined
+showProgram ([], exprs) = showExpr exprs
+showProgram (def:defs, exprs) = showFunctionDefinition def ++ "\n" ++ showProgram (defs, exprs)
 
 toBool :: Integer -> Bool
 toBool = (/=) 0
