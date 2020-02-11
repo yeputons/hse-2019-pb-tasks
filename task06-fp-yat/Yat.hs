@@ -142,6 +142,7 @@ getInteger (x:xs) name | name == fst x = snd x
 
 parseArgs :: [FunctionDefinition] -> State -> FunctionDefinition -> [Expression] -> (State, State)
 parseArgs functions scope (_, [], _) _ = (scope, scope)
+parseArgs _ _ (_, (_:_), _) []         = ([], [])
 parseArgs functions scope (fName, argName : argNames, fExpr) (expr:exprs) = (fst result, fst evalResult ++ scope)
                                                                           where evalResult      = evalExpr functions scope expr
                                                                                 function'       = (fName, argNames, fExpr) 
@@ -171,6 +172,8 @@ evalExpr functions scope (BinaryOperation op left right) = (fst result2, toBinar
 evalExpr functions scope (UnaryOperation op expr) = (fst result, toUnaryFunction op (snd result)) 
                                                      where result = evalExpr functions scope expr
 
+evalExpr [] _ (FunctionCall _ _) = ([], 0)
+
 evalExpr ((fName, fArgs, fExpr):functions) scope (FunctionCall name args) | fName /= name    = evalExpr functions' scope (FunctionCall name args)
                                                                           | otherwise        = (snd scope', snd result)
                                                                             where func'      = (fName, fArgs, fExpr)
@@ -182,7 +185,7 @@ evalExpr functions scope (Conditional expr true false) | toBool (snd result)    
                                                        | otherwise               = evalExpr functions (fst result) false
                                                          where result            = evalExpr functions scope expr
 
-evalExpr functions scope (Block	exprs) = solveBlock functions scope exprs 
+evalExpr functions scope (Block exprs) = solveBlock functions scope exprs 
 
 eval :: Program -> Integer
 eval (funcDefs, expr) = snd ( evalExpr funcDefs [] expr)
