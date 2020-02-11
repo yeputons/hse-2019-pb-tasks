@@ -142,7 +142,7 @@ getInteger (x:xs) name | name == fst x = snd x
 
 parseArgs :: [FunctionDefinition] -> State -> FunctionDefinition -> [Expression] -> (State, State)
 parseArgs functions scope (_, [], _) _ = (scope, scope)
-parseArgs _ _ (_, (_:_), _) []         = ([], [])
+parseArgs _ _ (_, _:_, _) []         = ([], [])
 parseArgs functions scope (fName, argName : argNames, fExpr) (expr:exprs) = (fst result, fst evalResult ++ scope)
                                                                           where evalResult      = evalExpr functions scope expr
                                                                                 function'       = (fName, argNames, fExpr) 
