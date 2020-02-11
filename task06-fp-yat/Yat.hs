@@ -48,7 +48,24 @@ showUnop Not = "!"
 
 -- Верните текстовое представление программы (см. условие).
 showProgram :: Program -> String
-showProgram = undefined
+showProgram (functions, expr) = concat [concatMap ((++ "\n") . showFunctionDefinition) functions, showExpression expr]  
+
+showFunctionDefinition::FunctionDefinition -> String
+showFunctionDefinition (name, args, expr) = concat ["func ", name, "(", intercalate ", " args, ") = ", showExpression expr]
+
+showExpression::Expression -> String
+showExpression (Number n)                           = show n
+showExpression (Reference name)                     = name
+showExpression (Assign name expr)                   = concat ["let ", name, " = ", showExpression expr, " tel"]
+showExpression (BinaryOperation op left right)      = concat ["(", showExpression left, " ", showBinop op, " ", showExpression right, ")"]
+showExpression (UnaryOperation op expr)             = concat [showUnop op, showExpression expr]
+showExpression (FunctionCall name args)             = concat [name, "(", intercalate ", " (map showExpression args), ")"]
+showExpression (Conditional cond true false)        = concat ["if ", showExpression cond, " then ", showExpression true, " else ", showExpression false, " fi"]
+showExpression (Block [])                           = "{\n}"
+showExpression (Block exprs)                        = concat ["{\n", addTabs $ intercalate ";\n" $ map showExpression exprs, "\n}"]
+
+addTabs :: String -> String
+addTabs = intercalate "\n" . map ("\t" ++) . lines
 
 toBool :: Integer -> Bool
 toBool = (/=) 0
