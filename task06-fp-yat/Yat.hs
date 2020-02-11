@@ -46,24 +46,26 @@ showUnop :: Unop -> String
 showUnop Neg = "-"
 showUnop Not = "!"
 
-showExpression :: Expression -> String
-showExpression (Number x) 						= show x
-showExpression (Reference name)					= name 
-showExpression (Assign name expr)  				= "let " ++ name ++ " = " ++ showExpression expr ++ "let"
-showExpression (BinaryOperation op expr1 expr2) = "(" ++ showExpression expr1 ++ " " ++ showBinop op ++ " " ++ showExpression expr2 ++ ")"
-showExpression (UnaryOperation op expr)			= showUnop op ++ showExpression expr
-showExpression (FunctionCall name funcs)		= name ++ "(" ++ showFunc funcs ++ ")"
-showExpression (Conditional cond expr1 expr2)	= "if " ++ showExpression cond ++ " then " ++ showExpression expr1 ++ " else " ++ showExpression expr2 ++ " fi"
-showExpression (Block [])                       = "{\n}"
-showExpression (Block exprs)                    = "{\n\t" ++ addTabs $ intercalate ";\n" $ map showExpression exprs ++ "\n}"
 
 addTabs :: String -> String
 addTabs []      = []
 addTabs (s:str) | s == '\n' = s:'\t':addTabs str
                 | otherwise = s:addTabs str
 
+showExpression :: Expression -> String
+showExpression (Number x) 						= show x
+showExpression (Reference name)					= name 
+showExpression (Assign name expr)  				= concat ["let ", name, " = ", showExpression expr, " tel"]
+showExpression (BinaryOperation op expr1 expr2) = concat ["(", showExpression left, " ", showBinop op, " ", showExpression right, ")"]
+showExpression (UnaryOperation op expr)			= showUnop op ++ showExpression expr
+showExpression (FunctionCall name args)			= concat [name, "(", intercalate ", " $ map showExpression args, ")"]
+showExpression (Conditional cond expr1 expr2)	= concat ["if ", showExpression cond, " then ", showExpression expr1, " else ", showExpression expr2, " fi"]
+
+showExpression (Block [])                       = "{\n}"
+showExpression (Block exprs)                    = concat ["{\n\t", addTabs $ intercalate ";\n" $ map showExpression exprs, "\n}"]
+
 showFunc :: FunctionDefinition -> String
-showFunc (name, args, expr) = "func " ++ name ++ "(" ++ intercalate ", " args ++ ") = " ++ showExpression expr
+showFunc (name, args, expr) = concat ["func ", name, "(", intercalate ", " args, ") = ", showExpression expr]
 
 showProgram :: Program -> String
 showProgram (funcs, exprs) = concatMap ((++ "\n") . showFunc) funcs ++ showExpression exprs  
