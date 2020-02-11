@@ -63,6 +63,7 @@ showExpression $ Block expressions            | expressions == [] = "{\n}"
                                                                                      addSpace (x:xs) | x == '\n' = x:'\t':addSpace xs
                                                                                                      | otherwise = x:addSpace xs
 
+showFunction (name, args, expression) = concat ["func ", name, "(", intercalate ", " args, ") = ", showExpression expression]
 
 showProgram :: Program -> String
 showProgram = undefined
