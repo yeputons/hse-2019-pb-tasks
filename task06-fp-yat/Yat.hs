@@ -56,7 +56,7 @@ showExpression (Number number)                                    = show number
 showExpression (Reference name)                                   = name
 showExpression (Assign name expression)                           = concat ["let ", name, " = ", showExpression expression, " tel"]
 showExpression (BinaryOperation binop lExpression rExpression)    = concat ["(", showExpression lExpression, " ", showBinop binop, " ", showExpression rExpression, ")"]
-showExpression (UnaryOperation unop expression )                  = concat [showUnop unop, showExpression expression]
+showExpression (UnaryOperation unop expression )                  = showUnop unop ++ showExpression expression
 showExpression (FunctionCall functname args)                      = concat [functname, "(", intercalate ", " (map showExpression args), ")"] -- побоялась здесь вместо скобок $ поставить... Хотя вроде как работало..
 showExpression (Conditional expression happyPath sadPath)         = concat ["if ", showExpression expression, " then ", showExpression happyPath, " else ", showExpression sadPath, " fi"] -- вроде как эти термины были не совсем про это, но они такие классные ^^
 showExpression (Block [])                                         = "{\n}"
@@ -106,7 +106,7 @@ getVariable [] _                                                              = 
 getVariable ((variableName, variableValue):scope) name | name == variableName = variableValue
                                                        | otherwise            = getVariable scope name
 
-
+	
 getFunctionDefinition :: Name -> [FunctionDefinition] -> ([Name], Expression)
 
 getFunctionDefinition name funcs = argsWithoutFst (head (filter (isEq name) funcs)) 
