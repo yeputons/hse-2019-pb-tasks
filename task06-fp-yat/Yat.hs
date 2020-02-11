@@ -153,14 +153,59 @@ evalExpression = undefined
 
 -- Реализуйте eval: запускает программу и возвращает её значение.
 
-evalExpression state funcs (Number num)                               = undefined
-evalExpression state funcs (Reference ref)                            = undefined
-evalExpression state funcs (Assign name expr)                         = undefined
-evalExpression state funcs (BinaryOperation binop exprLeft exprRight) = undefined
-evalExpression state funcs (UnaryOperation unop expr)                 = undefined
-evalExpression state funcs (FunctionCall name exprs)                  = undefined
-evalExpression state funcs (Conditional condition exprTrue exprFalse) = undefined
-evalExpression state funcs (Block exprs)                              = undefined
+-- setValue []             _   _                         = undefined
+setValue state key value = (key, value):state
+
+getValue []             _                       = undefined
+getValue (curVar:state) key | fst curVar == key = snd curVar
+                            | otherwise         = getValue state key
+
+getFunction []                             _                               = undefined
+getFunction ((name, args, body):functions) targetName | name == targetName = (name, args, body)
+                                                      | otherwise          = getFunction functions targetName
+
+getFunctionName (name, _,    _   ) = name
+getFunctionArgs (_,    args, _   ) = args
+getFunctionBody (_,    _,    body) = body
+
+evalFuncCall   state funcs name exprs        []             params = (state, snd funcRes)
+                                                                     where funcRes = evalExpression (state ++ params) funcs (getFunctionBody (getFunction funcs name))
+
+evalFuncCall   state funcs name (expr:exprs) (pName:pNames) params = funcRes
+                                                                     where exprRes = evalExpression state funcs expr
+                                                                           funcRes = evalFuncCall (fst exprRes) funcs name exprs pNames ((pName, snd exprRes):params)
+
+evalExpression state funcs (Number num)                               = (state, num)
+
+evalExpression state funcs (Reference ref)                            = (state, getValue state ref)
+
+evalExpression state funcs (Assign name expr)                         = (setValue (fst res) name (snd res),
+                                                                         snd res)
+                                                                         where res = evalExpression state funcs expr
+
+evalExpression state funcs (BinaryOperation binop exprLeft exprRight) = (fst resRight,
+                                                                         toBinaryFunction binop (snd resLeft) (snd resRight))
+                                                                         where resLeft  = evalExpression state         funcs exprLeft
+                                                                               resRight = evalExpression (fst resLeft) funcs exprRight
+
+evalExpression state funcs (UnaryOperation unop expr)                 = (fst res,
+                                                                         toUnaryFunction unop (snd res))
+                                                                         where res = evalExpression state funcs expr
+
+evalExpression state funcs (FunctionCall name exprs)                  = evalFuncCall state funcs name exprs pNames []
+                                                                        where pNames = getFunctionArgs(getFunction funcs name)
+
+evalExpression state funcs (Conditional exprCond exprTrue exprFalse) | toBool (snd condRes) = trueRes
+                                                                     | otherwise            = falseRes
+                                                                     where condRes  = evalExpression state         funcs exprCond
+                                                                           trueRes  = evalExpression (fst condRes) funcs exprTrue
+                                                                           falseRes = evalExpression (fst condRes) funcs exprFalse
+
+evalExpression state funcs (Block [])                                 = (state, 0)
+evalExpression state funcs (Block [expr])                             = evalExpression state funcs expr
+evalExpression state funcs (Block (expr:exprs))                       = othersRes
+                                                                        where res       = evalExpression state     funcs expr
+                                                                              othersRes = evalExpression (fst res) funcs (Block exprs)
 
 eval :: Program -> Integer
-eval = undefined
+eval (functions, expr) = snd (evalExpression [] functions expr)
