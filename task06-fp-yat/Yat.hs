@@ -150,16 +150,18 @@ findVar name ((var, val):scope) | name == var = val
 
 
 parseArgs :: [FunctionDefinition] -> State -> FunctionDefinition -> [Expression] -> (State, State)
+parseArgs _ _ (_, (_:_), _) []                                          = ([], []) 
 parseArgs funcs scope (_, [], _) _                                      = (scope, scope)
-parseArgs funcs scope (funcName, nameArg:nameArgs, funcExpr) (arg:args) = (fst_state, state ++ scope)
-                                                                          where (int, state)           = evalExpr funcs scope arg
-                                                                                func                   = (funcName, nameArgs, funcExpr) 
-                                                                                newScope               = (nameArg, int) : state
-                                                                                (fst_state, snd_state) = parseArgs funcs newScope func args
+parseArgs funcs scope (funcName, nameArg:nameArgs, funcExpr) (arg:args) = (fst res, state ++ scope)
+                                                                          where (int, state) = evalExpr funcs scope arg
+                                                                                func         = (funcName, nameArgs, funcExpr) 
+                                                                                newScope     = (nameArg, int) : state
+                                                                                res          = parseArgs funcs newScope func args
 
 
 
 evalExpr :: [FunctionDefinition] -> State -> Expression -> (Integer, State)
+evalExpr [] _ (FunctionCall _ _)                                                = (0, [])
 evalExpr funcs scope (Number num)                                               = (num, scope)
 evalExpr funcs scope (Reference name)                                           = (findVar name scope, scope)
 evalExpr funcs scope (Assign name expr)                                         = (int, (name, int):state)
@@ -173,11 +175,11 @@ evalExpr funcs scope (UnaryOperation oper expr)                                 
                                                                                                   where (int, state) = evalExpr funcs scope expr
 
 evalExpr ((funcName, funcArgs, funcExpr):funcs) scope (FunctionCall name args)  | funcName /= name = evalExpr newFuncs scope (FunctionCall name args)
-                                                                                | otherwise        = (int, snd_state)
+                                                                                | otherwise        = (fst eval, snd_state)
                                                                                                   where func                   = (funcName, funcArgs, funcExpr)
                                                                                                         newFuncs               = funcs ++ [func]
                                                                                                         (fst_state, snd_state) = parseArgs newFuncs scope func args
-                                                                                                        (int, state)           = evalExpr newFuncs fst_state funcExpr
+                                                                                                        eval                   = evalExpr newFuncs fst_state funcExpr
 
 evalExpr funcs scope (Conditional expr true false)                              | toBool int = evalExpr funcs state true
                                                                                 | otherwise  = evalExpr funcs state false
