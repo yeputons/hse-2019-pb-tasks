@@ -50,6 +50,8 @@ showUnop Not = "!"
 
 -- Тут будет что-то происходить
 
+showExpression :: Expression -> String
+
 showExpression (Number number)                                    = show number
 showExpression (Reference name)                                   = name
 showExpression (Assign name expression)                           = concat ["let ", name, " = ", showExpression expression, " tel"]
@@ -62,6 +64,8 @@ showExpression (Block expressions)                                = concat ["{\n
                                                                                where addSpace []                 = []
                                                                                      addSpace (x:xs) | x == '\n' = x:'\t':addSpace xs
                                                                                                      | otherwise = x:addSpace xs
+
+showFunction :: FunctionDefinition -> String
 
 showFunction (name, args, expression) = concat ["func ", name, "(", intercalate ", " args, ") = ", showExpression expression]
 
@@ -94,42 +98,62 @@ toUnaryFunction :: Unop -> Integer -> Integer
 toUnaryFunction Neg = negate
 toUnaryFunction Not = fromBool . not . toBool
 
--- Если хотите дополнительных баллов, реализуйте
--- вспомогательные функции ниже и реализуйте evaluate через них.
--- По минимуму используйте pattern matching для `Eval`, функции
--- `runEval`, `readState`, `readDefs` и избегайте явной передачи состояния.
-
-{- -- Удалите эту строчку, если решаете бонусное задание.
-newtype Eval a = Eval ([FunctionDefinition] -> State -> (a, State))  -- Как data, только эффективнее в случае одного конструктора.
-
-runEval :: Eval a -> [FunctionDefinition] -> State -> (a, State)
-runEval (Eval f) = f
-
-evaluated :: a -> Eval a  -- Возвращает значение без изменения состояния.
-evaluated = undefined
-
-readState :: Eval State  -- Возвращает состояние.
-readState = undefined
-
-addToState :: String -> Integer -> a -> Eval a  -- Добавляет/изменяет значение переменной на новое и возвращает константу.
-addToState = undefined
-
-readDefs :: Eval [FunctionDefinition]  -- Возвращает все определения функций.
-readDefs = undefined
-
-andThen :: Eval a -> (a -> Eval b) -> Eval b  -- Выполняет сначала первое вычисление, а потом второе.
-andThen = undefined
-
-andEvaluated :: Eval a -> (a -> b) -> Eval b  -- Выполняет вычисление, а потом преобразует результат чистой функцией.
-andEvaluated = undefined
-
-evalExpressionsL :: (a -> Integer -> a) -> a -> [Expression] -> Eval a  -- Вычисляет список выражений от первого к последнему.
-evalExpressionsL = undefined
-
-evalExpression :: Expression -> Eval Integer  -- Вычисляет выражение.
-evalExpression = undefined
--} -- Удалите эту строчку, если решаете бонусное задание.
-
 -- Реализуйте eval: запускает программу и возвращает её значение.
+
+getVariable :: State -> Name -> Integer
+
+getVariable [] _                                                              = 0
+getVariable ((variableName, variableValue):scope) name | name == variableName = variableValue
+                                                       | otherwise            = getVariable scope name
+
+
+getFunctionDefinition :: Name -> [FunctionDefinition] -> ([Name], Expression)
+
+getFunctionDefinition name funcs = argsWithoutFst (head (filter (isEq name) funcs)) 
+                             where isEq name (n, names, e)    = name == n
+                                   argsWithoutFst (n, name, e)= (name, e)
+
+makeFunctionScope :: State -> [Name] -> [Integer] -> State
+
+makeFunctionScope scope parameters values = zip parameters values ++ scope
+
+
+chainReaction :: [FunctionDefinition] -> State -> [Expression] -> ([Integer], State)
+
+chainReaction funcs scope []         = ([], scope)
+chainReaction funcs scope (arg:args) = (fst argresult:fst argsresult, snd argsresult)
+                                      where argresult  = evalExpression  funcs scope arg
+                                            argsresult = chainReaction funcs (snd argresult) args -- Ну... Мне так больше нравится (они же в действительности так тянут за собой)
+
+
+evalExpression :: [FunctionDefinition] -> State -> Expression -> (Integer, State)
+
+evalExpression funcs scope (Number number)                                              = (number, scope)
+evalExpression funcs scope (Reference name)                                             = (getVariable scope name, scope)
+evalExpression funcs scope (Assign name expression)                                     = (fst res, var:snd res)
+                                                                                         where res = evalExpression funcs scope expression
+                                                                                               var = (name, fst res)
+                                                       
+evalExpression funcs scope (BinaryOperation binop lExpression rExpression)              = (toBinaryFunction binop (fst lres) (fst rres), snd rres)
+                                                                                                                 where lres = evalExpression funcs scope lExpression
+                                                                                                                       rres = evalExpression funcs (snd lres) rExpression
+
+evalExpression funcs scope (UnaryOperation unop expression)                             = (toUnaryFunction unop (fst res), snd res)
+                                                                                                               where res = evalExpression funcs scope expression
+
+evalExpression funcs scope (FunctionCall functname args)                                = (fst (evalExpression funcs (makeFunctionScope (snd res) (fst func) (fst res)) (snd func)), snd res) 
+                                                                                                         where func = getFunctionDefinition functname funcs
+                                                                                                               res = chainReaction funcs scope args
+evalExpression funcs scope (Conditional expression happyPath sadPath) | toBool (fst er) = hp
+                                                                      | otherwise       = sp
+                                                                              where er = evalExpression funcs scope expression
+                                                                                    hp = evalExpression funcs (snd er) happyPath
+                                                                                    sp = evalExpression funcs (snd er) sadPath
+
+evalExpression funcs scope (Block [])                                                   = (0, scope)
+evalExpression funcs scope (Block [expressions])                                        = evalExpression funcs scope expressions                                      
+evalExpression funcs scope (Block (expr:exprs))                                         = evalExpression funcs (snd (evalExpression funcs scope expr)) (Block exprs)
+
+
 eval :: Program -> Integer
-eval = undefined
+eval program = fst (evalExpression (fst program) [] (snd program))
