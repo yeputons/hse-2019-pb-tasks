@@ -57,7 +57,7 @@ showExpression (Number num)                                 = show num
 showExpression (Reference name)                             = name
 showExpression (Assign name expr)                           = concat ["let ", name, " = ", showExpression expr, " tel"]
 showExpression (BinaryOperation op leftExpr rightExpr)      = concat ["(", showExpression leftExpr, " ", showBinop op, " ", showExpression rightExpr, ")"]
-showExpression (UnaryOperation op expr)                     = concat [showUnop op, showExpression expr]
+showExpression (UnaryOperation op expr)                     = showUnop op ++ showExpression expr
 showExpression (FunctionCall name args)                     = concat [name, "(", intercalate ", " (map showExpression args), ")"]
 showExpression (Conditional cond true false)                = concat ["if ", showExpression cond, " then ", showExpression true, " else ", showExpression false, " fi"]
 showExpression (Block [])                                   = "{\n}"
@@ -144,7 +144,7 @@ createFuncScope :: State -> [Name] -> [Integer] -> State
 createFuncScope scope params vals = zip params vals ++ scope
 
 
-chainFuncCall::[FunctionDefinition] -> State -> [Expression] -> ([Integer], State)
+chainCall::[FunctionDefinition] -> State -> [Expression] -> ([Integer], State)
 chainCall func scope []      = ([], scope)
 chainCall func scope (x:xs)  = (fst y:fst ys, snd ys)
                                  where y  = evalExpression func scope x
