@@ -49,7 +49,7 @@ showUnop Not = "!"
 -- Верните текстовое представление программы (см. условие).
 
 showFunctionDefinition :: FunctionDefinition -> String
-showFunctionDefinition (name, params, e) = "func " ++ name ++ "(" ++ intercalate ", " params ++ ") = " ++ showExpression e
+showFunctionDefinition (name, params, e) = concat ["func ", name, "(", intercalate ", " params, ") = ", showExpression e, "\n"]
 
 
 showExpression::Expression -> String
