@@ -137,8 +137,8 @@ evalExpression = undefined
 
 getFuncDef :: Name -> [FunctionDefinition] -> ([Name], Expression)
 getFuncDef name funcs = dropFirst (head (filter eqName funcs)) 
-                        where  eqName (funcName, funcNames, expr) = name == funcName
-                              dropFirst   (funcName, funcNames, expr)       = (funcNames, expr)
+                        where eqName (funcName, funcNames, expr) = name == funcName
+                              dropFirst   (funcName, name, expr)   = (name, expr)
 
 createFuncScope :: State -> [Name] -> [Integer] -> State
 createFuncScope scope params vals = zip params vals ++ scope
