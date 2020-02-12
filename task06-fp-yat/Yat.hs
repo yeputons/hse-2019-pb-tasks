@@ -49,7 +49,7 @@ showUnop Not = "!"
 -- Верните текстовое представление программы (см. условие).
 
 showFunctionDefinition :: FunctionDefinition -> String
-showFunctionDefinition (name, params, e) = "func " ++ showFunctionWithParams name params id ++ " = " ++ showExpression e ++ "\n"
+showFunctionDefinition (name, params, e) = "func " ++ name ++ "(" ++ intercalate ", " params ++ ") = " ++ showExpression e
 
 
 showExpression::Expression -> String
@@ -61,7 +61,7 @@ showExpression (UnaryOperation op expr)                     = showUnop op ++ sho
 showExpression (FunctionCall name args)                     = concat [name, "(", intercalate ", " (map showExpression args), ")"]
 showExpression (Conditional cond true false)                = concat ["if ", showExpression cond, " then ", showExpression true, " else ", showExpression false, " fi"]
 showExpression (Block [])                                   = "{\n}"
-showExpression (Block exprs)                                = "{\n" ++ intercalate  ";\n" (map (addTabs . showExpr) exprs) ++ "\n}"
+showExpression (Block exprs)                                = "{\n" ++ intercalate  ";\n" (map (addTabs . showExpression) exprs) ++ "\n}"
 
 
 addTabs :: String -> String
@@ -147,7 +147,7 @@ createFuncScope scope params vals = zip params vals ++ scope
 chainCall::[FunctionDefinition] -> State -> [Expression] -> ([Integer], State)
 chainCall func scope []      = ([], scope)
 chainCall func scope (x:xs)  = (fst y:fst ys, snd ys)
-                                 where y  = evalExpression func scope x
+                                 where y  = evalExpr func scope x
                                        ys = chainCall func (snd y) xs
 
 
@@ -157,25 +157,25 @@ getVar scope name = snd (head (filter ((==) name . fst) scope))
 
 
 evalExpr :: [FunctionDefinition] -> State -> Expression -> (Integer, State)
-evalExpr funcs scope (Number num)               = (num, scope)
-evalExpr funcs scope (Reference name)         = (getVar name scope, scope)
-evalExpr funcs scope (Assign name expr)          = (fst result, var:snd result)
-                                              where result = evalExpr funcs scope expr
+evalExpr functions scope (Number num)             = (num, scope)
+evalExpr functions scope (Reference name)         = (getVar scope name, scope)
+evalExpr functions scope (Assign name e)          = (fst result, var:snd result)
+                                              where result = evalExpr functions scope e
                                                     var    = (name, fst result)
-evalExpr funcs scope (FunctionCall name args) = (fst (evalExpr funcs (createFuncScope (snd result) (fst func) (fst result)) (snd func)), snd result) 
-                                              where func   = getFuncDef name funcs
-                                                    result = chainExpr funcs scope args
-evalExpr funcs scope (UnaryOperation op expr)    = (toUnaryFunction op (fst result), snd result)
-                                              where result = evalExpr funcs scope expr
-evalExpr funcs scope (BinaryOperation op left right) = (toBinaryFunction op (fst lres) (fst rres), snd rres)
-                                              where lres = evalExpr funcs scope left
-                                                    rres = evalExpr funcs (snd lres) right
-evalExpr funcs scope (Conditional expr true false)      | toBool (fst res) = evalExpr funcs (snd res) true
-                                              | otherwise        = evalExpr funcs (snd res) false
-                                              where res = evalExpr funcs scope expr
-evalExpr funcs scope (Block [x])              = evalExpr funcs scope x
-evalExpr funcs scope (Block [])               = (0, scope)                                         
-evalExpr funcs scope (Block (x:xs))           = evalExpr funcs (snd (evalExpr funcs scope x)) (Block xs)
+evalExpr functions scope (FunctionCall name args) = (fst (evalExpr functions (createFuncScope (snd result) (fst func) (fst result)) (snd func)), snd result) 
+                                                where func = getFuncDef name functions
+                                                      result = chainCall functions scope args
+evalExpr functions scope (UnaryOperation op expr)    = (toUnaryFunction op (fst result), snd result)
+                                              where result = evalExpr functions scope expr
+evalExpr functions scope (BinaryOperation op left right) = (toBinaryFunction op (fst lres) (fst rres), snd rres)
+                                              where lres = evalExpr functions scope left
+                                                    rres = evalExpr functions (snd lres) right
+evalExpr functions scope (Conditional expr true false)      | toBool (fst res) = evalExpr functions (snd res) true
+                                              | otherwise        = evalExpr functions (snd res) false
+                                              where res = evalExpr functions scope expr
+evalExpr functions scope (Block [x])              = evalExpr functions scope x
+evalExpr functions scope (Block [])               = (0, scope)                                         
+evalExpr functions scope (Block (x:xs))           = evalExpr functions (snd (evalExpr functions scope x)) (Block xs)
 
 
 
