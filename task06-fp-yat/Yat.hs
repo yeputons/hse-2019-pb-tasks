@@ -157,10 +157,10 @@ evalExpr funcs scope (BinaryOperation op    l    r) = (toBinaryFunction op (fst 
 
 evalExpr funcs scope (UnaryOperation  op    expr  ) = (toUnaryFunction  op (fst retVal), snd retVal)
                                                       where retVal  = evalExpr funcs         scope expr
- 
+
 evalExpr funcs scope (FunctionCall    name  args  ) = (fst (evalExpr funcs newScope (getExpr func)), newScope)
                                                       where newScope = zip (getArgs func) (map (fst . evalExpr funcs scope) args) ++ snd (evalExpr funcs scope (Block args))
-                                                            func     = case find ((== name) . getName) funcs of 
+                                                            func     = case find ((== name) . getName) funcs of
                                                                        Just func' -> func'
 
 evalExpr funcs scope (Conditional     cond  t    f) | toBool (fst retVal) = evalExpr funcs (snd retVal) t
