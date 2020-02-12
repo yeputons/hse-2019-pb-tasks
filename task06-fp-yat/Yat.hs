@@ -46,9 +46,24 @@ showUnop :: Unop -> String
 showUnop Neg = "-"
 showUnop Not = "!"
 
+showExpression :: Expression -> String
+showExpression (Number n)                            = show n
+showExpression (Reference name)                      = name
+showExpression (Assign name expr)                    = concat ["let ", name, " = ", showExpression expr, " tel"]
+showExpression (BinaryOperation op l r)              = concat ["(", showExpression l, " ", showBinop op, " ", showExpression r, ")"]
+showExpression (UnaryOperation op e)                 = showUnop op ++ showExpression e
+showExpression (FunctionCall name args)              = concat [name, "(", intercalate ", " (map showExpression args), ")"]
+showExpression (Conditional cond caseTrue caseFalse) = concat ["if ", showExpression cond, " then ", showExpression caseTrue, " else ", showExpression caseFalse, " fi"]
+showExpression (Block expr)                          = concat ["{\n", concatMap (("\t" ++) . (++ "\n")) (lines $ intercalate ";\n" (map showExpression expr)), "}"]
+
+
 -- Верните текстовое представление программы (см. условие).
+
+showFunctionDefinition :: FunctionDefinition -> String
+showFunctionDefinition (name, params, expr) = concat ["func ", name, "(", intercalate ", " params, ") = ", showExpression expr, "\n"]
+
 showProgram :: Program -> String
-showProgram = undefined
+showProgram (functions, expr) = concatMap showFunctionDefinition functions ++ showExpression expr
 
 toBool :: Integer -> Bool
 toBool = (/=) 0
@@ -76,42 +91,45 @@ toUnaryFunction :: Unop -> Integer -> Integer
 toUnaryFunction Neg = negate
 toUnaryFunction Not = fromBool . not . toBool
 
--- Если хотите дополнительных баллов, реализуйте
--- вспомогательные функции ниже и реализуйте evaluate через них.
--- По минимуму используйте pattern matching для `Eval`, функции
--- `runEval`, `readState`, `readDefs` и избегайте явной передачи состояния.
+addToState :: State -> [Name] -> [Integer] -> State
+addToState state names vars = zip names vars ++ state
 
-{- -- Удалите эту строчку, если решаете бонусное задание.
-newtype Eval a = Eval ([FunctionDefinition] -> State -> (a, State))  -- Как data, только эффективнее в случае одного конструктора.
+getDeclResult :: [FunctionDefinition] -> State -> [Expression] -> ([Integer], State)
+getDeclResult functions state  []     = ([], state)
+getDeclResult functions state  (x:xs) = ((fst fExprRes):(fst rest), (snd rest))
+                                       where fExprRes = evalExpression    functions state      x
+                                             rest     = getDeclResult functions (snd fExprRes) xs 
 
-runEval :: Eval a -> [FunctionDefinition] -> State -> (a, State)
-runEval (Eval f) = f
+getFunctionDefinition :: Name -> [FunctionDefinition] -> ([Name], Expression)
+getFunctionDefinition name functions = getter (head (filter (nameFilter name) functions)) 
+                             where nameFilter name (n, names, e)    = name == n
+                                   getter (n, name, e)              = (name, e)
 
-evaluated :: a -> Eval a  -- Возвращает значение без изменения состояния.
-evaluated = undefined
+evalExpression :: [FunctionDefinition] -> State -> Expression -> (Integer, State)
 
-readState :: Eval State  -- Возвращает состояние.
-readState = undefined
-
-addToState :: String -> Integer -> a -> Eval a  -- Добавляет/изменяет значение переменной на новое и возвращает константу.
-addToState = undefined
-
-readDefs :: Eval [FunctionDefinition]  -- Возвращает все определения функций.
-readDefs = undefined
-
-andThen :: Eval a -> (a -> Eval b) -> Eval b  -- Выполняет сначала первое вычисление, а потом второе.
-andThen = undefined
-
-andEvaluated :: Eval a -> (a -> b) -> Eval b  -- Выполняет вычисление, а потом преобразует результат чистой функцией.
-andEvaluated = undefined
-
-evalExpressionsL :: (a -> Integer -> a) -> a -> [Expression] -> Eval a  -- Вычисляет список выражений от первого к последнему.
-evalExpressionsL = undefined
-
-evalExpression :: Expression -> Eval Integer  -- Вычисляет выражение.
-evalExpression = undefined
--} -- Удалите эту строчку, если решаете бонусное задание.
-
+evalExpression functions state (Number n)                            = (n, state)
+evalExpression functions state (Reference name)                      = case lookup name state of
+                                                                       Just a  -> (a, state)
+                                                                       Nothing -> (0, state)
+evalExpression functions state (Assign name expr)                    = (fst expRes, (name, fst expRes):snd expRes)
+                                                                       where expRes          = evalExpression functions state expr
+evalExpression functions state (BinaryOperation op l r)              = ((toBinaryFunction op) (fst lRes) (fst rRes), (snd rRes))
+                                                                       where lRes            = evalExpression functions state l
+                                                                             rRes            = evalExpression functions (snd lRes) r
+evalExpression functions state (UnaryOperation op expr)              = (toUnaryFunction op (fst expRes), (snd expRes))
+                                                                       where expRes          = evalExpression functions state expr
+evalExpression functions state (FunctionCall name args)              = (fst (resF), snd argsRes) 
+                                                                       where function        = getFunctionDefinition name functions
+                                                                             argsRes         = getDeclResult functions state args
+                                                                             newState        = addToState (snd argsRes) (fst function) (fst argsRes)
+                                                                             resF            = evalExpression functions newState (snd function)
+evalExpression functions state (Conditional cond caseTrue caseFalse) | toBool (fst condRes)  = evalExpression functions (snd condRes) caseTrue
+                                                                     | otherwise             = evalExpression functions (snd condRes) caseFalse 
+                                                                       where condRes         =  evalExpression functions state cond
+evalExpression functions state (Block [])                            = (0, state)
+evalExpression functions state (Block[exp])                          = evalExpression functions state exp
+evalExpression functions state (Block(x:xs))                         = evalExpression functions (snd exprRes) (Block xs)
+                                                                       where exprRes         = evalExpression functions state x  
 -- Реализуйте eval: запускает программу и возвращает её значение.
 eval :: Program -> Integer
-eval = undefined
+eval program = fst (evalExpression (fst program) [] (snd program))
