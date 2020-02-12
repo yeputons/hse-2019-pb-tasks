@@ -96,7 +96,7 @@ addToState state names vars = zip names vars ++ state
 
 getDeclResult :: [FunctionDefinition] -> State -> [Expression] -> ([Integer], State)
 getDeclResult functions state  []     = ([], state)
-getDeclResult functions state  (x:xs) = ((fst fExprRes):(fst rest), (snd rest))
+getDeclResult functions state  (x:xs) = (fst fExprRes:fst rest, snd rest)
                                        where fExprRes = evalExpression    functions state      x
                                              rest     = getDeclResult functions (snd fExprRes) xs 
 
@@ -113,12 +113,12 @@ evalExpression functions state (Reference name)                      = case look
                                                                        Nothing -> (0, state)
 evalExpression functions state (Assign name expr)                    = (fst expRes, (name, fst expRes):snd expRes)
                                                                        where expRes          = evalExpression functions state expr
-evalExpression functions state (BinaryOperation op l r)              = ((toBinaryFunction op) (fst lRes) (fst rRes), (snd rRes))
+evalExpression functions state (BinaryOperation op l r)              = (toBinaryFunction op (fst lRes) (fst rRes), snd rRes)
                                                                        where lRes            = evalExpression functions state l
                                                                              rRes            = evalExpression functions (snd lRes) r
-evalExpression functions state (UnaryOperation op expr)              = (toUnaryFunction op (fst expRes), (snd expRes))
+evalExpression functions state (UnaryOperation op expr)              = (toUnaryFunction op (fst expRes), snd expRes)
                                                                        where expRes          = evalExpression functions state expr
-evalExpression functions state (FunctionCall name args)              = (fst (resF), snd argsRes) 
+evalExpression functions state (FunctionCall name args)              = (fst resF, snd argsRes) 
                                                                        where function        = getFunctionDefinition name functions
                                                                              argsRes         = getDeclResult functions state args
                                                                              newState        = addToState (snd argsRes) (fst function) (fst argsRes)
