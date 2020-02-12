@@ -59,9 +59,8 @@ showExpression (Assign name expr)                           = concat ["let ", na
 showExpression (BinaryOperation op leftExpr rightExpr)      = concat ["(", showExpression leftExpr, " ", showBinop op, " ", showExpression rightExpr, ")"]
 showExpression (UnaryOperation op expr)                     = showUnop op ++ showExpression expr
 showExpression (FunctionCall name args)                     = concat [name, "(", intercalate ", " (map showExpression args), ")"]
-showExpression (Conditional cond true false)                = concat ["if ", showExpression cond, " then ", showExpression true, " else ", showExpression false, " fi"]
-showExpression (Block [])                                   = "{\n}"
-showExpression (Block exprs)                                = "{\n" ++ intercalate  ";\n" (map (addTabs . showExpression) exprs) ++ "\n}"
+showExpression (Conditional cond true false)                = "if " ++ showExpression cond ++ " then " ++ showExpression true ++ " else " ++ showExpression false ++ " fi"
+showExpression (Block expr)                                 = concat ["{\n", concatMap (("\t" ++) . (++ "\n")) (lines $ intercalate ";\n" (map showExpression expr)), "}"]
 
 
 addTabs :: String -> String
@@ -151,7 +150,6 @@ chainCall func scope (x:xs)  = (fst y:fst ys, snd ys)
                                        ys = chainCall func (snd y) xs
 
 
-
 getVar :: State -> Name -> Integer
 getVar scope name = snd (head (filter ((==) name . fst) scope))
 
@@ -176,9 +174,6 @@ evalExpr functions scope (Conditional expr true false)      | toBool (fst res) =
 evalExpr functions scope (Block [x])              = evalExpr functions scope x
 evalExpr functions scope (Block [])               = (0, scope)                                         
 evalExpr functions scope (Block (x:xs))           = evalExpr functions (snd (evalExpr functions scope x)) (Block xs)
-
-
-
 
 
 eval :: Program -> Integer
