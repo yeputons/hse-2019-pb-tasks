@@ -64,7 +64,7 @@ showExpr (BinaryOperation op l r) = "(" ++ showExpr l ++ " " ++ showBinop op ++ 
 showExpr (UnaryOperation op e)    = showUnop op ++ showExpr e
 showExpr (Conditional e t f)      = "if " ++ showExpr e ++ " then " ++ showExpr t ++ " else " ++ showExpr f ++ " fi"
 showExpr (Block [])               = "{\n}" -- General case results in extra \n
-showExpr (Block es)               = "{\n" ++ (linemap ('\t':) $ showExprList ";\n" es) ++ "}"
+showExpr (Block es)               = "{\n" ++ linemap ('\t':) (showExprList ";\n" es) ++ "}"
 showExpr (FunctionCall n es)      = n ++ "(" ++ showExprList "," es ++ ")"
 
 showFunDecl :: FunctionDefinition -> String
