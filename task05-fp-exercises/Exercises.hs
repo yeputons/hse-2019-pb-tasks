@@ -153,7 +153,7 @@ fifthElement xs = case tryTail xs of
 -- Выделите общую логику в оператор ~~>.
 (~~>) :: Maybe a -> (a -> Maybe b) -> Maybe b
 (~~>) (Just a) f = f a
-(~~>) Nothing f = Nothing
+(~~>) Nothing f  = Nothing
 
 -- Перепишите функцию thirdElementOfSecondList в thirdElementOfSecondList' используя
 -- только tryHead, tryTail, применение функций и оператор ~~>, но не используя
