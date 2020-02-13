@@ -46,24 +46,26 @@ showUnop :: Unop -> String
 showUnop Neg = "-"
 showUnop Not = "!"
 
-showExprList :: [Expression] -> String -> [String]
-showExprList []     _     = []
-showExprList [last] delim = [showExpr last]
-showExprList (e:es) delim = (showExpr e ++ delim):showExprList es delim
+showExprList :: String -> [Expression] -> String
+showExprList x = intercalate x . map showExpr
+--showExprList []     _     = []
+--showExprList [last] delim = [showExpr last]
+--showExprList (e:es) delim = (showExpr e ++ delim):showExprList es delim
 
 relines = intercalate "\n" --like unlines, but withot trailing \n
 
-linemap f = relines . map f . lines
+linemap f = unlines . map f . lines
 
 showExpr :: Expression -> String
-showExpr (Number          n     ) = show n
-showExpr (Reference       x     ) = x
-showExpr (Assign          n  e  ) = "let " ++ n ++ " = " ++ showExpr e ++ " tel"
+showExpr (Number n)               = show n
+showExpr (Reference x)            = x
+showExpr (Assign n e)             = "let " ++ n ++ " = " ++ showExpr e ++ " tel"
 showExpr (BinaryOperation op l r) = "(" ++ showExpr l ++ " " ++ showBinop op ++ " " ++ showExpr r ++ ")"
-showExpr (UnaryOperation  op e  ) = showUnop op ++ showExpr e
-showExpr (Conditional     e  t f) = "if " ++ showExpr e ++ " then " ++ showExpr t ++ " else " ++ showExpr f ++ " fi"
-showExpr (Block           es    ) = relines $ ["{"] ++ map (linemap ('\t':)) (showExprList es ";") ++ ["}"]
-showExpr (FunctionCall    n   es) = n ++ "(" ++ unwords (showExprList es ",") ++ ")"
+showExpr (UnaryOperation op e)    = showUnop op ++ showExpr e
+showExpr (Conditional e t f)      = "if " ++ showExpr e ++ " then " ++ showExpr t ++ " else " ++ showExpr f ++ " fi"
+showExpr (Block [])               = "{\n}" -- General case results in extra \n
+showExpr (Block es)               = "{\n" ++ (linemap ('\t':) $ showExprList ";\n" es) ++ "}"
+showExpr (FunctionCall n es)      = n ++ "(" ++ showExprList "," es ++ ")"
 
 showFunDecl :: FunctionDefinition -> String
 showFunDecl (n, ps, e) = "func " ++ n ++ "(" ++ intercalate "," ps ++ ") = " ++ showExpr e
@@ -115,36 +117,31 @@ readState :: Eval State  -- Возвращает состояние.
 readState = Eval $ \_ s -> (s, s)
 
 addToState :: String -> Integer -> a -> Eval a  -- Добавляет/изменяет значение переменной на новое и возвращает константу.
-addToState n v a = Eval $ \_ s -> (a, updateState s n v)
-           where updateState []         n v = [(n, v)]
-                 updateState ((a, x):s) n v
-                                           | a == n    = (n, v):s
-                                           | otherwise = (a, x):updateState s n v
+addToState n v a = Eval $ \_ s -> (a, (n,v):s)
 
 readDefs :: Eval [FunctionDefinition]  -- Возвращает все определения функций.
 readDefs = Eval (,)
 
 andThen :: Eval a -> (a -> Eval b) -> Eval b  -- Выполняет сначала первое вычисление, а потом второе.
-andThen f gf = Eval $ \fs s -> let (a, s') = runEval f fs s
-                                  in let g = gf a
-                                  in runEval g fs s'
+andThen cur next = Eval $ \fs s -> let (a, s') = runEval cur fs s 
+                                   in runEval (next a) fs s'
 
 (~>) = andThen
 
 andEvaluated :: Eval a -> (a -> b) -> Eval b  -- Выполняет вычисление, а потом преобразует результат чистой функцией.
-andEvaluated (Eval f) g = Eval $ \fs s -> let (a, s') = f fs s in (g a, s')
+andEvaluated cur next = cur ~> (evaluated . next)
 
 (~@) = andEvaluated
 
 copyState :: Eval a -> Eval a
-copyState (Eval f) = Eval $ \fs s -> let (a, _) = f fs s in (a, s)
+copyState f = Eval $ \fs s -> let (a, _) = runEval f fs s in (a, s)
 
 evalExpressionsL :: (a -> Integer -> a) -> a -> [Expression] -> Eval a  -- Вычисляет список выражений от первого к последнему.
-evalExpressionsL f x = foldl (\acc e -> acc ~@ f ~> (e~@)) (evaluated x) . map evalExpression
+evalExpressionsL f x = foldl (\acc e -> acc ~@ f ~> (e ~@)) (evaluated x) . map evalExpression
 
 
 select :: String -> (a -> String) -> [a] -> a
-select n f = fromJust . find ((n==) . f)
+select n f = fromJust . find ((n ==) . f)
 
 readFromState :: String -> State -> Integer
 readFromState n = snd . select n fst
