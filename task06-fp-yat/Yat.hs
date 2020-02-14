@@ -143,7 +143,7 @@ chooseDef :: Name -> [FunctionDefinition] -> FunctionDefinition
 chooseDef name fs = head $ filter (\(name1,_,_) -> name1 == name) fs
 
 evalParams :: [Name] -> [Expression] -> Eval Integer
-evalParams param_names param_exprs = evalExpressionsL (curry fst) 0 (map (uncurry Assign) (zip param_names param_exprs))
+evalParams param_names param_exprs = evalExpressionsL (curry fst) 0 $ zipWith Assign param_names param_exprs
 evalFunction :: FunctionDefinition -> [Expression] -> Eval Integer
 evalFunction (name, param_names, body) param_exprs = evalParams param_names param_exprs ~~> (\_ -> evalExpression body)
 
