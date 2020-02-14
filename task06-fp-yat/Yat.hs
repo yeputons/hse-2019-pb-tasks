@@ -46,36 +46,29 @@ showUnop :: Unop -> String
 showUnop Neg = "-"
 showUnop Not = "!"
 
-showWordsList :: [String] -> String -> String
-showWordsList []     _        = ""
-showWordsList (w:ws) splitter = case length (w:ws) of
-                                  0 -> ""
-                                  1 -> w
-                                  _ -> w ++ splitter ++ showWordsList ws splitter
+pushFrontLines :: String -> String -> String
+pushFrontLines [] _ = []
+pushFrontLines (s:str) toPush = case s of
+                                  '\n' -> s:(toPush ++ pushFrontLines str toPush)
+                                  _    -> s:pushFrontLines str toPush 
 
-showExpr :: Expression -> String-> String
-showExpr (Number n)               lineBegin = show n
-showExpr (Reference name)         lineBegin = name
-showExpr (Assign name e)          lineBegin = "let " ++ name ++ " = " ++ showExpr e lineBegin ++ " tel"
-showExpr (BinaryOperation op l r) lineBegin = "(" ++ showExpr l lineBegin ++ " "
-                                                  ++ showBinop op ++ " " ++ showExpr r lineBegin ++ ")"
-showExpr (UnaryOperation op e)    lineBegin = showUnop op ++ showExpr e lineBegin
-showExpr (FunctionCall name args) lineBegin = name ++ "(" ++ showWordsList (map (\a -> showExpr a lineBegin) args) ", " ++ ")"
-showExpr (Conditional e t f)      lineBegin = "if " ++ showExpr e lineBegin ++ " then " ++ showExpr t lineBegin ++ 
-                                              " else " ++ showExpr f lineBegin ++ " fi"
-showExpr (Block exprs)            lineBegin = "{" ++ "\n" ++ lineBegin ++ addInBegin "\t" ++
-                                              showWordsList (map (\e -> showExpr e (lineBegin ++ "\t")) exprs) (";\n" ++ lineBegin ++ "\t") ++
-                                              addInBegin ("\n" ++ lineBegin) ++ "}"
-                                              where
-                                                addInBegin str | null exprs = ""
-                                                               | otherwise  = str
+showExpr :: Expression -> String
+showExpr (Number n)               = show n
+showExpr (Reference name)         = name
+showExpr (Assign name e)          = "let " ++ name ++ " = " ++ showExpr e ++ " tel"
+showExpr (BinaryOperation op l r) = "(" ++ showExpr l ++ " " ++ showBinop op ++ " " ++ showExpr r ++ ")"
+showExpr (UnaryOperation op e)    = showUnop op ++ showExpr e
+showExpr (FunctionCall name args) = name ++ "(" ++ intercalate  ", " (map showExpr args) ++ ")"
+showExpr (Conditional e t f)      = "if " ++ showExpr e ++ " then " ++ showExpr t ++ " else " ++ showExpr f ++ " fi"
+showExpr (Block [])               = "{\n}"
+showExpr (Block exprs)            = "{\n\t" ++ pushFrontLines (intercalate ";\n" (map showExpr exprs)) "\t" ++ "\n}"
 
 showFuncDef :: FunctionDefinition -> String
-showFuncDef (funcName, argnames, block) = "func " ++ funcName ++ "(" ++ showWordsList argnames ", " ++ ") = " ++ showExpr block ""
+showFuncDef (funcName, argnames, block) = "func " ++ funcName ++ "(" ++ intercalate ", " argnames ++ ") = " ++ showExpr block
 
 -- Верните текстовое представление программы (см. условие).
 showProgram :: Program -> String
-showProgram (funcs, body) = showWordsList (map showFuncDef funcs ++ [showExpr body ""]) "\n"
+showProgram (funcs, body) = intercalate "\n" (map showFuncDef funcs ++ [showExpr body])
 
 toBool :: Integer -> Bool
 toBool = (/=) 0
@@ -142,67 +135,41 @@ evalExpression = undefined
 -- Реализуйте eval: запускает программу и возвращает её значение.
 
 -- Почему-то Data.Tuplo.Extra у меня подключается, а в travis нет, поэтому эти фунции я реализовал сам:
-fst3 :: (a, b, c) -> a
-fst3 (a, b, c) = a
-snd3 :: (a, b, c) -> b
-snd3 (a, b, c) = b
-thd3 :: (a, b, c) -> c
-thd3 (a, b, c) = c
-
-changeInScope :: State -> String -> Integer -> State
-changeInScope []    _    _ = []
-changeInScope (s:scope) name n | name == fst s = (name, n):scope
-                               | otherwise     = s:changeInScope scope name n
 
 getFunc :: [FunctionDefinition] -> String -> FunctionDefinition
 getFunc []        _    = undefined
-getFunc (f:funcs) name | fst3 f == name = f
-                       | otherwise      = getFunc funcs name
+getFunc ((fname, argnames, expr):funcs) name | fname == name = (fname, argnames, expr)
+                                             | otherwise      = getFunc funcs name
 
 addToScope :: [String] -> [Expression] -> State -> [FunctionDefinition] -> State
 addToScope _            []        scope _     = scope
 addToScope []           _         scope _     = scope
-addToScope (name:names) (e:exprs) scope funcs = case lookup name scope of
-                                                  Just n -> addToScope names exprs (changeInScope (fst res) name (snd res)) funcs
-                                                  _      -> (name, snd res):addToScope names exprs (fst res) funcs
+addToScope (name:names) (e:exprs) scope funcs = (name, resNum):addToScope names exprs newScope funcs
                                                 where
-                                                  res = evalExpr e scope funcs
-
-getSubscopeFromScope :: State -> State -> State
-getSubscopeFromScope [] scope = []
-getSubscopeFromScope (sb:sbscope) scope = case lookup (fst sb) scope of
-                                            Just n -> (fst sb, n):getSubscopeFromScope sbscope scope
-                                            _      -> undefined
+                                                  (newScope, resNum) = evalExpr e scope funcs
 
 evalExpr :: Expression -> State -> [FunctionDefinition] -> (State, Integer)
 evalExpr (Number n)               scope funcs = (scope, n)
-evalExpr (Reference name)         scope funcs = case lookup name scope of
-                                                        Just n -> (scope, n)
-                                                        _      -> undefined
-evalExpr (Assign name e)          scope funcs = case lookup name scope of
-                                                        Just n -> (changeInScope (fst res) name (snd res), snd res)
-                                                        _      -> ((name, snd res):fst res, snd res)
-                                                        where res = evalExpr e scope funcs
-evalExpr (BinaryOperation op l r) scope funcs = (fst rRes, toBinaryFunction op (snd lRes) (snd rRes))
-                                                where
-                                                  lRes = evalExpr l scope funcs
-                                                  rRes = evalExpr r (fst lRes) funcs
-evalExpr (UnaryOperation op e)    scope funcs = (fst res, toUnaryFunction op (snd res))
-                                                where res = evalExpr e scope funcs
-evalExpr (FunctionCall name args) scope funcs = (fst newScope, snd res) 
-                                                where
-                                                  func = getFunc funcs name
-                                                  newScope = evalExpr (Block args) scope funcs
-                                                  funcScope = addToScope (snd3 func) args scope funcs 
-                                                  res = evalExpr (thd3 func) funcScope funcs
-evalExpr (Conditional e t f)      scope funcs | toBool(snd res) = evalExpr t (fst res) funcs
-                                              | otherwise       = evalExpr f (fst res) funcs
-                                                where res = evalExpr e scope funcs
+evalExpr (Reference name)         scope funcs = (scope, fromMaybe undefined (lookup name scope))
+evalExpr (Assign name e)          scope funcs = ((name, resNum):newScope, resNum)
+                                                  where (newScope, resNum) = evalExpr e scope funcs
+evalExpr (BinaryOperation op l r) scope funcs = (rScope, toBinaryFunction op lNum rNum)
+                                                  where
+                                                    (lScope, lNum) = evalExpr l scope funcs
+                                                    (rScope, rNum) = evalExpr r lScope funcs
+evalExpr (UnaryOperation op e)    scope funcs = (newScope, toUnaryFunction op resNum)
+                                                  where (newScope, resNum) = evalExpr e scope funcs
+evalExpr (FunctionCall name args) scope funcs = (newScope, resNum) 
+                                                  where
+                                                    (_, argnames, expr) = getFunc funcs name
+                                                    (newScope, _) = evalExpr (Block args) scope funcs
+                                                    funcScope = addToScope argnames args scope funcs
+                                                    (_, resNum)= evalExpr expr funcScope funcs
+evalExpr (Conditional e t f)      scope funcs | toBool resNum = evalExpr t newScope funcs
+                                              | otherwise     = evalExpr f newScope funcs
+                                                  where (newScope, resNum) = evalExpr e scope funcs
 evalExpr (Block [])               scope _     = (scope, 0)
-evalExpr (Block (e:exprs))        scope funcs = case length (e:exprs) of
-                                                  1 -> evalExpr e scope funcs
-                                                  _ -> evalExpr (Block exprs) (fst fstRes) funcs
-                                                  where fstRes = evalExpr e scope funcs
+evalExpr (Block exprs)            scope funcs = foldl (\(state, int) e -> evalExpr e state funcs) (scope, 0) exprs
 
 eval :: Program -> Integer
 eval (funcs, expr) = snd (evalExpr expr [] funcs)
