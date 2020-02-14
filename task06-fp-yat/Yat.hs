@@ -46,9 +46,28 @@ showUnop :: Unop -> String
 showUnop Neg = "-"
 showUnop Not = "!"
 
+makeFormat :: String -> String
+makeFormat = intercalate "\n" . map ("\t"++) . lines
+
 -- Верните текстовое представление программы (см. условие).
+showExpression :: Expression -> String
+showExpression (Number n)               = show n 
+showExpression (Reference name)         = name
+showExpression (Assign name expr)       = "let " ++ name ++ " = " ++ showExpression expr ++ " tel"
+showExpression (BinaryOperation op l r) = "(" ++ showExpression l ++ " " ++ showBinop op ++ " " ++ showExpression r ++ ")"
+showExpression (UnaryOperation op expr) = showUnop op ++ showExpression expr
+showExpression (FunctionCall name expr) = name ++ "(" ++ intercalate ", " (map showExpression expr) ++ ")"
+showExpression (Conditional expr t f)   = "if " ++ showExpression expr ++ " then " ++ showExpression t ++ " else " ++ showExpression f ++ " fi"
+showExpression (Block [])               = "{\n}"
+showExpression (Block expr)             = "{\n" ++ intercalate ";\n" (map (makeFormat . showExpression) expr) ++ "\n}"
+
+
+showFunctionDefinition :: FunctionDefinition -> String
+showFunctionDefinition (name, names, e) = "func " ++ name ++ "(" ++ intercalate ", " names ++ ") = " ++ showExpression e
+
 showProgram :: Program -> String
-showProgram = undefined
+showProgram ([], e) = showExpression e
+showProgram (funcDef, e) = intercalate "\n" (map showFunctionDefinition funcDef) ++ "\n" ++ showExpression e 
 
 toBool :: Integer -> Bool
 toBool = (/=) 0
@@ -113,5 +132,57 @@ evalExpression = undefined
 -} -- Удалите эту строчку, если решаете бонусное задание.
 
 -- Реализуйте eval: запускает программу и возвращает её значение.
+
+getFunctionName :: FunctionDefinition -> Name
+getFunctionName (funcName, _, _) = funcName
+
+getFunctionBody :: FunctionDefinition -> ([Name], Expression)
+getFunctionBody (_, [], expr) = ([], expr)
+getFunctionBody (_, [names], expr) = ([names], expr)
+
+getValue :: State -> Name -> Integer
+getValue scope name = head [snd s | s <- scope, fst s == name]
+
+makeFunctionScope :: State -> [Name] -> [Integer] -> State
+makeFunctionScope scope params values = zip params values ++ scope
+
+getFunctionDefinition :: Name -> [FunctionDefinition] -> ([Name], Expression)
+getFunctionDefinition name funcs = getFunctionBody  (head [f | f <- funcs, name == getFunctionName f])
+
+evalManyExpression :: [FunctionDefinition] -> State -> [Expression] -> (State, [Integer])
+evalManyExpression funcDefs scope []       = (scope, [])
+evalManyExpression funcDefs scope (e:expr) = (fst manyExpression, snd oneExpression:snd manyExpression)
+                                             where oneExpression  = evalExpression funcDefs scope e 
+                                                   manyExpression = evalManyExpression funcDefs scope expr
+
+evalExpression :: [FunctionDefinition] -> State -> Expression -> (State, Integer)
+evalExpression funcDefs scope (Number n)               = (scope, n)
+evalExpression funcDefs scope (Reference name)         = (scope, getValue scope name)
+evalExpression funcDefs scope (Assign name expr)       = ((name, snd value):fst value, snd value)
+                                                         where value = evalExpression funcDefs scope expr
+
+evalExpression funcDefs scope (BinaryOperation op l r) = (fst rvalue, toBinaryFunction op (snd lvalue) (snd rvalue))
+                                                         where lvalue = evalExpression funcDefs scope l
+                                                               rvalue = evalExpression funcDefs (fst lvalue) r
+
+evalExpression funcDefs scope (UnaryOperation op expr) = (fst value, toUnaryFunction op (snd value))
+                                                         where value = evalExpression funcDefs scope expr
+
+evalExpression funcDefs scope (FunctionCall name expr) = (fst manyFuncResult, snd funcResult)
+                                                         where manyFuncResult = evalManyExpression funcDefs scope expr
+                                                               funcDef        = getFunctionDefinition name funcDefs
+                                                               functionScope  = makeFunctionScope (fst manyFuncResult) (fst funcDef) (snd manyFuncResult)
+                                                               funcResult     = evalExpression funcDefs functionScope (snd funcDef)
+
+evalExpression funcDefs scope (Conditional expr t f)     | toBool (snd statement) = truePath
+                                                         | otherwise              = falsePath
+                                                         where statement = evalExpression funcDefs scope           expr 
+                                                               truePath  = evalExpression funcDefs (fst statement) t
+                                                               falsePath = evalExpression funcDefs (fst statement) f
+
+evalExpression funcDefs scope (Block [])               = (scope, 0) 
+evalExpression funcDefs scope (Block [e])              = evalExpression funcDefs scope e
+evalExpression funcDefs scope (Block (e:expr))         = evalExpression funcDefs (fst (evalExpression funcDefs scope e)) (Block expr)
+
 eval :: Program -> Integer
-eval = undefined
+eval (funcDef, expr) = snd (evalExpression funcDef [] expr)
