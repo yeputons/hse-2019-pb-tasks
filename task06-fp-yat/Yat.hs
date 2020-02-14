@@ -50,14 +50,16 @@ showUnop :: Unop -> String
 showUnop Neg = "-"
 showUnop Not = "!"
 
+applyHead :: (a -> a) -> [a] -> [a]
 applyHead _ []        = undefined
-applyHead head [x]    = [head x]
 applyHead head (x:xs) = head x : xs 
 
+applyEnd :: [a] -> (a -> a) -> [a]
 applyEnd [] _       = undefined
 applyEnd [x] end    = [end x]
 applyEnd (x:xs) end = x : applyEnd xs end
 
+merge :: [[a]] -> [[a]] -> [[a]]
 merge xs []        = xs
 merge [] xs        = xs
 merge [x] (xx:xss) = (x ++ xx) : xss
@@ -147,31 +149,21 @@ evalExpression = undefined
 
 -- Реализуйте eval: запускает программу и возвращает её значение.
 
-applyFst func (x,y) = (func x, y)
-
+applyFst :: (a -> b) -> (a, c) -> (b, c)
+applyFst func (x,y) = (func x, y)   
 
 val :: Name -> FullState -> Integer
-val name (state,_) = findByName name state
+val name (state,_) = fromJust $ lookup name state
 
 function :: Name -> FullState -> Function
-function name (_,funcs) = findByName name funcs
-
-findByName _ []        = undefined
-findByName name [x]    | name == fst x = snd x
-                       | otherwise     = undefined
-findByName name (x:xs) | name == fst x = snd x
-                       | otherwise     = findByName name xs
-
+function name (_,funcs) = fromJust $ lookup name funcs
 
 callFunction :: Function -> [Integer] -> FullState -> Integer
 callFunction (names,expr) vals (state, funcs) = fst $ evalExpr expr state1
                                                 where state1 = ((zip names vals) ++ state, funcs)
 
-
 evalExprs :: [Expression] -> FullState -> ([Integer], FullState)
 evalExprs [] state     = ([], state)
-evalExprs [x] state    = ([value], state1)
-                       where (value, state1) = evalExpr x state
 evalExprs (x:xs) state = (value:valueList, state2)
                        where (value, state1) = evalExpr x state
                              (valueList, state2) = evalExprs xs state1
