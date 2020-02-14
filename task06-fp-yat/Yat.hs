@@ -135,7 +135,7 @@ andEvaluated eval func = Eval (\funcs state ->
 
 evalExpressionsL :: (a -> Integer -> a) -> a -> [Expression] -> Eval a  -- Вычисляет список выражений от первого к последнему.
 evalExpressionsL _ x []              = evaluated x
-evalExpressionsL func x (expr:exprs) = evalExpression expr ~~> (\res -> evalExpressionsL func x exprs ~~~> (`func` res))
+evalExpressionsL func x (expr:exprs) = evalExpression expr ~~> (\res -> evalExpressionsL func (func x res) exprs)
 
 evalAssign name expr = evalExpression expr ~~> (\value -> addToState name value value)
 
@@ -143,9 +143,9 @@ chooseDef :: Name -> [FunctionDefinition] -> FunctionDefinition
 chooseDef name fs = head $ filter (\(name1,_,_) -> name1 == name) fs
 
 evalParams :: [Name] -> [Expression] -> Eval Integer
-evalParams param_names param_exprs = evalExpressionsL (curry fst) 0 (map (\(name, expr) -> Assign name expr) (zip param_names param_exprs))
+evalParams param_names param_exprs = evalExpressionsL (curry fst) 0 (map (uncurry Assign) (zip param_names param_exprs))
 evalFunction :: FunctionDefinition -> [Expression] -> Eval Integer
-evalFunction (name, param_names, body) param_exprs = (evalParams param_names param_exprs) ~~> (\_ -> evalExpression body)
+evalFunction (name, param_names, body) param_exprs = evalParams param_names param_exprs ~~> (\_ -> evalExpression body)
 
 evalExpression :: Expression -> Eval Integer  -- Вычисляет выражение.
 evalExpression (Number x)                              = evaluated x
