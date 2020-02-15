@@ -175,12 +175,6 @@ makeScopeForFunction (FunctionCall name exprs) scope funcs = (sscope, fscope)
 makeScopeForFunction exp _ _                               = ([], [])
 
 
-evalChainBlock :: [Expression] -> State -> [FunctionDefinition] -> (Integer, State)
-evalChainBlock [] scope funcs              = (0, scope)
-evalChainBlock [expr] scope funcs          = evalExpression expr scope funcs
-evalChainBlock (expr:commands) scope funcs = evalChainBlock commands (snd (evalExpression expr scope funcs)) funcs
-
-
 evalExpression :: Expression -> State -> [FunctionDefinition] -> (Integer, State)
 evalExpression (Number n) scope funcs                       = (n, scope)
 evalExpression (Reference name) scope funcs                 = (getVariable scope name, scope)
