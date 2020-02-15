@@ -54,12 +54,12 @@ addTabs (s:str) | s == '\n' = s:'\t':addTabs str
 
 showExpression :: Expression -> String
 showExpression (Number x)                       = show x
-showExpression (Reference name)					= name 
-showExpression (Assign name expr)  				= concat ["let ", name, " = ", showExpression expr, " tel"]
+showExpression (Reference name)                 = name 
+showExpression (Assign name expr)               = concat ["let ", name, " = ", showExpression expr, " tel"]
 showExpression (BinaryOperation op expr1 expr2) = concat ["(", showExpression expr1, " ", showBinop op, " ", showExpression expr2, ")"]
-showExpression (UnaryOperation op expr)			= showUnop op ++ showExpression expr
-showExpression (FunctionCall name args)			= concat [name, "(", intercalate ", " $ map showExpression args, ")"]
-showExpression (Conditional cond expr1 expr2)	= concat ["if ", showExpression cond, " then ", showExpression expr1, " else ", showExpression expr2, " fi"]
+showExpression (UnaryOperation op expr)         = showUnop op ++ showExpression expr
+showExpression (FunctionCall name args)         = concat [name, "(", intercalate ", " $ map showExpression args, ")"]
+showExpression (Conditional cond expr1 expr2)   = concat ["if ", showExpression cond, " then ", showExpression expr1, " else ", showExpression expr2, " fi"]
 showExpression (Block [])                       = "{\n}"
 showExpression (Block exprs)                    = concat ["{\n\t", addTabs $ intercalate ";\n" $ map showExpression exprs, "\n}"]
 
@@ -184,8 +184,8 @@ evalChainBlock (expr:commands) scope funcs = evalChainBlock commands (snd (evalE
 evalExpression :: Expression -> State -> [FunctionDefinition] -> (Integer, State)
 evalExpression (Number n) scope funcs                       = (n, scope)
 evalExpression (Reference name) scope funcs                 = (getVariable scope name, scope)
-evalExpression (Assign name expr) scope funcs               = (fst result, (name, fst result):snd result)
-                                                             where result = evalExpression expr scope funcs
+evalExpression (Assign name expr) scope funcs               = (resultInt, (name, resultInt):resultState)
+                                                             where (resultInt, resultState) = evalExpression expr scope funcs
 evalExpression (BinaryOperation op expr1 expr2) scope funcs = (toBinaryFunction op (fst result1) (fst result2), snd result2)
                                                              where result1 = evalExpression expr1 scope funcs
                                                                    result2 = evalExpression expr2 (snd result1) funcs
@@ -196,11 +196,9 @@ evalExpression (FunctionCall name exprs) scope funcs        = (expr, sscope)
                                                                    new_scopes = makeScopeForFunction (FunctionCall name exprs) scope funcs
                                                                    fscope     = snd new_scopes
                                                                    sscope     = fst new_scopes															 
-evalExpression (Conditional e t f) scope funcs              | toBool(fst eres)         = tres
-                                                            | otherwise                = fres
-                                                             where eres = evalExpression e scope funcs
-                                                                   tres = evalExpression t (snd eres) funcs
-                                                                   fres = evalExpression f (snd eres) funcs
+evalExpression (Conditional e t f) scope funcs              | toBool(fst res)          = evalExpression t (snd res) funcs
+                                                            | otherwise                = evalExpression f (snd res) funcs
+                                                             where res = evalExpression e scope funcs
 evalExpression (Block commands) scope funcs                 = evalChainBlock commands scope funcs
 
 
