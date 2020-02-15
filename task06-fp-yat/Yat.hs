@@ -161,10 +161,10 @@ evalFunc [_] [] _ _                             = ([0], [])
 evalFunc (_:_:_) [] _ _                         = ([0], [])
 evalFunc [] _ scope funcs                       = ([0], scope)
 evalFunc [expr] [name] scope funcs              = ([resultInt], resultState)
-													  where (resultInt, resultState) = evalExpression expr scope funcs
+                                                   where (resultInt, resultState) = evalExpression expr scope funcs
 evalFunc (expr:others) (name:names) scope funcs = (resultInt:nextInt, nextState)
-                                                      where (resultInt, resultState) = evalExpression expr scope funcs
-                                                            (nextInt, nextState)     = evalFunc others names resultState funcs
+                                                   where (resultInt, resultState) = evalExpression expr scope funcs
+                                                         (nextInt, nextState)     = evalFunc others names resultState funcs
 
 
 makeScopeForFunction :: Expression -> State -> [FunctionDefinition] -> (State, State)
@@ -199,7 +199,7 @@ evalExpression (FunctionCall name exprs) scope funcs        = (expr, sscope)
 evalExpression (Conditional e t f) scope funcs              | toBool(fst res)          = evalExpression t (snd res) funcs
                                                             | otherwise                = evalExpression f (snd res) funcs
                                                              where res = evalExpression e scope funcs
-evalExpression (Block commands) scope funcs                 = evalChainBlock commands scope funcs
+evalExpression (Block commands) scope funcs                 = foldl (\(state, int) e -> evalExpression e state funcs) (scope, 0) exprs
 
 
 eval :: Program -> Integer
