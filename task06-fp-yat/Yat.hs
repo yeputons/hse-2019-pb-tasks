@@ -53,14 +53,13 @@ addTabs (s:str) | s == '\n' = s:'\t':addTabs str
                 | otherwise = s:addTabs str
 
 showExpression :: Expression -> String
-showExpression (Number x) 						= show x
+showExpression (Number x)                       = show x
 showExpression (Reference name)					= name 
 showExpression (Assign name expr)  				= concat ["let ", name, " = ", showExpression expr, " tel"]
 showExpression (BinaryOperation op expr1 expr2) = concat ["(", showExpression expr1, " ", showBinop op, " ", showExpression expr2, ")"]
-showExpression (UnaryOperation op expr)			= showUnop op ++ showExpression expr
+showExpression (UnaryOperation op expr)			= concat [showUnop op, showExpression expr]
 showExpression (FunctionCall name args)			= concat [name, "(", intercalate ", " $ map showExpression args, ")"]
 showExpression (Conditional cond expr1 expr2)	= concat ["if ", showExpression cond, " then ", showExpression expr1, " else ", showExpression expr2, " fi"]
-
 showExpression (Block [])                       = "{\n}"
 showExpression (Block exprs)                    = concat ["{\n\t", addTabs $ intercalate ";\n" $ map showExpression exprs, "\n}"]
 
@@ -146,28 +145,28 @@ getVariable [] _                             = 0
 getVariable ((varName, varValue):scope) name | name == varName = varValue
                                              | otherwise       = getVariable scope name 
 
+
 getFuncBody :: [FunctionDefinition] -> Name -> Expression
 getFuncBody [] _                                        = Number 0
 getFuncBody ((funcName, funcArgs, funcBody):funcs) name | name == funcName = funcBody
                                                             | otherwise    = getFuncBody funcs name 
-															
+
 getFuncArgs :: [FunctionDefinition] -> Name -> [Name]
 getFuncArgs [] _                                                           = []
 getFuncArgs ((funcName, funcArgs, funcBody):funcs) name | name == funcName = funcArgs
                                                             | otherwise    = getFuncArgs funcs name 
 
-
 evalFunc :: [Expression] -> [Name] -> State -> [FunctionDefinition] -> ([Integer], State)
 evalFunc [_] [] _ _                             = ([0], [])
 evalFunc (_:_:_) [] _ _                         = ([0], [])
 evalFunc [] _ scope funcs                       = ([0], scope)
-evalFunc [expr] [name] scope funcs              = ([fst result], snd result)
-                                                      where result = evalExpression expr scope funcs
-evalFunc (expr:others) (name:names) scope funcs = (fst result:fst next, snd next)
-                                                      where result = evalExpression expr scope funcs
-                                                            next   = evalFunc others names (snd result) funcs
-															
-															
+evalFunc [expr] [name] scope funcs              = ([resultInt], resultState)
+													  where (resultInt, resultState) = evalExpression expr scope funcs
+evalFunc (expr:others) (name:names) scope funcs = (resultInt:nextInt, nextState)
+                                                      where (resultInt, resultState) = evalExpression expr scope funcs
+                                                            (nextInt, nextState)     = evalFunc others names resultState funcs
+
+
 makeScopeForFunction :: Expression -> State -> [FunctionDefinition] -> (State, State)
 makeScopeForFunction (FunctionCall name exprs) scope funcs = (sscope, fscope)
                                                             where res    = evalFunc exprs (getFuncArgs funcs name) scope funcs
@@ -203,7 +202,7 @@ evalExpression (Conditional e t f) scope funcs              | toBool(fst eres)  
                                                                    tres = evalExpression t (snd eres) funcs
                                                                    fres = evalExpression f (snd eres) funcs
 evalExpression (Block commands) scope funcs                 = evalChainBlock commands scope funcs
-															 
+
 
 eval :: Program -> Integer
 eval (definitions, expr) = fst (evalExpression expr [] definitions)
