@@ -48,31 +48,27 @@ showUnop Not = "!"
 
 showExprList :: String -> [Expression] -> String
 showExprList x = intercalate x . map showExpr
---showExprList []     _     = []
---showExprList [last] delim = [showExpr last]
---showExprList (e:es) delim = (showExpr e ++ delim):showExprList es delim
-
-relines = intercalate "\n" --like unlines, but withot trailing \n
 
 linemap f = unlines . map f . lines
+
+{- HLINT ignore "Use ++" -}
 
 showExpr :: Expression -> String
 showExpr (Number n)               = show n
 showExpr (Reference x)            = x
-showExpr (Assign n e)             = "let " ++ n ++ " = " ++ showExpr e ++ " tel"
-showExpr (BinaryOperation op l r) = "(" ++ showExpr l ++ " " ++ showBinop op ++ " " ++ showExpr r ++ ")"
-showExpr (UnaryOperation op e)    = showUnop op ++ showExpr e
-showExpr (Conditional e t f)      = "if " ++ showExpr e ++ " then " ++ showExpr t ++ " else " ++ showExpr f ++ " fi"
-showExpr (Block [])               = "{\n}" -- General case results in extra \n
-showExpr (Block es)               = "{\n" ++ linemap ('\t':) (showExprList ";\n" es) ++ "}"
-showExpr (FunctionCall n es)      = n ++ "(" ++ showExprList "," es ++ ")"
+showExpr (Assign n e)             = concat ["let ", n, " = ", showExpr e, " tel"]
+showExpr (BinaryOperation op l r) = concat ["(", showExpr l, " ", showBinop op, " ", showExpr r, ")"]
+showExpr (UnaryOperation op e)    = concat [showUnop op, showExpr e]
+showExpr (Conditional e t f)      = concat ["if ", showExpr e, " then ", showExpr t, " else ", showExpr f, " fi"]
+showExpr (Block es)               = concat ["{\n", linemap ('\t':) (showExprList ";\n" es), "}"]
+showExpr (FunctionCall n es)      = concat [n, "(", showExprList "," es, ")"]
 
 showFunDecl :: FunctionDefinition -> String
-showFunDecl (n, ps, e) = "func " ++ n ++ "(" ++ intercalate "," ps ++ ") = " ++ showExpr e
+showFunDecl (n, ps, e) = concat ["func ", n, "(", intercalate "," ps, ") = ", showExpr e]
 
 -- Верните текстовое представление программы (см. условие).
 showProgram :: Program -> String
-showProgram (fs, e) = relines $ map showFunDecl fs ++ [showExpr e]
+showProgram (fs, e) = intercalate "\n" $ map showFunDecl fs ++ [showExpr e]
 
 toBool :: Integer -> Bool
 toBool = (/=) 0
