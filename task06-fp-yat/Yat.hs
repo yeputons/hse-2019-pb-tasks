@@ -47,8 +47,32 @@ showUnop Neg = "-"
 showUnop Not = "!"
 
 -- Верните текстовое представление программы (см. условие).
+
+
+putTabs :: String -> String
+putTabs []          = []
+putTabs (string:str) | string == '\n' = concat [[string], "\t", putTabs str]
+                     | otherwise = string:putTabs str
+
+showExpr :: Expression -> String
+showExpr (Number number)                   = show number
+showExpr (Reference name)                  = name
+showExpr (Assign name _Expr)               = concat ["let ", name, " = ", showExpr _Expr, " tel"]
+showExpr (BinaryOperation op left right)   = concat ["(", showExpr left, " ", showBinop op, " ", showExpr right, ")"]
+showExpr (UnaryOperation op _Expr)         = showUnop op ++ showExpr _Expr
+showExpr (FunctionCall name [])            = name ++ "()"
+showExpr (FunctionCall name (x:xs))        = concat [name, "(", showExpr x, concatMap ((++) ", " . showExpr) xs, ")"]
+showExpr (Conditional _Expr t f)           = concat ["if ", showExpr _Expr, " then ", showExpr t, " else ", showExpr f, " fi"]
+showExpr (Block [])                        = "{\n}"
+showExpr (Block (x:xs))                    = putTabs (concat ["{\n", showExpr x, concatMap ((++) ";\n" . showExpr) xs]) ++ "\n}"
+
+showFunct :: FunctionDefinition -> String
+showFunct (name, [], def)      = concat ["func ", name, "() = ", showExpr def]
+showFunct (name, x:names, def) = concat ["func ", name, "(", x, concatMap (", " ++) names, ") = ", showExpr def]
+
 showProgram :: Program -> String
-showProgram = undefined
+showProgram (f, _Expr) = concatMap ((++ "\n") . showFunct) f ++ showExpr _Expr
+
 
 toBool :: Integer -> Bool
 toBool = (/=) 0
