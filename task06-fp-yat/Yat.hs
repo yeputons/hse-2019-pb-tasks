@@ -199,7 +199,7 @@ evalExpression (FunctionCall name exprs) scope funcs        = (expr, sscope)
 evalExpression (Conditional e t f) scope funcs              | toBool(fst res)          = evalExpression t (snd res) funcs
                                                             | otherwise                = evalExpression f (snd res) funcs
                                                              where res = evalExpression e scope funcs
-evalExpression (Block exprs) scope funcs                    = foldl (\(int, state) e -> evalExpression e state funcs) (scope, 0) exprs
+evalExpression (Block exprs) scope funcs                    = foldl (\(int, state) e -> evalExpression e state funcs) (0, scope) exprs
 
 
 eval :: Program -> Integer
