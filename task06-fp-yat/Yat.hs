@@ -3,6 +3,7 @@ import Data.List
 import Data.Maybe
 import Data.Bifunctor
 import Debug.Trace
+
 -- В логических операциях 0 считается ложью, всё остальное - истиной.
 -- При этом все логические операции могут вернуть только 0 или 1.
 
@@ -11,6 +12,7 @@ data Binop = Add | Mul | Sub | Div | Mod | Lt | Le | Gt | Ge | Eq | Ne | And | O
 
 -- Все возможные унарные операции: смена знака числа и логическое "не".
 data Unop = Neg | Not
+
 data Expression = Number Integer  -- Возвращает число, побочных эффектов нет.
                 | Reference Name  -- Возвращает значение соответствующей переменной в текущем scope, побочных эффектов нет.
                 | Assign Name Expression  -- Вычисляет операнд, а потом изменяет значение соответствующей переменной и возвращает его. Если соответствующей переменной нет, она создаётся.
@@ -129,7 +131,7 @@ evalExpression :: Expression -> Eval Integer  -- Вычисляет выраже
 evalExpression = undefined
 -} -- Удалите эту строчку, если решаете бонусное задание.
 
--- Реализуйте eval: запускает программу и возвращает её значение
+-- Реализуйте eval: запускает программу и возвращает её значение.
 
 findFunction :: Name -> [FunctionDefinition] -> FunctionDefinition
 findFunction name = head . filter (\(f_name, _, _) -> f_name == name)
