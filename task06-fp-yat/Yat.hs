@@ -59,6 +59,7 @@ showExpression (BinaryOperation op l r) = "(" ++ showExpression l ++ " " ++ show
 showExpression (UnaryOperation op e)    = showUnop op ++ showExpression e
 showExpression (FunctionCall name es)   = name ++ "(" ++ intercalate ", " (map showExpression es) ++ ")"
 showExpression (Conditional e t f)      = "if " ++ showExpression e ++ " then " ++ showExpression t ++ " else " ++ showExpression f ++ " fi"
+showExpression (Block [])               = "{\n}"
 showExpression (Block es)               = "{\n" ++ intercalate ";\n" (map (addTabs . showExpression) es) ++ "\n}"
 
 showDefinition :: [Name] -> String
