@@ -158,7 +158,7 @@ evalExpression scope funcs (BinaryOperation op l r) = (scope_r, toBinaryFunction
                                                             where (scope_l, res_l) = evalExpression scope funcs l
                                                                   (scope_r, res_r) = evalExpression (union scope $ scope_l) funcs r
 
-evalExpression scope funcs (UnaryOperation op expr) = (scp, toUnaryFunction op $ res)
+evalExpression scope funcs (UnaryOperation op expr) = (scp, toUnaryFunction op res)
                                                             where (scp, res) = evalExpression scope funcs expr 
 
 evalExpression scope funcs (FunctionCall name args) = (new_scope, snd $ evalExpression new_scope funcs (getBody func))
