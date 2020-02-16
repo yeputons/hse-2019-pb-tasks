@@ -156,7 +156,7 @@ evalExpression scope funcs (Assign name expr)       = (filter (\ var -> fst var 
 
 evalExpression scope funcs (BinaryOperation op l r) = (scope_r, toBinaryFunction op res_l res_r)
                                                             where (scope_l, res_l) = evalExpression scope funcs l
-                                                                  (scope_r, res_r) = evalExpression (union scope $ scope_l) funcs r
+                                                                  (scope_r, res_r) = evalExpression (union scope scope_l) funcs r
 
 evalExpression scope funcs (UnaryOperation op expr) = (scp, toUnaryFunction op res)
                                                             where (scp, res) = evalExpression scope funcs expr 
