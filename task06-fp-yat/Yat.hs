@@ -149,9 +149,9 @@ thdIn3 :: (a, b, c) -> c
 thdIn3 (_, _, c) = c
 
 findNum :: State -> Name -> Integer
-findNum [] _                                               = 0
-findNum ((numname, numvalue):state) name | name == numname = numvalue
-                                         | otherwise       = findNum state name
+findNum [] _                                            = 0
+findNum ((num_name, val):state) name | name == num_name = val
+                                     | otherwise        = findNum state name
 
 parseExpr :: [Expression] -> [FunctionDefinition] -> FunctionDefinition -> State -> (State, State)
 parseExpr es defs def state = foldl(\(indef, instate)(name, e) ->
@@ -168,7 +168,7 @@ evalExpression (BinaryOperation op l r) defs state              = (toBinaryFunct
                                                                        resR = evalExpression r defs state
 evalExpression (UnaryOperation op e) defs state                 = (toUnaryFunction op (fst res), snd res)
                                                                  where res = evalExpression e defs state
-evalExpression (FunctionCall name es) defs state                = (fst var, snd newState)
+evalExpression (FunctionCall name es) defs state                = (fst var, fst newState)
                                                                  where (Just def) = find(\x -> fstIn3 x == name) defs
                                                                        newState   = parseExpr es defs def state
                                                                        var        = evalExpression (thdIn3 def) defs (fst newState)
