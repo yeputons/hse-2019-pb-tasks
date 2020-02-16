@@ -59,23 +59,14 @@ showExpression (Block es)                 = "{\n" ++ (intercalate "\n" . map ("\
 
 
 showParams :: [Name] -> String
-showParams []  = "()"
-showParams [n] = "(" ++ n ++ ")"
-showParams ns  = "(" ++ intercalate ", " (map show ns) ++ ")"
-
-fst3 :: (a, b, c) -> a
-fst3 (a, _, _ ) = a
-snd3 :: (a, b, c) -> b
-snd3 (_, b, _) = b
-thd3 :: (a, b, c) -> c
-thd3 (_, _, c) = c
+showParams ns  = "(" ++ intercalate ", " ns ++ ")"
 
 showFunctionDef :: FunctionDefinition -> String
-showFunctionDef fd = "func " ++ fst3 fd ++ showParams (snd3 fd) ++ " = " ++ showExpression (thd3 fd)
+showFunctionDef (nm, params, expr) = "func " ++ nm ++ showParams params ++ " = " ++ showExpression expr
  
 -- Верните текстовое представление программы (см. условие).
 showProgram :: Program -> String
-showProgram prog = concatMap ((++ "\n") . showFunctionDef) (fst prog) ++ showExpression (snd prog)
+showProgram (fds, expr) = concatMap ((++ "\n") . showFunctionDef) fds ++ showExpression expr
 
 toBool :: Integer -> Bool
 toBool = (/=) 0
@@ -114,36 +105,42 @@ runEval :: Eval a -> [FunctionDefinition] -> State -> (a, State)
 runEval (Eval f) = f
 
 evaluated :: a -> Eval a  -- Возвращает значение без изменения состояния.
-evaluated val = Eval (\_ state -> (val, state))
+evaluated val = Eval $ \_ state -> (val, state)
 
 readState :: Eval State  -- Возвращает состояние.
-readState = Eval (\_ state -> (state, state))
+readState = Eval $ \_ state -> (state, state)
 
 
 addToState :: String -> Integer -> a -> Eval a  -- Добавляет/изменяет значение переменной на новое и возвращает константу.
-addToState name val a = Eval (\_ state -> (a, ((:) (name, val) . filter ((not.(==) name ) . fst)) state))
+addToState name val a = Eval $ \_ state -> (a, (name, val) : state)
 
 
 readDefs :: Eval [FunctionDefinition]  -- Возвращает все определения функций.
-readDefs = Eval (\ fds state -> (fds, state))
+readDefs = Eval $ \fds state -> (fds, state)
 
 andThen :: Eval a -> (a -> Eval b) -> Eval b  -- Выполняет сначала первое вычисление, а потом второе.
-andThen evl f = Eval (\ fds state -> let res = runEval evl fds state in runEval (f (fst res)) fds (snd res))
+andThen evl f = Eval $ \fds state -> 
+                                  let res = runEval evl fds state
+                                   in runEval (f (fst res)) fds (snd res)
 
 andEvaluated :: Eval a -> (a -> b) -> Eval b  -- Выполняет вычисление, а потом преобразует результат чистой функцией.
-andEvaluated evl f = Eval (\ fds state -> let res = runEval evl fds state in (f (fst res), snd res))
+andEvaluated evl f = Eval $ \fds state -> 
+                                       let res = runEval evl fds state
+                                        in (f (fst res), snd res)
 
 evalExpressionsL :: (a -> Integer -> a) -> a -> [Expression] -> Eval a  -- Вычисляет список выражений от первого к последнему.
 evalExpressionsL f ini = foldl (apply' f) (evaluated ini) . map evalExpression
-
-apply' :: (a -> b -> a) -> Eval a -> Eval b -> Eval a
-apply' f ea eb = andThen (andEvaluated ea f) (andEvaluated eb)
+                      where
+                        apply' :: (a -> b -> a) -> Eval a -> Eval b -> Eval a
+                        apply' f ea eb = andThen (andEvaluated ea f) (andEvaluated eb)
 
 getValue :: String -> State -> Integer
 getValue str state = fromMaybe 0 $ lookup str state 
 
 runWithNewState :: Eval a -> Eval a
-runWithNewState evl = Eval (\fds state -> let res = runEval evl fds state in (fst res, state))
+runWithNewState evl = Eval $ \fds state -> 
+                                       let res = runEval evl fds state
+                                        in (fst res, state)
 
 getArgs :: [Expression] -> Eval [Integer]
 getArgs = evalExpressionsL (flip (:)) []
@@ -153,19 +150,17 @@ addToStateL names ints a = foldl andThen (evaluated a) (zipWith addToState names
 
 
 evalFunction' :: Eval [Integer] -> FunctionDefinition -> Eval Integer
-evalFunction' ei fd = ei `andThen` evalFunction'' fd
-evalFunction'' :: FunctionDefinition -> [Integer] -> Eval Integer
-evalFunction'' (n, params, expr) ints = runWithNewState (addToStateL params ints () `andThen` const (evalExpression expr)) 
-
+evalFunction' ei (nm, params, expr) = ei `andThen` \ints -> 
+                                            runWithNewState $ addToStateL params ints () `andThen` const (evalExpression expr)
 
 evalFunction :: String -> [Expression] -> Eval [FunctionDefinition] -> Eval Integer
 evalFunction nm exps fds = fds `andEvaluated` getFunction nm `andThen` evalFunction' (getArgs exps)
 
-
-
+fst3 :: (a, b, c) -> a
+fst3 (a, _, _ ) = a
 
 getFunction :: String -> [FunctionDefinition] -> FunctionDefinition
-getFunction nm fds = fromMaybe ("", [], Number 0) (find ((==) nm . fst3) fds)
+getFunction nm fds = fromMaybe ("", [], Number 0) $ find ((==) nm . fst3) fds
 
 evalExpression :: Expression -> Eval Integer  -- Вычисляет выражение.
 evalExpression (Number n)                 = evaluated n 
@@ -181,5 +176,3 @@ evalExpression (Block es)                 = evalExpressionsL (flip const) 0 es
 
 eval :: Program -> Integer
 eval (fds, mn) = fst (runEval (evalExpression mn) fds [])
-eval' :: Program -> (Integer, State)
-eval' (fds, mn) = runEval (evalExpression mn) fds []
