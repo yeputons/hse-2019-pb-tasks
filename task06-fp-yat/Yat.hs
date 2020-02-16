@@ -171,18 +171,3 @@ evalExpression (Block es)               fds st = foldl (\(val, state) e -> evalE
 -- Реализуйте eval: запускает программу и возвращает её значение.
 eval :: Program -> Integer
 eval (fds, e) = evaluate e fds []
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
