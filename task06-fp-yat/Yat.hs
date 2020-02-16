@@ -56,11 +56,11 @@ showExpression (Assign name e)          = concat ["let ", name, " = ", showExpre
 showExpression (BinaryOperation op l r) = concat ["(", showExpression l, " ", showBinop op, " ", showExpression r, ")"]
 showExpression (UnaryOperation op e)    = showUnop op ++ showExpression e
 showExpression (FunctionCall name es)   = concat [name, "(", intercalate ", " (map showExpression es), ")"]
-showExpression (Conditional e tr fls) = concat ["if ", showExpression e, " then ", showExpression tr, " else ", showExpression fls, " fi"]
+showExpression (Conditional e tr fls)   = concat ["if ", showExpression e, " then ", showExpression tr, " else ", showExpression fls, " fi"]
 showExpression (Block es)               = concat ["{\n", concatMap (("\t" ++) . (++ "\n")) (lines $ intercalate ";\n" (map showExpression es)), "}"]
 
 showFunction :: FunctionDefinition -> String
-showFunction (function, names, e) = concat ["func ", function, "(", intercalate ", " names, ") =", showExpression e]
+showFunction (function, names, e) = concat ["func ", function, "(", intercalate ", " names, ") = ", showExpression e]
 -- Верните текстовое представление программы (см. условие).
 showProgram :: Program -> String
 showProgram (funcs, e) = concatMap ((++ "\n") . showFunction) funcs ++ showExpression e
