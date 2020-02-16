@@ -62,7 +62,7 @@ showExpression (Conditional e t f)      = "if " ++ showExpression e ++ " then " 
 showExpression (Block es)               = "{\n" ++ intercalate ";\n" (map (addTabs . showExpression) es) ++ "\n}"
 
 showDefinition :: [Name] -> String
-showDefinition names = intercalate ", " names
+showDefinition = intercalate ", "
 
 showFunctionDefinition :: FunctionDefinition -> String
 showFunctionDefinition (name, params, e) = "func " ++ name ++ "(" ++ showDefinition params ++ ") = " ++ showExpression e
