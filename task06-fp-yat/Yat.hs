@@ -46,25 +46,19 @@ showUnop :: Unop -> String
 showUnop Neg = "-"
 showUnop Not = "!"
 
-
-reworkList:: [String] -> String -> [String]
-reworkList []     sep   = []
-reworkList [x]    sep   = [x]
-reworkList (x:xs) sep   = (x ++ sep) : reworkList xs sep
-
 showExpression :: Expression -> String
 showExpression (Number n)               = show n
 showExpression (Reference name)         = name
 showExpression (Assign name expr)       = concat ["let ", name, " = ", showExpression expr, " tel"]
 showExpression (BinaryOperation op l r) = concat ["(", showExpression l, " ", showBinop op, " ", showExpression r, ")"]
 showExpression (UnaryOperation op expr) = showUnop op ++ showExpression expr
-showExpression (FunctionCall name args) = concat [name, "(", concat (reworkList (map showExpression args) ", "), ")"]
+showExpression (FunctionCall name args) = concat [name, "(", intercalate ", " (map showExpression args), ")"]
 showExpression (Conditional cond t f)   = concat ["if ", showExpression cond, " then ", showExpression t, " else ", showExpression f, " fi"]
-showExpression (Block expr)             = concat ["{\n", concatMap (("\t" ++) . (++ "\n")) (lines $ concat (reworkList (map showExpression expr) ";\n")), "}"]
+showExpression (Block expr)             = concat ["{\n", concatMap (("\t" ++) . (++ "\n")) (lines $ intercalate ";\n" (map showExpression expr)), "}"]
 
 -- Верните текстовое представление программы (см. условие).
 showFunctionDefenition :: FunctionDefinition -> String
-showFunctionDefenition (name, args, expr) = concat ["func ", name, "(", concat (reworkList args ", "), ") = ", showExpression expr, "\n"]
+showFunctionDefenition (name, args, expr) = concat ["func ", name, "(", intercalate ", " args, ") = ", showExpression expr, "\n"]
 
 
 showProgram :: Program -> String
@@ -157,15 +151,15 @@ evalExpression scope funcs (Reference name)         = case lookup name scope of
                                                         Just numb -> (scope, numb)
                                                         _         -> (scope, 0)   
 
-evalExpression scope funcs (Assign name expr)       = (filter (\ var -> fst var /= name) (fst tmp_expr `union` scope) ++ [(name, snd tmp_expr)], snd tmp_expr)
-                                                            where tmp_expr = evalExpression scope funcs expr
+evalExpression scope funcs (Assign name expr)       = (filter (\ var -> fst var /= name) (tmp_scope `union` scope) ++ [(name, tmp_res)], tmp_res)
+                                                            where (tmp_scope, tmp_res) = evalExpression scope funcs expr
 
-evalExpression scope funcs (BinaryOperation op l r) = (fst tmp_r, toBinaryFunction op (snd tmp_l) (snd tmp_r))
-                                                            where tmp_l = evalExpression scope funcs l
-                                                                  tmp_r = evalExpression (union scope $ fst tmp_l) funcs r
+evalExpression scope funcs (BinaryOperation op l r) = (scope_r, toBinaryFunction op res_l res_r)
+                                                            where (scope_l, res_l) = evalExpression scope funcs l
+                                                                  (scope_r, res_r) = evalExpression (union scope $ scope_l) funcs r
 
-evalExpression scope funcs (UnaryOperation op expr) = (fst result, toUnaryFunction op $ snd result)
-                                                            where result = evalExpression scope funcs expr 
+evalExpression scope funcs (UnaryOperation op expr) = (scp, toUnaryFunction op $ res)
+                                                            where (scp, res) = evalExpression scope funcs expr 
 
 evalExpression scope funcs (FunctionCall name args) = (new_scope, snd $ evalExpression new_scope funcs (getBody func))
                                                                     where
@@ -173,13 +167,11 @@ evalExpression scope funcs (FunctionCall name args) = (new_scope, snd $ evalExpr
                                                                         func = case find ((== name) . getName) funcs of
                                                                                    Just func' -> func'
 
-evalExpression scope funcs (Conditional cond t f)   | toBool(snd condition) = evalExpression (fst condition) funcs t
-                                                    | otherwise             = evalExpression (fst condition) funcs f
-                                                                    where condition = evalExpression scope funcs cond
+evalExpression scope funcs (Conditional cond t f)   | toBool cond_res = evalExpression cond_scope funcs t
+                                                    | otherwise       = evalExpression cond_scope funcs f
+                                                                    where (cond_scope, cond_res) = evalExpression scope funcs cond
 
-evalExpression scope funcs (Block [])               = (scope, 0)
-evalExpression scope funcs (Block [x])              = evalExpression scope funcs x
-evalExpression scope funcs (Block (x:xs))           = evalExpression  (fst $ evalExpression scope funcs x) funcs  (Block xs)
+evalExpression scope funcs (Block expressions)       = foldl (\ (scope, value) expr -> evalExpression scope funcs expr) (scope, 0)  expressions
 
 eval :: Program -> Integer
 eval (funcs, expr) = snd $ evalExpression [] funcs expr
