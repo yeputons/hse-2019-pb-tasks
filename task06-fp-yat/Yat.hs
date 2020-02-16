@@ -76,7 +76,7 @@ showFuncDef :: FunctionDefinition -> String
 showFuncDef (name, params, expr) = "func " ++ name ++ "(" ++ chainFuncDef params ++ ") = " ++ showExpression expr "" ++ "\n"
 
 showProgram :: Program -> String
-showProgram (definitions, expr) = concat (map showFuncDef definitions) ++ showExpression expr ""
+showProgram (definitions, expr) = concatMap showFuncDef definitions ++ showExpression expr ""
 
 toBool :: Integer -> Bool
 toBool = (/=) 0
@@ -186,7 +186,7 @@ evalExpression (Assign name expr) scope funcs               = (assignVlaue, (nam
                                                              where assignVlaue = fst result
                                                                    newScope    = snd result
                                                                    result      = evalExpression expr scope funcs
-evalExpression (BinaryOperation op expr1 expr2) scope funcs = (toBinaryFunction op (lResult) (rResult), newScope)
+evalExpression (BinaryOperation op expr1 expr2) scope funcs = (toBinaryFunction op lResult rResult, newScope)
                                                              where 
                                                                    lResult  = fst result1
                                                                    rResult  = fst result2
@@ -205,9 +205,11 @@ evalExpression (FunctionCall name exprs) scope funcs        = (rv, sscope)
                                                                    sscope     = fst new_scopes
 evalExpression (Conditional e t f) scope funcs              | toBool(fst eres) = tres
                                                             | otherwise        = fres
-                                                             where eres = evalExpression e scope funcs
-                                                                   tres = evalExpression t (snd eres) funcs
-                                                                   fres = evalExpression f (snd eres) funcs
+                                                             where exprValue = fst eres
+                                                                   newScope  = snd eres
+                                                                   eres      = evalExpression e scope funcs
+                                                                   tres      = evalExpression t newScope funcs
+                                                                   fres      = evalExpression f newScope funcs
 
 evalExpression (Block commands) scope funcs                 = evalChainBlock commands scope funcs
 
