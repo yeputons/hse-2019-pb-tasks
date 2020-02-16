@@ -134,15 +134,13 @@ evalExpression = undefined
 
 -- Реализуйте eval: запускает программу и возвращает её значение.
 modifyScope :: State -> String -> Integer -> State
-modifyScope scope var val = filter (\s -> var /= fst s) scope ++ zip (replicate 1 var) (replicate 1 val)
+modifyScope scope var val = (var,val):filter ((/= var) . fst) scope
 
 functionScope :: State -> State -> State
 functionScope = foldl (\ scope x -> uncurry (modifyScope scope) x)
 
 getValue :: State -> String -> Integer
-getValue scope var = case lookup var scope of
-                                Just a -> a
-                                _       -> 0
+getValue scope var = fromMaybe 0 (lookup var scope)
 
 getName :: FunctionDefinition -> Name
 getName (name, _, _) = name
@@ -156,33 +154,36 @@ getFunExpr (_, _, expr) = expr
 evalArgs :: [Name] -> State -> [FunctionDefinition] -> [Expression] -> State
 evalArgs []     _     _     _            = undefined
 evalArgs _      _     _     []           = undefined
-evalArgs [a]    scope funcs [expr]       = modifyScope (fst calcul) a (snd calcul)
-                                         where calcul = evalExpression scope funcs expr
-evalArgs (a:as) scope funcs (expr:exprs) = evalArgs as (modifyScope (fst calcul) a (snd calcul)) funcs exprs
-                                         where calcul = evalExpression scope funcs expr
+evalArgs [a]    scope funcs [expr]       = modifyScope scope' a val
+                                         where (scope',val) = evalExpression scope funcs expr
+evalArgs (a:as) scope funcs (expr:exprs) = evalArgs as (modifyScope scope' a val) funcs exprs
+                                         where (scope',val) = evalExpression scope funcs expr
 
-findFunction :: [FunctionDefinition] -> [FunctionDefinition] -> State -> Name -> [Expression] -> (State, Integer)
-findFunction []     _     _     _        _    = undefined
-findFunction (x:xs) funcs scope funcName oper | getName x == funcName = (fst $ evalExpression scope funcs (Block oper), snd $ evalExpression recur funcs (getFunExpr x))
-                                              | otherwise             = findFunction xs funcs scope funcName oper
-                                              where recur = evalArgs (getArgs x) scope funcs oper
+evalFunction :: [FunctionDefinition] -> FunctionDefinition -> State -> [Expression] -> (State, Integer)
+evalFunction funcs func scope oper = (fst $ evalExpression scope funcs (Block oper), snd $ evalExpression recur funcs (getFunExpr func))
+                                   where recur = evalArgs (getArgs func) scope funcs oper
+
+findFunction :: [FunctionDefinition] -> Name -> FunctionDefinition
+findFunction []     _        = undefined
+findFunction (x:xs) funcName | getName x == funcName = x
+                             | otherwise             = findFunction xs funcName
 
 evalExpression :: State -> [FunctionDefinition] -> Expression -> (State, Integer)
 evalExpression scope _     (Number a)               = (scope, a)
 evalExpression scope _     (Reference a)            = (scope, getValue scope a)
-evalExpression scope funcs (Assign var val)         = (modifyScope (fst calcul) var (snd calcul), snd calcul)
-                                                    where calcul = evalExpression scope funcs val
-evalExpression scope funcs (BinaryOperation op a b) = second (toBinaryFunction op (snd acase))(evalExpression (fst acase) funcs b)
-                                                    where acase = evalExpression scope funcs a
+evalExpression scope funcs (Assign var val)         = (modifyScope scope' var val', val')
+                                                    where (scope', val') = evalExpression scope funcs val
+evalExpression scope funcs (BinaryOperation op a b) = (scope'', toBinaryFunction op aval bval)
+                                                    where (scope'', bval) = evalExpression scope' funcs b
+                                                          (scope', aval) = evalExpression scope funcs a
 evalExpression scope funcs (UnaryOperation uop a)   = second (toUnaryFunction uop) calcul
                                                     where calcul = evalExpression scope funcs a
-evalExpression scope funcs (FunctionCall fun a)     = findFunction funcs funcs scope fun a
-evalExpression scope funcs (Conditional cond a b)   | toBool(snd condition) = evalExpression (fst condition) funcs a
-                                                    | otherwise             = evalExpression (fst condition) funcs b
-                                                    where condition = evalExpression scope funcs cond
-evalExpression scope _     (Block [])               = (scope, 0)
-evalExpression scope funcs (Block [x])              = evalExpression scope funcs x
-evalExpression scope funcs (Block (x:xs))           = evalExpression (fst $ evalExpression scope funcs x) funcs (Block xs)
+evalExpression scope funcs (FunctionCall funName a) = evalFunction funcs func scope a
+                                                    where func = findFunction funcs funName
+evalExpression scope funcs (Conditional cond a b)   | toBool val = evalExpression scope' funcs a
+                                                    | otherwise  = evalExpression scope' funcs b
+                                                    where (scope', val) = evalExpression scope funcs cond
+evalExpression scope funcs (Block oper)             = foldl (\(scope', val) -> evalExpression scope' funcs) (scope, 0) oper
 
 eval :: Program -> Integer
 eval prog = snd $ uncurry (evalExpression []) prog
