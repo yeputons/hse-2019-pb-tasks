@@ -173,17 +173,13 @@ evalExpression (BinaryOperation binop exprL exprR) funcs state      = (toBinaryF
 evalExpression (UnaryOperation unop expr) funcs state               = (toUnaryFunction unop exprValue, returnedState)
     where 
         (exprValue, returnedState) = evalExpression expr funcs state
-evalExpression (FunctionCall funcname exprs) funcs state            = case lookupFunctionDefinition funcname funcs of
+evalExpression (FunctionCall funcname exprs) funcs state            = case find (\ (fname, _, _) -> fname == funcname) funcs of
                                                                         Just func   -> evalFunction func exprs funcs state
                                                                         _           -> undefined -- function not found
 evalExpression (Conditional exprIf exprThen exprElse) funcs state   = if toBool exprIfValue then evalExpression exprThen funcs returnedIfState else evalExpression exprElse funcs returnedIfState
     where
         (exprIfValue, returnedIfState) = evalExpression exprIf funcs state
-evalExpression (Block exprs) funcs state                            = evalBlock exprs funcs state
-
-lookupFunctionDefinition :: Name -> [FunctionDefinition] -> Maybe FunctionDefinition
-lookupFunctionDefinition _ []                                       = Nothing
-lookupFunctionDefinition funcname ((foundFuncname,args,expr):fs)    = if foundFuncname == funcname then Just (foundFuncname, args, expr) else lookupFunctionDefinition funcname fs
+evalExpression (Block exprs) funcs state                            = foldl  evalBlock exprs funcs state
 
 evalFunction :: FunctionDefinition -> [Expression] -> [FunctionDefinition] -> State -> (Integer, State)
 evalFunction (funcname, argnames, funcexpr) argexprs funcs state = (fst (evalExpression funcexpr funcs (Map.union argsMapped returnedArgsState)), returnedArgsState)
@@ -202,4 +198,4 @@ evalBlock [] _ state                = (0, state)
 evalBlock [expr] funcs state        = evalExpression expr funcs state
 evalBlock (expr:exs) funcs state    = evalBlock exs funcs returnedState
     where
-        (exprValue, returnedState) = evalExpression expr funcs state
+        (_, returnedState) = evalExpression expr funcs state
