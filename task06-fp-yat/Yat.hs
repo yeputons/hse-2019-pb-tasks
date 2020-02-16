@@ -50,7 +50,7 @@ showUnop Not = "!"
 chainFuncCall :: [Expression] -> String
 chainFuncCall []     = ""
 chainFuncCall [e]    = showExpression e ""
-chainFuncCall (e:es) = showExpression e "" ++ ", " ++ chainFuncCall es
+chainFuncCall (e:es) = intercalate ", " [showExpression e ""] ++ chainFuncCall es
 
 chainBlock :: [Expression] -> String -> String
 chainBlock [] _          = ""
@@ -70,13 +70,13 @@ showExpression (Block commands) indent                 = "{\n" ++ chainBlock com
 chainFuncDef :: [Name] -> String
 chainFuncDef []     = ""
 chainFuncDef [n]    = n
-chainFuncDef (n:ns) = n ++ ", " ++ chainFuncDef ns
+chainFuncDef (n:ns) = intercalate ", " [n] ++ chainFuncDef ns
 
 showFuncDef :: FunctionDefinition -> String
 showFuncDef (name, params, expr) = "func " ++ name ++ "(" ++ chainFuncDef params ++ ") = " ++ showExpression expr "" ++ "\n"
 
 showProgram :: Program -> String
-showProgram (definitions, expr) = foldr ((++) . showFuncDef) "" definitions ++ showExpression expr ""
+showProgram (definitions, expr) = concat (map showFuncDef definitions) ++ showExpression expr ""
 
 toBool :: Integer -> Bool
 toBool = (/=) 0
@@ -143,19 +143,18 @@ evalExpression = undefined
 -- Реализуйте eval: запускает программу и возвращает её значение.
 
 getVariable :: State -> Name -> Integer
-getVariable [] _                             = 0
-getVariable ((varName, varValue):scope) name | name == varName = varValue
-                                             | otherwise       = getVariable scope name 
+getVariable [] _       = 0
+getVariable scope name = snd (fromJust (find (\(varName, _) -> varName == name) scope))
 
 getFunctionBody :: [FunctionDefinition] -> Name -> Expression
-getFunctionBody [] _                                        = Number 0
-getFunctionBody ((funcName, funcArgs, funcBody):funcs) name | name == funcName = funcBody
-                                                            | otherwise        = getFunctionBody funcs name 
+getFunctionBody [] _       = Number 0
+getFunctionBody funcs name = getBody (fromJust (find (\(funcName, _, _) -> funcName == name) funcs)) 
+                               where getBody (_, _, funcBody) = funcBody                
 
 getFunctionArgs :: [FunctionDefinition] -> Name -> [Name]
-getFunctionArgs [] _                                        = []
-getFunctionArgs ((funcName, funcArgs, funcBody):funcs) name | name == funcName = funcArgs
-                                                            | otherwise        = getFunctionArgs funcs name 
+getFunctionArgs [] _       = []
+getFunctionArgs funcs name = getArgs (fromJust (find (\(funcName, _, _) -> funcName == name) funcs)) 
+                               where getArgs (_, funcArgs, _) = funcArgs
 
 evalChainFunc :: [Expression] -> [Name] -> State -> [FunctionDefinition] -> ([Integer], State)
 evalChainFunc [_] [] _ _                             = ([0], [])
@@ -183,20 +182,29 @@ evalChainBlock (expr:commands) scope funcs = evalChainBlock commands (snd (evalE
 evalExpression :: Expression -> State -> [FunctionDefinition] -> (Integer, State)
 evalExpression (Number n) scope funcs                       = (n, scope)
 evalExpression (Reference name) scope funcs                 = (getVariable scope name, scope)
-evalExpression (Assign name expr) scope funcs               = (fst result, (name, fst result):snd result)
-                                                             where result = evalExpression expr scope funcs
-evalExpression (BinaryOperation op expr1 expr2) scope funcs = (toBinaryFunction op (fst result1) (fst result2), snd result2)
-                                                             where result1 = evalExpression expr1 scope funcs
-                                                                   result2 = evalExpression expr2 (snd result1) funcs 
-evalExpression (UnaryOperation op expr) scope funcs         = (toUnaryFunction op (fst result), snd result)
-                                                             where result = evalExpression expr scope funcs
+evalExpression (Assign name expr) scope funcs               = (assignVlaue, (name, assignVlaue):newScope)
+                                                             where assignVlaue = fst result
+                                                                   newScope    = snd result
+                                                                   result      = evalExpression expr scope funcs
+evalExpression (BinaryOperation op expr1 expr2) scope funcs = (toBinaryFunction op (lResult) (rResult), newScope)
+                                                             where 
+                                                                   lResult  = fst result1
+                                                                   rResult  = fst result2
+                                                                   newScope = snd result2
+                                                                   result1  = evalExpression expr1 scope funcs
+                                                                   result2  = evalExpression expr2 (snd result1) funcs 
+evalExpression (UnaryOperation op expr) scope funcs         = (toUnaryFunction op value, newScope)
+                                                             where
+                                                                   newScope = snd result
+                                                                   value    = fst result
+                                                                   result   = evalExpression expr scope funcs
 evalExpression (FunctionCall name exprs) scope funcs        = (rv, sscope)
                                                              where rv         = fst (evalExpression (getFunctionBody funcs name) fscope funcs)
                                                                    new_scopes = makeScopeForFunction (FunctionCall name exprs) scope funcs
                                                                    fscope     = snd new_scopes
                                                                    sscope     = fst new_scopes
-evalExpression (Conditional e t f) scope funcs              | toBool(fst eres)         = tres
-                                                            | otherwise                = fres
+evalExpression (Conditional e t f) scope funcs              | toBool(fst eres) = tres
+                                                            | otherwise        = fres
                                                              where eres = evalExpression e scope funcs
                                                                    tres = evalExpression t (snd eres) funcs
                                                                    fres = evalExpression f (snd eres) funcs
