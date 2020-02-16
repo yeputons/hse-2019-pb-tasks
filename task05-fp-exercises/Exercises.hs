@@ -160,7 +160,7 @@ fifthElement xs = nthElement xs 5
 -- только tryHead, tryTail, применение функций и оператор ~~>, но не используя
 -- сопоставление с образом (pattern matching) ни в каком виде, case, if, guards.
 thirdElementOfSecondList' :: [[a]] -> Maybe a
-thirdElementOfSecondList' xs = Just xs ~~> tryTail ~~> tryHead ~~> tryTail ~~> tryTail ~~> tryHead
+thirdElementOfSecondList' xs = tryTail xs ~~> tryHead ~~> tryTail ~~> tryTail ~~> tryHead
 
 -- 3) Несколько упражнений
 -- Реализуйте функцию nubBy', которая принимает на вход функцию для сравнения 
@@ -200,9 +200,9 @@ quickSort' :: Ord a => [a] -> [a]
 quickSort' [] = []
 quickSort' (x:xs) = quickSort' lesserpart ++ equalpart ++ quickSort' greaterpart
     where 
-        lesserpart  = filter ( < x) (x:xs)
+        lesserpart  = filter ( < x) xs
         equalpart   = filter ( == x) (x:xs)
-        greaterpart = filter ( > x) (x:xs)
+        greaterpart = filter ( > x) xs
 
 -- Найдите суммарную длину списков, в которых чётное количество элементов
 -- имеют квадрат больше 100. Реализация должна быть без использования
