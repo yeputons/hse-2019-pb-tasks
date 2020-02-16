@@ -47,8 +47,28 @@ showUnop Neg = "-"
 showUnop Not = "!"
 
 -- Верните текстовое представление программы (см. условие).
+
+addTabs :: String -> String
+addTabs = intercalate "\n" . map("\t"++) . lines
+
+showExpression :: Expression -> String
+showExpression (Number n)               = show n
+showExpression (Reference name)         = name
+showExpression (Assign name e)          = "let " ++ name ++ " = " ++ showExpression e ++ " tel"
+showExpression (BinaryOperation op l r) = "(" ++ showExpression l ++ " " ++ showBinop op ++ " " ++ showExpression r ++ ")"
+showExpression (UnaryOperation op e)    = showUnop op ++ showExpression e
+showExpression (FunctionCall name es)   = name ++ "(" ++ intercalate ", " (map showExpression es) ++ ")"
+showExpression (Conditional e t f)      = "if " ++ showExpression e ++ " then " ++ showExpression t ++ " else " ++ showExpression f ++ " fi"
+showExpression (Block es)               = "{\n" ++ intercalate ";\n" (map (addTabs . showExpression) es) ++ "\n}"
+
+showDefinition :: [Name] -> String
+showDefinition names = intercalate ", " names
+
+showFunctionDefinition :: FunctionDefinition -> String
+showFunctionDefinition (name, params, e) = "func " ++ name ++ "(" ++ showDefinition params ++ ") = " ++ showExpression e
+
 showProgram :: Program -> String
-showProgram = undefined
+showProgram  (defs, e) = concatMap ((++ "\n") . showFunctionDefinition) defs ++ showExpression e
 
 toBool :: Integer -> Bool
 toBool = (/=) 0
@@ -113,5 +133,44 @@ evalExpression = undefined
 -} -- Удалите эту строчку, если решаете бонусное задание.
 
 -- Реализуйте eval: запускает программу и возвращает её значение.
+evalBlock :: [Expression] -> [FunctionDefinition] -> State -> (Integer, State)
+evalBlock [] defs state = (0, state)
+evalBlock [e] defs state = evalExpression e defs state
+evalBlock (e:es) defs state = evalBlock es defs (snd (evalExpression e defs state))
+
+fstIn3 :: (a, b, c) -> a
+fstIn3 (a, _, _) = a
+
+sndIn3 :: (a, b, c) -> b
+sndIn3 (_, b, _) = b
+
+thdIn3 :: (a, b, c) -> c
+thdIn3 (_, _, c) = c
+
+parseExpr :: [Expression] -> [FunctionDefinition] -> FunctionDefinition -> State -> (State, State)
+parseExpr es defs def state = foldl(\(indef, instate)(name, e) ->
+                                 let var = evalExpression e defs indef
+                                 in ((name, fst var):snd var, snd var ++ instate)) (state, state) (zip (sndIn3 def) es)
+
+evalExpression :: Expression -> [FunctionDefinition] -> State -> (Integer, State)
+evalExpression (Number n) defs state                            = (n, state)
+evalExpression (Reference name) defs state                      = (snd res, state)
+                                                                 where (Just res) = find (\x -> fst x == name) state
+evalExpression (Assign name e) defs state                       = (fst res, (name, fst res):snd res)
+                                                                 where res = evalExpression e defs state
+evalExpression (BinaryOperation op l r) defs state              = (toBinaryFunction op (fst resL) (fst resR), snd resR)
+                                                                 where resL = evalExpression l defs state
+                                                                       resR = evalExpression r defs state
+evalExpression (UnaryOperation op e) defs state                 = (toUnaryFunction op (fst res), snd res)
+                                                                 where res = evalExpression e defs state
+evalExpression (FunctionCall name es) defs state                = (fst var, snd newState)
+                                                                 where (Just def) = find(\x -> fstIn3 x == name) defs
+                                                                       newState   = parseExpr es defs def state
+                                                                       var        = evalExpression (thdIn3 def) defs (fst newState)
+evalExpression (Conditional e t f) defs state | toBool(fst res) = evalExpression t defs (snd res)
+                                              | otherwise       = evalExpression f defs (snd res)
+                                                                 where res = evalExpression e defs state
+evalExpression (Block es) defs state                            = evalBlock es defs state
+
 eval :: Program -> Integer
-eval = undefined
+eval (defs, e) = fst (evalExpression e defs [])
