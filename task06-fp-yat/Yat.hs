@@ -179,7 +179,7 @@ evalExpression (FunctionCall funcname exprs) funcs state            = case find 
 evalExpression (Conditional exprIf exprThen exprElse) funcs state   = if toBool exprIfValue then evalExpression exprThen funcs returnedIfState else evalExpression exprElse funcs returnedIfState
     where
         (exprIfValue, returnedIfState) = evalExpression exprIf funcs state
-evalExpression (Block exprs) funcs state                            = foldl  evalBlock exprs funcs state
+evalExpression (Block exprs) funcs state                            = evalBlock exprs funcs state
 
 evalFunction :: FunctionDefinition -> [Expression] -> [FunctionDefinition] -> State -> (Integer, State)
 evalFunction (funcname, argnames, funcexpr) argexprs funcs state = (fst (evalExpression funcexpr funcs (Map.union argsMapped returnedArgsState)), returnedArgsState)
