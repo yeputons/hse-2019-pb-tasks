@@ -46,9 +46,24 @@ showUnop :: Unop -> String
 showUnop Neg = "-"
 showUnop Not = "!"
 
+--showTabs :: String -> String
+--showTabs = intercalate "\n" . map ("\t" ++) . lines
+
+showExpression :: Expression -> String
+showExpression (Number n)               = show n
+showExpression (Reference name)         = name
+showExpression (Assign name e)          = concat ["let ", name, " = ", showExpression e, " tel"]
+showExpression (BinaryOperation op l r) = concat ["(", showExpression l, " ", showBinop op, " ", showExpression r, ")"]
+showExpression (UnaryOperation op e)    = showUnop op ++ showExpression e
+showExpression (FunctionCall name es)   = concat [name, "(", intercalate ", " (map showExpression es), ")"]
+showExpression (Conditional e tr fls) = concat ["if ", showExpression e, " then ", showExpression tr, " else ", showExpression fls, " fi"]
+showExpression (Block es)               = concat ["{\n", concatMap (("\t" ++) . (++ "\n")) (lines $ intercalate ";\n" (map showExpression es)), "}"]
+
+showFunction :: FunctionDefinition -> String
+showFunction (function, names, e) = concat ["func ", function, "(", intercalate ", " names, ") =", showExpression e]
 -- Верните текстовое представление программы (см. условие).
 showProgram :: Program -> String
-showProgram = undefined
+showProgram (funcs, e) = concatMap ((++ "\n") . showFunction) funcs ++ showExpression e
 
 toBool :: Integer -> Bool
 toBool = (/=) 0
@@ -113,5 +128,34 @@ evalExpression = undefined
 -} -- Удалите эту строчку, если решаете бонусное задание.
 
 -- Реализуйте eval: запускает программу и возвращает её значение.
+getFunc :: FunctionDefinition -> Name
+getFunc  (func, _, _)  = func
+
+getNames :: FunctionDefinition -> [Name]
+getNames (_, names, _) = names
+
+getE :: FunctionDefinition -> Expression
+getE     (_, _, e)     = e
+
+evalExpression :: State -> [FunctionDefinition] -> Expression -> (State, Integer)
+evalExpression state _     (Number num)                      = (state, num)
+evalExpression state _     (Reference name)                  = (state, snd $ fromJust $ find ((== name) . fst) state)
+evalExpression state funcs (Assign name e)                   = ((name, num) : resState, num)
+                                                                where (resState, num) = evalExpression state funcs e
+evalExpression state funcs (BinaryOperation op leftE rightE) = (rightState, toBinaryFunction op leftNum rightNum)
+                                                                where (leftState, leftNum)   = evalExpression state funcs leftE
+                                                                      (rightState, rightNum) = evalExpression (state `union` leftState) funcs rightE
+evalExpression state funcs (UnaryOperation op e)             = (resState, toUnaryFunction op num)
+                                                                where (resState, num) = evalExpression state funcs e
+evalExpression state funcs (FunctionCall name names)         = (resState, snd $ evalExpression resState funcs (getE func))
+                                                                where
+                                                                    resState = zip (getNames func) (map (snd . evalExpression state funcs) names) ++ fst (evalExpression state funcs (Block names))
+                                                                    func     = fromJust $ find ((== name) . getFunc) funcs
+evalExpression state funcs (Conditional e tr fls)            | toBool cond = evalExpression resState funcs tr
+                                                             | otherwise   = evalExpression resState funcs fls
+                                                                where (resState, cond) = evalExpression state funcs e
+evalExpression state funcs (Block es)                        = foldl (\(st, num) e -> evalExpression st funcs e) (state, 0) es
+
+
 eval :: Program -> Integer
-eval = undefined
+eval (funcs, e) = snd $ evalExpression [] funcs e
