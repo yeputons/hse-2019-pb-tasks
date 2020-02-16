@@ -169,9 +169,8 @@ evalChainFunc (expr:others) (name:names) scope funcs = (fst result:fst next, snd
 
 makeScopeForFunction :: Expression -> State -> [FunctionDefinition] -> (State, State)
 makeScopeForFunction (FunctionCall name exprs) scope funcs = (sscope, fscope)
-                                                            where res    = evalChainFunc exprs (getFunctionArgs funcs name) scope funcs
-                                                                  sscope = snd res
-                                                                  fscope = zip (getFunctionArgs funcs name) (fst res) ++ sscope
+                                                            where (values, sscope)    = evalChainFunc exprs (getFunctionArgs funcs name) scope funcs
+                                                                  fscope = zip (getFunctionArgs funcs name) values ++ sscope
 makeScopeForFunction exp _ _                               = ([], [])
 
 evalChainBlock :: [Expression] -> State -> [FunctionDefinition] -> (Integer, State)
@@ -203,8 +202,8 @@ evalExpression (FunctionCall name exprs) scope funcs        = (rv, sscope)
                                                                    new_scopes = makeScopeForFunction (FunctionCall name exprs) scope funcs
                                                                    fscope     = snd new_scopes
                                                                    sscope     = fst new_scopes
-evalExpression (Conditional e t f) scope funcs              | toBool(fst eres) = tres
-                                                            | otherwise        = fres
+evalExpression (Conditional e t f) scope funcs              | toBool(exprValue) = tres
+                                                            | otherwise         = fres
                                                              where exprValue = fst eres
                                                                    newScope  = snd eres
                                                                    eres      = evalExpression e scope funcs
