@@ -4,6 +4,9 @@ import Data.Maybe
 import Data.Bifunctor
 import Debug.Trace
 
+{-# ANN module "HLint: ignore Use first" #-}
+{-# ANN module "HLint: ignore Use second" #-}
+
 -- В логических операциях 0 считается ложью, всё остальное - истиной.
 -- При этом все логические операции могут вернуть только 0 или 1.
 
@@ -47,8 +50,26 @@ showUnop Neg = "-"
 showUnop Not = "!"
 
 -- Верните текстовое представление программы (см. условие).
+
+addTabs :: String -> String
+addTabs str = intercalate "\n\t" $ lines str
+
+showExpression :: Expression -> String
+showExpression (Number num)                      = show num
+showExpression (Reference name)                  = name
+showExpression (Assign name expr)                = concat ["let ", name, " = ", showExpression expr, " tel"]
+showExpression (BinaryOperation op left right)   = concat ["(", showExpression left, " ", showBinop op, " ", showExpression right, ")"]
+showExpression (UnaryOperation op expr)          = showUnop op ++ showExpression expr
+showExpression (FunctionCall name args)          = concat [name, "(", intercalate ", " $ map showExpression args, ")"]
+showExpression (Conditional expr ifTrue ifFalse) = concat ["if ", showExpression expr, " then ", showExpression ifTrue, " else ", showExpression ifFalse, " fi"]
+showExpression (Block exprs)                     = addTabs ("{\n" ++ intercalate ";\n" (map showExpression exprs)) ++ "\n}"
+
+
+showFunction :: FunctionDefinition -> String
+showFunction (name, args, expr) = concat ["func ", name, "(", intercalate ", " args, ") = ", showExpression expr]
+
 showProgram :: Program -> String
-showProgram = undefined
+showProgram (funcs, body) = concatMap ((++ "\n") . showFunction) funcs ++ showExpression body  
 
 toBool :: Integer -> Bool
 toBool = (/=) 0
@@ -113,5 +134,48 @@ evalExpression = undefined
 -} -- Удалите эту строчку, если решаете бонусное задание.
 
 -- Реализуйте eval: запускает программу и возвращает её значение.
+
+fstTripleTuple :: (a, b, c) -> a
+fstTripleTuple (a, _, _) = a
+
+sndTripleTuple :: (a, b, c) -> b
+sndTripleTuple (_, b, _) = b
+
+thdTripleTuple :: (a, b, c) -> c
+thdTripleTuple (_, _, c) = c
+
+parseArgs :: State -> [FunctionDefinition] -> FunctionDefinition -> [Expression] -> (State, State)
+
+parseArgs scope funcs func args = foldl (\(intoFunc, intoScope) (name, arg) -> 
+                                          let value = evalExpression intoFunc funcs arg
+                                          in  ((name, snd value):fst value, fst value ++ intoScope)) (scope, scope) (zip (sndTripleTuple func) args)
+
+evalExpression :: State -> [FunctionDefinition] -> Expression -> (State, Integer)
+evalExpression scope funcs (Number num)                      = (scope, num)
+
+evalExpression scope _     (Reference name)                  = (scope, snd sc)
+                                                                 where (Just sc) = find (\x -> fst x == name) scope
+
+evalExpression scope funcs (Assign name expr)                = ((name, snd value):fst value, snd value) 
+                                                                 where value = evalExpression scope funcs expr
+
+evalExpression scope funcs (BinaryOperation op left right)   = (fst rightValue, toBinaryFunction op (snd leftValue) (snd rightValue))
+                                                                 where leftValue  = evalExpression scope funcs left
+                                                                       rightValue = evalExpression (fst leftValue) funcs right 
+
+evalExpression scope funcs (UnaryOperation op expr)          = (fst value, toUnaryFunction op (snd value))
+                                                                 where  value = evalExpression scope funcs expr
+
+evalExpression scope funcs (FunctionCall name args)          = (snd newScope, snd value)
+                                                                 where (Just func) = find (\x -> fstTripleTuple x == name) funcs 
+                                                                       newScope    = parseArgs scope funcs func args
+                                                                       value       = evalExpression (fst newScope) funcs (thdTripleTuple func)
+
+evalExpression scope funcs (Conditional cond ifTrue ifFalse) | snd value /= 0 = evalExpression (fst value) funcs ifTrue
+                                                             | otherwise      = evalExpression (fst value) funcs ifFalse
+                                                                 where value  = evalExpression scope funcs cond 
+
+evalExpression scope funcs (Block exprs)                     = foldl (\(sc, val) expr -> evalExpression sc funcs expr) (scope, 0) exprs 
+
 eval :: Program -> Integer
-eval = undefined
+eval (funcs, body) = snd $ evalExpression [] funcs body
