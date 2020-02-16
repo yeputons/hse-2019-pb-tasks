@@ -137,5 +137,65 @@ evalExpression = undefined
 -} -- Удалите эту строчку, если решаете бонусное задание.
 
 -- Реализуйте eval: запускает программу и возвращает её значение.
+
+
+getValue :: State -> Name -> Integer
+getValue []                 _ = 0
+getValue ((x, xs):scope) name | name == x = xs
+                              | otherwise = getValue scope name
+
+parser :: [FunctionDefinition] -> State -> FunctionDefinition -> [Expression] -> (State, State)
+parser         _ _ (_, _:_, _)[]                             = ([], [])
+parser funct scope (_, [], _) _                              = (scope, scope)
+parser funct scope (fName, _name : _names, fExpr) (arg:args) = (fst res, fst evalres ++ scope)
+                                                                          where evalres      = evalExpression funct scope arg
+                                                                                function     = (fName, _names, fExpr) 
+                                                                                _scope       = (_name, snd evalres) : fst evalres
+                                                                                res          = parser funct _scope function args
+
+evalExpression :: [FunctionDefinition] -> State -> Expression -> (State, Integer)
+
+evalExpression funct scope (Number number)   = (scope, number) 
+
+evalExpression funct scope (Reference name)  = (scope, getValue scope name)
+
+evalExpression funct scope (Assign name arg) = 
+                                              let res = evalExpression funct scope arg
+                                                  first = fst res
+                                                  second = snd res
+                                                  in ((name, second):first, second)
+
+evalExpression funct scope (BinaryOperation o left right) =
+                                                            let first   = fst res
+                                                                second  = snd res
+                                                                first'  = fst res'
+                                                                second' = snd res'
+                                                                res     = evalExpression funct first' right
+                                                                res'    = evalExpression funct scope left
+                                                                in (first, toBinaryFunction o second' second)
+
+evalExpression funct scope (UnaryOperation o arg) = (fst (evalExpression funct scope arg), toUnaryFunction o $ snd $ evalExpression funct scope arg)               
+
+evalExpression [] _ (FunctionCall _ _) = ([], 0)
+
+evalExpression ((funcName, funcArgs, funcExpr):funct) scope (FunctionCall name args)| funcName /= name = evalExpression f scope $ FunctionCall name args
+                                                                                    | otherwise        = (second_scope, second_res)
+                                                                                    where func         = (funcName, funcArgs, funcExpr)
+                                                                                          f            = funct ++ [func]
+                                                                                          second_res   = snd res
+                                                                                          second_scope = snd _scope
+                                                                                          _scope       = parser f scope func args
+                                                                                          res          = evalExpression f (fst _scope) funcExpr
+
+evalExpression funct scope (Conditional arg true false)                             | toBool second     = evalExpression funct first true
+                                                                                    | otherwise         = evalExpression funct first false
+                                                                                     where  first       = fst cond
+                                                                                            second      = snd cond
+                                                                                            cond        = evalExpression funct scope arg
+
+evalExpression funct scope (Block [])                                                 = (scope, 0)
+evalExpression funct scope (Block [x])                                                = evalExpression funct scope x
+evalExpression funct scope (Block (x:xs))                                             = evalExpression funct (fst $ evalExpression funct scope x) (Block xs)
+
 eval :: Program -> Integer
-eval = undefined
+eval (funct, expression) = snd $ evalExpression funct [] expression
