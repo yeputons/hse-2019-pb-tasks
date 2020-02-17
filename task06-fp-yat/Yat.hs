@@ -149,7 +149,7 @@ thdIn3 :: (a, b, c) -> c
 thdIn3 (_, _, c) = c
 
 findNum :: State -> Name -> Integer
-findNum [] _                                            = 0
+findNum [] _                                            = 3
 findNum ((num_name, val):state) name | name == num_name = val
                                      | otherwise        = findNum state name
 
@@ -160,8 +160,7 @@ parseExpr es defs def state = foldl(\(indef, instate)(name, e) ->
 
 evalExpression :: Expression -> [FunctionDefinition] -> State -> (Integer, State)
 evalExpression (Number n) defs state                            = (n, state)
-evalExpression (Reference name) _ state                         = (snd res, state)
-                                                                 where ~(Just res) = find (\x -> fst x == name) state
+evalExpression (Reference name) _ state                         = (findNum state name, state)
 evalExpression (Assign name e) defs state                       = (fst res, (name, fst res):snd res)
                                                                  where res = evalExpression e defs state
 evalExpression (BinaryOperation op l r) defs state              = (toBinaryFunction op (fst resL) (fst resR), snd resR)
@@ -169,7 +168,7 @@ evalExpression (BinaryOperation op l r) defs state              = (toBinaryFunct
                                                                        resR = evalExpression r defs state
 evalExpression (UnaryOperation op e) defs state                 = (toUnaryFunction op (fst res), snd res)
                                                                  where res = evalExpression e defs state
-evalExpression (FunctionCall name es) defs state                = (fst var, fst newState)
+evalExpression (FunctionCall name es) defs state                = (fst var, snd newState)
                                                                  where (Just def) = find(\x -> fstIn3 x == name) defs
                                                                        newState   = parseExpr es defs def state
                                                                        var        = evalExpression (thdIn3 def) defs (fst newState)
