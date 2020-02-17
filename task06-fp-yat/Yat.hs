@@ -46,9 +46,22 @@ showUnop :: Unop -> String
 showUnop Neg = "-"
 showUnop Not = "!"
 
+showExpr :: Expression -> String
+showExpr (Number val)                            = show val
+showExpr (Reference name)                        = name 
+showExpr (Assign name expr)                      = concat ["let ", name, " = ", showExpr expr, " tel"]
+showExpr (BinaryOperation op leftExpr rightExpr) = concat ["(", showExpr leftExpr, " ", showBinop op, " ", showExpr rightExpr, ")"]
+showExpr (UnaryOperation op expr)                = showUnop op ++ showExpr expr
+showExpr (FunctionCall name args)                = concat [name, "(", intercalate ", " (map showExpr args), ")"]
+showExpr (Conditional e t f)                     = concat ["if ", showExpr e, " then ", showExpr t, " else ", showExpr f, " fi"]
+showExpr (Block exprs)                           = concat ["{\n", concatMap (("\t" ++) . (++ "\n")) (lines $ intercalate ";\n" (map showExpr exprs)), "}"]
+
+showFunc :: FunctionDefinition -> String
+showFunc (name, args, expr) = concat ["func ", name, "(", intercalate ", " args, ") = ", showExpr expr]
+
 -- Верните текстовое представление программы (см. условие).
 showProgram :: Program -> String
-showProgram = undefined
+showProgram (funcs, expr) = concatMap ((++ "\n") . showFunc) funcs ++ showExpr expr
 
 toBool :: Integer -> Bool
 toBool = (/=) 0
@@ -105,13 +118,44 @@ andThen = undefined
 andEvaluated :: Eval a -> (a -> b) -> Eval b  -- Выполняет вычисление, а потом преобразует результат чистой функцией.
 andEvaluated = undefined
 
-evalExpressionsL :: (a -> Integer -> a) -> a -> [Expression] -> Eval a  -- Вычисляет список выражений от первого к последнему.
-evalExpressionsL = undefined
+evalExprsL :: (a -> Integer -> a) -> a -> [Expression] -> Eval a  -- Вычисляет список выражений от первого к последнему.
+evalExprsL = undefined
 
-evalExpression :: Expression -> Eval Integer  -- Вычисляет выражение.
-evalExpression = undefined
+evalExpr :: Expression -> Eval Integer  -- Вычисляет выражение.
+evalExpr = undefined
 -} -- Удалите эту строчку, если решаете бонусное задание.
 
 -- Реализуйте eval: запускает программу и возвращает её значение.
+
+getName:: FunctionDefinition -> Name
+getName (name, _, _) = name
+
+getArgs :: FunctionDefinition -> [Name]
+getArgs (_, args, _) = args
+
+getBody :: FunctionDefinition -> Expression
+getBody (_, _, expr) = expr
+
+evalExpr :: State -> [FunctionDefinition] -> Expression -> (State, Integer)
+
+evalExpr state _     (Number val)                            = (state, val)
+evalExpr state _     (Reference name)                        = (state, snd $ fromJust $ find ((== name) . fst) state)
+evalExpr state funcs (Assign name expr)                      = ((name, val) : newState, val)
+                                                                  where (newState, val) = evalExpr state funcs expr
+evalExpr state funcs (BinaryOperation op leftExpr rightExpr) = (rightState, toBinaryFunction op leftVal rightVal)
+                                                                  where (leftState, leftVal)     = evalExpr state funcs leftExpr
+                                                                        (rightState, rightVal)   = evalExpr (state `union` leftState) funcs rightExpr
+evalExpr state funcs (UnaryOperation op expr)                = (newState, toUnaryFunction op val)
+                                                                  where (newState, val) = evalExpr state funcs expr
+evalExpr state funcs (FunctionCall name args)                = (newState, snd $ evalExpr newState funcs (getBody func))
+                                                                  where
+                                                                      newState = zip (getArgs func) (map (snd . evalExpr state funcs) args) ++ fst (evalExpr state funcs (Block args))
+                                                                      func     = fromJust $ find ((== name) . getName) funcs
+evalExpr state funcs (Conditional e t f)                     | toBool cond = evalExpr newState funcs t
+                                                             | otherwise   = evalExpr newState funcs f
+                                                                  where (newState, cond) = evalExpr state funcs e
+evalExpr state funcs (Block exprs)                           = foldl (\(st, val) expr -> evalExpr st funcs expr) (state, 0) exprs
+
+
 eval :: Program -> Integer
-eval = undefined
+eval (funcs, expr) = snd $ evalExpr [] funcs expr
