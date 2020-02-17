@@ -147,30 +147,36 @@ getAllValuesAndEndState es fs state = foldl (\valAndState e -> evalProgram fs e 
 
 callFuntion :: Name -> [FunctionDefinition] -> [Expression] -> State -> (Integer, State)
 callFuntion name fs args state =
-                                let (_, args_name, func_e) = findFunction name fs
-                                    (values, new_state)    = getAllValuesAndEndState args fs state
-                                in (fst $ evalProgram fs func_e (addNamedArgsToState args_name values new_state), new_state)
+    let (_, args_name, func_e) = findFunction name fs
+        (values, new_state)    = getAllValuesAndEndState args fs state
+    in (fst $ evalProgram fs func_e (addNamedArgsToState args_name values new_state), new_state)
 
 evalProgram :: [FunctionDefinition] -> Expression -> State -> (Integer, State)
 evalProgram _ (Number n) state                = (n, state)
-evalProgram _ (Reference name) state          = (snd . fromJust $ find ((==) name . fst) state, state)
-evalProgram fs (Assign name e) state          =
-                                                        let (val, new_state)   = evalProgram fs e state
-                                                        in (val, (name, val)   : new_state)
-evalProgram fs (BinaryOperation op l r) state =
-                                                        let (val, new_state)   = evalProgram fs l state
-                                                            (val', new_state') = evalProgram fs r new_state
-                                                        in (toBinaryFunction op val val', new_state')
-evalProgram fs (UnaryOperation unop e) state  =
-                                                        let (val, new_state)   = evalProgram fs e state
-                                                        in (toUnaryFunction unop val, new_state)
-evalProgram fs (FunctionCall name args) state =         callFuntion name fs args state
-evalProgram fs (Conditional e t f) state      = 
-                                               let (cond, new_state)           = evalProgram fs e state
-                                               in (if toBool cond then evalProgram fs t new_state else
-                                                    evalProgram fs f new_state)
 
-evalProgram fs (Block es) state                        = foldl (\(_, new_state) e -> evalProgram fs e new_state) (0, state) es
+evalProgram _ (Reference name) state          = (snd . fromJust $ find ((==) name . fst) state, state)
+
+evalProgram fs (Assign name e) state          =
+    let (val, new_state)   = evalProgram fs e state
+    in (val, (name, val):new_state)
+
+evalProgram fs (BinaryOperation op l r) state =
+    let (val, new_state)   = evalProgram fs l state
+        (val', new_state') = evalProgram fs r new_state
+    in (toBinaryFunction op val val', new_state')
+
+evalProgram fs (UnaryOperation unop e) state  =
+    let (val, new_state)   = evalProgram fs e state
+    in (toUnaryFunction unop val, new_state)
+
+evalProgram fs (FunctionCall name args) state = callFuntion name fs args state
+
+evalProgram fs (Conditional e t f) state      = 
+   let (cond, new_state)   = evalProgram fs e state
+   in (if toBool cond then evalProgram fs t new_state else
+        evalProgram fs f new_state)
+
+evalProgram fs (Block es) state               = foldl (\(_, new_state) e -> evalProgram fs e new_state) (0, state) es
 
 eval :: Program -> Integer
 eval (fs, e) = fst $ evalProgram fs e []
