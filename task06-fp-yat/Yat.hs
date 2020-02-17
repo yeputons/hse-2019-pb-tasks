@@ -160,7 +160,8 @@ parseExpr es defs def state = foldl(\(indef, instate)(name, e) ->
 
 evalExpression :: Expression -> [FunctionDefinition] -> State -> (Integer, State)
 evalExpression (Number n) defs state                            = (n, state)
-evalExpression (Reference name) defs state                      = (findNum state name, state)
+evalExpression (Reference name) _ state                         = (snd res, state)
+                                                                 where (Just res) = find (\x -> fst x == name) state
 evalExpression (Assign name e) defs state                       = (fst res, (name, fst res):snd res)
                                                                  where res = evalExpression e defs state
 evalExpression (BinaryOperation op l r) defs state              = (toBinaryFunction op (fst resL) (fst resR), snd resR)
