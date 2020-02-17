@@ -164,8 +164,7 @@ evalExpression scope funcs (UnaryOperation op expr) = (scp, toUnaryFunction op r
 evalExpression scope funcs (FunctionCall name args) = (new_scope, snd $ evalExpression new_scope funcs (getBody func))
                                                                     where
                                                                         new_scope = zip (getArgs func) (map (snd . evalExpression scope funcs) args) ++ fst (evalExpression scope funcs (Block args))
-                                                                        func = case find ((== name) . getName) funcs of
-                                                                                   Just func' -> func'
+                                                                        func = fromJust $ find ((== name) . getName) funcs
 
 evalExpression scope funcs (Conditional cond t f)   | toBool cond_res = evalExpression cond_scope funcs t
                                                     | otherwise       = evalExpression cond_scope funcs f
