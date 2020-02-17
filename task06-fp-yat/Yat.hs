@@ -57,7 +57,7 @@ showExpression (BinaryOperation binop left right) = "(" ++ showExpression left +
 showExpression (UnaryOperation unop expr)         = showUnop unop ++ showExpression expr
 showExpression (FunctionCall name args)           = name ++ "(" ++ intercalate ", " (map showExpression args) ++ ")"
 showExpression (Conditional expr true false)      = "if " ++ showExpression expr ++ " then " ++ showExpression true ++ " else " ++ showExpression false ++ " fi"
-showExpression (Block exprs)                      = "{\n" ++ intercalate ";\n" (map (addTabs . showExpression) exprs) ++ "}"
+showExpression (Block exprs)                      = "{" ++ concatMap ("\n\t" ++) (lines (intercalate ";\n" (map showExpression exprs))) ++ "\n}"
 
 showFunction :: FunctionDefinition -> String
 showFunction (name, params, expr) = "func " ++ name ++ "(" ++ intercalate ", " params ++ ") = " ++ showExpression expr
