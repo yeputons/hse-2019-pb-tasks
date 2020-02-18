@@ -142,6 +142,14 @@ getFuncArgs (_, args, _) = args
 getFuncExpr :: FunctionDefinition -> Expression
 getFuncExpr (_, _, expr) = expr
 
+getArgsValues :: [FunctionDefinition] -> State -> [Expression] -> ([Integer], State)
+getArgsValues funcs state []        = ([], state)
+getArgsValues funcs state [expr]    = ([arg_val], new_scope)
+                                      where (arg_val, new_scope) = evalExpression funcs state expr
+getArgsValues funcs state (expr:xs) = (arg_val : args_vals, final_state)
+                                      where (arg_val,   new_state)   = evalExpression funcs state expr
+                                            (args_vals, final_state) = getArgsValues funcs new_state xs
+
 evalExpression :: [FunctionDefinition] -> State -> Expression -> (Integer, State)
 evalExpression funcs scope (Number num)                       = (num, scope)
 evalExpression funcs scope (Reference name)                   = (getVarFromScope name scope, scope)
@@ -154,9 +162,9 @@ evalExpression funcs scope (UnaryOperation unop expr)         = (toUnaryFunction
                                                                 where (res, new_scope) = evalExpression funcs scope expr
 evalExpression funcs scope (FunctionCall name args)           = (res, new_scope)
                                                                 where (res, _)       = evalExpression funcs func_scope (getFuncExpr func)
-                                                                      func_scope     = zip (getFuncArgs func) (map (fst . evalExpression funcs scope) args) ++ new_scope
+                                                                      func_scope     = zip (getFuncArgs func) args_vals ++ new_scope
                                                                       func           = fromJust $ find ((== name). getFuncName) funcs
-                                                                      (_, new_scope) = evalExpression funcs scope (Block args)
+                                                                      (args_vals, new_scope) = getArgsValues funcs scope args
 evalExpression funcs scope (Conditional expr true false)        | toBool res = evalExpression funcs new_scope true
                                                                 | otherwise  = evalExpression funcs new_scope false
                                                                 where (res, new_scope)  = evalExpression funcs scope expr 
