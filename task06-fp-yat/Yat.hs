@@ -147,15 +147,16 @@ evalExpression funcs scope (Number num)                       = (num, scope)
 evalExpression funcs scope (Reference name)                   = (getVarFromScope name scope, scope)
 evalExpression funcs scope (Assign name expr)                 = (res, (name, res):new_scope)
                                                                 where (res, new_scope) = evalExpression funcs scope expr 
-evalExpression funcs scope (BinaryOperation binop left right) = (toBinaryFunction binop res1 res2, new_scope2 ++ scope)
-                                                                where (res1, new_scope1) = evalExpression funcs scope                 left
-                                                                      (res2, new_scope2) = evalExpression funcs (scope ++ new_scope1) right
+evalExpression funcs scope (BinaryOperation binop left right) = (toBinaryFunction binop left_res right_res, right_scope)
+                                                                where (left_res,  left_scope) = evalExpression funcs scope      left
+                                                                      (right_res, right_scope) = evalExpression funcs left_scope right
 evalExpression funcs scope (UnaryOperation unop expr)         = (toUnaryFunction unop res, new_scope)
                                                                 where (res, new_scope) = evalExpression funcs scope expr
-evalExpression funcs scope (FunctionCall name args)           = (fst $ evalExpression funcs new_scope (getFuncExpr func), new_scope)
-                                                                where new_scope       = zip (getFuncArgs func) (map (fst . evalExpression funcs scope) args) ++ args_scope
-                                                                      (_, args_scope) = evalExpression funcs scope (Block args)
-                                                                      func            = fromJust $ find ((== name). getFuncName) funcs
+evalExpression funcs scope (FunctionCall name args)           = (res, new_scope)
+                                                                where (res, _)       = evalExpression funcs func_scope (getFuncExpr func)
+                                                                      func_scope     = zip (getFuncArgs func) (map (fst . evalExpression funcs scope) args) ++ new_scope
+                                                                      func           = fromJust $ find ((== name). getFuncName) funcs
+                                                                      (_, new_scope) = evalExpression funcs scope (Block args)
 evalExpression funcs scope (Conditional expr true false)        | toBool res = evalExpression funcs new_scope true
                                                                 | otherwise  = evalExpression funcs new_scope false
                                                                 where (res, new_scope)  = evalExpression funcs scope expr 
