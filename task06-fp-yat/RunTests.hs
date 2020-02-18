@@ -138,3 +138,4 @@ testAll = TestList [
 main = do
   results <- runTestTT testAll
   exitWith $ if errors results + failures results == 0 then ExitSuccess else ExitFailure 1
+  

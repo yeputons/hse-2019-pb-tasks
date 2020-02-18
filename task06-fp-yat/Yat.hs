@@ -150,7 +150,7 @@ findVar name ((var, val):scope) | name == var = val
 
 
 parseArgs :: [FunctionDefinition] -> State -> FunctionDefinition -> [Expression] -> (State, State)
-parseArgs _ _ (_, (_:_), _) []                                          = ([], []) 
+parseArgs _ _ (_,  _:_ , _) []                                          = ([], []) 
 parseArgs funcs scope (_, [], _) _                                      = (scope, scope)
 parseArgs funcs scope (funcName, nameArg:nameArgs, funcExpr) (arg:args) = (fst res, state ++ scope)
                                                                           where (int, state) = evalExpr funcs scope arg
