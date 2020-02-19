@@ -138,7 +138,7 @@ getFunctionName (funcName, _, _) = funcName
 
 getFunctionBody :: FunctionDefinition -> ([Name], Expression)
 getFunctionBody (_, [], expr) = ([], expr)
-getFunctionBody (_, [names], expr) = ([names], expr)
+getFunctionBody (_, names, expr) = (names, expr)
 
 getValue :: State -> Name -> Integer
 getValue scope name = head [snd s | s <- scope, fst s == name]
