@@ -1,4 +1,3 @@
-  
 module Yat where  -- Вспомогательная строчка, чтобы можно было использовать функции в других файлах.
 import Data.List
 import Data.Maybe
@@ -123,44 +122,64 @@ evalExpression = undefined
 getName:: FunctionDefinition -> Name
 getName (name, _, _) = name
 
-getArgs :: FunctionDefinition -> [Name]
-getArgs (_, args, _) = args
+getArgs :: FunctionDefinition -> ([Name], Expression)
+getArgs (_, args, fun) = (args, fun)
 
-getBody :: FunctionDefinition -> Expression
-getBody (_, _, expr) = expr
+getDef::[FunctionDefinition] -> Name -> ([Name], Expression)
+getDef f n = fun (head (filter (equal n) f))
+                where equal n f = n == getName f
+                      fun       = getArgs
 
-getValue :: State -> String -> Integer
-getValue scope var = case lookup var scope of
-                                Just a -> a
-                                _       -> 0
+--getBody :: FunctionDefinition -> Expression
+--getBody (_, _, expr) = expr
 
-evalExpression :: State -> [FunctionDefinition] -> Expression -> (State, Integer)
-evalExpression scope _ (Number num)                     = (scope, num)
+getValue :: State -> Name -> Integer
+getValue [] _                = 0
+getValue ((n, v):scope) name | name == n = v
+                             | otherwise = getValue scope name
 
-evalExpression scope _ (Reference ref)                  = (scope, getValue scope ref)
+addScope::State -> [Name] -> [Integer] -> State
+addScope scope name val = zip name val ++ scope
 
-evalExpression scope funcs (Assign name ex)             = (filter (\ var -> fst var /= name) (fst tmp_expr `union` scope) ++ [(name, snd tmp_expr)], snd tmp_expr)
-                                                            where tmp_expr = evalExpression scope funcs ex
+chainFuncs::[FunctionDefinition] -> State -> [Expression] -> ([Integer], State)
+chainFuncs funcs scope []         = ([], scope)
+chainFuncs funcs scope (ex : es)  = (fst x : fst xs, snd xs)
+                                 where x  = evalExpression funcs scope ex
+                                       xs = chainFuncs funcs (snd x) es
 
-evalExpression scope funcs (BinaryOperation op fir sec) = (fst tmp_r, toBinaryFunction op (snd tmp_l) (snd tmp_r))
-                                                            where tmp_l = evalExpression scope funcs fir
-                                                                  tmp_r = evalExpression (union scope $ fst tmp_l) funcs sec
+-- changed order
 
-evalExpression scope funcs (UnaryOperation uop op)      = second (toUnaryFunction uop) calc
-                                                            where calc = evalExpression scope funcs op
+evalExpression :: [FunctionDefinition] -> State -> Expression -> (Integer, State)
+evalExpression funcs scope (Number num)                 = (num, scope)
 
-evalExpression scope funcs (FunctionCall name args)     = (new_scope, snd $ evalExpression new_scope funcs (getBody func))
-                                                            where new_scope = zip (getArgs func) (map (snd . evalExpression scope funcs) args) ++ fst (evalExpression scope funcs (Block args))
-                                                                  func = case find ((== name) . getName) funcs of
-                                                                                   Just func' -> func'
+evalExpression funcs scope (Reference ref)              = (getValue scope ref, scope)
 
-evalExpression scope funcs (Conditional cond fir sec)   | toBool(snd condition) = evalExpression (fst condition) funcs fir
-                                                        | otherwise             = evalExpression (fst condition) funcs sec
-                                                            where condition = evalExpression scope funcs cond
+evalExpression funcs scope (Assign name expr)           = (fst val, var : snd val)
+                                                                 where val = evalExpression funcs scope expr
+                                                                       var = (name, fst val)
 
-evalExpression scope funcs (Block [])                   = (scope, 0)
-evalExpression scope funcs (Block [x])                  = evalExpression scope funcs x
-evalExpression scope funcs (Block (x:xs))               = evalExpression  (fst $ evalExpression scope funcs x) funcs  (Block xs)
+--simplify
+
+evalExpression funcs scope (BinaryOperation op fir sec) = first (toBinaryFunction op (fst tmp_l)) tmp_r
+                                                            where tmp_l = evalExpression funcs scope fir
+                                                                  tmp_r = evalExpression funcs (snd tmp_l) sec
+
+evalExpression funcs scope (UnaryOperation uop op)      = first (toUnaryFunction uop) calc
+                                                            where calc = evalExpression funcs scope op
+
+evalExpression funcs scope (FunctionCall name ex)        = (ans, snd newScope)
+                                                            where ans            = fst (evalExpression funcs tempScope (snd fun))
+                                                                  fun            = getDef funcs name
+                                                                  newScope       = chainFuncs funcs scope ex
+                                                                  tempScope      = addScope (snd newScope) (fst fun) (fst newScope)
+
+evalExpression funcs scope (Conditional cond fir sec)   | toBool(fst condition) = evalExpression funcs (snd condition) fir
+                                                        | otherwise             = evalExpression funcs (snd condition) sec
+                                                            where condition     = evalExpression funcs scope cond
+
+evalExpression funcs scope (Block [])                   = (0, scope)
+evalExpression funcs scope (Block [x])                  = evalExpression funcs scope x
+evalExpression funcs scope (Block (x:xs))               = evalExpression funcs (snd (evalExpression funcs scope x)) (Block xs)
 
 eval :: Program -> Integer
-eval (funcs, expr) = snd $ evalExpression [] funcs expr
+eval (funcs, expr) = fst (evalExpression funcs [] expr)
