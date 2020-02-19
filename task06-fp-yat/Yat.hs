@@ -53,19 +53,20 @@ indentation []                 = []
 indentation (s:tr) | s == '\n' = [s] ++ "\t" ++ indentation tr
                    | otherwise = s:indentation tr
 
-showExpression (Number n)                   = show n
-showExpression (Reference name)             = name
-showExpression (Assign name val)            = "let " ++ name ++ " = " ++ showExpression val ++ " tel"
-showExpression (BinaryOperation oper x y)   = "(" ++ showExpression x ++ " " ++ showBinop oper ++ " " ++ showExpression y ++ ")"
-showExpression (UnaryOperation uop val)     = showUnop uop ++ showExpression val
-showExpression (FunctionCall fun [])        = fun ++ "()"
-showExpression (FunctionCall fun (x:xs))    = fun ++ "(" ++ showExpression x ++ concatMap ((++) ", " . showExpression) xs ++ ")"
-showExpression (Block [])                   = "{\n}"
-showExpression (Block (x:xs))               = indentation ("{\n" ++ showExpression x ++ concatMap ((++) ";\n" . showExpression) xs) ++ "\n}"
+showExpression (Number n)                    = show n
+showExpression (Reference name)              = name
+showExpression (Assign name val)             = "let " ++ name ++ " = " ++ showExpression val ++ " tel"
+showExpression (BinaryOperation oper x y)    = "(" ++ showExpression x ++ " " ++ showBinop oper ++ " " ++ showExpression y ++ ")"
+showExpression (UnaryOperation uop val)      = showUnop uop ++ showExpression val
+showExpression (FunctionCall fun [])         = fun ++ "()"
+showExpression (FunctionCall fun (x:xs))     = fun ++ "(" ++ showExpression x ++ concatMap ((++) ", " . showExpression) xs ++ ")"
+showExpression (Conditional cond true false) = "if " ++ showExpression cond ++ " then " ++ showExpression true ++ " else " ++ showExpression false ++ " fi"
+showExpression (Block [])                    = "{\n}"
+showExpression (Block (x:xs))                = indentation ("{\n" ++ showExpression x ++ concatMap ((++) ";\n" . showExpression) xs) ++ "\n}"
 
 showFunctionDefinition :: FunctionDefinition -> String
 showFunctionDefinition (name, [], definition)           = "func " ++ name ++ "() = " ++ showExpression definition
-showFunctionDefinition (name , cur:others, definition)  = "func " ++ name ++ "(" ++ cur ++ (concatMap (", " ++) others) ++ ") = " ++ showExpression definition
+showFunctionDefinition (name , cur:others, definition)  = "func " ++ name ++ "(" ++ cur ++ concatMap (", " ++) others ++ ") = " ++ showExpression definition
 
 showProgram :: Program -> String
 showProgram prog = concatMap ((++ "\n") . showFunctionDefinition) (fst prog) ++ showExpression (snd prog)
