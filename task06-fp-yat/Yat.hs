@@ -57,7 +57,7 @@ showExpression (Reference name)                 = name
 showExpression (Assign name e)                  = "let " ++ name ++ " = " ++ showExpression e ++ " tel"
 showExpression (BinaryOperation op l r)         = "(" ++ showExpression l ++ " " ++ showBinop op ++ " " ++ showExpression r ++ ")"
 showExpression (UnaryOperation op e)            = showUnop op ++ showExpression e
-showExpression (FunctionCall name params)       = name ++ "(" ++ (intercalate ", " (map showExpression params)) ++ ")"
+showExpression (FunctionCall name params)       = name ++ "(" ++ intercalate ", " (map showExpression params) ++ ")"
 showExpression (Conditional e t f)              = "if " ++ showExpression e ++ " then " ++ showExpression t ++ " else " ++ showExpression f ++ " fi"
 showExpression (Block [])                       = "{\n}"
 showExpression (Block es)                       = "{" ++ "\n" ++ "\t" ++ unlines [addTabs (lines (intercalate ";\n" (map showExpression es)))] ++ "}"
