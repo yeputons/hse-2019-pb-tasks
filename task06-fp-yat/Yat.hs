@@ -48,9 +48,8 @@ showUnop Not = "!"
 
 -- Верните текстовое представление программы (см. условие).
 chainFuncCall :: [Expression] -> String
-chainFuncCall []     = ""
-chainFuncCall [e]    = showExpression e ""
-chainFuncCall (e:es) = intercalate ", " [showExpression e ""] ++ chainFuncCall es
+chainFuncCall []    = ""
+chainFuncCall exprs = intercalate ", " (map (`showExpression` "") exprs)
 
 chainBlock :: [Expression] -> String -> String
 chainBlock [] _          = ""
@@ -68,9 +67,8 @@ showExpression (Conditional e t f) indent              = "if " ++ showExpression
 showExpression (Block commands) indent                 = "{\n" ++ chainBlock commands (indent ++ "\t") ++ indent ++ "}"
 
 chainFuncDef :: [Name] -> String
-chainFuncDef []     = ""
-chainFuncDef [n]    = n
-chainFuncDef (n:ns) = intercalate ", " [n] ++ chainFuncDef ns
+chainFuncDef []    = ""
+chainFuncDef names = intercalate ", " names
 
 showFuncDef :: FunctionDefinition -> String
 showFuncDef (name, params, expr) = "func " ++ name ++ "(" ++ chainFuncDef params ++ ") = " ++ showExpression expr "" ++ "\n"
@@ -202,8 +200,8 @@ evalExpression (FunctionCall name exprs) scope funcs        = (rv, sscope)
                                                                    new_scopes = makeScopeForFunction (FunctionCall name exprs) scope funcs
                                                                    fscope     = snd new_scopes
                                                                    sscope     = fst new_scopes
-evalExpression (Conditional e t f) scope funcs              | toBool(exprValue) = tres
-                                                            | otherwise         = fres
+evalExpression (Conditional e t f) scope funcs              | toBool exprValue = tres
+                                                            | otherwise        = fres
                                                              where exprValue = fst eres
                                                                    newScope  = snd eres
                                                                    eres      = evalExpression e scope funcs
