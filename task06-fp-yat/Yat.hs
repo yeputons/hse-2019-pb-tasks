@@ -61,7 +61,7 @@ showExpr (BinaryOperation op l r) = concat ["(", showExpr l, " ", showBinop op, 
 showExpr (UnaryOperation op e)    = concat [showUnop op, showExpr e]
 showExpr (Conditional e t f)      = concat ["if ", showExpr e, " then ", showExpr t, " else ", showExpr f, " fi"]
 showExpr (Block es)               = concat ["{\n", linemap ('\t':) (showExprList ";\n" es), "}"]
-showExpr (FunctionCall n es)      = concat [n, "(", showExprList "," es, ")"]
+showExpr (FunctionCall n es)      = concat [n, "(", showExprList ", " es, ")"]
 
 showFunDecl :: FunctionDefinition -> String
 showFunDecl (n, ps, e) = concat ["func ", n, "(", intercalate "," ps, ") = ", showExpr e]
@@ -149,17 +149,17 @@ withParams :: Eval a -> [Name] -> [Integer] -> Eval a
 withParams e n v = copyState $ foldl (~>) (evaluated ()) (zipWith addToState n v) ~> const e
 
 evalFunction :: FunctionDefinition -> [Integer] -> Eval Integer
-evalFunction (f, n, e) = withParams (evalExpression e) n
+evalFunction (f, n, e) = withParams (evalExpression e) $ reverse n
 
 evalExpression :: Expression -> Eval Integer  -- Вычисляет выражение.
-evalExpression (Number          n     ) = evaluated n
-evalExpression (Reference       n     ) = readState ~@ readFromState n
-evalExpression (Assign          n  e  ) = evalExpression e ~> \v -> addToState n v v
+evalExpression (Number n)               = evaluated n
+evalExpression (Reference n)            = readState ~@ readFromState n
+evalExpression (Assign n  e)            = evalExpression e ~> \v -> addToState n v v
 evalExpression (BinaryOperation op l r) = evalExpression l ~> \a -> evalExpression r ~@ toBinaryFunction op a
-evalExpression (UnaryOperation  op e  ) = evalExpression e ~@ toUnaryFunction op
-evalExpression (Conditional     e  t f) = evalExpression e ~> \r -> evalExpression $ if toBool r then t else f
-evalExpression (Block           es    ) = evalExpressionsL (curry snd) 0 es
-evalExpression (FunctionCall n  as    ) = readDefs ~@ selectFunction n
+evalExpression (UnaryOperation op e)    = evalExpression e ~@ toUnaryFunction op
+evalExpression (Conditional e t f)      = evalExpression e ~> \r -> evalExpression $ if toBool r then t else f
+evalExpression (Block es)               = evalExpressionsL (curry snd) 0 es
+evalExpression (FunctionCall n as)      = readDefs ~@ selectFunction n
                                           ~> \f -> evalExpressionsL (flip (:)) [] as
                                           ~> evalFunction f
 
