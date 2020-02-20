@@ -58,7 +58,7 @@ showExpr (Number n)               = show n
 showExpr (Reference x)            = x
 showExpr (Assign n e)             = concat ["let ", n, " = ", showExpr e, " tel"]
 showExpr (BinaryOperation op l r) = concat ["(", showExpr l, " ", showBinop op, " ", showExpr r, ")"]
-showExpr (UnaryOperation op e)    = concat [showUnop op, showExpr e]
+showExpr (UnaryOperation op e)    = showUnop op ++ showExpr e -- Hlint :<(
 showExpr (Conditional e t f)      = concat ["if ", showExpr e, " then ", showExpr t, " else ", showExpr f, " fi"]
 showExpr (Block es)               = concat ["{\n", linemap ('\t':) (showExprList ";\n" es), "}"]
 showExpr (FunctionCall n es)      = concat [n, "(", showExprList ", " es, ")"]
