@@ -4,10 +4,6 @@ import Data.Maybe
 import Data.Bifunctor
 import Debug.Trace
 
--- {- HLINT ignore "Use ++" -}
--- {-# HLINT ignore "Use ++" #-}
--- I use concat!
-
 -- В логических операциях 0 считается ложью, всё остальное - истиной.
 -- При этом все логические операции могут вернуть только 0 или 1.
 
@@ -52,37 +48,27 @@ showUnop Not = "!"
 
 -- Верните текстовое представление программы (см. условие).
 
-emptyFoldl1 :: (String -> String -> String) -> [String] -> String
-emptyFoldl1 _ [] = ""
-emptyFoldl1 f list = foldl1 f list
+addTab :: String -> String
+addTab = unlines . map ('\t':) . lines
 
 showExpression :: Expression -> String
 showExpression (Number n)               = show n
 showExpression (Reference name)         = name
-showExpression (Assign name expr)       = concat ["let ", name, " = ", showExpression expr, " tel"]
-showExpression (BinaryOperation op l r) = concat ["(", showExpression l, " ", showBinop op, " ", showExpression r, ")"]
+showExpression (Assign name expr)       = unwords ["let", name, "=", showExpression expr, "tel"]
+showExpression (BinaryOperation op l r) = concat ["(", unwords [showExpression l, showBinop op, showExpression r], ")"]
 showExpression (UnaryOperation op expr) = showUnop op ++ showExpression expr
 showExpression (FunctionCall name fs)   = concat [name, "(", intercalate ", " (map showExpression fs), ")"]
-showExpression (Conditional expr t f)   = concat ["if ", showExpression expr, " then ", showExpression t, " else ", showExpression f, " fi"]
-showExpression (Block fs)               = concat ["{", block' fs, "}"]
+showExpression (Conditional expr t f)   = unwords ["if", showExpression expr, "then", showExpression t, "else", showExpression f, "fi"]
+showExpression (Block fs)               = concat ["{", "\n", addTab $ block' fs, "}"]
                                           where block' []     = ""
-                                                block' [f]    = "\n" ++ showExpression f
-                                                block' (f:fs) = concat ["\n", showExpression f, ";", block' fs]
-
-indent :: Int -> String -> String
-indent _   ""          = ""
-indent ind ('{' :tl)   = "{" ++ indent    (ind + 1)  tl
-indent ind ('}' :tl)   = concat ["\n", replicate (ind - 1) '\t', "}", indent (ind - 1) tl]
-indent ind ('\n':tl)   = concat ["\n", replicate ind       '\t', indent ind tl]
-indent ind (x   :tl)   = x:indent ind tl
-
+                                                block' [f]    = showExpression f
+                                                block' (f:fs) = concat [showExpression f, ";", "\n", block' fs]
 
 showFunctionDefinition :: FunctionDefinition -> String
 showFunctionDefinition (name, args, expr) = concat ["func ", name, "(", intercalate ", " args, ") = ", showExpression expr, "\n"]
 
 showProgram :: Program -> String
-showProgram (f:fs, expr) = indent 0 (showFunctionDefinition f) ++ showProgram (fs, expr)
-showProgram ([], expr)     = indent 0 $ showExpression expr
+showProgram (fs, expr) = concatMap showFunctionDefinition fs ++ showExpression expr
 
 toBool :: Integer -> Bool
 toBool = (/=) 0
@@ -122,27 +108,21 @@ runEval :: Eval a -> [FunctionDefinition] -> State -> (a, State)
 runEval (Eval f) = f
 
 evaluated :: a -> Eval a  -- Возвращает значение без изменения состояния.
-evaluated a = Eval evaluated'
-              where evaluated' _ st = (a, st)
+evaluated a = Eval (\_ st -> (a, st))
 
 readState :: Eval State  -- Возвращает состояние.
-readState = Eval readState'
-            where readState' _ st = (st, st)
+readState = Eval (\_ st -> (st, st))
 
 addToState :: String -> Integer -> a -> Eval a  -- Добавляет/изменяет значение переменной на новое и возвращает константу.
-addToState name value a = Eval addToState'
-                          where addToState' _   []                            = (a, [(name, value)])
-                                addToState' fds ((ref, val):vs) | ref == name = (a, (name, value):vs)
-                                                                | otherwise   = (a, (ref,val):snd (addToState' fds vs))
+addToState name value a = Eval (\_ st -> (a, (name, value):st))
 
 readDefs :: Eval [FunctionDefinition]  -- Возвращает все определения функций.
 readDefs = Eval readDefs'
            where readDefs' fds st = (fds, st)
 
 andThen :: Eval a -> (a -> Eval b) -> Eval b  -- Выполняет сначала первое вычисление, а потом второе.
-andThen ea fe = Eval andThen'
-                where andThen' fds st = runEval eb fds newSt
-                                        where (eb, newSt) = first fe $ runEval ea fds st
+andThen ea fe = Eval $ \fds st -> let (eb, newSt) = runEval ea fds st
+                                  in runEval (fe eb) fds newSt 
 
 andEvaluated :: Eval a -> (a -> b) -> Eval b  -- Выполняет вычисление, а потом преобразует результат чистой функцией.
 andEvaluated ea f = Eval andEvaluated'
@@ -156,14 +136,11 @@ evalExpressionsL f a (e:es) = Eval evalExpressionsL'
                                                                where newA          = f a valE
                                                                      (valE, newSt) = runEval (evalExpression e) fds st
 
-
 evalExpression :: Expression -> Eval Integer  -- Вычисляет выражение.
 evalExpression (Number    n   )           = evaluated n
 evalExpression (Reference name)           = Eval evalExpression'
-                                            where evalExpression' _ st                           = (lookup st, st)
-                                                  lookup          []                             = undefined
-                                                  lookup          ((ref, val):vs) | ref == name  = val
-                                                                                  | otherwise    = lookup vs
+                                            where evalExpression' _ st = (snd $ fromJust $ find (\(x, _) -> x == name) st, st)
+
 evalExpression (Assign    name expr)      = Eval evalExpression'
                                             where evalExpression' fds st = runEval (addToState name valE valE) fds newSt
                                                                            where (valE, newSt) = runEval (evalExpression expr) fds st
@@ -178,18 +155,15 @@ evalExpression (UnaryOperation op expr)   = Eval evalExpression'
                                                                                  (valE, newSt) = runEval (evalExpression expr) fds st
 evalExpression (FunctionCall name args)   = Eval evalExpression'
                                             where evalExpression' fds st = (fRet, newSt)
-                                                                           where fLookup []                                         = undefined
-                                                                                 fLookup ((fName, fArgs, fBody):fs) | fName == name = (fArgs, fBody)
-                                                                                                                    | otherwise     = fLookup fs
-                                                                                 (fRet, _)                              = runEval (evalExpression fBody) fds fState
-                                                                                 (fArgNames, fBody)                     = fLookup fds
-                                                                                 (fState, newSt)                        = extendState fArgNames args st
-                                                                                 extendState [] []                   st = (st, st)
-                                                                                 extendState [] _                    _  = undefined
-                                                                                 extendState _  []                   _  = undefined
-                                                                                 extendState (name:names) (arg:args) st = (snd $ runEval (addToState name valE 0) fds fState', newSt')
+                                                                           where (fRet, _)                              = runEval (evalExpression fBody) fds fState
+                                                                                 (_, fArgNames, fBody)                  = fromJust $ find (\(x,_,_) -> x == name) fds
+                                                                                 (fState, newSt)                        = fromJust $ extendState fArgNames args st
+                                                                                 extendState [] []                   st = Just (st, st)
+                                                                                 extendState [] _                    _  = Nothing
+                                                                                 extendState _  []                   _  = Nothing
+                                                                                 extendState (name:names) (arg:args) st = Just (snd $ runEval (addToState name valE 0) fds fState', newSt')
                                                                                                                           where (valE, tmpSt)     = runEval (evalExpression arg) fds st
-                                                                                                                                (fState', newSt') = extendState names args tmpSt
+                                                                                                                                (fState', newSt') = fromJust $ extendState names args tmpSt
 evalExpression (Conditional c e1 e2)      = Eval evalExpression'
                                             where evalExpression' fds st = if toBool valC then valE1 else valE2
                                                                            where (valC, newSt)  = runEval (evalExpression c)  fds st
