@@ -106,7 +106,7 @@ getVariable [] _                                                              = 
 getVariable ((variableName, variableValue):scope) name | name == variableName = variableValue
                                                        | otherwise            = getVariable scope name
 
-	
+
 getFunctionDefinition :: Name -> [FunctionDefinition] -> ([Name], Expression)
 
 getFunctionDefinition name funcs = argsWithoutFst (head (filter (isEq name) funcs)) 
