@@ -158,7 +158,7 @@ evalFunction (f, name, expr) = withParams (evalExpression expr) $ reverse name
 
 evalExpression :: Expression -> Eval Integer  -- Вычисляет выражение.
 evalExpression (Number          n)              = evaluated n
-evalExpression (Reference       name)           = readState ~~> (getValue name)
+evalExpression (Reference       name)           = readState ~~> getValue name
 evalExpression (Assign          name  expr)     = evalExpression expr ~> \v -> addToState name v v
 evalExpression (BinaryOperation op left right)  = evalExpression left ~> \a -> evalExpression right ~~> toBinaryFunction op a
 evalExpression (UnaryOperation  op expr)        = evalExpression expr ~~> toUnaryFunction op
