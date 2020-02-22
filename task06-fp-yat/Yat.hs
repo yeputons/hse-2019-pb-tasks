@@ -117,61 +117,37 @@ addToState :: String -> Integer -> a -> Eval a  -- Добавляет/измен
 addToState name value a = Eval (\_ st -> (a, (name, value):st))
 
 readDefs :: Eval [FunctionDefinition]  -- Возвращает все определения функций.
-readDefs = Eval readDefs'
-           where readDefs' fds st = (fds, st)
+readDefs = Eval $ \fds st -> (fds, st)
 
 andThen :: Eval a -> (a -> Eval b) -> Eval b  -- Выполняет сначала первое вычисление, а потом второе.
 andThen ea fe = Eval $ \fds st -> let (eb, newSt) = runEval ea fds st
-                                  in runEval (fe eb) fds newSt 
+                                  in  runEval (fe eb) fds newSt 
 
 andEvaluated :: Eval a -> (a -> b) -> Eval b  -- Выполняет вычисление, а потом преобразует результат чистой функцией.
-andEvaluated ea f = Eval andEvaluated'
-                    where andEvaluated' fds st = first f $ runEval ea fds st
+andEvaluated ea f = Eval $ \fds st -> let (eb,   newSt) = runEval ea fds st
+                                      in  (f eb, newSt)
+
+-- честно подсмотрел идею у Игоря :)
+(&=>) = andThen
+(&==) = andEvaluated
 
 evalExpressionsL :: (a -> Integer -> a) -> a -> [Expression] -> Eval a  -- Вычисляет список выражений от первого к последнему.
-evalExpressionsL _ a []     = Eval evalExpressionsL' 
-                              where evalExpressionsL' _ st = (a, st)
-evalExpressionsL f a (e:es) = Eval evalExpressionsL'
-                              where evalExpressionsL' fds st = runEval (evalExpressionsL f newA es) fds newSt
-                                                               where newA          = f a valE
-                                                                     (valE, newSt) = runEval (evalExpression e) fds st
+evalExpressionsL f a es = foldl ff (evaluated a) es
+                          where ff ea expr = ea &=> \a -> evalExpression expr &== f a
 
 evalExpression :: Expression -> Eval Integer  -- Вычисляет выражение.
 evalExpression (Number    n   )           = evaluated n
-evalExpression (Reference name)           = Eval evalExpression'
-                                            where evalExpression' _ st = (snd $ fromJust $ find (\(x, _) -> x == name) st, st)
+evalExpression (Reference name)           = readState           &== \st  -> snd $ fromJust $ find (\(x, _) -> x == name) st
+evalExpression (Assign    name expr)      = evalExpression expr &=> \res -> addToState name res res
+evalExpression (BinaryOperation op e1 e2) = evalExpression e1   &=> \a   -> evalExpression e2 &== toBinaryFunction op a
+evalExpression (UnaryOperation op expr)   = evalExpression expr &== \a   -> toUnaryFunction op a
 
-evalExpression (Assign    name expr)      = Eval evalExpression'
-                                            where evalExpression' fds st = runEval (addToState name valE valE) fds newSt
-                                                                           where (valE, newSt) = runEval (evalExpression expr) fds st
-evalExpression (BinaryOperation op e1 e2) = Eval evalExpression'
-                                            where evalExpression' fds st = (binF valE1 valE2, newSt2)
-                                                                           where binF            = toBinaryFunction op
-                                                                                 (valE1, newSt1) = runEval          (evalExpression e1) fds st
-                                                                                 (valE2, newSt2) = runEval          (evalExpression e2) fds newSt1
-evalExpression (UnaryOperation op expr)   = Eval evalExpression'
-                                            where evalExpression' fds st = (unF valE, newSt)
-                                                                           where unF  = toUnaryFunction op
-                                                                                 (valE, newSt) = runEval (evalExpression expr) fds st
-evalExpression (FunctionCall name args)   = Eval evalExpression'
-                                            where evalExpression' fds st = (fRet, newSt)
-                                                                           where (fRet, _)                              = runEval (evalExpression fBody) fds fState
-                                                                                 (_, fArgNames, fBody)                  = fromJust $ find (\(x,_,_) -> x == name) fds
-                                                                                 (fState, newSt)                        = fromJust $ extendState fArgNames args st
-                                                                                 extendState [] []                   st = Just (st, st)
-                                                                                 extendState [] _                    _  = Nothing
-                                                                                 extendState _  []                   _  = Nothing
-                                                                                 extendState (name:names) (arg:args) st = Just (snd $ runEval (addToState name valE 0) fds fState', newSt')
-                                                                                                                          where (valE, tmpSt)     = runEval (evalExpression arg) fds st
-                                                                                                                                (fState', newSt') = fromJust $ extendState names args tmpSt
-evalExpression (Conditional c e1 e2)      = Eval evalExpression'
-                                            where evalExpression' fds st = if toBool valC then valE1 else valE2
-                                                                           where (valC, newSt)  = runEval (evalExpression c)  fds st
-                                                                                 valE1          = runEval (evalExpression e1) fds newSt
-                                                                                 valE2          = runEval (evalExpression e2) fds newSt
-
-evalExpression (Block es)                 = Eval evalExpression'
-                                            where evalExpression' = runEval (evalExpressionsL (\_ a -> a) 0 es) 
+evalExpression (FunctionCall name args)   = let evalArgs = evalExpressionsL (flip (:)) [] args
+                                                func     = readDefs &== \fdsEv    -> fromJust $ find (\(fName, _       ,_) -> fName == name) fdsEv
+                                                fState   = evalArgs &=> \valuesEv -> func     &=>     \(_, fArgNamesEv, _) -> Eval $ \_   st -> (zip fArgNamesEv valuesEv ++ st, st)
+                                                in         fState   &=> \fStateEv -> func     &=>     \(_, _,     fBodyEv) -> Eval $ \fds st -> (fst $ runEval (evalExpression fBodyEv) fds fStateEv, st)
+evalExpression (Conditional c e1 e2)      = evalExpression c &=> \b -> evalExpression $ if toBool b then e1 else e2
+evalExpression (Block es)                 = Eval $ runEval (evalExpressionsL (\_ a -> a) 0 es) 
 
 -- -} -- Удалите эту строчку, если решаете бонусное задание.
 
