@@ -134,10 +134,9 @@ secondElement xs = case tryTail xs of
 
 thirdElementOfSecondList :: [[a]] -> Maybe a
 thirdElementOfSecondList xs = case secondElement xs of
-                                Just [a]          -> Nothing
-                                Just [a, b]       -> Nothing
                                 Just [a, b, c]    -> Just c
                                 _                 -> Nothing
+
 
 -- Функцию fifthElement, которая возвращает пятый элемент списка или Nothing,
 -- если пятого элемента в списке нет.
@@ -149,7 +148,7 @@ thirdElementOfSecondList xs = case secondElement xs of
 -- Just 5
 fifthElement :: [a] -> Maybe a
 fifthElement xs = case secondElement xs of
-                    Just a -> thirdElement (tail (tail xs))
+                    Just a -> thirdElement $ tail $ tail xs
                     _      -> Nothing
                     where thirdElement xs = case tryTail xs of
                                               Just a -> secondElement a
@@ -158,7 +157,7 @@ fifthElement xs = case secondElement xs of
 -- Выделите общую логику в оператор ~~>.
 
 (~~>) (Just ma) f = f ma
-(~~>) _ f         = Nothing
+(~~>) _         f = Nothing
 
 -- Перепишите функцию thirdElementOfSecondList в thirdElementOfSecondList' используя
 -- только tryHead, tryTail, применение функций и оператор ~~>, но не используя
@@ -179,8 +178,6 @@ thirdElementOfSecondList' xs = Just xs ~~> tryTail ~~> tryHead ~~> tryTail ~~> t
 -- "abcd"
 -- nubBy' (\x y -> x == y || x + y == 10) [2, 3, 5, 7, 8, 2]
 -- [2,3,5]
-
-removeEqual xs a eq = filter (not . eq a) xs
 
 nubBy' :: (a -> a -> Bool) -> [a] -> [a]
 nubBy' eq = foldr' (\x xs -> x:filter (not . eq x) xs) []
@@ -220,7 +217,7 @@ quickSort' (x:xs) = quickSort' (filter ( < x) xs) ++ x:filter ( == x) xs ++ quic
 -- >>> weird' [[1, 11, 12], [9, 10, 20]]
 -- 3
 weird':: [[Int]] -> Int
-weird' = length . concat' . filter (even . length . filter (> 100) . map' (^2))
+weird' = length . concat' . filter (even . length . filter (> 100) . map' (^ 2))
 
 
 -- 4) grep
