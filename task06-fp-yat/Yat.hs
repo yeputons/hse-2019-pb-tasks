@@ -132,8 +132,8 @@ andEvaluated ea f = Eval $ \fds st -> let (eb,   newSt) = runEval ea fds st
 (&==) = andEvaluated
 
 evalExpressionsL :: (a -> Integer -> a) -> a -> [Expression] -> Eval a  -- Вычисляет список выражений от первого к последнему.
-evalExpressionsL f a es = foldl ff (evaluated a) es
-                          where ff ea expr = ea &=> \a -> evalExpression expr &== f a
+evalExpressionsL f a = foldl ff (evaluated a)
+                       where ff ea expr = ea &=> \a -> evalExpression expr &== f a
 
 evalExpression :: Expression -> Eval Integer  -- Вычисляет выражение.
 evalExpression (Number    n   )           = evaluated n
