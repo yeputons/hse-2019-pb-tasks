@@ -66,6 +66,8 @@ program5 = ([],
     (Block [])
  )
 
+program6 = ([], Block[("a" =:= c 3), (c 10) /* (c 10)])
+
 testAll = TestList [
     group "program1" [
       checkGE "output" (showProgram program1) $ concat [
@@ -74,7 +76,7 @@ testAll = TestList [
         "} else (fib((a - 1)) + fib((a - 2))) fi\n",
         "fib(25)"
       ]
---    ,checkGE "result" (eval program1) $ 121393
+    ,checkGE "result" (eval program1) $ 121393
     ],
     group "program2" [
       checkGE "output" (showProgram program2) $ concat [
@@ -103,7 +105,7 @@ testAll = TestList [
         "\t(((res * 100) + (b * 10)) + a)\n",
         "}"
       ]
---    ,checkGE "result" (eval program3) $ 47283
+    ,checkGE "result" (eval program3) $ 47283
     ],
     group "program4" [
       checkGE "output" (showProgram program4) $ concat [
@@ -131,7 +133,10 @@ testAll = TestList [
         "} else {\n",
         "} fi"
       ]
---      ,checkGE "result" (eval program5) $ 34451
+      ,checkGE "result" (eval program5) $ 34451
+    ],
+    group "program6" [
+      checkGE "result" (eval program6) $ 100
     ]
   ]
 

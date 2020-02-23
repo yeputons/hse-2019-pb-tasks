@@ -51,25 +51,28 @@ showUnop Not = "!"
 showParams :: [String] -> String
 showParams = ("("++) . (++")") . intercalate ", "
 
+
 showTabs :: Int -> String
 showTabs tabs = replicate tabs '\t' 
 
-showExpression :: Int -> Expression -> String 
-showExpression tabs (Number x)                              = show x
-showExpression tabs (Reference var)                         = var
-showExpression tabs (Assign var expr)                       = "let " ++ var ++ " = " ++ showExpression tabs expr ++ " tel" 
-showExpression tabs (BinaryOperation op expr1 expr2)        = "(" ++ showExpression tabs expr1 ++ " " ++ showBinop op ++ " " ++ showExpression tabs expr2 ++ ")"
-showExpression tabs (UnaryOperation op expr)                = showUnop op ++ showExpression tabs expr
-showExpression tabs (FunctionCall fn_name params)           = fn_name ++ showParams (map (showExpression tabs) params)
-showExpression tabs (Conditional stat expr_true expr_false) = "if " ++ showExpression tabs stat ++ " then " ++ showExpression tabs expr_true ++ " else " ++ showExpression tabs expr_false ++ " fi"
-showExpression tabs (Block [])                              = "{\n" ++ showTabs tabs ++ "}"
-showExpression tabs (Block expressions)                     = "{\n" ++ showTabs (tabs + 1) ++ intercalate (";\n" ++ showTabs (tabs + 1)) (map (showExpression (tabs + 1)) expressions) ++ "\n" ++ showTabs tabs ++ "}"
+processLine :: String -> String
+processLine line = concat["\t", line, "\n"]
+
+showExpression :: Expression -> String 
+showExpression (Number x)                              = show x
+showExpression (Reference var)                         = var
+showExpression (Assign var expr)                       = "let " ++ var ++ " = " ++ showExpression expr ++ " tel" 
+showExpression (BinaryOperation op expr1 expr2)        = "(" ++ showExpression expr1 ++ " " ++ showBinop op ++ " " ++ showExpression expr2 ++ ")"
+showExpression (UnaryOperation op expr)                = showUnop op ++ showExpression expr
+showExpression (FunctionCall fn_name params)           = fn_name ++ showParams (map showExpression params)
+showExpression (Conditional stat expr_true expr_false) = "if " ++ showExpression stat ++ " then " ++ showExpression expr_true ++ " else " ++ showExpression expr_false ++ " fi"
+showExpression (Block exprs)                           = "{\n" ++ concatMap processLine (lines $ intercalate ";\n" $ map showExpression exprs) ++ "}" 
 
 showFunction :: FunctionDefinition -> String
-showFunction (fn_name, params, expr) = "func " ++ fn_name ++ showParams params ++ " = " ++ showExpression 0 expr ++ "\n"
+showFunction (fn_name, params, expr) = "func " ++ fn_name ++ showParams params ++ " = " ++ showExpression expr ++ "\n"
 
 showProgram :: Program -> String
-showProgram (funcs, expr) = intercalate "\n" (map showFunction funcs) ++ showExpression 0 expr
+showProgram (funcs, expr) = intercalate "\n" (map showFunction funcs) ++ showExpression expr
 
 toBool :: Integer -> Bool
 toBool = (/=) 0
@@ -108,16 +111,16 @@ runEval :: Eval a -> [FunctionDefinition] -> State -> (a, State)
 runEval (Eval f) = f
 
 evaluated :: a -> Eval a  -- Возвращает значение без изменения состояния.
-evaluated x = Eval (\_ state -> (x, state))
+evaluated x = Eval $ \_ state -> (x, state)
 
 readState :: Eval State  -- Возвращает состояние.
-readState = Eval (\_ state -> (state, state))
+readState = Eval $ \_ state -> (state, state)
 
 addToState :: String -> Integer -> a -> Eval a  -- Добавляет/изменяет значение переменной на новое и возвращает константу.
-addToState name val x = Eval (\funcs state -> (x, Map.insert name val state))
+addToState name val x = Eval $ \funcs state -> (x, Map.insert name val state)
 
 readDefs :: Eval [FunctionDefinition]  -- Возвращает все определения функций.
-readDefs = Eval (\funcs state -> (funcs, state))
+readDefs = Eval $ \funcs state -> (funcs, state)
 
 andThen :: Eval a -> (a -> Eval b) -> Eval b  -- Выполняет сначала первое вычисление, а потом второе.
 andThen f1 f2 = Eval (\funcs state ->
@@ -131,29 +134,36 @@ andEvaluated eval func = Eval (\funcs state ->
                                  let (eval_result, new_state) = runEval eval funcs state
                                  in (func eval_result, new_state)
                               )
-(~~~>) = andEvaluated
+(~!>) = andEvaluated
 
 evalExpressionsL :: (a -> Integer -> a) -> a -> [Expression] -> Eval a  -- Вычисляет список выражений от первого к последнему.
-evalExpressionsL _ x []              = evaluated x
-evalExpressionsL func x (expr:exprs) = evalExpression expr ~~> (\res -> evalExpressionsL func (func x res) exprs)
+evalExpressionsL func x exprs = foldl (\y expr -> y ~!> func ~~> ((evalExpression expr) ~!>)) (evaluated x) exprs
 
 evalAssign name expr = evalExpression expr ~~> (\value -> addToState name value value)
 
 chooseDef :: Name -> [FunctionDefinition] -> FunctionDefinition
-chooseDef name fs = head $ filter (\(name1,_,_) -> name1 == name) fs
+chooseDef name fs = Data.Maybe.fromJust $ find (\(name1,_,_) -> name1 == name) fs
 
-evalParams :: [Name] -> [Expression] -> Eval Integer
-evalParams param_names param_exprs = evalExpressionsL (curry fst) 0 $ zipWith Assign param_names param_exprs
+assignParams :: [Name] -> [Integer] -> Eval Integer
+assignParams names values = evalExpression $ Block $ zipWith Assign names (map Number values)
+
+evalExprs :: [Expression] -> Eval [Integer]
+evalExprs exprs = evalExpressionsL (flip (:)) [] exprs
+
+saveState :: Eval a -> Eval a 
+saveState eval = Eval $ \funcs state -> (fst $ runEval eval funcs state, state)
+
 evalFunction :: FunctionDefinition -> [Expression] -> Eval Integer
-evalFunction (name, param_names, body) param_exprs = evalParams param_names param_exprs ~~> (\_ -> evalExpression body)
+evalFunction (name, param_names, body) param_exprs = evalExprs param_exprs ~~> (\values -> saveState ((assignParams param_names values) ~~> (\_ -> evalExpression body)))
+ 
 
 evalExpression :: Expression -> Eval Integer  -- Вычисляет выражение.
 evalExpression (Number x)                              = evaluated x
 evalExpression (Reference name)                        = Eval (\funcs state -> (Data.Maybe.fromJust $ Map.lookup name state, state))
 evalExpression (Assign name expr)                      = evalAssign name expr
-evalExpression (BinaryOperation op expr1 expr2)        = evalExpression expr1 ~~> (\expr1_res -> evalExpression expr2 ~~~> toBinaryFunction op expr1_res)
-evalExpression (UnaryOperation op expr)                = evalExpression expr ~~~> toUnaryFunction op
-evalExpression (FunctionCall name param_exprs)         = readDefs ~~~> chooseDef name ~~> (\func -> evalFunction func param_exprs)
+evalExpression (BinaryOperation op expr1 expr2)        = evalExpression expr1 ~~> (\expr1_res -> evalExpression expr2 ~!> toBinaryFunction op expr1_res)
+evalExpression (UnaryOperation op expr)                = evalExpression expr ~!> toUnaryFunction op
+evalExpression (FunctionCall name param_exprs)         = readDefs ~!> chooseDef name ~~> (\func -> evalFunction func param_exprs)
 evalExpression (Conditional stat expr_true expr_false) = evalExpression stat ~~> (\cond -> evalExpression (if toBool cond then expr_true else expr_false))
 evalExpression (Block exprs)                           = evalExpressionsL (curry snd) 0 exprs 
 
