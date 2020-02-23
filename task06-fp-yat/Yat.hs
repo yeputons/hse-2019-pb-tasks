@@ -69,10 +69,10 @@ showExpression (Conditional stat expr_true expr_false) = "if " ++ showExpression
 showExpression (Block exprs)                           = "{\n" ++ concatMap processLine (lines $ intercalate ";\n" $ map showExpression exprs) ++ "}" 
 
 showFunction :: FunctionDefinition -> String
-showFunction (fn_name, params, expr) = "func " ++ fn_name ++ showParams params ++ " = " ++ showExpression expr ++ "\n"
+showFunction (fn_name, params, expr) = "func " ++ fn_name ++ showParams params ++ " = " ++ showExpression expr
 
 showProgram :: Program -> String
-showProgram (funcs, expr) = intercalate "\n" (map showFunction funcs) ++ showExpression expr
+showProgram (funcs, expr) = unlines (map showFunction funcs) ++ showExpression expr
 
 toBool :: Integer -> Bool
 toBool = (/=) 0
