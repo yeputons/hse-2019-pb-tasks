@@ -137,7 +137,7 @@ andEvaluated eval func = Eval (\funcs state ->
 (~!>) = andEvaluated
 
 evalExpressionsL :: (a -> Integer -> a) -> a -> [Expression] -> Eval a  -- Вычисляет список выражений от первого к последнему.
-evalExpressionsL func x exprs = foldl (\y expr -> y ~!> func ~~> ((evalExpression expr) ~!>)) (evaluated x) exprs
+evalExpressionsL func x = foldl (\y expr -> y ~!> func ~~> (evalExpression expr ~!>)) (evaluated x)
 
 evalAssign name expr = evalExpression expr ~~> (\value -> addToState name value value)
 
@@ -148,13 +148,13 @@ assignParams :: [Name] -> [Integer] -> Eval Integer
 assignParams names values = evalExpression $ Block $ zipWith Assign names (map Number values)
 
 evalExprs :: [Expression] -> Eval [Integer]
-evalExprs exprs = evalExpressionsL (flip (:)) [] exprs
+evalExprs = evalExpressionsL (flip (:)) []
 
 saveState :: Eval a -> Eval a 
 saveState eval = Eval $ \funcs state -> (fst $ runEval eval funcs state, state)
 
 evalFunction :: FunctionDefinition -> [Expression] -> Eval Integer
-evalFunction (name, param_names, body) param_exprs = evalExprs param_exprs ~~> (\values -> saveState ((assignParams param_names values) ~~> (\_ -> evalExpression body)))
+evalFunction (name, param_names, body) param_exprs = evalExprs param_exprs ~~> (\values -> saveState (assignParams param_names values ~~> (\_ -> evalExpression body)))
  
 
 evalExpression :: Expression -> Eval Integer  -- Вычисляет выражение.
