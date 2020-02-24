@@ -46,24 +46,19 @@ showUnop :: Unop -> String
 showUnop Neg = "-"
 showUnop Not = "!"
 
-insertSeparators :: [String] -> String -> [String]
-insertSeparators []     sep = []
-insertSeparators [x]    sep = [x]
-insertSeparators (x:xs) sep = (x ++ sep) : insertSeparators xs sep
-
 showExpr :: Expression -> String
-showExpr (Number          n          ) = show n
-showExpr (Reference       name       ) = name
-showExpr (Assign          name expr  ) = "let " ++ name ++ " = " ++ showExpr expr ++ " tel"
-showExpr (BinaryOperation op   l    r) = "(" ++ showExpr l ++ " " ++ showBinop op ++ " " ++ showExpr r ++ ")"
-showExpr (UnaryOperation  op   expr  ) = showUnop op ++ showExpr expr
-showExpr (FunctionCall    name args  ) = name ++ "(" ++ concat (insertSeparators (map showExpr args) ", ") ++ ")"
-showExpr (Conditional     cond t    f) = "if " ++ showExpr cond ++ " then " ++ showExpr t ++ " else " ++ showExpr f ++ " fi"
-showExpr (Block           []         ) = "{\n}"
-showExpr (Block           exprs      ) = "{\n" ++ concatMap (("\t" ++) . (++ "\n")) (lines $ concat $ insertSeparators (map showExpr exprs) ";\n") ++ "}"
+showExpr (Number n)               = show n
+showExpr (Reference name)         = name
+showExpr (Assign name expr)       = "let " ++ name ++ " = " ++ showExpr expr ++ " tel"
+showExpr (BinaryOperation op l r) = "(" ++ showExpr l ++ " " ++ showBinop op ++ " " ++ showExpr r ++ ")"
+showExpr (UnaryOperation op expr) = showUnop op ++ showExpr expr
+showExpr (FunctionCall name args) = name ++ "(" ++ intercalate ", " (map showExpr args) ++ ")"
+showExpr (Conditional cond t f)   = "if " ++ showExpr cond ++ " then " ++ showExpr t ++ " else " ++ showExpr f ++ " fi"
+showExpr (Block [])               = "{\n}"
+showExpr (Block exprs)            = "{\n" ++ concatMap (("\t" ++) . (++ "\n")) (lines $ intercalate ";\n" (map showExpr exprs)) ++ "}"
 
 showFunctionDefinition :: FunctionDefinition -> String
-showFunctionDefinition (name, args, expr) = "func " ++ name ++ "(" ++ concat (insertSeparators args ", ") ++ ") = " ++ showExpr expr
+showFunctionDefinition (name, args, expr) = "func " ++ name ++ "(" ++ intercalate ", " args ++ ") = " ++ showExpr expr
 
 -- Верните текстовое представление программы (см. условие).
 showProgram :: Program -> String
@@ -135,14 +130,15 @@ evalExpression = undefined
 getVar :: State -> Name -> Integer
 getVar scope name = snd (head (filter ((==) name . fst) scope))
 
-getName :: FunctionDefinition -> Name
-getName (name, _, _) = name
+makeDef :: Name -> [FunctionDefinition] -> ([Name], Expression)
+makeDef name funcs = dropFirst (head (filter sameName funcs)) 
+                   where sameName  (funcName, _, _) = name == funcName
+                         dropFirst (_, name, expr)  = (name, expr)
 
-getArgs :: FunctionDefinition -> [Name]
-getArgs (_, args, _) = args
-
-getExpr :: FunctionDefinition -> Expression
-getExpr (_, _, expr) = expr
+makeCall :: [FunctionDefinition] -> State -> [Expression] -> ([Integer], State)
+makeCall func scope []           = ([], scope)
+makeCall func scope (expr:exprs) = (fst (evalExpr func scope expr):fst rest, snd rest)
+                                 where rest = makeCall func (snd $ evalExpr func scope expr) exprs
 
 evalExpr :: [FunctionDefinition] -> State -> Expression -> (Integer, State)
 evalExpr funcs scope (Number          n           ) = (n, scope)
@@ -158,10 +154,9 @@ evalExpr funcs scope (BinaryOperation op    l    r) = (toBinaryFunction op (fst 
 evalExpr funcs scope (UnaryOperation  op    expr  ) = (toUnaryFunction  op (fst retVal), snd retVal)
                                                       where retVal  = evalExpr funcs         scope expr
 
-evalExpr funcs scope (FunctionCall    name  args  ) = (fst (evalExpr funcs newScope (getExpr func)), newScope)
-                                                      where newScope = zip (getArgs func) (map (fst . evalExpr funcs scope) args) ++ snd (evalExpr funcs scope (Block args))
-                                                            func     = case find ((== name) . getName) funcs of
-                                                                       Just func' -> func'
+evalExpr funcs scope (FunctionCall    name  args  ) = (fst (evalExpr funcs (zip (fst func) (fst retVal) ++ snd retVal) (snd func)), snd retVal)
+                                                      where retVal = makeCall funcs scope args
+                                                            func   = makeDef  name  funcs
 
 evalExpr funcs scope (Conditional     cond  t    f) | toBool (fst retVal) = evalExpr funcs (snd retVal) t
                                                     | otherwise           = evalExpr funcs (snd retVal) f
