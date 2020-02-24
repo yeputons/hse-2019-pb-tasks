@@ -133,14 +133,11 @@ evalExpression = undefined
 -} -- Удалите эту строчку, если решаете бонусное задание.
 
 -- Реализуйте eval: запускает программу и возвращает её значение.
-modifyScope :: State -> String -> Integer -> State
-modifyScope scope var val = (var,val):filter ((/= var) . fst) scope
-
-functionScope :: State -> State -> State
-functionScope = foldl (\ scope x -> uncurry (modifyScope scope) x)
 
 getValue :: State -> String -> Integer
-getValue scope var = fromMaybe 0 (lookup var scope)
+getValue []                var' = undefined
+getValue ((var,val):scope) var' | var == var' = val
+                                | otherwise   = getValue scope var'
 
 getName :: FunctionDefinition -> Name
 getName (name, _, _) = name
@@ -151,17 +148,18 @@ getArgs (_, args, _) = args
 getFunExpr :: FunctionDefinition -> Expression
 getFunExpr (_, _, expr) = expr
 
-evalArgs :: [Name] -> State -> [FunctionDefinition] -> [Expression] -> State
+evalArgs :: [Name] -> State -> [FunctionDefinition] -> [Expression] -> (State, State)
 evalArgs []     _     _     _            = undefined
 evalArgs _      _     _     []           = undefined
-evalArgs [a]    scope funcs [expr]       = modifyScope scope' a val
+evalArgs [a]    scope funcs [expr]       = ([(a,val)], scope')
                                          where (scope',val) = evalExpression scope funcs expr
-evalArgs (a:as) scope funcs (expr:exprs) = evalArgs as (modifyScope scope' a val) funcs exprs
+evalArgs (a:as) scope funcs (expr:exprs) = ((a,val): fst (evalArgs as scope' funcs exprs), scope')
                                          where (scope',val) = evalExpression scope funcs expr
 
 evalFunction :: [FunctionDefinition] -> FunctionDefinition -> State -> [Expression] -> (State, Integer)
-evalFunction funcs func scope oper = (fst $ evalExpression scope funcs (Block oper), snd $ evalExpression recur funcs (getFunExpr func))
+evalFunction funcs func scope oper = (snd recur, snd $ evalExpression nscope funcs (getFunExpr func))
                                    where recur = evalArgs (getArgs func) scope funcs oper
+                                         nscope = uncurry (++) recur
 
 findFunction :: [FunctionDefinition] -> Name -> FunctionDefinition
 findFunction []     _        = undefined
@@ -171,7 +169,7 @@ findFunction (x:xs) funcName | getName x == funcName = x
 evalExpression :: State -> [FunctionDefinition] -> Expression -> (State, Integer)
 evalExpression scope _     (Number a)               = (scope, a)
 evalExpression scope _     (Reference a)            = (scope, getValue scope a)
-evalExpression scope funcs (Assign var val)         = (modifyScope scope' var val', val')
+evalExpression scope funcs (Assign var val)         = ((var,val'):scope', val')
                                                     where (scope', val') = evalExpression scope funcs val
 evalExpression scope funcs (BinaryOperation op a b) = (scope'', toBinaryFunction op aval bval)
                                                     where (scope'', bval) = evalExpression scope' funcs b
