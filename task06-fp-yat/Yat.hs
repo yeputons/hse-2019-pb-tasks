@@ -137,7 +137,7 @@ evalExpr functions scope (BinaryOperation op left right)                  = (sta
 evalExpr functions scope (UnaryOperation op expr)                         = (state, toUnaryFunction op val) 
                                                                             where (state, val) = evalExpr functions scope expr
 evalExpr functions scope  (FunctionCall name args)                        = (scope', snd $ evalExpr functions fScope fBody)
-                                                                            where (scope', valArgs)  = foldl (\(state, vals) expr -> (state, snd (evalExpr functions scope expr) : vals)) (scope, []) args
+                                                                            where (scope', valArgs)  = foldl (\(state, vals) expr -> let (newScope, val) = evalExpr functions scope expr in (newScope, val : vals)) (scope, []) args
                                                                                   (_ , fArgs, fBody) = fromJust $ find ((== name) . (\(x, _, _) -> x)) functions
                                                                                   fScope             = zip fArgs valArgs ++ scope'
 evalExpr functions scope (Conditional expr true false) | toBool res       = evalExpr functions state true
