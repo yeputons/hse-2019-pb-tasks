@@ -16,8 +16,8 @@ sum' :: [Int] -> Int
 sum' = sum'' 0
 
 sum'' :: Int -> [Int] -> Int
-sum'' ini (x:xs) = (sum'' x xs) + ini
-sum'' ini [] = ini
+sum'' ini (x:xs) = sum'' x xs + ini
+sum'' ini []     = ini
 
 -- Функция concat' принимает на вход список списков и возвращает конкатенацию
 -- этих списков. Она использует функцию concat'', которая дополнительно
@@ -30,8 +30,8 @@ concat' :: [[a]] -> [a]
 concat' = concat'' []
 
 concat'' :: [a] -> [[a]] -> [a]
-concat'' ini (x:xs) = x ++ (concat'' ini xs)
-concat'' ini [] = ini
+concat'' ini (x:xs) = x ++ concat'' ini xs
+concat'' ini []     = ini
 
 -- Функция hash' принимает на вход строку s и считает полиномиальный
 -- хэш от строки по формуле hash' s_0...s_{n - 1} =
@@ -53,18 +53,18 @@ hash' = hash'' 0
 
 hash'' :: Int -> String -> Int
 hash'' ini [] = ini 
-hash'' ini xs = ini *p ^ (length xs) + (hash'' (ord(last xs)) (reverse(drop 1 (reverse(xs)))))
+hash'' ini xs = ini *p ^ (length xs) + hash'' ord(last xs) reverse(drop 1 (reverse(xs)))
 
 -- Выделите общую логику предыдущих функций и реализуйте функцию высшего порядка foldr',
 -- не используя никаких стандартных функций.
 foldr' :: (a -> b -> b) -> b -> [a] -> b
-foldr' f ini [] = ini
+foldr' f ini []     = ini
 foldr' f ini (x:xs) = f x (foldr' f ini xs)
 
 -- Реализуйте функцию map' (которая делает то же самое, что обычный map)
 -- через функцию foldr', не используя стандартных функций.
 map' :: (a -> b) -> [a] -> [b]
-map' f = foldr' (\y ys -> f y : ys) []
+map' f = foldr' (\y ys -> f y:ys) []
 
 -- 2) Maybe
 -- Maybe a - это специальный тип данных, который может принимать либо
@@ -176,8 +176,8 @@ thirdElementOfSecondList' xs = tryTail xs ~~> tryHead ~~> tryTail ~~> tryTail ~~
 -- nubBy' (\x y -> x == y || x + y == 10) [2, 3, 5, 7, 8, 2]
 -- [2,3,5]
 nubBy' :: (a -> a -> Bool) -> [a] -> [a]
-nubBy' eq [] = []
-nubBy' eq (x:xs) = x : nubBy' eq (filter (not . eq x) xs)
+nubBy' eq []     = []
+nubBy' eq (x:xs) = x:nubBy' eq (filter (not . eq x) xs)
 
 -- Реализуйте функцию quickSort, которая принимает на вход список, и 
 -- возвращает список, в котором элементы отсортированы при помощи алгоритма
@@ -197,7 +197,7 @@ nubBy' eq (x:xs) = x : nubBy' eq (filter (not . eq x) xs)
 -- >>> quickSort' "babca"
 -- "aabbc"
 quickSort' :: Ord a => [a] -> [a]
-quickSort' [] = []
+quickSort' []     = []
 quickSort' (x:xs) = (quickSort' (filter (< x) (x:xs))) ++ filter (== x) (x:xs) ++ quickSort' ((filter (> x) (x:xs)))
 
 -- Найдите суммарную длину списков, в которых чётное количество элементов
@@ -239,7 +239,7 @@ type File = (String, [String])
 -- Здесь (\_ s -> s) --- это лямбда-функция, которая игнорирует первый
 -- параметр и возвращает второй.
 grep' :: (String -> [String] -> [String]) -> (String -> Bool) -> [File] -> [String]
-grep' format match [] = []
+grep' format match []    = []
 grep' format match files = concat' (map' (\ (ft, sd) -> format ft (filter match sd)) files)
 
 -- Также вам предоставлена функция для проверки вхождения подстроки в строку.
