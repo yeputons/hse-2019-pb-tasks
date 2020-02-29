@@ -53,7 +53,7 @@ hash' = hash'' 0
 
 hash'' :: Int -> String -> Int
 hash'' ini [] = ini 
-hash'' ini xs = ini *p ^ (length xs) + hash'' ord(last xs) reverse(drop 1 (reverse(xs)))
+hash'' ini xs = ini *p ^ length xs + hash'' ord(last xs) reverse(drop 1 (reverse xs))
 
 -- Выделите общую логику предыдущих функций и реализуйте функцию высшего порядка foldr',
 -- не используя никаких стандартных функций.
@@ -143,7 +143,7 @@ thirdElementOfSecondList xs = case secondElement xs of
 -- >>> fifthElement [1, 2, 3, 4, 5]
 -- Just 5
 fifthElement :: [a] -> Maybe a
-fifthElement xs = elementByNumber 5 xs
+fifthElement = elementByNumber 5
                where
                  elementByNumber 1 xs = tryHead xs
                  elementByNumber n xs = case tryTail xs of
@@ -198,7 +198,7 @@ nubBy' eq (x:xs) = x:nubBy' eq (filter (not . eq x) xs)
 -- "aabbc"
 quickSort' :: Ord a => [a] -> [a]
 quickSort' []     = []
-quickSort' (x:xs) = (quickSort' (filter (< x) (x:xs))) ++ filter (== x) (x:xs) ++ quickSort' ((filter (> x) (x:xs)))
+quickSort' (x:xs) = quickSort' (filter (< x) (x:xs)) ++ filter (== x) (x:xs) ++ quickSort' (filter (> x) (x:xs))
 
 -- Найдите суммарную длину списков, в которых чётное количество элементов
 -- имеют квадрат больше 100. Реализация должна быть без использования
