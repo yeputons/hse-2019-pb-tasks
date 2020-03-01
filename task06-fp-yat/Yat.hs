@@ -132,39 +132,37 @@ getVar scope name = snd (head (filter ((==) name . fst) scope))
 
 makeDef :: Name -> [FunctionDefinition] -> ([Name], Expression)
 makeDef name funcs = dropFirst (head (filter sameName funcs)) 
-                   where sameName  (funcName, _, _) = name == funcName
-                         dropFirst (_, name, expr)  = (name, expr)
+                     where sameName  (funcName, _, _) = name == funcName
+                           dropFirst (_, name, expr)  = (name, expr)
 
 makeCall :: [FunctionDefinition] -> State -> [Expression] -> ([Integer], State)
 makeCall func scope []           = ([], scope)
-makeCall func scope (expr:exprs) = (fst (evalExpr func scope expr):fst rest, snd rest)
-                                 where rest = makeCall func (snd $ evalExpr func scope expr) exprs
+makeCall func scope (expr:exprs) = (fst (evalExpr func scope expr):thisScope, nextScope)
+                                   where (thisScope, nextScope) = makeCall func (snd $ evalExpr func scope expr) exprs
 
 evalExpr :: [FunctionDefinition] -> State -> Expression -> (Integer, State)
-evalExpr funcs scope (Number          n           ) = (n, scope)
-evalExpr funcs scope (Reference       name        ) = (getVar scope name, scope)
+evalExpr funcs scope (Number n)               = (n, scope)
+evalExpr funcs scope (Reference name)         = (getVar scope name, scope)
 
-evalExpr funcs scope (Assign          name  expr  ) = (fst retVal, (name, fst retVal):snd retVal)
-                                                      where retVal  = evalExpr funcs scope         expr
+evalExpr funcs scope (Assign name expr)       = (retVal, (name, retVal):nextScope)
+                                                where (retVal, nextScope) = evalExpr funcs scope expr
 
-evalExpr funcs scope (BinaryOperation op    l    r) = (toBinaryFunction op (fst retVal1) (fst retVal2), snd retVal2)
-                                                      where retVal1 = evalExpr funcs scope         l
-                                                            retVal2 = evalExpr funcs (snd retVal1) r
+evalExpr funcs scope (BinaryOperation op l r) = (toBinaryFunction op retVal1 retVal2, nextScope2)
+                                                where (retVal1, nextScope1) = evalExpr funcs scope l
+                                                      (retVal2, nextScope2) = evalExpr funcs nextScope1 r
 
-evalExpr funcs scope (UnaryOperation  op    expr  ) = (toUnaryFunction  op (fst retVal), snd retVal)
-                                                      where retVal  = evalExpr funcs         scope expr
+evalExpr funcs scope (UnaryOperation op expr) = (toUnaryFunction op retVal, nextScope)
+                                                where (retVal, nextScope) = evalExpr funcs scope expr
 
-evalExpr funcs scope (FunctionCall    name  args  ) = (fst (evalExpr funcs (zip (fst func) (fst retVal) ++ snd retVal) (snd func)), snd retVal)
-                                                      where retVal = makeCall funcs scope args
-                                                            func   = makeDef  name  funcs
+evalExpr funcs scope (FunctionCall name args) = (fst (evalExpr funcs (zip func retVal ++ nextScope) funcScope), nextScope)
+                                                where (retVal, nextScope) = makeCall funcs scope args
+                                                      (func, funcScope)   = makeDef name funcs
 
-evalExpr funcs scope (Conditional     cond  t    f) | toBool (fst retVal) = evalExpr funcs (snd retVal) t
-                                                    | otherwise           = evalExpr funcs (snd retVal) f
-                                                      where retVal        = evalExpr funcs scope        cond
+evalExpr funcs scope (Conditional cond t f)   | toBool retVal = evalExpr funcs nextScope t
+                                              | otherwise     = evalExpr funcs nextScope f
+                                                where (retVal, nextScope) = evalExpr funcs scope cond
 
-evalExpr funcs scope (Block           []          ) = (0, scope)
-evalExpr funcs scope (Block           [expr]      ) = evalExpr funcs scope expr
-evalExpr funcs scope (Block           (e:es)      ) = evalExpr funcs (snd $ evalExpr funcs scope e) (Block es)
+evalExpr funcs scope (Block exprs)            = foldl (\(int, state) e -> evalExpr funcs state e) (0, scope) exprs
 
 -- Реализуйте eval: запускает программу и возвращает её значение.
 eval :: Program -> Integer
