@@ -49,9 +49,7 @@ showUnop Not = "!"
 -- Верните текстовое представление программы (см. условие).
 
 putTabs :: String -> String
-putTabs []       = []
-putTabs (ch:str) | ch == '\n' = ch :'\t': putTabs str
-                 | otherwise  = ch : putTabs str
+putTabs string = intercalate "\n\t" (lines string)
 
 showExpr :: Expression -> String
 
@@ -135,57 +133,45 @@ evalExpression = undefined
 
 -- Реализуйте eval: запускает программу и возвращает её значение.
 
-getInteger :: State -> Name -> Integer
-getInteger [] _  = 0
-getInteger (x:xs) name | name == fst x = snd x
-                       | otherwise     = getInteger xs name
-
 parseArgs :: [FunctionDefinition] -> State -> FunctionDefinition -> [Expression] -> (State, State)
 parseArgs functions scope (_, [], _) _ = (scope, scope)
 parseArgs _ _ (_, _:_, _) []         = ([], [])
-parseArgs functions scope (fName, argName : argNames, fExpr) (expr:exprs) = (fst result, fst evalResult ++ scope)
-                                                                          where evalResult      = evalExpr functions scope expr
-                                                                                function'       = (fName, argNames, fExpr) 
-                                                                                scope'          = (argName, snd evalResult) : fst evalResult
-                                                                                result          = parseArgs functions scope' function' exprs
-
-solveBlock :: [FunctionDefinition] -> State -> [Expression] -> (State, Integer)
-solveBlock functions scope []           = (scope, 0)
-solveBlock functions scope [oneExpr]    = evalExpr functions scope oneExpr
-solveBlock functions scope (expr:exprs) = solveBlock functions (fst (evalExpr functions scope expr)) exprs 
-
-
+parseArgs functions scope (fName, argName : argNames, fExpr) (expr:exprs) = (state', st ++ scope)
+                                                                          where (st, num)                  = evalExpr functions scope expr
+                                                                                function'                  = (fName, argNames, fExpr) 
+                                                                                scope'                     = (argName, num) : st
+                                                                                (state', _)          = parseArgs functions scope' function' exprs
 
 evalExpr :: [FunctionDefinition] -> State -> Expression -> (State, Integer)
 
-evalExpr functions scope (Number num) = (scope, num) 
+evalExpr _ scope (Number num) = (scope, num) 
 
-evalExpr functions scope (Reference name) = (scope, getInteger scope name)
+evalExpr functions scope (Reference name) = (scope, fromJust $ lookup name scope)
 
-evalExpr functions scope (Assign name expr) = ((name, snd result):fst result, snd result)
-                                              where result = evalExpr functions scope expr
+evalExpr functions scope (Assign name expr) = ((name, num):state, num)
+                                              where (state, num) = evalExpr functions scope expr
 
-evalExpr functions scope (BinaryOperation op left right) = (fst result2, toBinaryFunction op (snd result1) (snd result2))
-                                                            where result1 = evalExpr functions scope left
-                                                                  result2 = evalExpr functions (fst result1) right
+evalExpr functions scope (BinaryOperation op left right) = (state'', toBinaryFunction op num' num'')
+                                                            where (state', num')   = evalExpr functions scope left
+                                                                  (state'', num'') = evalExpr functions state' right
 
-evalExpr functions scope (UnaryOperation op expr) = (fst result, toUnaryFunction op (snd result)) 
-                                                     where result = evalExpr functions scope expr
+evalExpr functions scope (UnaryOperation op expr) = (state', toUnaryFunction op num') 
+                                                     where (state', num') = evalExpr functions scope expr
 
 evalExpr [] _ (FunctionCall _ _) = ([], 0)
 
 evalExpr ((fName, fArgs, fExpr):functions) scope (FunctionCall name args) | fName /= name    = evalExpr functions' scope (FunctionCall name args)
-                                                                          | otherwise        = (snd scope', snd result)
-                                                                            where func'      = (fName, fArgs, fExpr)
-                                                                                  functions' = functions ++ [func']
-                                                                                  scope'     = parseArgs functions' scope func' args
-                                                                                  result     = evalExpr functions' (fst scope') fExpr
+                                                                          | otherwise        = (num', num'')
+                                                                            where func'              = (fName, fArgs, fExpr)
+                                                                                  functions'         = functions ++ [func']
+                                                                                  (state', num')     = parseArgs functions' scope func' args
+                                                                                  (_, num'')         = evalExpr functions' state' fExpr
 
-evalExpr functions scope (Conditional expr true false) | toBool (snd result)     = evalExpr functions (fst result) true
-                                                       | otherwise               = evalExpr functions (fst result) false
-                                                         where result            = evalExpr functions scope expr
+evalExpr functions scope (Conditional expr true false) | toBool (num')     = evalExpr functions state' true
+                                                       | otherwise               = evalExpr functions state' false
+                                                         where (state', num')    = evalExpr functions scope expr
 
-evalExpr functions scope (Block exprs) = solveBlock functions scope exprs 
+evalExpr functions scope (Block exprs) = foldl (\(scope',foo) expr -> evalExpr functions scope' expr) (scope, 0) exprs  
 
 eval :: Program -> Integer
 eval (funcDefs, expr) = snd ( evalExpr funcDefs [] expr)
