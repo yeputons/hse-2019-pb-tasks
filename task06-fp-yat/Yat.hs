@@ -140,7 +140,7 @@ parseArgs functions scope (fName, argName : argNames, fExpr) (expr:exprs) = (sta
                                                                           where (st, num)                  = evalExpr functions scope expr
                                                                                 function'                  = (fName, argNames, fExpr) 
                                                                                 scope'                     = (argName, num) : st
-                                                                                (state', _)          = parseArgs functions scope' function' exprs
+                                                                                (state', _)                = parseArgs functions scope' function' exprs
 
 evalExpr :: [FunctionDefinition] -> State -> Expression -> (State, Integer)
 
@@ -161,13 +161,13 @@ evalExpr functions scope (UnaryOperation op expr) = (state', toUnaryFunction op 
 evalExpr [] _ (FunctionCall _ _) = ([], 0)
 
 evalExpr ((fName, fArgs, fExpr):functions) scope (FunctionCall name args) | fName /= name    = evalExpr functions' scope (FunctionCall name args)
-                                                                          | otherwise        = (num', num'')
-                                                                            where func'              = (fName, fArgs, fExpr)
-                                                                                  functions'         = functions ++ [func']
-                                                                                  (state', num')     = parseArgs functions' scope func' args
-                                                                                  (_, num'')         = evalExpr functions' state' fExpr
+                                                                          | otherwise        = (num', state'')
+                                                                            where func'                 = (fName, fArgs, fExpr)
+                                                                                  functions'            = functions ++ [func']
+                                                                                  (state', state'')     = parseArgs functions' scope func' args
+                                                                                  (_, num'')            = evalExpr functions' state' fExpr
 
-evalExpr functions scope (Conditional expr true false) | toBool num'     = evalExpr functions state' true
+evalExpr functions scope (Conditional expr true false) | toBool num'             = evalExpr functions state' true
                                                        | otherwise               = evalExpr functions state' false
                                                          where (state', num')    = evalExpr functions scope expr
 
