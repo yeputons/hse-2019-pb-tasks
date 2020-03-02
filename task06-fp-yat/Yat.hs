@@ -161,7 +161,7 @@ evalExpr functions scope (UnaryOperation op expr) = (state', toUnaryFunction op 
 evalExpr [] _ (FunctionCall _ _) = ([], 0)
 
 evalExpr ((fName, fArgs, fExpr):functions) scope (FunctionCall name args) | fName /= name    = evalExpr functions' scope (FunctionCall name args)
-                                                                          | otherwise        = (num', state'')
+                                                                          | otherwise        = (state'', num'')
                                                                             where func'                 = (fName, fArgs, fExpr)
                                                                                   functions'            = functions ++ [func']
                                                                                   (state', state'')     = parseArgs functions' scope func' args
