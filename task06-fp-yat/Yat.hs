@@ -63,7 +63,7 @@ showExpression (Block expr)             = "{\n" ++ intercalate ";\n" (map (makeF
 
 
 showFunctionDefinition :: FunctionDefinition -> String
-showFunctionDefinition (name, names, e) = "func " ++ name ++ "(" ++ intercalate ", " names ++ ") = " ++ showExpression e
+showFunctionDefinition (funcName, varNames, e) = "func " ++ funcName ++ "(" ++ intercalate ", " varNames ++ ") = " ++ showExpression e
 
 showProgram :: Program -> String
 showProgram ([], e) = showExpression e
@@ -137,7 +137,7 @@ getFunctionName :: FunctionDefinition -> Name
 getFunctionName (funcName, _, _) = funcName
 
 getFunctionBody :: FunctionDefinition -> ([Name], Expression)
-getFunctionBody (_, [], expr) = ([], expr)
+getFunctionBody (_, [], expr)    = ([], expr)
 getFunctionBody (_, names, expr) = (names, expr)
 
 getValue :: State -> Name -> Integer
@@ -151,14 +151,14 @@ getFunctionDefinition name funcs = getFunctionBody  (head [f | f <- funcs, name 
 
 evalManyExpression :: [FunctionDefinition] -> State -> [Expression] -> (State, [Integer])
 evalManyExpression funcDefs scope []       = (scope, [])
-evalManyExpression funcDefs scope (e:expr) = (fst manyExpression, snd oneExpression:snd manyExpression)
+evalManyExpression funcDefs scope (e:expr) = (fst manyExpression, (:) (snd oneExpression) (snd manyExpression))
                                              where oneExpression  = evalExpression funcDefs scope e 
-                                                   manyExpression = evalManyExpression funcDefs scope expr
+                                                   manyExpression = evalManyExpression funcDefs (fst oneExpression) expr
 
 evalExpression :: [FunctionDefinition] -> State -> Expression -> (State, Integer)
 evalExpression funcDefs scope (Number n)               = (scope, n)
 evalExpression funcDefs scope (Reference name)         = (scope, getValue scope name)
-evalExpression funcDefs scope (Assign name expr)       = ((name, snd value):fst value, snd value)
+evalExpression funcDefs scope (Assign name expr)       = ((:) (name, snd value) (fst value), snd value)
                                                          where value = evalExpression funcDefs scope expr
 
 evalExpression funcDefs scope (BinaryOperation op l r) = (fst rvalue, toBinaryFunction op (snd lvalue) (snd rvalue))
@@ -186,3 +186,6 @@ evalExpression funcDefs scope (Block (e:expr))         = evalExpression funcDefs
 
 eval :: Program -> Integer
 eval (funcDef, expr) = snd (evalExpression funcDef [] expr)
+
+evalState :: Program -> State
+evalState (funcDef, expr) = fst (evalExpression funcDef [] expr)
