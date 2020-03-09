@@ -63,7 +63,7 @@ showExpression (Block [])                       = "{\n}"
 showExpression (Block es)                       = "{" ++ "\n" ++ "\t" ++ unlines [addTabs (lines (intercalate ";\n" (map showExpression es)))] ++ "}"
 
 showFunctionDefinition :: FunctionDefinition -> String
-showFunctionDefinition (name, params, expr) = "func " ++ name ++ "(" ++  (intercalate ", " params) ++ ")" ++ " = " ++ showExpression expr ++ "\n"
+showFunctionDefinition (name, params, expr) = "func " ++ name ++ "(" ++  intercalate ", " params ++ ")" ++ " = " ++ showExpression expr ++ "\n"
 
 showProgram :: Program -> String
 showProgram ([], expr)      = showExpression expr
