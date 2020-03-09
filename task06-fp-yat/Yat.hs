@@ -132,10 +132,15 @@ evalExpression = undefined
 -} -- Удалите эту строчку, если решаете бонусное задание.
 
 -- Реализуйте eval: запускает программу и возвращает её значение.
+
+getFunctionName :: FunctionDefinition -> Name
+getFunctionName (name, _, _) = name
+
+getFunctionBody :: FunctionDefinition -> ([Name], Expression)
+getFunctionBody (_, params, expr) = (params, expr)
+
 getFunctionDefinition :: Name -> [FunctionDefinition] -> ([Name], Expression)
-getFunctionDefinition name [(n, ps, e)] = getFunctionBody (head [(n, ps, e) | (n, ps, e) <- [(n, ps, e)], getFunctionName (n, ps, e) == name])
-                                 where getFunctionName  (n, _, _)  = n
-                                       getFunctionBody  (_, ps, e) = (ps, e)
+getFunctionDefinition name fds = getFunctionBody (head [fd | fd <- fds, getFunctionName fd == name])
 
 getValue :: State -> String -> Integer
 getValue scope name = head [snd s | s <- scope, fst s == name]
