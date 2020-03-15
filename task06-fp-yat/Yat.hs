@@ -133,14 +133,8 @@ evalExpression = undefined
 
 -- Реализуйте eval: запускает программу и возвращает её значение.
 
-getFunctionName :: FunctionDefinition -> Name
-getFunctionName (name, _, _) = name
-
-getFunctionBody :: FunctionDefinition -> ([Name], Expression)
-getFunctionBody (_, params, expr) = (params, expr)
-
 getFunctionDefinition :: Name -> [FunctionDefinition] -> ([Name], Expression)
-getFunctionDefinition name fds = getFunctionBody (head [fd | fd <- fds, getFunctionName fd == name])
+getFunctionDefinition name [(n, ps, e)] = head [(ps, e) | (n, ps, e) <- [(n, ps, e)], n == name]
 
 getValue :: State -> String -> Integer
 getValue scope name = head [snd s | s <- scope, fst s == name]
@@ -150,42 +144,37 @@ makeFunctionScope scope params values = zip params values ++ scope
 
 evalExpressionList :: State -> [FunctionDefinition] -> [Expression] -> (State, [Integer])
 evalExpressionList scope fds []        = (scope, [])
-evalExpressionList scope fds (hes:tes) = (fst tailScope, snd headScope:snd tailScope)
-                                         where headScope = evalExpression scope fds hes
-                                               tailScope = evalExpressionList (fst headScope) fds tes
+evalExpressionList scope fds (hes:tes) = (tailScope, headInt:tailInt)
+                                         where (headScope, headInt) = evalExpression scope fds hes
+                                               (tailScope, tailInt) = evalExpressionList headScope fds tes
 
 evalExpression :: State -> [FunctionDefinition] -> Expression -> (State, Integer)
-evalExpression scope fds (Number n)                       = (scope, n)
+evalExpression scope _ (Number n)                       = (scope, n)
 
-evalExpression scope fds (Reference name)                 = (scope, getValue scope name)
+evalExpression scope _ (Reference name)                 = (scope, getValue scope name)
 
-evalExpression scope fds (Assign name e)                  = ((name, snd eScope):fst eScope, snd eScope)
-                                                            where eScope = evalExpression scope fds e
+evalExpression scope fds (Assign name e)                = ((name, eInt):eScope, eInt)
+                                                          where (eScope, eInt) = evalExpression scope fds e
 
-evalExpression scope fds (BinaryOperation op l r)         = (fst rScope, bfResult)
-                                                            where lScope   = evalExpression scope fds l
-                                                                  rScope   = evalExpression (fst lScope) fds r
-                                                                  bfResult = toBinaryFunction op (snd lScope) (snd rScope)
+evalExpression scope fds (BinaryOperation op l r)       = (rScope, bfResult)
+                                                           where (lScope, lInt)  = evalExpression scope fds l
+                                                                 (rScope, rInt)  = evalExpression lScope fds r
+                                                                 bfResult        = toBinaryFunction op lInt rInt
 
-evalExpression scope fds (UnaryOperation op e)            = (fst eScope, toUnaryFunction op (snd eScope))
-                                                            where eScope = evalExpression scope fds e
+evalExpression scope fds (UnaryOperation op e)          = (eScope, toUnaryFunction op eInt)
+                                                          where (eScope, eInt) = evalExpression scope fds e
 
-evalExpression scope fds (FunctionCall name params)       = (fst commonScope, snd result)
-                                                            where commonScope = evalExpressionList scope fds params
-                                                                  funcBody    = getFunctionDefinition name fds
-                                                                  fScope      = makeFunctionScope (fst commonScope) (fst funcBody) (snd commonScope)
-                                                                  result      = evalExpression fScope fds (snd funcBody)
+evalExpression scope fds (FunctionCall name params)     = (comScope, rInt)
+                                                          where (comScope, comInt) = evalExpressionList scope fds params
+                                                                (pFBody, exFBody)  = getFunctionDefinition name fds
+                                                                fScope             = makeFunctionScope comScope pFBody comInt
+                                                                (rScope, rInt)     = evalExpression fScope fds exFBody
 
-evalExpression scope fds (Conditional e t f)              | toBool (snd eScope) = evalExpression (fst eScope) fds t
-                                                          | otherwise           = evalExpression (fst eScope) fds f
-                                                          where eScope = evalExpression scope fds e
+evalExpression scope fds (Conditional e t f)            | toBool eInt          = evalExpression eScope fds t
+                                                        | otherwise            = evalExpression eScope fds f
+                                                          where (eScope, eInt) = evalExpression scope fds e
 
-evalExpression scope fds (Block [])                       = (scope, 0)
-
-evalExpression scope fds (Block [e])                      = evalExpression scope fds e
-
-evalExpression scope fds (Block (hes:tes))                = evalExpression (fst headScope) fds (Block tes)
-                                                           where headScope = evalExpression scope fds hes
+evalExpression scope fds (Block es)                     = foldl (\x y -> evalExpression (fst x) fds y) (scope, 0) es
 
 eval :: Program -> Integer
 eval (fd, expr) = snd (evalExpression [] fd expr)
