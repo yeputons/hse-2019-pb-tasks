@@ -145,10 +145,10 @@ getVariable state name = snd (head (filter ((==) name . fst) state))
 evalExpression :: Expression -> [FunctionDefinition] -> State -> (Integer, State)
 evalExpression (Number num)                    _     scope = (num, scope)
 evalExpression (Reference name )               _     scope = (getVariable scope name, scope)
-evalExpression (Assign name expr)              funcs scope = (fst result, (name, fst result):snd result) 
+evalExpression (Assign name expr)              funcs scope = (fst result, (name, fst result):snd result)
                                                              where 
                                                                  result = evalExpression expr funcs scope
-evalExpression (BinaryOperation op left right) funcs scope = (toBinaryFunction op (fst lres) (fst rres), snd rres)
+evalExpression (BinaryOperation op left right) funcs scope = first (toBinaryFunction op (fst lres)) rres
                                                              where
                                                                  lres = evalExpression left  funcs scope
                                                                  rres = evalExpression right funcs (snd lres)
@@ -160,7 +160,7 @@ evalExpression (FunctionCall name args)        funcs scope = (fst result, snd ch
                                                              where
                                                                  fundef    = getFunctionDefinition funcs name
                                                                  chainargs = chainFunctions funcs scope args
-                                                                 result    = evalExpression (snd fundef) funcs (zip (fst fundef) (fst chainargs) ++ (snd chainargs))
+                                                                 result    = evalExpression (snd fundef) funcs (zip (fst fundef) (fst chainargs) ++ snd chainargs)
 
 evalExpression (Conditional expr true false)   funcs scope | toBool (fst result) = evalExpression true  funcs (snd result)
                                                            | otherwise           = evalExpression false funcs (snd result)
