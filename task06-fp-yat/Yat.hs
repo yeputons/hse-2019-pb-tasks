@@ -133,8 +133,14 @@ evalExpression = undefined
 
 -- Реализуйте eval: запускает программу и возвращает её значение.
 
+getFunctionName :: FunctionDefinition -> Name
+getFunctionName (name, _, _) = name
+
+getFunctionBody :: FunctionDefinition -> ([Name], Expression)
+getFunctionBody (_, params, expr) = (params, expr)
+
 getFunctionDefinition :: Name -> [FunctionDefinition] -> ([Name], Expression)
-getFunctionDefinition name [(n, ps, e)] = head [(ps, e) | (n, ps, e) <- [(n, ps, e)], n == name]
+getFunctionDefinition name fds = getFunctionBody (head [fd | fd <- fds, getFunctionName fd == name])
 
 getValue :: State -> String -> Integer
 getValue scope name = head [snd s | s <- scope, fst s == name]
@@ -143,7 +149,7 @@ makeFunctionScope :: State -> [Name] -> [Integer] -> State
 makeFunctionScope scope params values = zip params values ++ scope
 
 evalExpressionList :: State -> [FunctionDefinition] -> [Expression] -> (State, [Integer])
-evalExpressionList scope fds []        = (scope, [])
+evalExpressionList scope _ []        = (scope, [])
 evalExpressionList scope fds (hes:tes) = (tailScope, headInt:tailInt)
                                          where (headScope, headInt) = evalExpression scope fds hes
                                                (tailScope, tailInt) = evalExpressionList headScope fds tes
@@ -168,7 +174,7 @@ evalExpression scope fds (FunctionCall name params)     = (comScope, rInt)
                                                           where (comScope, comInt) = evalExpressionList scope fds params
                                                                 (pFBody, exFBody)  = getFunctionDefinition name fds
                                                                 fScope             = makeFunctionScope comScope pFBody comInt
-                                                                (rScope, rInt)     = evalExpression fScope fds exFBody
+                                                                (_, rInt)     = evalExpression fScope fds exFBody
 
 evalExpression scope fds (Conditional e t f)            | toBool eInt          = evalExpression eScope fds t
                                                         | otherwise            = evalExpression eScope fds f
