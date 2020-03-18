@@ -46,9 +46,39 @@ showUnop :: Unop -> String
 showUnop Neg = "-"
 showUnop Not = "!"
 
+addTabs :: String -> String 
+addTabs [] = ""
+addTabs (char:chars)
+    | char == '\n' = concat [[char], "\t", addTabs chars]
+    | otherwise    = char : addTabs chars
+
+showExpression :: Expression -> String
+showExpression (Number num)                  = show num
+showExpression (Reference var)               = var
+showExpression (Assign var_name val)         = concat ["let ", var_name, " = ", showExpression val, " tel"]
+showExpression (BinaryOperation bin a b)     = concat ["(", showExpression a, " ", showBinop bin, " ", showExpression b, ")"]
+showExpression (UnaryOperation un x)         = showUnop un ++ showExpression x
+showExpression (FunctionCall name exprs)     = concat [name, "(", intercalate ", " (map showExpression exprs),  ")"]
+showExpression (Conditional cond true false) = concat ["if ", showExpression cond, " then ", showExpression true, " else ", showExpression false, " fi"]
+showExpression (Block [])                    = "{\n}"  --нельзя убрать, т.к. тут должен быть один перенос, а во втором случае два.
+showExpression (Block exprs)                 = addTabs ("{\n" ++ intercalate ";\n" (map showExpression exprs)) ++ "\n}"
+
+showFunctionDefintion :: FunctionDefinition -> String
+showFunctionDefintion (name, vars, expr) = concat ["func ", name, "(", foldr1 (\x y -> concat [x, ", ", y]) vars, ") = ", showExpression expr] 
+
+showState :: State -> String
+showState = concatMap (\x -> concat [fst x, " == ", show (snd x), "\n"])
+
+
 -- Верните текстовое представление программы (см. условие).
 showProgram :: Program -> String
-showProgram = undefined
+showProgram ([], expr) = showExpression expr 
+
+showProgram (funcs, expr) = concat [concatMap showFunctionDefintion funcs, "\n", showExpression expr]
+
+
+-- main :: IO()
+-- main = putStrLn $ showProgram ([("sqr", ["x"], BinaryOperation Mul (Reference "x") (Reference "x"))], Block [Assign "x" (Number 20), BinaryOperation Add (Reference "x") (FunctionCall "sqr" [Reference "x"])])
 
 toBool :: Integer -> Bool
 toBool = (/=) 0
@@ -113,5 +143,75 @@ evalExpression = undefined
 -} -- Удалите эту строчку, если решаете бонусное задание.
 
 -- Реализуйте eval: запускает программу и возвращает её значение.
+
+getFunctionBody :: Maybe FunctionDefinition -> Expression
+getFunctionBody (Just (_, _, body)) = body 
+getFunctionBody _ = Number 0
+
+getFunctionArguments :: Maybe FunctionDefinition -> [Name]
+getFunctionArguments (Just (_, args, _)) = args
+getFunctionArguments _ = []
+
+getArgumentsValues :: [Expression] -> State -> [FunctionDefinition] -> [Integer]
+getArgumentsValues [] _ _ = []
+getArgumentsValues (expr:exprs) state defs = snd result : getArgumentsValues exprs (fst result) defs
+                                  where 
+                                       result = evalExpression expr state defs
+
+evalExpression :: Expression -> State -> [FunctionDefinition] -> (State, Integer)
+evalExpression (Number num) state _ = (state, num)
+evalExpression (Reference var) state _ = (state, fromMaybe 0 (lookup var state))
+
+evalExpression (Assign var_name val) state defs = ((var_name, value) : new_state, value)
+                                                  where 
+                                                       result = evalExpression val state defs
+                                                       (new_state, value) = result
+
+evalExpression (BinaryOperation bin a b) state defs = (new_state, value) 
+                                                      where
+                                                           first_result                  = evalExpression a state defs 
+                                                           (first_state, first_value)    = first_result
+                                                           second_result                 = evalExpression b first_state defs 
+                                                           (second_state, second_value)  = second_result
+                                                           value                         = toBinaryFunction bin first_value second_value
+                                                           new_state                     = second_state
+
+evalExpression (UnaryOperation un x) state defs = (new_state, value)
+                                                  where 
+                                                       result    = evalExpression x state defs 
+                                                       new_state = fst result
+                                                       value     = toUnaryFunction un (snd result)
+
+evalExpression (Conditional cond true false) state defs 
+    | toBool(snd condition) = evalExpression true state_cond defs 
+    | otherwise               = evalExpression false state_cond defs 
+                                where 
+                                     condition  = evalExpression cond state defs
+                                     state_cond = fst condition
+
+evalExpression (Block exprs) state defs = (state, value)
+                                          where 
+                                               match (state_1, _) expr = evalExpression expr state_1 defs
+                                               result = foldl match (state, 0) exprs  
+                                               value = snd result
+
+
+evalExpression (FunctionCall name exprs) state defs = (new_state, value)
+                                                     where 
+                                                          match (state_1, _) expr = evalExpression expr state_1 defs
+                                                          args_vals = getArgumentsValues exprs state defs
+                                                          new_state = fst $ foldl match (state, 0) exprs
+                                                          func_name (fname, _, _) = fname
+                                                          function = find (\x -> name == func_name x) defs
+                                                          args_names = getFunctionArguments function
+                                                          func_state = zip args_names args_vals ++ new_state 
+                                                          result = evalExpression (getFunctionBody function) func_state defs 
+                                                          value = snd result
+                                                              
+
+
 eval :: Program -> Integer
-eval = undefined
+eval (defs, expr) = snd $ evalExpression expr [] defs
+
+
+
