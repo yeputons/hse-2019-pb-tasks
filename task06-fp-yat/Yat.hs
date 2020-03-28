@@ -67,7 +67,7 @@ showFunctionDefintion :: FunctionDefinition -> String
 showFunctionDefintion (name, vars, expr) = concat ["func ", name, "(", foldr1 (\x y -> concat [x, ", ", y]) vars, ") = ", showExpression expr] 
 
 showState :: State -> String
-showState = concatMap (\x -> concat [fst x, " == ", show (snd x), "\n"])
+showState = concatMap (\(var, val) -> concat [var, " == ", show val, "\n"])
 
 
 -- Верните текстовое представление программы (см. условие).
@@ -154,9 +154,9 @@ getFunctionArguments _ = []
 
 getArgumentsValues :: [Expression] -> State -> [FunctionDefinition] -> [Integer]
 getArgumentsValues [] _ _ = []
-getArgumentsValues (expr:exprs) state defs = snd result : getArgumentsValues exprs (fst result) defs
+getArgumentsValues (expr:exprs) state defs = arg_value : getArgumentsValues exprs new_state defs
                                   where 
-                                       result = evalExpression expr state defs
+                                       (new_state, arg_value) = evalExpression expr state defs
 
 evalExpression :: Expression -> State -> [FunctionDefinition] -> (State, Integer)
 evalExpression (Number num) state _ = (state, num)
@@ -178,35 +178,31 @@ evalExpression (BinaryOperation bin a b) state defs = (new_state, value)
 
 evalExpression (UnaryOperation un x) state defs = (new_state, value)
                                                   where 
-                                                       result    = evalExpression x state defs 
-                                                       new_state = fst result
-                                                       value     = toUnaryFunction un (snd result)
+                                                       (new_state, arg_value) = evalExpression x state defs 
+                                                       value                  = toUnaryFunction un arg_value
 
 evalExpression (Conditional cond true false) state defs 
-    | toBool(snd condition) = evalExpression true state_cond defs 
-    | otherwise               = evalExpression false state_cond defs 
+    | toBool value = evalExpression true new_state defs 
+    | otherwise     = evalExpression false new_state defs 
                                 where 
-                                     condition  = evalExpression cond state defs
-                                     state_cond = fst condition
+                                     (new_state, value) = evalExpression cond state defs
 
 evalExpression (Block exprs) state defs = (state, value)
                                           where 
                                                match (state_1, _) expr = evalExpression expr state_1 defs
-                                               result = foldl match (state, 0) exprs  
-                                               value = snd result
+                                               value                   = snd $ foldl match (state, 0) exprs 
 
 
 evalExpression (FunctionCall name exprs) state defs = (new_state, value)
-                                                     where 
-                                                          match (state_1, _) expr = evalExpression expr state_1 defs
-                                                          args_vals = getArgumentsValues exprs state defs
-                                                          new_state = fst $ foldl match (state, 0) exprs
-                                                          func_name (fname, _, _) = fname
-                                                          function = find (\x -> name == func_name x) defs
-                                                          args_names = getFunctionArguments function
-                                                          func_state = zip args_names args_vals ++ new_state 
-                                                          result = evalExpression (getFunctionBody function) func_state defs 
-                                                          value = snd result
+                                                       where 
+                                                            match (state_1, _) expr = evalExpression expr state_1 defs
+                                                            args_vals               = getArgumentsValues exprs state defs
+                                                            new_state               = fst $ foldl match (state, 0) exprs
+                                                            func_name (fname, _, _) = fname
+                                                            function                = find (\x -> name == func_name x) defs
+                                                            args_names              = getFunctionArguments function
+                                                            func_state              = zip args_names args_vals ++ new_state 
+                                                            value                   = snd $ evalExpression (getFunctionBody function) func_state defs 
                                                               
 
 
