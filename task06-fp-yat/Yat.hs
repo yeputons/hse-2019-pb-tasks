@@ -156,4 +156,3 @@ evalExpression (Block commands) scope funcs                 = foldl (\(_, tmpSco
 
 eval :: Program -> Integer
 eval (definitions, expr) = fst (evalExpression expr [] definitions)
- 
