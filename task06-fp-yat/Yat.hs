@@ -47,34 +47,20 @@ showUnop Neg = "-"
 showUnop Not = "!"
 
 -- Верните текстовое представление программы (см. условие).
-chainFuncCall :: [Expression] -> String
-chainFuncCall []    = ""
-chainFuncCall exprs = intercalate ", " (map (`showExpression` "") exprs)
-
-chainBlock :: [Expression] -> String -> String
-chainBlock [] _          = ""
-chainBlock [e] indent    = indent ++ showExpression e indent ++ "\n"
-chainBlock (e:es) indent = indent ++ showExpression e indent ++ ";\n" ++ chainBlock es indent
-
-showExpression :: Expression -> String -> String
-showExpression (Number n) indent                       = show n
-showExpression (Reference name) indent                 = name
-showExpression (Assign name expr) indent               = "let " ++ name ++ " = " ++ showExpression expr indent ++ " tel"
-showExpression (BinaryOperation op expr1 expr2) indent = "(" ++ showExpression expr1 indent ++ " " ++ showBinop op ++ " " ++ showExpression expr2 indent ++ ")"
-showExpression (UnaryOperation op expr) indent         = showUnop op ++ showExpression expr indent
-showExpression (FunctionCall name exprs) indent        = name ++ "(" ++ chainFuncCall exprs ++ ")"
-showExpression (Conditional e t f) indent              = "if " ++ showExpression e indent ++ " then " ++ showExpression t indent ++ " else " ++ showExpression f indent ++ " fi"
-showExpression (Block commands) indent                 = "{\n" ++ chainBlock commands (indent ++ "\t") ++ indent ++ "}"
-
-chainFuncDef :: [Name] -> String
-chainFuncDef []    = ""
-chainFuncDef names = intercalate ", " names
+showExpression (Number n)                       = show n
+showExpression (Reference name)                 = name
+showExpression (Assign name expr)               = concat ["let ", name, " = ", showExpression expr, " tel"]
+showExpression (BinaryOperation op expr1 expr2) = concat ["(", showExpression expr1, " ", showBinop op, " ", showExpression expr2, ")"]
+showExpression (UnaryOperation op expr)         = concat [showUnop op, showExpression expr]
+showExpression (FunctionCall name exprs)        = concat [name, "(", intercalate ", " (map showExpression exprs), ")"]
+showExpression (Conditional e t f)              = concat ["if ", showExpression e, " then ", showExpression t, " else ", showExpression f, " fi"]
+showExpression (Block commands)                 = concat ["{\n", concatMap (\line -> concat ["\t", line, "\n"]) (lines (intercalate ";\n" (map showExpression commands))), "}"]
 
 showFuncDef :: FunctionDefinition -> String
-showFuncDef (name, params, expr) = "func " ++ name ++ "(" ++ chainFuncDef params ++ ") = " ++ showExpression expr "" ++ "\n"
+showFuncDef (name, params, expr) = concat ["func ", name, "(", intercalate ", " params, ") = ", showExpression expr, "\n"]
 
 showProgram :: Program -> String
-showProgram (definitions, expr) = concatMap showFuncDef definitions ++ showExpression expr ""
+showProgram (definitions, expr) = concatMap showFuncDef definitions ++ showExpression expr
 
 toBool :: Integer -> Bool
 toBool = (/=) 0
@@ -212,4 +198,4 @@ evalExpression (Block commands) scope funcs                 = evalChainBlock com
 
 eval :: Program -> Integer
 eval (definitions, expr) = fst (evalExpression expr [] definitions)
-{--}  
+ 
