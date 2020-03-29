@@ -17,13 +17,13 @@ data Binop = Add | Mul | Sub | Div | Mod | Lt | Le | Gt | Ge | Eq | Ne | And | O
 data Unop = Neg | Not
 
 data Expression = Number Integer  -- Возвращает число, побочных эффектов нет.
-                | Reference Name  -- Возвращает значение соответствующей переменной в текущем scope, побочных эффектов нет.
+                | Reference Name  -- Возвращает значение соответствующей переменной в текущем state, побочных эффектов нет.
                 | Assign Name Expression  -- Вычисляет операнд, а потом изменяет значение соответствующей переменной и возвращает его. Если соответствующей переменной нет, она создаётся.
                 | BinaryOperation Binop Expression Expression  -- Вычисляет сначала левый операнд, потом правый, потом возвращает результат операции. Других побочных эффектов нет.
                 | UnaryOperation Unop Expression  -- Вычисляет операнд, потом применяет операцию и возвращает результат. Других побочных эффектов нет.
-                | FunctionCall Name [Expression]  -- Вычисляет аргументы от первого к последнему в текущем scope, потом создаёт новый scope для дочерней функции (копию текущего с добавленными параметрами), возвращает результат работы функции.
+                | FunctionCall Name [Expression]  -- Вычисляет аргументы от первого к последнему в текущем state, потом создаёт новый state для дочерней функции (копию текущего с добавленными параметрами), возвращает результат работы функции.
                 | Conditional Expression Expression Expression -- Вычисляет первый Expression, в случае истины вычисляет второй Expression, в случае лжи - третий. Возвращает соответствующее вычисленное значение.
-                | Block [Expression] -- Вычисляет в текущем scope все выражения по очереди от первого к последнему, результат вычисления -- это результат вычисления последнего выражения или 0, если список пуст.
+                | Block [Expression] -- Вычисляет в текущем state все выражения по очереди от первого к последнему, результат вычисления -- это результат вычисления последнего выражения или 0, если список пуст.
 
 type Name = String
 type FunctionDefinition = (Name, [Name], Expression)  -- Имя функции, имена параметров, тело функции
@@ -51,9 +51,6 @@ showUnop Not = "!"
 
 -- Верните текстовое представление программы (см. условие).
 
-addTabs :: String -> String
-addTabs str = intercalate "\n\t" $ lines str
-
 showExpression :: Expression -> String
 showExpression (Number num)                      = show num
 showExpression (Reference name)                  = name
@@ -62,7 +59,7 @@ showExpression (BinaryOperation op left right)   = concat ["(", showExpression l
 showExpression (UnaryOperation op expr)          = showUnop op ++ showExpression expr
 showExpression (FunctionCall name args)          = concat [name, "(", intercalate ", " $ map showExpression args, ")"]
 showExpression (Conditional expr ifTrue ifFalse) = concat ["if ", showExpression expr, " then ", showExpression ifTrue, " else ", showExpression ifFalse, " fi"]
-showExpression (Block exprs)                     = addTabs ("{\n" ++ intercalate ";\n" (map showExpression exprs)) ++ "\n}"
+showExpression (Block exprs)                     = concat ["{\n", concatMap (("\t" ++) . (++ "\n")) (lines $ intercalate ";\n" (map showExpression exprs)), "}"]
 
 
 showFunction :: FunctionDefinition -> String
@@ -135,47 +132,40 @@ evalExpression = undefined
 
 -- Реализуйте eval: запускает программу и возвращает её значение.
 
-fstTripleTuple :: (a, b, c) -> a
-fstTripleTuple (a, _, _) = a
-
-sndTripleTuple :: (a, b, c) -> b
-sndTripleTuple (_, b, _) = b
-
-thdTripleTuple :: (a, b, c) -> c
-thdTripleTuple (_, _, c) = c
-
 parseArgs :: State -> [FunctionDefinition] -> FunctionDefinition -> [Expression] -> (State, State)
 
-parseArgs scope funcs func args = foldl (\(intoFunc, intoScope) (name, arg) -> 
-                                          let value = evalExpression intoFunc funcs arg
-                                          in  ((name, snd value):fst value, fst value ++ intoScope)) (scope, scope) (zip (sndTripleTuple func) args)
+parseArgs state funcs (_, fNames, _) args = (intoFunc ++ newState, newState)
+                                              where (newState, intoFunc) = foldl (\(state, intoFunc) (name, arg) ->
+                                                                                  let (resState, resValue) = evalExpression state funcs arg
+                                                                                  in (resState, (name, resValue):intoFunc)) (state, []) (zip fNames args)
 
 evalExpression :: State -> [FunctionDefinition] -> Expression -> (State, Integer)
-evalExpression scope funcs (Number num)                      = (scope, num)
+evalExpression state funcs (Number num)                      = (state, num)
 
-evalExpression scope _     (Reference name)                  = (scope, snd sc)
-                                                                 where (Just sc) = find (\x -> fst x == name) scope
+evalExpression state _     (Reference name)                  = (state, resValue)
+                                                                 where (Just resValue) = lookup name state
 
-evalExpression scope funcs (Assign name expr)                = ((name, snd value):fst value, snd value) 
-                                                                 where value = evalExpression scope funcs expr
+evalExpression state funcs (Assign name expr)                = ((name, resValue):resState, resValue) 
+                                                                 where (resState, resValue) = evalExpression state funcs expr
 
-evalExpression scope funcs (BinaryOperation op left right)   = (fst rightValue, toBinaryFunction op (snd leftValue) (snd rightValue))
-                                                                 where leftValue  = evalExpression scope funcs left
-                                                                       rightValue = evalExpression (fst leftValue) funcs right 
+evalExpression state funcs (BinaryOperation op left right)   = (rightResState, toBinaryFunction op leftResValue rightResValue)
+                                                                 where (leftResState, leftResValue)  = evalExpression state funcs left
+                                                                       (rightResState, rightResValue) = evalExpression leftResState funcs right 
 
-evalExpression scope funcs (UnaryOperation op expr)          = (fst value, toUnaryFunction op (snd value))
-                                                                 where  value = evalExpression scope funcs expr
+evalExpression state funcs (UnaryOperation op expr)          = (resState, toUnaryFunction op resValue)
+                                                                 where (resState, resValue) = evalExpression state funcs expr
 
-evalExpression scope funcs (FunctionCall name args)          = (snd newScope, snd value)
-                                                                 where (Just func) = find (\x -> fstTripleTuple x == name) funcs 
-                                                                       newScope    = parseArgs scope funcs func args
-                                                                       value       = evalExpression (fst newScope) funcs (thdTripleTuple func)
+evalExpression state funcs (FunctionCall name args)          = (newState, resValue)
+                                                                 where (Just func)              = find (\(fName, _, _) -> fName == name) funcs 
+                                                                       (newFuncState, newState) = parseArgs state funcs func args
+                                                                       (_, resValue)            = evalExpression newFuncState funcs funcExpr
+                                                                       (_, _, funcExpr)         = func
 
-evalExpression scope funcs (Conditional cond ifTrue ifFalse) | snd value /= 0 = evalExpression (fst value) funcs ifTrue
-                                                             | otherwise      = evalExpression (fst value) funcs ifFalse
-                                                                 where value  = evalExpression scope funcs cond 
+evalExpression state funcs (Conditional cond ifTrue ifFalse) = evalExpression resState funcs resExpr
+                                                                 where resExpr = if toBool resValue then ifTrue else ifFalse
+                                                                       (resState, resValue) = evalExpression state funcs cond
 
-evalExpression scope funcs (Block exprs)                     = foldl (\(sc, val) expr -> evalExpression sc funcs expr) (scope, 0) exprs 
+evalExpression state funcs (Block exprs)                     = foldl (\(curState, _) expr -> evalExpression curState funcs expr) (state, 0) exprs 
 
 eval :: Program -> Integer
 eval (funcs, body) = snd $ evalExpression [] funcs body
