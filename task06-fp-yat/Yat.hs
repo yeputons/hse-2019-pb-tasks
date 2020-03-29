@@ -47,6 +47,7 @@ showUnop Neg = "-"
 showUnop Not = "!"
 
 -- Верните текстовое представление программы (см. условие).
+showExpression :: Expression -> String
 showExpression (Number n)                       = show n
 showExpression (Reference name)                 = name
 showExpression (Assign name expr)               = concat ["let ", name, " = ", showExpression expr, " tel"]
