@@ -60,7 +60,7 @@ showFuncDef :: FunctionDefinition -> String
 showFuncDef (name, params, expr) = concat ["func ", name, "(", intercalate ", " params, ") = ", showExpression expr, "\n"]
 
 showProgram :: Program -> String
-showProgram (definitions, expr) = concatMap showFuncDef definitions ++ showExpression expr
+showProgram (definitions, expr) = concat [concatMap showFuncDef definitions, showExpression expr]
 
 toBool :: Integer -> Bool
 toBool = (/=) 0
