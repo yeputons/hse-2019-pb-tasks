@@ -34,14 +34,14 @@ script:
 - valgrind --tool=memcheck --leak-check=full --error-exitcode=1 ./queue_test
 - popd
 - pushd task05-fp-exercises
-- ghc -W -Wno-unused-matches -Wno-unused-imports Exercises.hs
+- ghc -W -Wno-unused-matches -Wno-unused-imports -Werror Exercises.hs
 - ghc -W RunTests.hs
 - if [ -n "$(git log -1 --pretty=format:%H origin/master..HEAD -- .)" ] ; then ./RunTests; else echo Skipping running tests for unchanged task; fi
 - if [ -f "RunMyTests.hs" ]; then ghc -W RunMyTests.hs && ./RunMyTests; fi
 - hlint "--ignore=Unnecessary hiding" "--ignore=Use foldr" Exercises.hs
 - popd
 - pushd task06-fp-yat
-- ghc -W -Wno-unused-matches -Wno-unused-imports Yat.hs
+- ghc -W -Wno-unused-matches -Wno-unused-imports -Werror Yat.hs
 - ghc -W RunTests.hs
 - if [ -n "$(git log -1 --pretty=format:%H origin/master..HEAD -- .)" ] ; then ./RunTests; else echo Skipping running tests for unchanged task; fi
 - if [ -f "RunMyTests.hs" ]; then ghc -W RunMyTests.hs && ./RunMyTests; fi
