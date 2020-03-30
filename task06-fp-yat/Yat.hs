@@ -144,6 +144,17 @@ getArgs (_, args, _) = args
 getBody :: FunctionDefinition -> Expression
 getBody (_, _, expr) = expr
 
+getArgsScope :: State -> [FunctionDefinition] -> [(Name, Expression)] -> (State, State)
+getArgsScope scope funcs []                   = (scope, scope)
+
+getArgsScope scope funcs [(arg, expr)]        = (new_scope, (arg, new_val) : new_scope)
+                                                 where (new_scope, new_val) = evalExpression scope funcs expr
+
+getArgsScope scope funcs ((arg, expr):xs)     = (new_scope, ((arg, val) : func_scope) ++ new_scope)
+                                                      where (tmp_scope, val)        = evalExpression scope funcs expr
+                                                            (new_scope, func_scope) = getArgsScope tmp_scope funcs xs                                 
+
+
 evalExpression :: State -> [FunctionDefinition] -> Expression -> (State, Integer)
 evalExpression scope funcs (Number n)               = (scope, n)
 
@@ -151,19 +162,19 @@ evalExpression scope funcs (Reference name)         = case lookup name scope of
                                                         Just numb -> (scope, numb)
                                                         _         -> (scope, 0)   
 
-evalExpression scope funcs (Assign name expr)       = (filter (\ var -> fst var /= name) (tmp_scope `union` scope) ++ [(name, tmp_res)], tmp_res)
+evalExpression scope funcs (Assign name expr)       = ([(name, tmp_res)] ++ tmp_scope, tmp_res)
                                                             where (tmp_scope, tmp_res) = evalExpression scope funcs expr
 
 evalExpression scope funcs (BinaryOperation op l r) = (scope_r, toBinaryFunction op res_l res_r)
                                                             where (scope_l, res_l) = evalExpression scope funcs l
-                                                                  (scope_r, res_r) = evalExpression (scope `union` scope_l) funcs r
+                                                                  (scope_r, res_r) = evalExpression scope_l funcs r
 
 evalExpression scope funcs (UnaryOperation op expr) = (scp, toUnaryFunction op res)
                                                             where (scp, res) = evalExpression scope funcs expr 
 
-evalExpression scope funcs (FunctionCall name args) = (new_scope, snd $ evalExpression new_scope funcs (getBody func))
+evalExpression scope funcs (FunctionCall name args) = (new_scope, snd $ evalExpression func_scope funcs (getBody func))
                                                                     where
-                                                                        new_scope = zip (getArgs func) (map (snd . evalExpression scope funcs) args) ++ fst (evalExpression scope funcs (Block args))
+                                                                        (new_scope, func_scope) = getArgsScope scope funcs $ zip (getArgs func) args 
                                                                         func = fromJust $ find ((== name) . getName) funcs
 
 evalExpression scope funcs (Conditional cond t f)   | toBool cond_res = evalExpression cond_scope funcs t
@@ -174,3 +185,4 @@ evalExpression scope funcs (Block expressions)       = foldl (\ (scope, value) e
 
 eval :: Program -> Integer
 eval (funcs, expr) = snd $ evalExpression [] funcs expr
+    
