@@ -49,7 +49,7 @@ showUnop Not = "!"
 showExpr :: Expression -> String
 showExpr (Number n) = show n
 showExpr (Reference name)           = name
-showExpr (Assign name e)            = concat ["let ", name, " = ", (showExpr e), " tel"]
+showExpr (Assign name e)            = concat ["let ", name, " = ", showExpr e, " tel"]
 showExpr (BinaryOperation op l r)   = concat ["(", showExpr l, " ", showBinop op, " ", showExpr r, ")"]
 showExpr (UnaryOperation op e)      = showUnop op ++ showExpr e
 showExpr (FunctionCall name [])     = name ++ "()"
@@ -117,16 +117,16 @@ evalExpr funcs scope (Assign name e)          = (fres, var:sres)
 evalExpr funcs scope (BinaryOperation op l r) = (toBinaryFunction op flres frres, srres)
                                               where (flres:slres) = evalExpr funcs scope l
                                                     (frres:srres) = evalExpr funcs slres r
-evalExpr funcs scope (UnaryOperation op e)    = (toUnaryFunction op (fres), sres)
+evalExpr funcs scope (UnaryOperation op e)    = (toUnaryFunction op fres, sres)
                                               where (fres:sres) = evalExpr funcs scope e
 evalExpr funcs scope (FunctionCall name args) = (fst (evalExpr funcs (createFuncScope sres ffunc fres) sfunc), snd res) 
                                               where (ffunc:sfunc) = getFuncDef name funcs
                                                     (fres:sres) = chainExpr funcs scope args
-evalExpr funcs scope (Conditional e t f) | toBool (fer) = tr
+evalExpr funcs scope (Conditional e t f) | toBool fer = tr
                                          | otherwise = fr
                                          where (fer:ser) = evalExpr funcs scope e
-                                               tr = evalExpr funcs (ser) t
-                                               fr = evalExpr funcs (ser) f
+                                               tr = evalExpr funcs ser t
+                                               fr = evalExpr funcs ser f
 evalExpr funcs scope (Block [x])    = evalExpr funcs scope x
 evalExpr funcs scope (Block [])     = (0, scope)                                         
 evalExpr funcs scope (Block (e:es)) = evalExpr funcs (snd (evalExpr funcs scope e)) (Block es)
