@@ -56,7 +56,7 @@ showExpr (FunctionCall name [])     = name ++ "()"
 showExpr (FunctionCall name (x:xs)) = concat [name, "(", showExpr x, concatMap ((++) ", " . showExpr) xs, ")"]
 showExpr (Conditional e t f)        = concat ["if ", showExpr e, " then ", showExpr t, " else ", showExpr f, " fi"]
 showExpr (Block [])                 = "{\n}"
-showExpr (Block (x:xs))             = "{" ++ concatMap ("\n\t" ++) (lines (intercalate ";\n" (map showExpr exprs))) ++ "\n}"
+showExpr (Block expr)           = concat ["{\n", concatMap (\line -> concat ["\t", line, "\n"]) $ lines $ intercalate ";\n" $ map showExpr expr, "}"]
 
 showFunctionDefenition :: FunctionDefinition -> String
 showFunctionDefenition (name, params, body) = "func " ++ name ++ "(" ++ intercalate ", " params ++ ") = " ++ showExpr body ++ "\n"
