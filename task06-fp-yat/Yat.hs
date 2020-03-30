@@ -56,10 +56,10 @@ showExpr (FunctionCall name [])     = name ++ "()"
 showExpr (FunctionCall name (x:xs)) = concat [name, "(", showExpr x, concatMap ((++) ", " . showExpr) xs, ")"]
 showExpr (Conditional e t f)        = concat ["if ", showExpr e, " then ", showExpr t, " else ", showExpr f, " fi"]
 showExpr (Block [])                 = "{\n}"
-showExpr (Block (x:xs))             = "{" ++ concatMap ("\n\t" ++) (lines (intercalate ";\n" (map showExpression exprs))) ++ "\n}"
+showExpr (Block (x:xs))             = "{" ++ concatMap ("\n\t" ++) (lines (intercalate ";\n" (map showExpr exprs))) ++ "\n}"
 
 showFunctionDefenition :: FunctionDefinition -> String
-showFunctionDefenition (name, params, body) = "func " ++ name ++ "(" ++ intercalate ", " params ++ ") = " ++ showExpression body ++ "\n"
+showFunctionDefenition (name, params, body) = "func " ++ name ++ "(" ++ intercalate ", " params ++ ") = " ++ showExpr body ++ "\n"
 
 -- Верните текстовое представление программы (см. условие).
 showProgram :: Program -> String
@@ -91,7 +91,7 @@ toUnaryFunction :: Unop -> Integer -> Integer
 toUnaryFunction Neg = negate
 toUnaryFunction Not = fromBool . not . toBool
 
-getVar :: State -> Name -> Integer
+getVar :: State -> Name -> Maybe Integer
 getVar scope name = lookup (name . fst) scope
 
 getFuncDef :: Name -> [FunctionDefinition] -> ([Name], Expression)
@@ -105,23 +105,23 @@ createFuncScope scope params values = zip params values ++ scope
 chainExpr :: [FunctionDefinition] -> State -> [Expression] -> ([Integer], State)
 chainExpr funcs scope []         = ([], scope)
 chainExpr funcs scope (arg:args) = (fargres:fargsres, sargsres)
-                                 where (fargres:sargres) = evalExpr  funcs scope arg
-                                       (fargsres:sargsres) = chainExpr funcs sargres args
+                                 where (fargres,sargres) = evalExpr  funcs scope arg
+                                       (fargsres,sargsres) = chainExpr funcs sargres args
 
-evalExpr :: [FunctionDefinition] -> State -> Expression -> (Integer, State)
+evalExpr :: [FunctionDefinition] -> State -> Expression -> (Maybe Integer, State)
 evalExpr funcs scope (Number n)               = (n, scope)
 evalExpr funcs scope (Reference name)         = (getVar scope name, scope)
 evalExpr funcs scope (Assign name e)          = (fres, var:sres)
-                                              where (fres:sres) = evalExpr funcs scope e
+                                              where (fres,sres) = evalExpr funcs scope e
                                                     var = (name, fres)
 evalExpr funcs scope (BinaryOperation op l r) = (toBinaryFunction op flres frres, srres)
-                                              where (flres:slres) = evalExpr funcs scope l
-                                                    (frres:srres) = evalExpr funcs slres r
+                                              where (flres,slres) = evalExpr funcs scope l
+                                                    (frres,srres) = evalExpr funcs slres r
 evalExpr funcs scope (UnaryOperation op e)    = (toUnaryFunction op fres, sres)
-                                              where (fres:sres) = evalExpr funcs scope e
-evalExpr funcs scope (FunctionCall name args) = (fst (evalExpr funcs (createFuncScope sres ffunc fres) sfunc), snd res) 
-                                              where (ffunc:sfunc) = getFuncDef name funcs
-                                                    (fres:sres) = chainExpr funcs scope args
+                                              where (fres,sres) = evalExpr funcs scope e
+evalExpr funcs scope (FunctionCall name args) = (fst (evalExpr funcs (createFuncScope sres ffunc fres) sfunc), sres) 
+                                              where (ffunc,sfunc) = getFuncDef name funcs
+                                                    (fres,sres) = chainExpr funcs scope args
 evalExpr funcs scope (Conditional e t f) | toBool fer = tr
                                          | otherwise = fr
                                          where (fer:ser) = evalExpr funcs scope e
@@ -131,5 +131,5 @@ evalExpr funcs scope (Block [x])    = evalExpr funcs scope x
 evalExpr funcs scope (Block [])     = (0, scope)                                         
 evalExpr funcs scope (Block (e:es)) = evalExpr funcs (snd (evalExpr funcs scope e)) (Block es)
 
-eval :: Program -> Integer
+eval :: Program -> Maybe Integer
 eval (ft:fsd) = fst (evalExpr ft [] fsd)
