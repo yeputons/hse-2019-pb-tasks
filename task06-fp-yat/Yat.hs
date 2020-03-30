@@ -91,7 +91,7 @@ toUnaryFunction :: Unop -> Integer -> Integer
 toUnaryFunction Neg = negate
 toUnaryFunction Not = fromBool . not . toBool
 
-getVar :: State -> Name -> Maybe Integer
+getVar :: State -> Name -> Integer
 getVar scope name = lookup (name . fst) scope
 
 getFuncDef :: Name -> [FunctionDefinition] -> ([Name], Expression)
@@ -102,13 +102,13 @@ getFuncDef name funcs = f (head (filter (eq' name) funcs))
 createFuncScope :: State -> [Name] -> [Integer] -> State
 createFuncScope scope params values = zip params values ++ scope
 
-chainExpr :: [FunctionDefinition] -> State -> [Expression] -> ([Integer], State)
+chainExpr :: [FunctionDefinition] -> State -> [Expression] -> ([Maybe Integer], State)
 chainExpr funcs scope []         = ([], scope)
 chainExpr funcs scope (arg:args) = (fargres:fargsres, sargsres)
                                  where (fargres,sargres) = evalExpr  funcs scope arg
                                        (fargsres,sargsres) = chainExpr funcs sargres args
 
-evalExpr :: [FunctionDefinition] -> State -> Expression -> (Maybe Integer, State)
+evalExpr :: [FunctionDefinition] -> State -> Expression -> (Integer, State)
 evalExpr funcs scope (Number n)               = (n, scope)
 evalExpr funcs scope (Reference name)         = (getVar scope name, scope)
 evalExpr funcs scope (Assign name e)          = (fres, var:sres)
@@ -124,12 +124,12 @@ evalExpr funcs scope (FunctionCall name args) = (fst (evalExpr funcs (createFunc
                                                     (fres,sres) = chainExpr funcs scope args
 evalExpr funcs scope (Conditional e t f) | toBool fer = tr
                                          | otherwise = fr
-                                         where (fer:ser) = evalExpr funcs scope e
+                                         where (fer,ser) = evalExpr funcs scope e
                                                tr = evalExpr funcs ser t
                                                fr = evalExpr funcs ser f
 evalExpr funcs scope (Block [x])    = evalExpr funcs scope x
 evalExpr funcs scope (Block [])     = (0, scope)                                         
 evalExpr funcs scope (Block (e:es)) = evalExpr funcs (snd (evalExpr funcs scope e)) (Block es)
 
-eval :: Program -> Maybe Integer
+eval :: Program -> Integer
 eval (ft:fsd) = fst (evalExpr ft [] fsd)
