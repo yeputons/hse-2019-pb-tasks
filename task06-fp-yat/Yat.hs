@@ -55,7 +55,7 @@ showExpression (BinaryOperation op expr1 expr2) = concat ["(", showExpression ex
 showExpression (UnaryOperation op expr)         = showUnop op ++ showExpression expr
 showExpression (FunctionCall name exprs)        = concat [name, "(", intercalate ", " (map showExpression exprs), ")"]
 showExpression (Conditional e t f)              = concat ["if ", showExpression e, " then ", showExpression t, " else ", showExpression f, " fi"]
-showExpression (Block commands)                 = concat ["{\n", concatMap (\line -> concat ["\t", line, "\n"]) (lines (intercalate ";\n" (map showExpression commands))), "}"]
+showExpression (Block commands)                 = concat ["{\n", concatMap (\line -> concat ["\t", line, "\n"]) $ lines $ intercalate ";\n" $ map showExpression commands, "}"]
 
 showFuncDef :: FunctionDefinition -> String
 showFuncDef (name, params, expr) = concat ["func ", name, "(", intercalate ", " params, ") = ", showExpression expr, "\n"]
@@ -127,10 +127,11 @@ evalExpression = undefined
 
 -- Реализуйте eval: запускает программу и возвращает её значение.
 makeScopeForFunction :: FunctionDefinition -> [Expression] -> State -> [FunctionDefinition] -> (State, State)
-makeScopeForFunction (_, argNames, _) exprs scope funcs = let (sscope, fscope) = foldl(\(tmpScope, funcScope) (name, expr) -> 
-                                                                                        let (res, newScope) = evalExpression expr tmpScope funcs
-                                                                                        in (newScope, (name, res):funcScope)) (scope, []) (zip argNames exprs)
-                                                          in (sscope, fscope ++ sscope)
+makeScopeForFunction (_, argNames, _) exprs startScope funcs = 
+                                                               let (resScope, resFuncScope) = foldl(\(curScope, funcScope) (name, expr) -> 
+                                                                                                let (res, nextScope) = evalExpression expr curScope funcs
+                                                                                                in (nextScope, (name, res):funcScope)) (startScope, []) (zip argNames exprs)
+                                                               in (resScope, resFuncScope ++ resScope)
 
 evalExpression :: Expression -> State -> [FunctionDefinition] -> (Integer, State)
 evalExpression (Number n) scope funcs                       = (n, scope)
@@ -138,20 +139,18 @@ evalExpression (Reference name) scope funcs                 = let (Just val) = l
                                                               in (val, scope)
 evalExpression (Assign name expr) scope funcs               = let (assignValue, newScope) = evalExpression expr scope funcs
                                                               in (assignValue, (name, assignValue):newScope)
-evalExpression (BinaryOperation op expr1 expr2) scope funcs = let (lResult, tmpScope)= evalExpression expr1 scope funcs
-                                                                  (rResult, newScope)= evalExpression expr2 tmpScope funcs 
+evalExpression (BinaryOperation op lExpr rExpr) scope funcs = let (lResult, tmpScope) = evalExpression lExpr scope funcs
+                                                                  (rResult, newScope) = evalExpression rExpr tmpScope funcs 
                                                               in (toBinaryFunction op lResult rResult, newScope)
 evalExpression (UnaryOperation op expr) scope funcs         = let (value, newScope) = evalExpression expr scope funcs
                                                               in (toUnaryFunction op value, newScope)
-evalExpression (FunctionCall name exprs) scope funcs        = let (Just func)      = find (\(funcName, _, _) -> funcName == name) funcs
-                                                                  (_, _, funcBody) = func
-                                                                  (sscope, fscope) = makeScopeForFunction func exprs scope funcs
-                                                                  (rv, _)          = evalExpression funcBody fscope funcs
-                                                              in (rv, sscope)
-evalExpression (Conditional e t f) scope funcs              | toBool exprValue = tres
-                                                            | otherwise        = head fres
-                                                             where (exprValue, newScope)  = evalExpression e scope funcs
-                                                                   (tres:fres)            = map (\cond -> evalExpression cond newScope funcs) [t, f]
+evalExpression (FunctionCall name exprs) scope funcs        = let Just (funcName, funcArgs, funcBody) = find (\(funcName, _, _) -> funcName == name) funcs
+                                                                  (newScope, funcScope)               = makeScopeForFunction (funcName, funcArgs, funcBody) exprs scope funcs
+                                                                  (rv, _)                             = evalExpression funcBody funcScope funcs
+                                                              in (rv, newScope)
+evalExpression (Conditional e t f) scope funcs              = let (exprValue, newScope) = evalExpression e scope funcs
+                                                                  (tres:fres)           = map (\cond -> evalExpression cond newScope funcs) [t, f] 
+                                                              in if toBool exprValue then tres else head fres
 evalExpression (Block commands) scope funcs                 = foldl (\(_, tmpScope) expr -> evalExpression expr tmpScope funcs) (0, scope) commands
 
 eval :: Program -> Integer
