@@ -149,7 +149,7 @@ evalExpression (FunctionCall name exprs) oldScope funcs        = let Just (funcN
                                                                      (rv, _)                             = evalExpression funcBody funcScope funcs
                                                                  in (rv, newScope)
 evalExpression (Conditional e t f) oldScope funcs              = let (exprValue, newScope) = evalExpression e oldScope funcs
-                                                                 in evalExpression(if toBool exprValue then t else f) newScope funcs 
+                                                                 in evalExpression (if toBool exprValue then t else f) newScope funcs 
 evalExpression (Block commands) oldScope funcs                 = foldl (\(_, tmpScope) expr -> evalExpression expr tmpScope funcs) (0, oldScope) commands
 
 eval :: Program -> Integer
