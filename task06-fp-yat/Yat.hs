@@ -157,7 +157,7 @@ evalExpression scope funcs (Reference name)         = case lookup name scope of
                                                         Just numb -> (scope, numb)
                                                         _         -> (scope, 0)   
 
-evalExpression scope funcs (Assign name expr)       = ([(name, tmp_res)] ++ tmp_scope, tmp_res)
+evalExpression scope funcs (Assign name expr)       = ((name, tmp_res):tmp_scope, tmp_res)
                                                             where (tmp_scope, tmp_res) = evalExpression scope funcs expr
 
 evalExpression scope funcs (BinaryOperation op l r) = (scope_r, toBinaryFunction op res_l res_r)
