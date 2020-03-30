@@ -92,7 +92,7 @@ toUnaryFunction Neg = negate
 toUnaryFunction Not = fromBool . not . toBool
 
 getVar :: State -> Name -> Integer
-getVar scope name = lookup (name . fst) scope
+getVar scope name = snd (head (filter ((==) name . fst) scope))
 
 getFuncDef :: Name -> [FunctionDefinition] -> ([Name], Expression)
 getFuncDef name funcs = f (head (filter (eq' name) funcs))
@@ -102,7 +102,7 @@ getFuncDef name funcs = f (head (filter (eq' name) funcs))
 createFuncScope :: State -> [Name] -> [Integer] -> State
 createFuncScope scope params values = zip params values ++ scope
 
-chainExpr :: [FunctionDefinition] -> State -> [Expression] -> ([Maybe Integer], State)
+chainExpr :: [FunctionDefinition] -> State -> [Expression] -> ([Integer], State)
 chainExpr funcs scope []         = ([], scope)
 chainExpr funcs scope (arg:args) = (fargres:fargsres, sargsres)
                                  where (fargres,sargres) = evalExpr  funcs scope arg
