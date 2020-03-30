@@ -57,11 +57,11 @@ showExpr (Conditional e t f)        = concat ["if ", showExpr e, " then ", showE
 showExpr (Block expr)               = concat ["{\n", concatMap (\line -> concat ["\t", line, "\n"]) $ lines $ intercalate ";\n" $ map showExpr expr, "}"]
 
 showFunctionDefenition :: FunctionDefinition -> String
-showFunctionDefenition (name, params, body) = "func " ++ name ++ "(" ++ intercalate ", " params ++ ") = " ++ showExpr body ++ "\n"
+showFunctionDefenition (name, params, body) = concat ["func ", name, "(", intercalate ", " params, ") = ", showExpression body, "\n"]
 
 -- Верните текстовое представление программы (см. условие).
 showProgram :: Program -> String
-showProgram f = concatMap ((++ "\n") . showFunctionDefenition) (fst f) ++ showExpr (snd f)
+showProgram (ff,sf) = concatMap showFunctionDefenition ff ++ showExpr sf
 
 toBool :: Integer -> Bool
 toBool = (/=) 0
