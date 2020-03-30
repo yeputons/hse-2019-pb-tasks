@@ -59,7 +59,7 @@ showExpr (Block [])                 = "{\n}"
 showExpr (Block (x:xs))             = "{" ++ concatMap ("\n\t" ++) (lines (intercalate ";\n" (map showExpression exprs))) ++ "\n}"
 
 showFunctionDefenition :: FunctionDefinition -> String
-showFunction (name, params, body) = "func " ++ name ++ "(" ++ intercalate ", " params ++ ") = " ++ showExpression body ++ "\n"
+showFunctionDefenition (name, params, body) = "func " ++ name ++ "(" ++ intercalate ", " params ++ ") = " ++ showExpression body ++ "\n"
 
 -- Верните текстовое представление программы (см. условие).
 showProgram :: Program -> String
@@ -92,7 +92,7 @@ toUnaryFunction Neg = negate
 toUnaryFunction Not = fromBool . not . toBool
 
 getVar :: State -> Name -> Integer
-getVar scope name = lookup 'name . fst' scope
+getVar scope name = lookup (name . fst) scope
 
 getFuncDef :: Name -> [FunctionDefinition] -> ([Name], Expression)
 getFuncDef name funcs = f (head (filter (eq' name) funcs))
