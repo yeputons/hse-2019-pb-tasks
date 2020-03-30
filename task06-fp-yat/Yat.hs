@@ -47,16 +47,14 @@ showUnop Neg = "-"
 showUnop Not = "!"
 
 showExpr :: Expression -> String
-showExpr (Number n) = show n
+showExpr (Number n)                 = show n
 showExpr (Reference name)           = name
 showExpr (Assign name e)            = concat ["let ", name, " = ", showExpr e, " tel"]
 showExpr (BinaryOperation op l r)   = concat ["(", showExpr l, " ", showBinop op, " ", showExpr r, ")"]
 showExpr (UnaryOperation op e)      = showUnop op ++ showExpr e
-showExpr (FunctionCall name [])     = name ++ "()"
-showExpr (FunctionCall name (x:xs)) = concat [name, "(", showExpr x, concatMap ((++) ", " . showExpr) xs, ")"]
+showExpr (FunctionCall name expr)   = concat [name, "(", intercalate ", " (map showExpression expr), ")"]
 showExpr (Conditional e t f)        = concat ["if ", showExpr e, " then ", showExpr t, " else ", showExpr f, " fi"]
-showExpr (Block [])                 = "{\n}"
-showExpr (Block expr)           = concat ["{\n", concatMap (\line -> concat ["\t", line, "\n"]) $ lines $ intercalate ";\n" $ map showExpr expr, "}"]
+showExpr (Block expr)               = concat ["{\n", concatMap (\line -> concat ["\t", line, "\n"]) $ lines $ intercalate ";\n" $ map showExpr expr, "}"]
 
 showFunctionDefenition :: FunctionDefinition -> String
 showFunctionDefenition (name, params, body) = "func " ++ name ++ "(" ++ intercalate ", " params ++ ") = " ++ showExpr body ++ "\n"
