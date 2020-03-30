@@ -52,7 +52,7 @@ showExpr (Reference name)           = name
 showExpr (Assign name e)            = concat ["let ", name, " = ", showExpr e, " tel"]
 showExpr (BinaryOperation op l r)   = concat ["(", showExpr l, " ", showBinop op, " ", showExpr r, ")"]
 showExpr (UnaryOperation op e)      = showUnop op ++ showExpr e
-showExpr (FunctionCall name expr)   = concat [name, "(", intercalate ", " (map showExpression expr), ")"]
+showExpr (FunctionCall name expr)   = concat [name, "(", intercalate ", " (map showExpr expr), ")"]
 showExpr (Conditional e t f)        = concat ["if ", showExpr e, " then ", showExpr t, " else ", showExpr f, " fi"]
 showExpr (Block expr)               = concat ["{\n", concatMap (\line -> concat ["\t", line, "\n"]) $ lines $ intercalate ";\n" $ map showExpr expr, "}"]
 
