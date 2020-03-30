@@ -145,15 +145,10 @@ getBody :: FunctionDefinition -> Expression
 getBody (_, _, expr) = expr
 
 getArgsScope :: State -> [FunctionDefinition] -> [(Name, Expression)] -> (State, State)
-getArgsScope scope funcs []                   = (scope, scope)
-
-getArgsScope scope funcs [(arg, expr)]        = (new_scope, (arg, new_val) : new_scope)
-                                                 where (new_scope, new_val) = evalExpression scope funcs expr
-
-getArgsScope scope funcs ((arg, expr):xs)     = (new_scope, ((arg, val) : func_scope) ++ new_scope)
-                                                      where (tmp_scope, val)        = evalExpression scope funcs expr
-                                                            (new_scope, func_scope) = getArgsScope tmp_scope funcs xs                                 
-
+getArgsScope scope funcs args  = (new_scope, func_scope ++ new_scope)
+                                 where (new_scope, func_scope) = foldl (\ (tmp_scope, func_scope) (name, expr) -> 
+                                                                       let (cur_scope, res) = evalExpression scope funcs expr
+                                                                       in (cur_scope, (name, res):func_scope)) (scope, []) args
 
 evalExpression :: State -> [FunctionDefinition] -> Expression -> (State, Integer)
 evalExpression scope funcs (Number n)               = (scope, n)
@@ -173,9 +168,8 @@ evalExpression scope funcs (UnaryOperation op expr) = (scp, toUnaryFunction op r
                                                             where (scp, res) = evalExpression scope funcs expr 
 
 evalExpression scope funcs (FunctionCall name args) = (new_scope, snd $ evalExpression func_scope funcs (getBody func))
-                                                                    where
-                                                                        (new_scope, func_scope) = getArgsScope scope funcs $ zip (getArgs func) args 
-                                                                        func = fromJust $ find ((== name) . getName) funcs
+                                                                    where (new_scope, func_scope) = getArgsScope scope funcs $ zip (getArgs func) args 
+                                                                          func = fromJust $ find ((== name) . getName) funcs
 
 evalExpression scope funcs (Conditional cond t f)   | toBool cond_res = evalExpression cond_scope funcs t
                                                     | otherwise       = evalExpression cond_scope funcs f

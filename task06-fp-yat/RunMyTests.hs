@@ -7,21 +7,12 @@ checkGE name got expected = TestLabel name $ TestCase $ assertEqual "" expected 
 group name elems = TestLabel name $ TestList elems
 
 (/+) = BinaryOperation Add
-(/*) = BinaryOperation Mul
-(/-) = BinaryOperation Sub
-(|||) = BinaryOperation Or
-(===) = BinaryOperation Eq
-iff = Conditional
 (=:=) = Assign
 c = Number
 r = Reference
 call = FunctionCall
 
 infixl 6 /+
-infixl 6 /-
-infixl 7 /*
-infixr 2 |||
-infix 4 ===
 infixr 1 =:=
 
 program1 = (
