@@ -132,4 +132,4 @@ evalExpr funcs scope (Block [])     = (0, scope)
 evalExpr funcs scope (Block (e:es)) = evalExpr funcs (snd (evalExpr funcs scope e)) (Block es)
 
 eval :: Program -> Integer
-eval (ft:fsd) = fst (evalExpr ft [] fsd)
+eval (ft, fsd) = fst (evalExpr ft [] fsd)
