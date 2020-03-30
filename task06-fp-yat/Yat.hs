@@ -128,9 +128,9 @@ evalExpression = undefined
 -- Реализуйте eval: запускает программу и возвращает её значение.
 makeScopeForFunction :: FunctionDefinition -> [Expression] -> State -> [FunctionDefinition] -> (State, State)
 makeScopeForFunction (_, argNames, _) exprs oldScope funcs = 
-    let (resScope, resFuncScope) = foldl(\(curScope, funcScope) (name, expr) -> 
-                                     let (res, nextScope) = evalExpression expr curScope funcs
-                                     in (nextScope, (name, res):funcScope)) (oldScope, []) (zip argNames exprs)
+    let maker (curScope, funcScope) (name, expr) = let (res, nextScope) = evalExpression expr curScope funcs
+                                                   in (nextScope, (name, res):funcScope)
+        (resScope, resFuncScope) = foldl maker (oldScope, []) (zip argNames exprs)
     in (resScope, resFuncScope ++ resScope)
 
 evalExpression :: Expression -> State -> [FunctionDefinition] -> (Integer, State)
@@ -149,7 +149,8 @@ evalExpression (FunctionCall name exprs) oldScope funcs        = let Just (funcN
                                                                      (rv, _)                             = evalExpression funcBody funcScope funcs
                                                                  in (rv, newScope)
 evalExpression (Conditional e t f) oldScope funcs              = let (exprValue, newScope) = evalExpression e oldScope funcs
-                                                                 in if toBool exprValue then evalExpression t newScope funcs else evalExpression f newScope funcs
+                                                                     processBranch expr = evalExpression expr newScope funcs
+                                                                 in processBranch $ if toBool exprValue then t else f
 evalExpression (Block commands) oldScope funcs                 = foldl (\(_, tmpScope) expr -> evalExpression expr tmpScope funcs) (0, oldScope) commands
 
 eval :: Program -> Integer
