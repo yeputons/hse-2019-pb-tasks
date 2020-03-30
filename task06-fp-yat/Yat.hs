@@ -57,7 +57,7 @@ showExpression (BinaryOperation op expr1 expr2) = concat["(", showExpression exp
 showExpression (UnaryOperation op expr)         = showUnop op ++ showExpression expr
 showExpression (FunctionCall name exprs)        = concat[name, "(", intercalate ", " (map showExpression exprs), ")"]
 showExpression (Conditional cond expr1 expr2)   = concat["if ", showExpression cond, " then ", showExpression expr1, " else ", showExpression expr2, " fi"]
-showExpression (Block exprs)                    = concat["{", concatMap ("\n\t" ++) (lines (intercalate ";\n" (map showExpression exprs))), "\n}"]
+showExpression (Block exprs)                    = concat["{", concatMap ("\n\t" ++) (lines $ intercalate ";\n" $ map showExpression exprs), "\n}"]
 
 showProgram :: Program -> String
 showProgram (functions, expression) = concatMap showFunction functions ++ showExpression expression
@@ -126,31 +126,37 @@ evalExpression = undefined
 
 -- Реализуйте eval: запускает программу и возвращает её значение.
 
+
+addValToScope :: [FunctionDefinition] -> (State, [Integer]) -> Expression -> (State, [Integer])
+addValToScope functions (scope, vals) expr = let (newScope, val) = evalExpr functions scope expr
+                                             in  (newScope, vals ++ [val])
+
 evalExpr :: [FunctionDefinition] -> State -> Expression -> (State, Integer)
-evalExpr functions scope (Number num)                                     = (scope, num)
+evalExpr functions scope (Number num)                    = (scope, num)
 
-evalExpr functions scope (Reference name)                                 = (scope, snd $ fromJust $ find ((== name) . fst) scope)
+evalExpr functions scope (Reference name)                = (scope, fromJust $ lookup name scope)
 
-evalExpr functions scope (Assign name expr)                               = let (scopeAfterExpr, val) = evalExpr functions scope expr
-                                                                            in  ((name, val) : scopeAfterExpr, val)
+evalExpr functions scope (Assign name expr)              = let (scopeAfterExpr, val) = evalExpr functions scope expr
+                                                           in  ((name, val) : scopeAfterExpr, val)
 
-evalExpr functions scope (BinaryOperation op left right)                  = let (scopeAfterLeft, valLeft) = evalExpr functions scope left
-                                                                                (newScope, valRight)      = evalExpr functions scopeAfterLeft right
-                                                                            in  (newScope, toBinaryFunction op valLeft valRight)
+evalExpr functions scope (BinaryOperation op left right) = let (leftScope, leftVal) = evalExpr functions scope left
+                                                               (newScope, rightVal) = evalExpr functions leftScope right
+                                                           in  (newScope, toBinaryFunction op leftVal rightVal)
 
-evalExpr functions scope (UnaryOperation op expr)                         = let (newScope, val) = evalExpr functions scope expr
-                                                                            in  (newScope, toUnaryFunction op val)
+evalExpr functions scope (UnaryOperation op expr)        = let (newScope, val) = evalExpr functions scope expr
+                                                           in  (newScope, toUnaryFunction op val)
 
-evalExpr functions scope  (FunctionCall name args)                        = let (newScope, valArgs)     = foldl (\(curScope, vals) expr -> let (newCurScope, val) = evalExpr functions curScope expr in (newCurScope, vals ++ [val])) (scope, []) args
-                                                                                Just (_ , fArgs, fBody) = find (\(x, _, _) -> x == name) functions
-                                                                                fScope                  = zip fArgs valArgs ++ newScope
-                                                                            in  (newScope, snd $ evalExpr functions fScope fBody)
+evalExpr functions scope  (FunctionCall name args)       = let (newScope, valArgs)     = foldl (addValToScope functions) (scope, []) args
+                                                               Just (_ , fArgs, fBody) = find (\(x, _, _) -> x == name) functions
+                                                               fScope                  = zip fArgs valArgs ++ newScope
+                                                               (_, fValue)             = evalExpr functions fScope fBody
+                                                           in  (newScope, fValue)
 
-evalExpr functions scope (Conditional cond true false)                    = let (scopeAfterExpr, res) = evalExpr functions scope cond
-                                                                                expr                  = if toBool res then true else false
-                                                                            in  evalExpr functions scopeAfterExpr expr
+evalExpr functions scope (Conditional cond true false)   = let (scopeAfterExpr, res) = evalExpr functions scope cond
+                                                               expr                  = if toBool res then true else false
+                                                           in  evalExpr functions scopeAfterExpr expr
 
-evalExpr functions scope (Block exprs)                                    = foldl (\(res, _) expr -> evalExpr functions res expr) (scope, 0) exprs
+evalExpr functions scope (Block exprs)                   = foldl (\(res, _) expr -> evalExpr functions res expr) (scope, 0) exprs
 
 eval :: Program -> Integer
 eval (funcs, expr) = snd $ evalExpr funcs [] expr
