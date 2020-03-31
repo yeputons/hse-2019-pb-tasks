@@ -126,7 +126,6 @@ evalExpression = undefined
 -} -- Удалите эту строчку, если решаете бонусное задание.
 
 -- Реализуйте eval: запускает программу и возвращает её значение.
-
 getName:: FunctionDefinition -> Name
 getName (name, _, _) = name
 
@@ -137,34 +136,34 @@ getBody :: FunctionDefinition -> Expression
 getBody (_, _, expr) = expr
 
 getArgsScope :: State -> [FunctionDefinition] -> [(Name, Expression)] -> (State, State)
-getArgsScope scope funcs args = let (newScope, funcScope) = foldl (\(oldScope, funcScope) (name, expr) -> 
-                                        let (curScope, res) = evalExpression oldScope funcs expr
-                                        in  (curScope, (name, res):funcScope)) (scope, []) args
-                                in (newScope, funcScope ++ newScope)
+getArgsScope startScope funcs args = let (resScope, resFuncScope) = foldl (\(prevScope, prevFuncScope) (name, expr) -> 
+                                          let (curScope, res) = evalExpression prevScope funcs expr
+                                          in  (curScope, (name, res):prevFuncScope)) (startScope, []) args
+                                     in (resScope, resFuncScope ++ resScope)
 
 evalExpression :: State -> [FunctionDefinition] -> Expression -> (State, Integer)
-evalExpression scope funcs (Number n)               =   (scope, n)
+evalExpression scope funcs (Number n)               = (scope, n)
 
-evalExpression scope funcs (Reference name)         =   (scope, fromJust $ lookup name scope)
+evalExpression scope funcs (Reference name)         = (scope, fromJust $ lookup name scope)
 
-evalExpression scope funcs (Assign name expr)       =   let (curScope, res) = evalExpression scope funcs expr
-                                                        in ((name, res):curScope, res)
+evalExpression scope funcs (Assign name expr)       = let (newScope, res) = evalExpression scope funcs expr
+                                                      in  ((name, res):newScope, res)
 
-evalExpression scope funcs (BinaryOperation op l r) =   let (leftScope, leftRes)   = evalExpression scope funcs l
-                                                            (rightScope, rightRes) = evalExpression leftScope funcs r
-                                                        in  (rightScope, toBinaryFunction op leftRes rightRes)
+evalExpression scope funcs (BinaryOperation op l r) = let (leftScope, leftRes)   = evalExpression scope funcs l
+                                                          (rightScope, rightRes) = evalExpression leftScope funcs r
+                                                      in  (rightScope, toBinaryFunction op leftRes rightRes)
 
-evalExpression scope funcs (UnaryOperation op expr) =   let (newScope, res) = evalExpression scope funcs expr
-                                                        in  (newScope, toUnaryFunction op res)
+evalExpression scope funcs (UnaryOperation op expr) = let (resScope, res) = evalExpression scope funcs expr
+                                                      in  (resScope, toUnaryFunction op res)
 
-evalExpression scope funcs (FunctionCall name args) =   let (newScope, funcScope) = getArgsScope scope funcs $ zip (getArgs func) args 
-                                                            func = fromJust $ find ((== name) . getName) funcs
-                                                        in  (newScope, snd $ evalExpression funcScope funcs (getBody func))
+evalExpression scope funcs (FunctionCall name args) = let (resScope, funcScope) = getArgsScope scope funcs $ zip (getArgs func) args 
+                                                          func = fromJust $ find ((== name) . getName) funcs
+                                                      in  (resScope, snd $ evalExpression funcScope funcs (getBody func))
 
-evalExpression scope funcs (Conditional cond t f)   =   let (condScope, condRes) = evalExpression scope funcs cond
-                                                        in evalExpression condScope funcs $ if toBool condRes then t else f
+evalExpression scope funcs (Conditional cond t f)   = let (condScope, condRes) = evalExpression scope funcs cond
+                                                      in evalExpression condScope funcs $ if toBool condRes then t else f
 
-evalExpression scope funcs (Block exprs)            =   foldl (\(scope, value) expr -> evalExpression scope funcs expr) (scope, 0) exprs
+evalExpression scope funcs (Block exprs)            = foldl (\(scope, value) expr -> evalExpression scope funcs expr) (scope, 0) exprs
 
 eval :: Program -> Integer
 eval (funcs, expr) = snd $ evalExpression [] funcs expr
