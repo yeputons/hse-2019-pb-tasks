@@ -47,7 +47,7 @@ showUnop Neg = "-"
 showUnop Not = "!"
 
 showFunction :: FunctionDefinition -> String
-showFunction (name, params, body) = "func " ++ name ++ "(" ++ intercalate ", " params ++ ") = " ++ showExpression body ++ "\n"
+showFunction (name, params, body) = concat["func ", name, "(", intercalate ", " params, ") = ", showExpression body, "\n"]
 
 showExpression :: Expression -> String
 showExpression (Number num)                     = show num
@@ -57,7 +57,7 @@ showExpression (BinaryOperation op expr1 expr2) = concat["(", showExpression exp
 showExpression (UnaryOperation op expr)         = showUnop op ++ showExpression expr
 showExpression (FunctionCall name exprs)        = concat[name, "(", intercalate ", " (map showExpression exprs), ")"]
 showExpression (Conditional cond expr1 expr2)   = concat["if ", showExpression cond, " then ", showExpression expr1, " else ", showExpression expr2, " fi"]
-showExpression (Block exprs)                    = concat["{", concatMap ("\n\t" ++) (lines $ intercalate ";\n" $ map showExpression exprs), "\n}"]
+showExpression (Block exprs)                    = concat["{", concatMap ("\n\t" ++) $ lines $ intercalate ";\n" $ map showExpression exprs, "\n}"]
 
 showProgram :: Program -> String
 showProgram (functions, expression) = concatMap showFunction functions ++ showExpression expression
@@ -126,11 +126,6 @@ evalExpression = undefined
 
 -- Реализуйте eval: запускает программу и возвращает её значение.
 
-
-addValToScope :: [FunctionDefinition] -> (State, [Integer]) -> Expression -> (State, [Integer])
-addValToScope functions (scope, vals) expr = let (newScope, val) = evalExpr functions scope expr
-                                             in  (newScope, vals ++ [val])
-
 evalExpr :: [FunctionDefinition] -> State -> Expression -> (State, Integer)
 evalExpr functions scope (Number num)                    = (scope, num)
 
@@ -146,11 +141,13 @@ evalExpr functions scope (BinaryOperation op left right) = let (leftScope, leftV
 evalExpr functions scope (UnaryOperation op expr)        = let (newScope, val) = evalExpr functions scope expr
                                                            in  (newScope, toUnaryFunction op val)
 
-evalExpr functions scope  (FunctionCall name args)       = let (newScope, valArgs)     = foldl (addValToScope functions) (scope, []) args
+evalExpr functions scope  (FunctionCall name args)       = let (newScope, valArgs)     = foldl addExprValueToArgsList (scope, []) args
                                                                Just (_ , fArgs, fBody) = find (\(x, _, _) -> x == name) functions
                                                                fScope                  = zip fArgs valArgs ++ newScope
                                                                (_, fValue)             = evalExpr functions fScope fBody
                                                            in  (newScope, fValue)
+                                                           where addExprValueToArgsList (scope, vals) expr = let (newScope, val) = evalExpr functions scope expr
+                                                                                                             in  (newScope, vals ++ [val]) 
 
 evalExpr functions scope (Conditional cond true false)   = let (scopeAfterExpr, res) = evalExpr functions scope cond
                                                                expr                  = if toBool res then true else false
