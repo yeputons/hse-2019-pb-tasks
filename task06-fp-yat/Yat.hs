@@ -138,8 +138,8 @@ getBody (_, _, expr) = expr
 
 getArgsScope :: State -> [FunctionDefinition] -> [(Name, Expression)] -> (State, State)
 getArgsScope scope funcs args = let (newScope, funcScope) = foldl (\(oldScope, funcScope) (name, expr) -> 
-                                        let (curScope, res) = evalExpression scope funcs expr
-                                        in (curScope, (name, res):funcScope)) (scope, []) args
+                                        let (curScope, res) = evalExpression oldScope funcs expr
+                                        in  (curScope, (name, res):funcScope)) (scope, []) args
                                 in (newScope, funcScope ++ newScope)
 
 evalExpression :: State -> [FunctionDefinition] -> Expression -> (State, Integer)
@@ -157,9 +157,9 @@ evalExpression scope funcs (BinaryOperation op l r) =   let (leftScope, leftRes)
 evalExpression scope funcs (UnaryOperation op expr) =   let (newScope, res) = evalExpression scope funcs expr
                                                         in  (newScope, toUnaryFunction op res)
 
-evalExpression scope funcs (FunctionCall name args) =   (new_scope, snd $ evalExpression func_scope funcs (getBody func))
-                                                                    where (new_scope, func_scope) = getArgsScope scope funcs $ zip (getArgs func) args 
-                                                                          func = fromJust $ find ((== name) . getName) funcs
+evalExpression scope funcs (FunctionCall name args) =   let (newScope, funcScope) = getArgsScope scope funcs $ zip (getArgs func) args 
+                                                            func = fromJust $ find ((== name) . getName) funcs
+                                                        in  (newScope, snd $ evalExpression funcScope funcs (getBody func))
 
 evalExpression scope funcs (Conditional cond t f)   =   let (condScope, condRes) = evalExpression scope funcs cond
                                                         in evalExpression condScope funcs $ if toBool condRes then t else f
