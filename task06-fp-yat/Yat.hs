@@ -46,18 +46,15 @@ showUnop :: Unop -> String
 showUnop Neg = "-"
 showUnop Not = "!"
 
-addTabs :: String -> String
-addTabs = intercalate "\n" . map ("\t" ++) . lines
-
 showExpression :: Expression -> String
 showExpression (Number num)                       = show num
 showExpression (Reference name)                   = name
-showExpression (Assign name expr)                 = "let " ++ name ++ " = " ++ showExpression expr ++ " tel"
-showExpression (BinaryOperation binop left right) = "(" ++ showExpression left ++ " " ++ showBinop binop ++ " " ++ showExpression right ++ ")"
+showExpression (Assign name expr)                 = concat ["let ", name, " = ", showExpression expr, " tel"]
+showExpression (BinaryOperation binop left right) = concat ["(", showExpression left, " ", showBinop binop, " ", showExpression right, ")"]
 showExpression (UnaryOperation unop expr)         = showUnop unop ++ showExpression expr
-showExpression (FunctionCall name args)           = name ++ "(" ++ intercalate ", " (map showExpression args) ++ ")"
-showExpression (Conditional expr true false)      = "if " ++ showExpression expr ++ " then " ++ showExpression true ++ " else " ++ showExpression false ++ " fi"
-showExpression (Block exprs)                      = "{" ++ concatMap ("\n\t" ++) (lines (intercalate ";\n" (map showExpression exprs))) ++ "\n}"
+showExpression (FunctionCall name args)           = concat [name, "(", intercalate ", " (map showExpression args), ")"]
+showExpression (Conditional expr true false)      = concat ["if ", showExpression expr, " then ", showExpression true, " else ", showExpression false, " fi"]
+showExpression (Block exprs)                      = concat ["{", concatMap ("\n\t" ++) (lines (intercalate ";\n" (map showExpression exprs))), "\n}"]
 
 showFunction :: FunctionDefinition -> String
 showFunction (name, params, expr) = "func " ++ name ++ "(" ++ intercalate ", " params ++ ") = " ++ showExpression expr
@@ -129,46 +126,38 @@ evalExpression = undefined
 -} -- Удалите эту строчку, если решаете бонусное задание.
 
 -- Реализуйте eval: запускает программу и возвращает её значение.
- 
-getVarFromScope :: String -> State -> Integer
-getVarFromScope name scope = fromMaybe 0 $ lookup name scope
 
 getFuncName :: FunctionDefinition -> Name
 getFuncName (name, _, _) = name 
 
 getFuncArgs :: FunctionDefinition -> [Name]
-getFuncArgs (_, args, _) = args 
-
+getFuncArgs (_, args, _) = args
 getFuncExpr :: FunctionDefinition -> Expression
 getFuncExpr (_, _, expr) = expr
 
-getArgsValues :: [FunctionDefinition] -> State -> [Expression] -> ([Integer], State)
-getArgsValues funcs state []        = ([], state)
-getArgsValues funcs state [expr]    = ([arg_val], new_scope)
-                                      where (arg_val, new_scope) = evalExpression funcs state expr
-getArgsValues funcs state (expr:xs) = (arg_val : args_vals, final_state)
-                                      where (arg_val,   new_state)   = evalExpression funcs state expr
-                                            (args_vals, final_state) = getArgsValues funcs new_state xs
+getArgsValues funcs initScope exprs = foldl (\(vals, currentScope) expr ->
+                                      let (val,  newScope) = evalExpression funcs currentScope expr
+                                      in (val:vals, newScope)) ([], initScope) exprs
 
 evalExpression :: [FunctionDefinition] -> State -> Expression -> (Integer, State)
-evalExpression funcs scope (Number num)                       = (num, scope)
-evalExpression funcs scope (Reference name)                   = (getVarFromScope name scope, scope)
-evalExpression funcs scope (Assign name expr)                 = (res, (name, res):new_scope)
-                                                                where (res, new_scope) = evalExpression funcs scope expr 
-evalExpression funcs scope (BinaryOperation binop left right) = (toBinaryFunction binop left_res right_res, right_scope)
-                                                                where (left_res,  left_scope) = evalExpression funcs scope      left
-                                                                      (right_res, right_scope) = evalExpression funcs left_scope right
-evalExpression funcs scope (UnaryOperation unop expr)         = (toUnaryFunction unop res, new_scope)
-                                                                where (res, new_scope) = evalExpression funcs scope expr
-evalExpression funcs scope (FunctionCall name args)           = (res, new_scope)
-                                                                where (res, _)       = evalExpression funcs func_scope (getFuncExpr func)
-                                                                      func_scope     = zip (getFuncArgs func) args_vals ++ new_scope
-                                                                      func           = fromJust $ find ((== name). getFuncName) funcs
-                                                                      (args_vals, new_scope) = getArgsValues funcs scope args
-evalExpression funcs scope (Conditional expr true false)        | toBool res = evalExpression funcs new_scope true
-                                                                | otherwise  = evalExpression funcs new_scope false
-                                                                where (res, new_scope)  = evalExpression funcs scope expr 
-evalExpression funcs scope (Block exprs)                      = foldl (\(value, scope) expr -> evalExpression funcs scope expr) (0, scope) exprs
+evalExpression funcs initScope (Number num)                       = (num, initScope)
+evalExpression funcs initScope (Reference name)                   = (fromJust $ lookup name initScope, initScope)
+evalExpression funcs initScope (Assign name expr)                 = let (res, newScope) = evalExpression funcs initScope expr
+                                                                    in  (res, (name, res):newScope)
+evalExpression funcs initScope (BinaryOperation binop left right) = let (leftRes,  leftScope)  = evalExpression funcs initScope left
+                                                                        (rightRes, rightScope) = evalExpression funcs leftScope right
+                                                                    in  (toBinaryFunction binop leftRes rightRes, rightScope)
+evalExpression funcs initScope (UnaryOperation unop expr)         = let (res, newScope) = evalExpression funcs initScope expr
+                                                                    in  (toUnaryFunction unop res, newScope)  
+evalExpression funcs initScope (FunctionCall name args)           = let (res, _)       = evalExpression funcs funcScope (getFuncExpr func)
+                                                                        funcScope     = zip (getFuncArgs func) vals ++ newScope
+                                                                        func           = fromJust $ find ((== name) . getFuncName) funcs
+                                                                        (vals, newScope) = getArgsValues funcs initScope args
+                                                                    in (res, newScope)
+evalExpression funcs initScope (Conditional cond true false)      = let expr = if toBool res then true else false
+                                                                        (res, newScope)  = evalExpression funcs initScope cond
+                                                                    in  evalExpression funcs newScope expr                                       
+evalExpression funcs initScope (Block exprs)                      = foldl (\(value, initScope) expr -> evalExpression funcs initScope expr) (0, initScope) exprs
 
 eval :: Program -> Integer
 eval (functions, expr) = fst (evalExpression functions [] expr)
