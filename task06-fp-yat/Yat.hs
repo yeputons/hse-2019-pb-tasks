@@ -125,7 +125,6 @@ evalExpression = undefined
 -} -- Удалите эту строчку, если решаете бонусное задание.
 
 -- Реализуйте eval: запускает программу и возвращает её значение.
-
 evalExpr :: [FunctionDefinition] -> State -> Expression -> (State, Integer)
 evalExpr functions scope (Number num)                    = (scope, num)
 
