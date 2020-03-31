@@ -19,8 +19,8 @@ program1 = (
     [
         ("f", ["param"],
             Block [
-            "param" =:= r "param" /+ c 1,
-            r "param"
+                "param" =:= r "param" /+ c 1,
+                 r "param"
             ]
         )
     ],
