@@ -135,9 +135,9 @@ getFuncArgs (_, args, _) = args
 getFuncExpr :: FunctionDefinition -> Expression
 getFuncExpr (_, _, expr) = expr
 
-getArgsValues funcs initScope exprs = foldl (\(vals, currentScope) expr ->
-                                      let (val,  newScope) = evalExpression funcs currentScope expr
-                                      in (val:vals, newScope)) ([], initScope) exprs
+getArgsValues funcs initScope = foldl (\(vals, currentScope) expr ->
+                                let (val,  newScope) = evalExpression funcs currentScope expr
+                                in (val:vals, newScope)) ([], initScope)
 
 evalExpression :: [FunctionDefinition] -> State -> Expression -> (Integer, State)
 evalExpression funcs initScope (Number num)                       = (num, initScope)
