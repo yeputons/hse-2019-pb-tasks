@@ -96,50 +96,41 @@ toUnaryFunction Not = fromBool . not . toBool
 
 {- -- Удалите эту строчку, если решаете бонусное задание.
 newtype Eval a = Eval ([FunctionDefinition] -> State -> (a, State))  -- Как data, только эффективнее в случае одного конструктора.
-
 runEval :: Eval a -> [FunctionDefinition] -> State -> (a, State)
 runEval (Eval f) = f
-
 evaluated :: a -> Eval a  -- Возвращает значение без изменения состояния.
 evaluated = undefined
-
 readState :: Eval State  -- Возвращает состояние.
 readState = undefined
-
 addToState :: String -> Integer -> a -> Eval a  -- Добавляет/изменяет значение переменной на новое и возвращает константу.
 addToState = undefined
-
 readDefs :: Eval [FunctionDefinition]  -- Возвращает все определения функций.
 readDefs = undefined
-
 andThen :: Eval a -> (a -> Eval b) -> Eval b  -- Выполняет сначала первое вычисление, а потом второе.
 andThen = undefined
-
 andEvaluated :: Eval a -> (a -> b) -> Eval b  -- Выполняет вычисление, а потом преобразует результат чистой функцией.
 andEvaluated = undefined
-
 evalExpressionsL :: (a -> Integer -> a) -> a -> [Expression] -> Eval a  -- Вычисляет список выражений от первого к последнему.
 evalExpressionsL = undefined
-
 evalExpression :: Expression -> Eval Integer  -- Вычисляет выражение.
 evalExpression = undefined
 -} -- Удалите эту строчку, если решаете бонусное задание
 
-getFunctionDefinition :: [FunctionDefinition] -> Name -> ([Name], Expression)
-getFunctionDefinition func name = getresult (head $ filter isequal func)
-                                  where 
+getFunctionDefinition :: Name -> [FunctionDefinition] -> ([Name], Expression)
+getFunctionDefinition name func = getresult (head (filter isequal func))
+                                  where
                                       getresult (fname, name,  expr) = (name, expr)
-                                      isequal   (fname, names, expr) = fname == name
+                                      isequal   (fname, names, expr) = name == fname
 
 chainFunctions :: [FunctionDefinition] -> State -> [Expression] -> ([Integer], State) 
 chainFunctions funcs scope []         = ([], scope)
 chainFunctions funcs scope (arg:args) = (fst evarg:fst chainargs, snd chainargs)
                                         where 
-                                            evarg     = evalExpression arg   funcs           scope
-                                            chainargs = chainFunctions funcs (snd chainargs) args
+                                            evarg     = evalExpression arg   funcs       scope
+                                            chainargs = chainFunctions funcs (snd evarg) args
 
 getVariable :: State -> Name -> Integer
-getVariable state name = snd (head (filter ((==) name . fst) state))
+getVariable scope name = snd (head (filter ((==) name . fst) scope))
 
 
 evalExpression :: Expression -> [FunctionDefinition] -> State -> (Integer, State)
@@ -148,7 +139,7 @@ evalExpression (Reference name )               _     scope = (getVariable scope 
 evalExpression (Assign name expr)              funcs scope = (fst result, (name, fst result):snd result)
                                                              where 
                                                                  result = evalExpression expr funcs scope
-evalExpression (BinaryOperation op left right) funcs scope = first (toBinaryFunction op (fst lres)) rres
+evalExpression (BinaryOperation op left right) funcs scope = (toBinaryFunction op (fst lres) (fst rres), snd rres)
                                                              where
                                                                  lres = evalExpression left  funcs scope
                                                                  rres = evalExpression right funcs (snd lres)
@@ -158,7 +149,7 @@ evalExpression (UnaryOperation op expr)        funcs scope = (toUnaryFunction op
                                                                  result = evalExpression expr funcs scope
 evalExpression (FunctionCall name args)        funcs scope = (fst result, snd chainargs)
                                                              where
-                                                                 fundef    = getFunctionDefinition funcs name
+                                                                 fundef    = getFunctionDefinition name funcs
                                                                  chainargs = chainFunctions funcs scope args
                                                                  result    = evalExpression (snd fundef) funcs (zip (fst fundef) (fst chainargs) ++ snd chainargs)
 
@@ -168,9 +159,7 @@ evalExpression (Conditional expr true false)   funcs scope | toBool (fst result)
                                                                  result = evalExpression expr funcs scope
 evalExpression (Block [])                      _     scope = (0, scope)
 evalExpression (Block [expr])                  funcs scope = evalExpression expr          funcs scope
-evalExpression (Block (expr:exprs))            funcs scope = evalExpression (Block exprs) funcs (snd $ evalExpression expr funcs scope)
+evalExpression (Block (expr:exprs))            funcs scope = evalExpression (Block exprs) funcs (snd (evalExpression expr funcs scope))
 
 eval :: Program -> Integer
 eval program = fst (evalExpression (snd program) (fst program) [])
-
-                                           
