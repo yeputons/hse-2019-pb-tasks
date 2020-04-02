@@ -54,15 +54,12 @@ addTab = unlines . map ('\t':) . lines
 showExpression :: Expression -> String
 showExpression (Number n)               = show n
 showExpression (Reference name)         = name
-showExpression (Assign name expr)       = unwords ["let", name, "=", showExpression expr, "tel"]
+showExpression (Assign name expr)       = concat ["let ", name, " = ", showExpression expr, " tel"]
 showExpression (BinaryOperation op l r) = concat ["(", unwords [showExpression l, showBinop op, showExpression r], ")"]
 showExpression (UnaryOperation op expr) = showUnop op ++ showExpression expr
 showExpression (FunctionCall name fs)   = concat [name, "(", intercalate ", " (map showExpression fs), ")"]
-showExpression (Conditional expr t f)   = unwords ["if", showExpression expr, "then", showExpression t, "else", showExpression f, "fi"]
-showExpression (Block fs)               = concat ["{", "\n", addTab $ block' fs, "}"]
-                                          where block' []     = ""
-                                                block' [f]    = showExpression f
-                                                block' (f:fs) = concat [showExpression f, ";", "\n", block' fs]
+showExpression (Conditional expr t f)   = concat ["if ", showExpression expr, " then ", showExpression t, " else ", showExpression f, " fi"]
+showExpression (Block fs)               = concat ["{", "\n", addTab $ intercalate ";\n" $ map showExpression fs, "}"]
 
 showFunctionDefinition :: FunctionDefinition -> String
 showFunctionDefinition (name, args, expr) = concat ["func ", name, "(", intercalate ", " args, ") = ", showExpression expr, "\n"]
@@ -101,20 +98,19 @@ toUnaryFunction Not = fromBool . not . toBool
 -- По минимуму используйте pattern matching для `Eval`, функции
 -- `runEval`, `readState`, `readDefs` и избегайте явной передачи состояния.
 
--- {- -- Удалите эту строчку, если решаете бонусное задание.
 newtype Eval a = Eval ([FunctionDefinition] -> State -> (a, State))  -- Как data, только эффективнее в случае одного конструктора.
 
 runEval :: Eval a -> [FunctionDefinition] -> State -> (a, State)
 runEval (Eval f) = f
 
 evaluated :: a -> Eval a  -- Возвращает значение без изменения состояния.
-evaluated a = Eval (\_ st -> (a, st))
+evaluated a = Eval $ \_ st -> (a, st)
 
 readState :: Eval State  -- Возвращает состояние.
-readState = Eval (\_ st -> (st, st))
+readState = Eval $ \_ st -> (st, st)
 
 addToState :: String -> Integer -> a -> Eval a  -- Добавляет/изменяет значение переменной на новое и возвращает константу.
-addToState name value a = Eval (\_ st -> (a, (name, value):st))
+addToState name value a = Eval $ \_ st -> (a, (name, value):st)
 
 readDefs :: Eval [FunctionDefinition]  -- Возвращает все определения функций.
 readDefs = Eval $ \fds st -> (fds, st)
@@ -124,32 +120,29 @@ andThen ea fe = Eval $ \fds st -> let (eb, newSt) = runEval ea fds st
                                   in  runEval (fe eb) fds newSt 
 
 andEvaluated :: Eval a -> (a -> b) -> Eval b  -- Выполняет вычисление, а потом преобразует результат чистой функцией.
-andEvaluated ea f = Eval $ \fds st -> let (eb,   newSt) = runEval ea fds st
-                                      in  (f eb, newSt)
+andEvaluated ea f = andThen ea $ \eb -> evaluated $ f eb
 
 -- честно подсмотрел идею у Игоря :)
 (&=>) = andThen
 (&==) = andEvaluated
 
 evalExpressionsL :: (a -> Integer -> a) -> a -> [Expression] -> Eval a  -- Вычисляет список выражений от первого к последнему.
-evalExpressionsL f a = foldl ff (evaluated a)
+evalExpressionsL f a = foldl' ff (evaluated a)
                        where ff ea expr = ea &=> \a -> evalExpression expr &== f a
 
 evalExpression :: Expression -> Eval Integer  -- Вычисляет выражение.
-evalExpression (Number    n   )           = evaluated n
-evalExpression (Reference name)           = readState           &== \st  -> snd $ fromJust $ find (\(x, _) -> x == name) st
-evalExpression (Assign    name expr)      = evalExpression expr &=> \res -> addToState name res res
-evalExpression (BinaryOperation op e1 e2) = evalExpression e1   &=> \a   -> evalExpression e2 &== toBinaryFunction op a
-evalExpression (UnaryOperation op expr)   = evalExpression expr &== \a   -> toUnaryFunction op a
-
-evalExpression (FunctionCall name args)   = let evalArgs = evalExpressionsL (flip (:)) [] args
-                                                func     = readDefs &== \fdsEv    -> fromJust $ find (\(fName, _       ,_) -> fName == name) fdsEv
-                                                fState   = evalArgs &=> \valuesEv -> func     &=>     \(_, fArgNamesEv, _) -> Eval $ \_   st -> (zip fArgNamesEv valuesEv ++ st, st)
-                                                in         fState   &=> \fStateEv -> func     &=>     \(_, _,     fBodyEv) -> Eval $ \fds st -> (fst $ runEval (evalExpression fBodyEv) fds fStateEv, st)
+evalExpression (Number n)                 = evaluated n
+evalExpression (Reference name)           = readState &== \st -> fromJust $ lookup name st
+evalExpression (Assign name expr)         = evalExpression expr &=> \res -> addToState name res res
+evalExpression (BinaryOperation op e1 e2) = evalExpression e1 &=> \a -> evalExpression e2 &== toBinaryFunction op a
+evalExpression (UnaryOperation op expr)   = evalExpression expr &== \a -> toUnaryFunction op a
+evalExpression (FunctionCall name args)   = let evalArgs = evalExpressionsL (flip (:)) [] args &== reverse
+                                                func     = readDefs &== \fdsEv -> fromJust $ find (\(fName, _, _) -> fName == name) fdsEv
+                                                fState   = evalArgs &=> \valuesEv -> func &=> \(_, fArgNamesEv, _) -> Eval $ \_ st -> (zip fArgNamesEv valuesEv ++ st, st)
+                                                in fState &=> \fStateEv -> func &=> \(_, _, fBodyEv) -> Eval $ \fds st -> (fst $ runEval (evalExpression fBodyEv) fds fStateEv, st)
 evalExpression (Conditional c e1 e2)      = evalExpression c &=> \b -> evalExpression $ if toBool b then e1 else e2
-evalExpression (Block es)                 = Eval $ runEval (evalExpressionsL (\_ a -> a) 0 es) 
+evalExpression (Block es)                 = evalExpressionsL (\_ a -> a) 0 es 
 
--- -} -- Удалите эту строчку, если решаете бонусное задание.
 
 -- Реализуйте eval: запускает программу и возвращает её значение.
 eval :: Program -> Integer
