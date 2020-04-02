@@ -55,7 +55,7 @@ showExpr (BinaryOperation oper left right)  = concat ["(", showExpr left, " ", s
 showExpr (UnaryOperation oper expr)         = showUnop oper ++ showExpr expr
 showExpr (FunctionCall name args)           = concat [name, "(", intercalate ", " $ map showExpr args, ")"]
 showExpr (Conditional expr true false)      = concat ["if ", showExpr expr, " then ", showExpr true, " else ", showExpr false, " fi"]
-showExpr (Block exprs)                      = concat ["{\n", concatMap (("\t" ++) . (++ "\n")) (lines $ intercalate ";\n" (map showExpr exprs)), "}"]
+showExpr (Block exprs)                      = concat ["{\n", concatMap (("\t" ++) . (++ "\n")) $ lines $ intercalate ";\n" (map showExpr exprs), "}"]
 
 showFunc :: FunctionDefinition -> String
 showFunc (name, args, expr) = concat ["func ", name, "(", intercalate ", " args, ") = ", showExpr expr]
@@ -125,45 +125,39 @@ evalExpression :: Expression -> Eval Integer  -- Вычисляет выраже
 evalExpression = undefined
 -} -- Удалите эту строчку, если решаете бонусное задание.
 
--- Реализуйте eval: запускает программу и возвращает её значение.
+-- Реализуйте eval: запускает программу и возвращает её значение.	
 evalArgs :: [FunctionDefinition] -> State -> FunctionDefinition -> [Expression] -> (State, State)
-evalArgs _ _ (_,  _:_ , _) []                                          = ([], []) 
-evalArgs funcs scope (_, [], _) _                                      = (scope, scope)
-evalArgs funcs scope (funcName, nameArg:nameArgs, funcExpr) (arg:args) = let (value, state) = evalExpr funcs scope arg
-                                                                             func         = (funcName, nameArgs, funcExpr) 
-                                                                             newScope     = (nameArg, value) : state
-                                                                             (res, _)     = evalArgs funcs newScope func args
-                                                                         in  (res, state ++ scope)
-
-
+evalArgs funcs scope (funcName, nameArgs, funcExpr) args = let arg (curScope, funcScope) (name, expr) = let (res, newScope) = evalExpr funcs curScope expr
+                                                                                                        in (newScope, (name, res):funcScope)
+                                                               (resScope, resFuncScope)               = foldl arg (scope, []) (zip nameArgs args)
+                                                           in  (resFuncScope ++ resScope, resScope)
 
 evalExpr :: [FunctionDefinition] -> State -> Expression -> (Integer, State)
-evalExpr funcs scope (Number num)                   = (num, scope)
+evalExpr funcs scope (Number num)                      = (num, scope)
 
-evalExpr funcs scope (Reference name)               = let (Just value) = lookup name scope
-                                                      in  (value, scope)
+evalExpr funcs scope (Reference name)                  = let (Just value) = lookup name scope
+                                                         in  (value, scope)
 
-evalExpr funcs scope (Assign name expr)             = let (value, state) = evalExpr funcs scope expr
-                                                      in  (value, (name, value):state)
+evalExpr funcs scope (Assign name expr)                = let (value, state) = evalExpr funcs scope expr
+                                                         in  (value, (name, value):state)
 
-evalExpr funcs scope (BinaryOperation oper fst snd) = let (value1, state1) = evalExpr funcs scope fst
-                                                          (value2, state2) = evalExpr funcs state1 snd
-                                                      in  (toBinaryFunction oper value1 value2, state2)
+evalExpr funcs scope (BinaryOperation oper left right) = let (value1, state1) = evalExpr funcs scope left
+                                                             (value2, state2) = evalExpr funcs state1 right
+                                                         in  (toBinaryFunction oper value1 value2, state2)
 
-evalExpr funcs scope (UnaryOperation oper expr)     = let (value, state) = evalExpr funcs scope expr
-                                                      in  (toUnaryFunction oper value, state)
+evalExpr funcs scope (UnaryOperation oper expr)        = let (value, state) = evalExpr funcs scope expr
+                                                         in  (toUnaryFunction oper value, state)
 
-evalExpr funcs scope (FunctionCall name exprs)      = let Just (funcName, funcArgs, funcExpr) = find (\(funcName, _, _) -> funcName == name) funcs
-                                                          (funcScope, newScope)               = evalArgs funcs scope (funcName, funcArgs, funcExpr) exprs
-                                                          (res, _)                            = evalExpr funcs funcScope funcExpr
-                                                      in  (res, newScope)
+evalExpr funcs scope (FunctionCall name exprs)         = let Just (funcName, funcArgs, funcExpr) = find (\(funcName, _, _) -> funcName == name) funcs
+                                                             (funcScope, newScope)               = evalArgs funcs scope (funcName, funcArgs, funcExpr) exprs
+                                                             (res, _)                            = evalExpr funcs funcScope funcExpr
+                                                         in  (res, newScope)
 
 
-evalExpr funcs scope (Conditional expr true false)  = let (value, state) = evalExpr funcs scope expr
-                                                          result         = if toBool value then true else false
-                                                      in  evalExpr funcs state result
+evalExpr funcs scope (Conditional expr true false)     = let (value, state) = evalExpr funcs scope expr
+                                                         in  evalExpr funcs state (if toBool value then true else false)
 
-evalExpr funcs scope (Block exprs)                  = foldl (\(_, res) expr -> evalExpr funcs res expr) (0, scope) exprs
+evalExpr funcs scope (Block exprs)                     = foldl (\(_, res) expr -> evalExpr funcs res expr) (0, scope) exprs
 
 
 eval :: Program -> Integer
