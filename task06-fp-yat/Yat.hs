@@ -125,7 +125,6 @@ evalExpression = undefined
 -} -- Удалите эту строчку, если решаете бонусное задание.
 
 -- Реализуйте eval: запускает программу и возвращает её значение.
-
 evalExpr :: [FunctionDefinition] -> State -> Expression -> (State, Integer)
 evalExpr functions scope (Number num)                    = (scope, num)
 
@@ -141,12 +140,12 @@ evalExpr functions scope (BinaryOperation op left right) = let (leftScope, leftV
 evalExpr functions scope (UnaryOperation op expr)        = let (newScope, val) = evalExpr functions scope expr
                                                            in  (newScope, toUnaryFunction op val)
 
-evalExpr functions scope  (FunctionCall name args)       = let (newScope, valArgs)                       = foldl addExprValueToArgsList (scope, []) args
+evalExpr functions scope  (FunctionCall name args)       = let (newScope, valArgs)     = foldl addExprValueToArgsList (scope, []) args
                                                                addExprValueToArgsList (scope, vals) expr = let (newScope, val) = evalExpr functions scope expr
                                                                                                            in  (newScope, vals ++ [val]) 
-                                                               Just (_ , fArgs, fBody)                   = find (\(x, _, _) -> x == name) functions
-                                                               fScope                                    = zip fArgs valArgs ++ newScope
-                                                               (_, fValue)                               = evalExpr functions fScope fBody
+                                                               Just (_ , fArgs, fBody) = find (\(x, _, _) -> x == name) functions
+                                                               fScope                  = zip fArgs valArgs ++ newScope
+                                                               (_, fValue)             = evalExpr functions fScope fBody
                                                            in  (newScope, fValue)
 
 evalExpr functions scope (Conditional cond true false)   = let (scopeAfterExpr, res) = evalExpr functions scope cond
