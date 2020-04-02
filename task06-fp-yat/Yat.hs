@@ -47,19 +47,20 @@ showUnop Neg = "-"
 showUnop Not = "!"
 
 -- Верните текстовое представление программы (см. условие).
-
 addTab :: String -> String
 addTab = unlines . map ('\t':) . lines
 
+{-# ANN module "HLint: ignore Use ++" #-}
+{-# ANN module "HLint: ignore Evaluate" #-}
 showExpression :: Expression -> String
-showExpression (Number n)               = show n
-showExpression (Reference name)         = name
+showExpression (Number n)               = concat [show n]
+showExpression (Reference name)         = concat [name]
 showExpression (Assign name expr)       = concat ["let ", name, " = ", showExpression expr, " tel"]
-showExpression (BinaryOperation op l r) = concat ["(", unwords [showExpression l, showBinop op, showExpression r], ")"]
-showExpression (UnaryOperation op expr) = showUnop op ++ showExpression expr
-showExpression (FunctionCall name fs)   = concat [name, "(", intercalate ", " (map showExpression fs), ")"]
+showExpression (BinaryOperation op l r) = concat ["(", concat [showExpression l, " ", showBinop op, " ", showExpression r], ")"]
+showExpression (UnaryOperation op expr) = concat [showUnop op, showExpression expr]
+showExpression (FunctionCall name fs)   = concat [name, "(", intercalate ", " $ map showExpression fs, ")"]
 showExpression (Conditional expr t f)   = concat ["if ", showExpression expr, " then ", showExpression t, " else ", showExpression f, " fi"]
-showExpression (Block fs)               = concat ["{", "\n", addTab $ intercalate ";\n" $ map showExpression fs, "}"]
+showExpression (Block fs)               = concat ["{\n", addTab $ intercalate ";\n" $ map showExpression fs, "}"]
 
 showFunctionDefinition :: FunctionDefinition -> String
 showFunctionDefinition (name, args, expr) = concat ["func ", name, "(", intercalate ", " args, ") = ", showExpression expr, "\n"]
