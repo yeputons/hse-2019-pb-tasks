@@ -134,22 +134,23 @@ evalExpression = undefined
 getFuncName :: FunctionDefinition -> String
 getFuncName (name, _, _) = name
 
-getFuncDef :: Name -> [FunctionDefinition] -> FunctionDefinition
-getFuncDef name fds = fromMaybe undefined $ find (\fd -> getFuncName fd == name) fds
+lookupFuncByName :: Name -> [FunctionDefinition] -> FunctionDefinition
+lookupFuncByName name fds = fromJust $ find (\fd -> getFuncName fd == name) fds
 
 evalParams :: [(Name, Expression)] -> [FunctionDefinition] -> State -> ([(Name, Integer)], State)
-evalParams params fds state = 
-  foldl (evalParam fds) ([], state) params
-  where 
-    evalParam fds (paramsVals, state) (name, e) = let (val, newState) = evalExpression e fds state
+evalParams params fds startState = 
+  foldl (evalParam) ([], startState) params
+  where
+    evalParam :: ([(Name, Integer)], State) -> (Name, Expression) -> ([(Name, Integer)], State)
+    evalParam (paramsVals, state) (name, e) = let (val, newState) = evalExpression e fds state
                                                   in ((name, val):paramsVals, newState)
 
-evalIfCondition :: (Integer, State) -> Expression -> Expression -> [FunctionDefinition] -> (Integer, State)
-evalIfCondition (cond, state) t f fds = evalExpression (if toBool cond then t else f) fds state
+getOnlyValueFromEvaled :: (Integer, State) -> Integer
+getOnlyValueFromEvaled (val, _) = val
 
 evalExpression :: Expression -> [FunctionDefinition] -> State -> (Integer, State)
 evalExpression (Number n)               fds state = (n, state)
-evalExpression (Reference name)         fds state = (fromMaybe undefined $ lookup name state, state) 
+evalExpression (Reference name)         fds state = (fromJust $ lookup name state, state) 
 evalExpression (Assign name  e)         fds state = let (val, newState) = evalExpression e fds state
                                                     in (val, (name, val):newState)
 evalExpression (BinaryOperation op l r) fds state = let (lVal, newStateAfterLeft)  = evalExpression l fds state
@@ -157,12 +158,13 @@ evalExpression (BinaryOperation op l r) fds state = let (lVal, newStateAfterLeft
                                                     in (toBinaryFunction op lVal rVal, newStateAfterRight)
 evalExpression (UnaryOperation op e)    fds state = let (val, newState) = evalExpression e fds state
                                                     in (toUnaryFunction op val, newState) 
-evalExpression (FunctionCall name es)   fds state = let (_, params, body)        = getFuncDef name fds
+evalExpression (FunctionCall name es)   fds state = let (_, params, body)        = lookupFuncByName name fds
                                                         (evaledParams, newState) = evalParams (zip params es) fds state
-                                                    in (fst $ evalExpression body fds $ evaledParams ++ newState, newState)
-evalExpression (Conditional e t f)      fds state = evalIfCondition (evalExpression e fds state) t f fds
+                                                    in (getOnlyValueFromEvaled $ evalExpression body fds $ evaledParams ++ newState, newState)
+evalExpression (Conditional e t f)      fds state = let (cond, newState) = evalExpression e fds state
+                                                    in evalExpression (if toBool cond then t else f) fds newState
 evalExpression (Block es)               fds state = foldl (\(val, st) e -> evalExpression e fds st) (0, state) es
 
 -- Реализуйте eval: запускает программу и возвращает её значение.
 eval :: Program -> Integer
-eval (fds, e) = fst $ evalExpression e fds []
+eval (fds, e) = getOnlyValueFromEvaled $ evalExpression e fds []
