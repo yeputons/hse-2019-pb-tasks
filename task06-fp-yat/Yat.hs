@@ -57,14 +57,11 @@ showExpression (Number num)                                 = show num
 showExpression (Reference name)                             = name
 showExpression (Assign name expr)                           = concat ["let ", name, " = ", showExpression expr, " tel"]
 showExpression (BinaryOperation op leftExpr rightExpr)      = concat ["(", showExpression leftExpr, " ", showBinop op, " ", showExpression rightExpr, ")"]
-showExpression (UnaryOperation op expr)                     = showUnop op ++ showExpression expr
+showExpression (UnaryOperation op expr)                     = showUnop op ++ showExpression expr 
 showExpression (FunctionCall name args)                     = concat [name, "(", intercalate ", " (map showExpression args), ")"]
-showExpression (Conditional cond true false)                = "if " ++ showExpression cond ++ " then " ++ showExpression true ++ " else " ++ showExpression false ++ " fi"
+showExpression (Conditional cond true false)                = concat ["if ", showExpression cond, " then ", showExpression true, " else ", showExpression false, " fi"]
 showExpression (Block expr)                                 = concat ["{\n", concatMap (("\t" ++) . (++ "\n")) (lines $ intercalate ";\n" (map showExpression expr)), "}"]
 
-
-addTabs :: String -> String
-addTabs = intercalate "\n" . map ("\t" ++) . lines
 
 showProgram :: Program -> String
 showProgram (funcs, expr) = concatMap showFunctionDefinition funcs ++ showExpression expr
@@ -135,9 +132,7 @@ evalExpression = undefined
 
 
 getFuncDef :: Name -> [FunctionDefinition] -> ([Name], Expression)
-getFuncDef name funcs = dropFirst (head (filter eqName funcs)) 
-                        where eqName (funcName, funcNames, expr) = name == funcName
-                              dropFirst   (funcName, name, expr)   = (name, expr)
+getFuncDef name funcs = fromJust find (\(x:_) -> x == name) funcs
 
 createFuncScope :: State -> [Name] -> [Integer] -> State
 createFuncScope scope params vals = zip params vals ++ scope
@@ -153,24 +148,24 @@ chainCall func scope (x:xs)  = (fst y:fst ys, snd ys)
 getVar :: State -> Name -> Integer
 getVar scope name = snd (head (filter ((==) name . fst) scope))
 
-
+evalCond :: Bool -> State -> [FunctionDefinition] -> (Integer, State)
+evalCond cond s functions = evalExpr functions s cond
 evalExpr :: [FunctionDefinition] -> State -> Expression -> (Integer, State)
 evalExpr functions scope (Number num)             = (num, scope)
 evalExpr functions scope (Reference name)         = (getVar scope name, scope)
 evalExpr functions scope (Assign name e)          = (fst result, var:snd result)
-                                              where result = evalExpr functions scope e
-                                                    var    = (name, fst result)
+                                                where result = evalExpr functions scope e
+                                                      var    = (name, fst result)
 evalExpr functions scope (FunctionCall name args) = (fst (evalExpr functions (createFuncScope (snd result) (fst func) (fst result)) (snd func)), snd result) 
                                                 where func = getFuncDef name functions
                                                       result = chainCall functions scope args
-evalExpr functions scope (UnaryOperation op expr)    = (toUnaryFunction op (fst result), snd result)
-                                              where result = evalExpr functions scope expr
+evalExpr functions scope (UnaryOperation op expr) = (toUnaryFunction op (fst result), snd result)
+                                                where result = evalExpr functions scope expr
 evalExpr functions scope (BinaryOperation op left right) = (toBinaryFunction op (fst lres) (fst rres), snd rres)
-                                              where lres = evalExpr functions scope left
-                                                    rres = evalExpr functions (snd lres) right
-evalExpr functions scope (Conditional expr true false)      | toBool (fst res) = evalExpr functions (snd res) true
-                                              | otherwise        = evalExpr functions (snd res) false
-                                              where res = evalExpr functions scope expr
+                                                where lres = evalExpr functions scope left
+                                                      rres = evalExpr functions (snd lres) right
+evalExpr functions scope (Conditional expr true false) = evalCond  (toBool i) s functions
+                                                where (i, s) = evalExpr functions scope expr
 evalExpr functions scope (Block [x])              = evalExpr functions scope x
 evalExpr functions scope (Block [])               = (0, scope)                                         
 evalExpr functions scope (Block (x:xs))           = evalExpr functions (snd (evalExpr functions scope x)) (Block xs)
