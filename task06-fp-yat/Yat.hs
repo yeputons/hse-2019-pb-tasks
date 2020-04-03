@@ -139,7 +139,7 @@ lookupFuncByName name fds = fromJust $ find (\fd -> getFuncName fd == name) fds
 
 evalParams :: [(Name, Expression)] -> [FunctionDefinition] -> State -> ([(Name, Integer)], State)
 evalParams params fds startState = 
-  foldl (evalParam) ([], startState) params
+  foldl evalParam ([], startState) params
   where
     evalParam :: ([(Name, Integer)], State) -> (Name, Expression) -> ([(Name, Integer)], State)
     evalParam (paramsVals, state) (name, e) = let (val, newState) = evalExpression e fds state
