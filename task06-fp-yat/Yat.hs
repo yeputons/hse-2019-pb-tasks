@@ -139,7 +139,7 @@ createFuncScope scope params vals = zip params vals ++ scope
 
 
 chainCall::[FunctionDefinition] -> State -> [Expression] -> ([Integer], State)
-chainCall func scope []      = ([], scope)
+chainCall _ scope []         = ([], scope)
 chainCall func scope (x:xs)  = (i:ints, state)
                                  where (i,s)  = evalExpr func scope x
                                        (ints, state) = chainCall func s xs
@@ -147,22 +147,22 @@ chainCall func scope (x:xs)  = (i:ints, state)
 
 getVar :: State -> Name -> Integer
 getVar scope name = i
-    where (s,i) = fromJust (lookup name $ map (\fd@(s,i) -> (s,fd)) scope)
+    where (_,i) = fromJust (lookup name $ map (\fd@(s,i) -> (s,fd)) scope)
 
 evalCond :: Integer -> Expression -> Expression -> Expression
 evalCond i true false
     | toBool i = true
     | otherwise = false
 evalExpr :: [FunctionDefinition] -> State -> Expression -> (Integer, State)
-evalExpr functions scope (Number num)                    = (num, scope)
-evalExpr functions scope (Reference name)                = (getVar scope name, scope)
+evalExpr _ scope (Number num)                            = (num, scope)
+evalExpr _ scope (Reference name)                        = (getVar scope name, scope)
 evalExpr functions scope (Assign name e)                 = (i, var:s)
                                                 where (i,s)  = evalExpr functions scope e
                                                       var    = (name, i)
 evalExpr functions scope (FunctionCall name args)        = (i, state) 
                                                 where (_,n,e)           = getFuncDef name functions
                                                       (integers, state) = chainCall functions scope args
-                                                      (i,s)             = evalExpr functions (createFuncScope state n integers) e
+                                                      (i,_)             = evalExpr functions (createFuncScope state n integers) e
 evalExpr functions scope (UnaryOperation op expr)        = (toUnaryFunction op i, s)
                                                 where (i,s) = evalExpr functions scope expr
 evalExpr functions scope (BinaryOperation op left right) = (toBinaryFunction op ileft iright, sright)
@@ -171,9 +171,9 @@ evalExpr functions scope (BinaryOperation op left right) = (toBinaryFunction op 
 evalExpr functions scope (Conditional expr true false)   = evalExpr functions s $ evalCond i true false
                                                 where (i, s) = evalExpr functions scope expr
 evalExpr functions scope (Block [x])                     = evalExpr functions scope x
-evalExpr functions scope (Block [])                      = (0, scope)                                         
+evalExpr _ scope (Block [])                              = (0, scope)                                         
 evalExpr functions scope (Block (x:xs))                  = evalExpr functions s (Block xs)
-                                                where (i,s) = evalExpr functions scope x
+                                                where (_,s) = evalExpr functions scope x
 
 
 eval :: Program -> Integer
