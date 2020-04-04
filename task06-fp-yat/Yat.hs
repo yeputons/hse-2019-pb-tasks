@@ -47,8 +47,23 @@ showUnop Neg = "-"
 showUnop Not = "!"
 
 -- Верните текстовое представление программы (см. условие).
+
+showExpression :: Expression -> String
+showExpression (Number n)               = show n
+showExpression (Reference name)         = name
+showExpression (Assign name e)          = concat ["let ", name, " = ", showExpression e, " tel"]
+showExpression (BinaryOperation op l r) = concat ["(", showExpression l, " ", showBinop op, " ", showExpression r, ")"]
+showExpression (UnaryOperation op e)    = showUnop op ++ showExpression e
+showExpression (FunctionCall name args) = concat [name, "(", intercalate ", " (map showExpression args), ")"]
+showExpression (Conditional e t f)      = concat ["if ", showExpression e, " then ", showExpression t, " else ", showExpression f, " fi"]
+showExpression (Block [])               = "{\n}"
+showExpression (Block args)             = concat ["{\n", (intercalate "\n" . map ("\t" ++) . lines . intercalate ";\n" . map showExpression) args, "\n}"]
+
+showFunction :: FunctionDefinition -> String
+showFunction (name, args, e) = concat ["func ", name, "(", intercalate ", " args, ") = ", showExpression e]
+
 showProgram :: Program -> String
-showProgram = undefined
+showProgram (f, e) = intercalate "\n" (map showFunction f ++ [showExpression e]) 
 
 toBool :: Integer -> Bool
 toBool = (/=) 0
@@ -113,5 +128,55 @@ evalExpression = undefined
 -} -- Удалите эту строчку, если решаете бонусное задание.
 
 -- Реализуйте eval: запускает программу и возвращает её значение.
+
 eval :: Program -> Integer
-eval = undefined
+eval (func, args) = snd $ evalExpression [] func args
+
+getName :: FunctionDefinition -> String
+getName (name, _, _) = name
+
+getDef :: Name -> [FunctionDefinition] -> FunctionDefinition
+getDef name func = fromMaybe undefined (find (\x -> getName x == name) func)
+
+getCond :: (State, Integer) -> Expression -> Expression -> [FunctionDefinition] ->(State, Integer)
+getCond (state, 0) t f func = evalExpression state func f
+getCond (state, _) t f func = evalExpression state func t
+
+getEvaled :: State -> [FunctionDefinition] -> Expression -> Integer
+getEvaled state func e = 
+                        let (_, val) = evalExpression state func e
+                        in val
+
+getVar :: ([(Name, Integer)], State) -> (Name, Expression) -> [FunctionDefinition] -> ([(Name, Integer)], State)
+getVar (val, state) (name, e) func =
+                                    let (newState, newVal) = evalExpression state func e
+                                    in ((name, newVal):val, newState)
+
+getVars :: [(Name, Expression)] -> [FunctionDefinition] -> State -> ([(Name, Integer)], State)
+getVars val func state = foldl (\x var -> getVar x var func) ([], state) val
+
+evalExpression :: State -> [FunctionDefinition] -> Expression -> (State, Integer)
+evalExpression state _    (Number n)               = (state, n)
+evalExpression state _    (Reference name)         = (state, fromJust $ lookup name state)
+evalExpression state func (Assign name e)          = 
+                                                    let (lCalc, rCalc) = evalExpression state func e
+                                                    in ((name, rCalc):lCalc, rCalc)
+evalExpression state func (BinaryOperation op l r) =
+                                                    let
+                                                        (lState, lVal) = evalExpression state func l
+                                                        (rState, rVal) = evalExpression lState func r
+                                                    in  (rState, toBinaryFunction op lVal rVal)
+evalExpression state func (UnaryOperation op e)    =
+                                                    let (newState, val) = evalExpression state func e
+                                                    in (newState, toUnaryFunction op val)
+evalExpression state func (FunctionCall name args) =
+                                                    let
+                                                        def = getDef name func
+                                                        (_, var, body) = def
+                                                        (newVar, newState) = getVars (zip var args) func state
+                                                    in
+                                                        (newState, getEvaled (newVar ++ newState) func body)
+evalExpression state func (Conditional e t f)      = 
+                                                    let newE = evalExpression state func e
+                                                    in getCond newE t f func
+evalExpression state func (Block  args)            = foldl (\(s, val) arg -> evalExpression s func arg) (state, 0) args
