@@ -4,6 +4,9 @@ import Data.Maybe
 import Data.Bifunctor
 import Debug.Trace
 
+{-# ANN module "HLint: ignore Use first" #-}
+{-# ANN module "HLint: ignore Use second" #-}
+
 -- В логических операциях 0 считается ложью, всё остальное - истиной.
 -- При этом все логические операции могут вернуть только 0 или 1.
 
@@ -47,28 +50,23 @@ showUnop Neg = "-"
 showUnop Not = "!"
 
 -- Верните текстовое представление программы (см. условие).
-addTabs :: String -> String
-addTabs = intercalate "\n" . map ("\t"++) . lines
-
 
 showExpression :: Expression -> String
-showExpression (Number    n)            = show n
-showExpression (Reference n_)           = n_
-showExpression (Assign    name e)       = concat ["let ", name, " = ", showExpression e, " tel"]
-showExpression (BinaryOperation op l r) = concat ["(", showExpression l, " ", showBinop op, " ", showExpression r, ")"]
-showExpression (UnaryOperation unop ex) = showUnop unop ++ showExpression ex
-showExpression (FunctionCall name ps)   = concat [name, "(", intercalate ", " (map showExpression ps),")"]
-showExpression (Conditional e t f)      = concat ["if ", showExpression e, " then ", showExpression t, " else ", showExpression f, " fi"]
-showExpression (Block [])               = "{\n}"                    
-showExpression (Block exprs)            = "{\n" ++ intercalate ";\n" (map (addTabs . showExpression) exprs) ++ "\n}"
+showExpression (Number num)                      = show num
+showExpression (Reference name)                  = name
+showExpression (Assign name expr)                = concat ["let ", name, " = ", showExpression expr, " tel"]
+showExpression (BinaryOperation op left right)   = concat ["(", showExpression left, " ", showBinop op, " ", showExpression right, ")"]
+showExpression (UnaryOperation op expr)          = showUnop op ++ showExpression expr
+showExpression (FunctionCall name args)          = concat [name, "(", intercalate ", " $ map showExpression args, ")"]
+showExpression (Conditional expr ifTrue ifFalse) = concat ["if ", showExpression expr, " then ", showExpression ifTrue, " else ", showExpression ifFalse, " fi"]
+showExpression (Block exprs)                     = concat ["{\n", concatMap (("\t" ++) . (++ "\n")) (lines $ intercalate ";\n" (map showExpression exprs)), "}"]
 
-showFunctionDef :: FunctionDefinition -> String
-showFunctionDef (name, args, expr) = concat ["func ", name, "(", intercalate ", " args, ") = ", showExpression expr]
+
+showFunction :: FunctionDefinition -> String
+showFunction (name, args, expr) = concat ["func ", name, "(", intercalate ", " args, ") = ", showExpression expr]
 
 showProgram :: Program -> String
-showProgram ([], body) = showExpression body
-showProgram (f:fs, body)  = concat [showFunctionDef f, "\n", showProgram (fs, body)]
-
+showProgram (funcs, body) = concatMap ((++ "\n") . showFunction) funcs ++ showExpression body  
 
 toBool :: Integer -> Bool
 toBool = (/=) 0
@@ -134,67 +132,40 @@ evalExpression = undefined
 
 -- Реализуйте eval: запускает программу и возвращает её значение.
 
+parseArgs :: State -> [FunctionDefinition] -> FunctionDefinition -> [Expression] -> (State, State)
 
-getVariable :: State -> Name -> Integer --var
-getVariable [] _                             = 0
-getVariable ((varName, val):scope) name | name /= varName = getVariable scope name
-                                             | otherwise = val 
+parseArgs state funcs (_, fNames, _) args = (intoFunc ++ newState, newState)
+                                              where (newState, intoFunc) = foldl (\(state, intoFunc) (name, arg) ->
+                                                                                  let (resState, resValue) = evalExpression state funcs arg
+                                                                                  in (resState, (name, resValue):intoFunc)) (state, []) (zip fNames args)
 
-getBody :: [FunctionDefinition] -> Name -> Expression -- body
-getBody [] _                                        = Number 0
-getBody ((funcName, funcArgs, funcBody):funcs) name | name == funcName = funcBody
-                                                            | otherwise = getBody funcs name 
+evalExpression :: State -> [FunctionDefinition] -> Expression -> (State, Integer)
+evalExpression state funcs (Number num)                      = (state, num)
 
-getArgs :: [FunctionDefinition] -> Name -> [Name]
-getArgs [] _                                        = []
-getArgs ((funcName, funcArgs, funcBody):funcs) name | name == funcName = funcArgs
-                                                            | otherwise = getArgs funcs name 
+evalExpression state _     (Reference name)                  = (state, resValue)
+                                                                 where (Just resValue) = lookup name state
 
-evalChainFunc :: [Expression] -> [Name] -> State -> [FunctionDefinition] -> ([Integer], State)
-evalChainFunc [_] [] _ _                             = ([0], [])
-evalChainFunc (_:_:_) [] _ _                         = ([0], [])
-evalChainFunc [] _ scope funcs                       = ([0], scope)
-evalChainFunc [expr] [name] scope funcs              = ([fst result], snd result)
-                                                      where result = evalExpression expr scope funcs
-evalChainFunc (expr:others) (name:names) scope funcs = (fst result:fst next, snd next)
-                                                      where result = evalExpression expr scope funcs
-                                                            next   = evalChainFunc others names (snd result) funcs
+evalExpression state funcs (Assign name expr)                = ((name, resValue):resState, resValue) 
+                                                                 where (resState, resValue) = evalExpression state funcs expr
 
+evalExpression state funcs (BinaryOperation op left right)   = (rightResState, toBinaryFunction op leftResValue rightResValue)
+                                                                 where (leftResState, leftResValue)  = evalExpression state funcs left
+                                                                       (rightResState, rightResValue) = evalExpression leftResState funcs right 
 
-makeScopeForFunction :: Expression -> State -> [FunctionDefinition] -> (State, State)
-makeScopeForFunction (FunctionCall name exprs) scope funcs = (sscope, fscope)
-                                                            where res    = evalChainFunc exprs (getArgs funcs name) scope funcs
-                                                                  sscope = snd res
-                                                                  fscope = zip (getArgs funcs name) (fst res) ++ sscope
-makeScopeForFunction exp _ _                               = ([], [])
+evalExpression state funcs (UnaryOperation op expr)          = (resState, toUnaryFunction op resValue)
+                                                                 where (resState, resValue) = evalExpression state funcs expr
 
-evalChainBlock :: [Expression] -> State -> [FunctionDefinition] -> (Integer, State)
-evalChainBlock [] scope funcs              = (0, scope)
-evalChainBlock [expr] scope funcs          = evalExpression expr scope funcs
-evalChainBlock (expr:commands) scope funcs = evalChainBlock commands (snd (evalExpression expr scope funcs)) funcs
+evalExpression state funcs (FunctionCall name args)          = (newState, resValue)
+                                                                 where (Just func)              = find (\(fName, _, _) -> fName == name) funcs 
+                                                                       (newFuncState, newState) = parseArgs state funcs func args
+                                                                       (_, resValue)            = evalExpression newFuncState funcs funcExpr
+                                                                       (_, _, funcExpr)         = func
 
-evalExpression :: Expression -> State -> [FunctionDefinition] -> (Integer, State)
-evalExpression (Number n) scope funcs                       = (n, scope)
-evalExpression (Reference name) scope funcs                 = (getVariable scope name, scope)
-evalExpression (Assign name expr) scope funcs               = (fst result, (name, fst result):snd result)
-                                                             where result = evalExpression expr scope funcs
-evalExpression (BinaryOperation op expr1 expr2) scope funcs = (toBinaryFunction op (fst result1) (fst result2), snd result2)
-                                                             where result1 = evalExpression expr1 scope funcs
-                                                                   result2 = evalExpression expr2 (snd result1) funcs 
-evalExpression (UnaryOperation op expr) scope funcs         = (toUnaryFunction op (fst result), snd result)
-                                                             where result = evalExpression expr scope funcs
-evalExpression (FunctionCall name exprs) scope funcs        = (rv, sscope)
-                                                             where rv         = fst (evalExpression (getBody funcs name) fscope funcs)
-                                                                   new_scopes = makeScopeForFunction (FunctionCall name exprs) scope funcs
-                                                                   fscope     = snd new_scopes
-                                                                   sscope     = fst new_scopes
-evalExpression (Conditional e t f) scope funcs              | toBool(fst eres)         = tres
-                                                            | otherwise                = fres
-                                                             where eres = evalExpression e scope funcs
-                                                                   tres = evalExpression t (snd eres) funcs
-                                                                   fres = evalExpression f (snd eres) funcs
+evalExpression state funcs (Conditional cond ifTrue ifFalse) = evalExpression resState funcs resExpr
+                                                                 where resExpr = if toBool resValue then ifTrue else ifFalse
+                                                                       (resState, resValue) = evalExpression state funcs cond
 
-evalExpression (Block commands) scope funcs                 = evalChainBlock commands scope funcs
+evalExpression state funcs (Block exprs)                     = foldl (\(curState, _) expr -> evalExpression curState funcs expr) (state, 0) exprs 
 
 eval :: Program -> Integer
-eval (definitions, expr) = fst (evalExpression expr [] definitions) 
+eval (funcs, body) = snd $ evalExpression [] funcs body
