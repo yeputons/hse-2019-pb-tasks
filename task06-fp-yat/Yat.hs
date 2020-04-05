@@ -127,4 +127,39 @@ evalExpression = undefined
 
 -- Реализуйте eval: запускает программу и возвращает её значение.
 eval :: Program -> Integer
-eval = undefined
+eval (funcs, expr) = snd (evalExpression [] funcs expr)
+
+parseArgs :: State -> [FunctionDefinition] -> FunctionDefinition -> [Expression] -> (State, State)
+parseArgs _ _ (_, _ : _, _) []                                        = undefined
+parseArgs scope funcs (_, [], _) _                                    = (scope, scope)
+parseArgs scope funcs (nameFunc, name : names, exprFunc) (arg : args) = (fst calced, fst value ++ scope)
+                                                                         where value  = evalExpression scope funcs arg
+                                                                               calced = parseArgs ((name, snd value) : fst value) funcs (nameFunc, names, exprFunc) args
+
+evalExpression :: State -> [FunctionDefinition] -> Expression -> (State, Integer)
+evalExpression scope funcs (Number num)                       = (scope, num)
+evalExpression scope funcs (Reference name)                   = (scope, fromJust (lookup name scope))
+evalExpression scope funcs (Assign name expr)                 = ((name, snd result) : fst result, snd result)
+                                                                 where result = evalExpression scope funcs expr
+
+evalExpression scope funcs (BinaryOperation bin first second) = (rightState, toBinaryFunction bin leftRes rightRes)
+                                                                 where (leftState, leftRes)   = evalExpression scope funcs first
+                                                                       (rightState, rightRes) = evalExpression leftState funcs second
+
+evalExpression scope funcs (UnaryOperation unop expr)         = (newScope, toUnaryFunction unop res)
+                                                                 where (newScope, res) = evalExpression scope funcs expr
+
+evalExpression scope [] (FunctionCall _ _)                    = undefined
+evalExpression scope ((nameFunc, nameArgs, exprFunc) : funcs) (FunctionCall name args)  | nameFunc /= name = evalExpression scope newFuncs (FunctionCall name args)
+                                                                                        | otherwise        = (snd newScope, snd val)
+                                                                                         where newFuncs = funcs ++ [(nameFunc, nameArgs, exprFunc)]
+                                                                                               newScope = parseArgs scope newFuncs (nameFunc, nameArgs, exprFunc) args
+                                                                                               val      = evalExpression (fst newScope) newFuncs exprFunc
+
+evalExpression scope funcs (Conditional cond true false) | toBool val = evalExpression newState funcs true
+                                                         | otherwise  = evalExpression newState funcs false
+                                                          where (newState, val) = evalExpression scope funcs cond
+
+evalExpression scope funcs (Block [])                         = (scope, 0)
+evalExpression scope funcs (Block [expr])                     = evalExpression scope funcs expr
+evalExpression scope funcs (Block (expr : exprs))             = evalExpression (fst (evalExpression scope funcs expr)) funcs (Block exprs) 
