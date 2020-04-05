@@ -47,21 +47,18 @@ showUnop Neg = "-"
 showUnop Not = "!"
 
 -- Верните текстовое представление программы (см. условие).
-
 showFunctionDefinition :: FunctionDefinition -> String
 showFunctionDefinition (name, params, e) = concat ["func ", name, "(", intercalate ", " params, ") = ", showExpression e, "\n"]
 
-
-showExpression::Expression -> String
+showExpression :: Expression -> String
 showExpression (Number num)                                 = show num
 showExpression (Reference name)                             = name
 showExpression (Assign name expr)                           = concat ["let ", name, " = ", showExpression expr, " tel"]
 showExpression (BinaryOperation op leftExpr rightExpr)      = concat ["(", showExpression leftExpr, " ", showBinop op, " ", showExpression rightExpr, ")"]
-showExpression (UnaryOperation op expr)                     = showUnop op ++ showExpression expr 
-showExpression (FunctionCall name args)                     = concat [name, "(", intercalate ", " (map showExpression args), ")"]
+showExpression (UnaryOperation op expr)                     = showUnop op ++ showExpression expr
+showExpression (FunctionCall name args)                     = concat [name, "(", intercalate ", " $ map showExpression args, ")"]
 showExpression (Conditional cond true false)                = concat ["if ", showExpression cond, " then ", showExpression true, " else ", showExpression false, " fi"]
-showExpression (Block expr)                                 = concat ["{\n", concatMap (("\t" ++) . (++ "\n")) (lines $ intercalate ";\n" (map showExpression expr)), "}"]
-
+showExpression (Block expr)                                 = concat ["{\n", concatMap (("\t" ++) . (++ "\n")) $ lines $ intercalate ";\n" $ map showExpression expr, "}"]
 
 showProgram :: Program -> String
 showProgram (funcs, expr) = concatMap showFunctionDefinition funcs ++ showExpression expr
@@ -130,51 +127,54 @@ evalExpression = undefined
 
 -- Реализуйте eval: запускает программу и возвращает её значение.
 
-
 getFuncDef :: Name -> [FunctionDefinition] -> FunctionDefinition
-getFuncDef name funcs = fromJust (lookup name $ map( \fd@(n,_,_) ->(n,fd)) funcs)
+getFuncDef name funcs = fromJust (lookup name $ map( \fd@(n,_,_) -> (n,fd)) funcs)
 
-createFuncScope :: State -> [Name] -> [Integer] -> State
-createFuncScope scope params vals = zip params vals ++ scope
+innerChainCall :: [FunctionDefinition] -> Expression -> ([Integer], State) -> ([Integer], State)
+innerChainCall func expr (ints, state)  =
+                                 let (i,s) =  evalExpr func state expr
+                                 in (i:ints, s)
 
-
-chainCall::[FunctionDefinition] -> State -> [Expression] -> ([Integer], State)
-chainCall _ scope []         = ([], scope)
-chainCall func scope (x:xs)  = (i:ints, state)
-                                 where (i,s)  = evalExpr func scope x
-                                       (ints, state) = chainCall func s xs
-
+chainCall :: [FunctionDefinition] -> State -> [Expression] -> ([Integer], State)
+chainCall func scope  = foldl ( \var e -> innerChainCall func e var) ([], scope)
 
 getVar :: State -> Name -> Integer
-getVar scope name = i
-    where (_,i) = fromJust (lookup name $ map (\fd@(s,i) -> (s,fd)) scope)
+getVar scope name =
+    let (_,i) = fromJust (lookup name $ map(\fd@(s,i) -> (s,fd)) scope)
+    in i
 
 evalCond :: Integer -> Expression -> Expression -> Expression
-evalCond i true false
-    | toBool i = true
-    | otherwise = false
+evalCond i true false =
+    if toBool i
+      then true
+      else false
+
 evalExpr :: [FunctionDefinition] -> State -> Expression -> (Integer, State)
 evalExpr _ scope (Number num)                            = (num, scope)
 evalExpr _ scope (Reference name)                        = (getVar scope name, scope)
-evalExpr functions scope (Assign name e)                 = (i, var:s)
-                                                where (i,s)  = evalExpr functions scope e
-                                                      var    = (name, i)
-evalExpr functions scope (FunctionCall name args)        = (i, state) 
-                                                where (_,n,e)           = getFuncDef name functions
-                                                      (integers, state) = chainCall functions scope args
-                                                      (i,_)             = evalExpr functions (createFuncScope state n integers) e
-evalExpr functions scope (UnaryOperation op expr)        = (toUnaryFunction op i, s)
-                                                where (i,s) = evalExpr functions scope expr
-evalExpr functions scope (BinaryOperation op left right) = (toBinaryFunction op ileft iright, sright)
-                                                where (ileft,sleft)   = evalExpr functions scope left
-                                                      (iright,sright) = evalExpr functions sleft right
-evalExpr functions scope (Conditional expr true false)   = evalExpr functions s $ evalCond i true false
-                                                where (i, s) = evalExpr functions scope expr
-evalExpr functions scope (Block [x])                     = evalExpr functions scope x
-evalExpr _ scope (Block [])                              = (0, scope)                                         
-evalExpr functions scope (Block (x:xs))                  = evalExpr functions s (Block xs)
-                                                where (_,s) = evalExpr functions scope x
-
+evalExpr functions scope (Assign name e)                 =
+                                                let (i,s)  = evalExpr functions scope e
+                                                in (i, (name, i):s)
+evalExpr functions scope (FunctionCall name args)        =
+                                                let
+                                                  (_,n,e)           = getFuncDef name functions
+                                                  (i,_)             = evalExpr functions  ( zip n integers ++ state) e
+                                                  (integers, state) = chainCall functions scope args
+                                                in (i, state)
+evalExpr functions scope (UnaryOperation op expr)        =
+                                                let (i,s) = evalExpr functions scope expr
+                                                in (toUnaryFunction op i, s)
+evalExpr functions scope (BinaryOperation op left right) =
+                                                let
+                                                  (ileft,sleft)   = evalExpr functions scope left
+                                                  (iright,sright) = evalExpr functions sleft right
+                                                in (toBinaryFunction op ileft iright, sright)
+evalExpr functions scope (Conditional expr true false)   =
+                                                let (i, s) = evalExpr functions scope expr
+                                                in evalExpr functions s $ evalCond i true false
+evalExpr functions scope (Block x)                       = foldl ( \(i,s) arg -> evalExpr functions s arg ) (0, scope) x
 
 eval :: Program -> Integer
-eval program = fst (evalExpr (fst program) [] (snd program))
+eval (fdlist, expr) =
+    let (i,_) = evalExpr fdlist [] expr
+    in i
