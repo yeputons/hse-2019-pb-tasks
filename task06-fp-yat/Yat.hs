@@ -125,40 +125,42 @@ evalExpression :: Expression -> Eval Integer  -- Вычисляет выраже
 evalExpression = undefined
 -} -- Удалите эту строчку, если решаете бонусное задание.
 
--- Реализуйте eval: запускает программу и возвращает её значение.	
+-- Реализуйте eval: запускает программу и возвращает её значение.
 evalArgs :: [FunctionDefinition] -> State -> FunctionDefinition -> [Expression] -> (State, State)
-evalArgs funcs scope (funcName, nameArgs, funcExpr) args = let arg (curScope, funcScope) (name, expr) = let (res, newScope) = evalExpr funcs curScope expr
-                                                                                                        in (newScope, (name, res):funcScope)
-                                                               (resScope, resFuncScope)               = foldl arg (scope, []) (zip nameArgs args)
-                                                           in  (resFuncScope ++ resScope, resScope)
+evalArgs funcs state (funcName, nameArgs, funcExpr) args = 
+    let func (curState, funcState) (name, expr) = let (res, newState) = evalExpr funcs curState expr
+                                                  in  (newState, (name, res):funcState)
+        (resState, resFuncState)                = foldl func (state, []) (zip nameArgs args)
+    in  (resFuncState ++ resState, resState)
 
 evalExpr :: [FunctionDefinition] -> State -> Expression -> (Integer, State)
-evalExpr funcs scope (Number num)                      = (num, scope)
+evalExpr funcs state (Number num)                      = (num, state)
 
-evalExpr funcs scope (Reference name)                  = let (Just value) = lookup name scope
-                                                         in  (value, scope)
+evalExpr funcs state (Reference name)                  = let (Just value) = lookup name state
+                                                         in  (value, state)
 
-evalExpr funcs scope (Assign name expr)                = let (value, state) = evalExpr funcs scope expr
-                                                         in  (value, (name, value):state)
+evalExpr funcs state (Assign name expr)                = let (value, newState) = evalExpr funcs state expr
+                                                         in  (value, (name, value):newState)
 
-evalExpr funcs scope (BinaryOperation oper left right) = let (value1, state1) = evalExpr funcs scope left
+evalExpr funcs state (BinaryOperation oper left right) = let (value1, state1) = evalExpr funcs state left
                                                              (value2, state2) = evalExpr funcs state1 right
                                                          in  (toBinaryFunction oper value1 value2, state2)
 
-evalExpr funcs scope (UnaryOperation oper expr)        = let (value, state) = evalExpr funcs scope expr
-                                                         in  (toUnaryFunction oper value, state)
+evalExpr funcs state (UnaryOperation oper expr)        = let (value, newState) = evalExpr funcs state expr
+                                                         in  (toUnaryFunction oper value, newState)
 
-evalExpr funcs scope (FunctionCall name exprs)         = let Just (funcName, funcArgs, funcExpr) = find (\(funcName, _, _) -> funcName == name) funcs
-                                                             (funcScope, newScope)               = evalArgs funcs scope (funcName, funcArgs, funcExpr) exprs
-                                                             (res, _)                            = evalExpr funcs funcScope funcExpr
-                                                         in  (res, newScope)
+evalExpr funcs state (FunctionCall name exprs)         = let Just func             = find (\(funcName, _, _) -> funcName == name) funcs
+                                                             (funcState, newState) = evalArgs funcs state func exprs
+                                                             (_, _, funcExpr)      = func
+                                                             (res, _)              = evalExpr funcs funcState funcExpr
+                                                         in  (res, newState)
 
 
-evalExpr funcs scope (Conditional expr true false)     = let (value, state) = evalExpr funcs scope expr
-                                                         in  evalExpr funcs state (if toBool value then true else false)
+evalExpr funcs state (Conditional expr true false)     = let (value, newState) = evalExpr funcs state expr
+                                                         in  evalExpr funcs newState $ if toBool value then true else false
 
-evalExpr funcs scope (Block exprs)                     = foldl (\(_, res) expr -> evalExpr funcs res expr) (0, scope) exprs
+evalExpr funcs state (Block exprs)                     = foldl (\(_, res) expr -> evalExpr funcs res expr) (0, state) exprs
 
 
 eval :: Program -> Integer
-eval (functions, expr) = fst (evalExpr functions [] expr)
+eval (functions, expr) = fst $ evalExpr functions [] expr
