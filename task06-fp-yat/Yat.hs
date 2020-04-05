@@ -154,13 +154,13 @@ evalExpression (UnaryOperation op e)    fds state = let (val, newState) = evalEx
                                                     in (toUnaryFunction op val, newState) 
 evalExpression (FunctionCall name es)   fds state = let (_, params, body)        = fromJust $ find (\fd -> getFuncName fd == name) fds
                                                         (evaledParams, newState) = evalParams (zip params es) fds state
-                                                        getOnlyValueFromEvaled (val, _) = val
-                                                    in (getOnlyValueFromEvaled $ evalExpression body fds $ evaledParams ++ newState, newState)
+                                                        (funcRes, _) = evalExpression body fds $ evaledParams ++ newState
+                                                    in (funcRes, newState)
 evalExpression (Conditional e t f)      fds state = let (cond, newState) = evalExpression e fds state
                                                     in evalExpression (if toBool cond then t else f) fds newState
 evalExpression (Block es)               fds state = foldl (\(val, st) e -> evalExpression e fds st) (0, state) es
 
 -- Реализуйте eval: запускает программу и возвращает её значение.
 eval :: Program -> Integer
-eval (fds, e) = let getOnlyValueFromEvaled (val, _) = val
-                in getOnlyValueFromEvaled $ evalExpression e fds []
+eval (fds, e) = let (programRes, _) = evalExpression e fds []
+                in programRes
