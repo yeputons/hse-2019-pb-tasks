@@ -137,13 +137,14 @@ evalExpression (Reference name)           = readState &== \st -> fromJust $ look
 evalExpression (Assign name expr)         = evalExpression expr &=> \res -> addToState name res res
 evalExpression (BinaryOperation op e1 e2) = evalExpression e1 &=> \a -> evalExpression e2 &== toBinaryFunction op a
 evalExpression (UnaryOperation op expr)   = evalExpression expr &== \a -> toUnaryFunction op a
-evalExpression (FunctionCall name args)   = let evalArgs = evalExpressionsL (flip (:)) [] args &== reverse
-                                                func     = readDefs &== \fdsEv -> fromJust $ find (\(fName, _, _) -> fName == name) fdsEv
-                                                fState   = evalArgs &=> \valuesEv -> func &=> \(_, fArgNamesEv, _) -> Eval $ \_ st -> (zip fArgNamesEv valuesEv ++ st, st)
-                                                in fState &=> \fStateEv -> func &=> \(_, _, fBodyEv) -> Eval $ \fds st -> (fst $ runEval (evalExpression fBodyEv) fds fStateEv, st)
+evalExpression (FunctionCall name args)   = evalExpressionsL (flip (:)) [] args &== reverse &=> \values ->
+                                            readDefs &=> \fds -> 
+                                            readState &=> \st -> 
+                                            evaluated (fromJust (find (\(fName, _, _) -> fName == name) fds)) &=> \(_, fArgNames,fBody) ->
+                                            evaluated (zip fArgNames values ++ st) &=> \fState ->
+                                            evaluated $ fst $ runEval (evalExpression fBody) fds fState
 evalExpression (Conditional c e1 e2)      = evalExpression c &=> \b -> evalExpression $ if toBool b then e1 else e2
 evalExpression (Block es)                 = evalExpressionsL (\_ a -> a) 0 es 
-
 
 -- Реализуйте eval: запускает программу и возвращает её значение.
 eval :: Program -> Integer
