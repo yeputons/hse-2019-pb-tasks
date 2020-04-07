@@ -118,7 +118,7 @@ readDefs = Eval $ \fds st -> (fds, st)
 
 andThen :: Eval a -> (a -> Eval b) -> Eval b  -- Выполняет сначала первое вычисление, а потом второе.
 andThen ea fe = Eval $ \fds st -> let (eb, newSt) = runEval ea fds st
-                                  in  runEval (fe eb) fds newSt 
+                                  in  runEval (fe eb) fds newSt
 
 andEvaluated :: Eval a -> (a -> b) -> Eval b  -- Выполняет вычисление, а потом преобразует результат чистой функцией.
 andEvaluated ea f = andThen ea $ \eb -> evaluated $ f eb
@@ -138,13 +138,13 @@ evalExpression (Assign name expr)         = evalExpression expr &=> \res -> addT
 evalExpression (BinaryOperation op e1 e2) = evalExpression e1 &=> \a -> evalExpression e2 &== toBinaryFunction op a
 evalExpression (UnaryOperation op expr)   = evalExpression expr &== \a -> toUnaryFunction op a
 evalExpression (FunctionCall name args)   = evalExpressionsL (flip (:)) [] args &== reverse &=> \values ->
-                                            readDefs &=> \fds -> 
-                                            readState &== \st -> 
+                                            readDefs &=> \fds ->
+                                            readState &== \st ->
                                             let (_, fArgNames, fBody) = fromJust (find (\(fName, _, _) -> fName == name) fds)
                                                 (result, _)           = runEval (evalExpression fBody) fds $ zip fArgNames values ++ st
-                                            in result    
+                                            in result
 evalExpression (Conditional c e1 e2)      = evalExpression c &=> \b -> evalExpression $ if toBool b then e1 else e2
-evalExpression (Block es)                 = evalExpressionsL (\_ a -> a) 0 es 
+evalExpression (Block es)                 = evalExpressionsL (\_ a -> a) 0 es
 
 -- Реализуйте eval: запускает программу и возвращает её значение.
 eval :: Program -> Integer
