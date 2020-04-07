@@ -127,42 +127,44 @@ evalExpression = undefined
 
 -- Реализуйте eval: запускает программу и возвращает её значение.
 getFuncDef :: Name -> [FunctionDefinition] -> FunctionDefinition
-getFuncDef name funcs = fromJust (lookup name $ map (\fd@(n, _, _) -> (n, fd)) funcs)
+getFuncDef name funcs = fromJust $ find (\(funcname, _, _) -> funcname == name) funcs
 
 chainCall :: [FunctionDefinition] -> State -> [Expression] -> ([Integer], State)
-chainCall func scope  = foldl (\(ints, state) e -> let (i, s) = evalExpr func state e in (ints ++ [i], s)) ([], scope)
-
-getVar :: State -> Name -> Integer
-getVar scope name =
-    let (_, i) = fromJust (lookup name $ map (\fd@(s, i) -> (s, fd)) scope)
-    in i
+chainCall func chainScope =
+  foldl (\(ints, lambdaScope) e ->
+    let (int, evalScope) = evalExpr func lambdaScope e
+    in (ints ++ [int], evalScope)
+  )
+  ([], chainScope)
 
 evalExpr :: [FunctionDefinition] -> State -> Expression -> (Integer, State)
-evalExpr _ scope (Number num)                            = (num, scope)
-evalExpr _ scope (Reference name)                        = (getVar scope name, scope)
-evalExpr functions scope (Assign name e)                 =
-                                                let (i, s)  = evalExpr functions scope e
-                                                in (i, (name, i):s)
-evalExpr functions scope (FunctionCall name args)        =
-                                                let
-                                                  (_, n, e)           = getFuncDef name functions
-                                                  (integers, state) = chainCall functions scope args
-                                                  (i, _)             = evalExpr functions  (zip n integers ++ state) e
-                                                in (i, state)
-evalExpr functions scope (UnaryOperation op expr)        =
-                                                let (i, s) = evalExpr functions scope expr
-                                                in (toUnaryFunction op i, s)
+evalExpr _ scope (Number num) = (num, scope)
+evalExpr _ scope (Reference name) =
+  let (_, int) = fromJust $ find (\(lambdaScope, _) -> lambdaScope == name) scope
+  in (int, scope)
+evalExpr functions scope (Assign name e) =
+  let (int, evalScope) = evalExpr functions scope e
+  in (int, (name, int):evalScope)
+evalExpr functions scope (FunctionCall name args) =
+  let
+    (_, parlist, funcbody) = getFuncDef name functions
+    (ints, chainScope)     = chainCall functions scope args
+    (int, _)               = evalExpr functions (zip parlist ints ++ chainScope) funcbody
+  in (int, chainScope)
+evalExpr functions scope (UnaryOperation op expr) =
+  let (int, evalScope) = evalExpr functions scope expr
+  in (toUnaryFunction op int, evalScope)
 evalExpr functions scope (BinaryOperation op left right) =
-                                                let
-                                                  (ileft, sleft)   = evalExpr functions scope left
-                                                  (iright, sright) = evalExpr functions sleft right
-                                                in (toBinaryFunction op ileft iright, sright)
-evalExpr functions scope (Conditional expr true false)   =
-                                                let (i, s) = evalExpr functions scope expr
-                                                in evalExpr functions s $ if toBool i then true else false
-evalExpr functions scope (Block x)                       = foldl (\(i, s) arg -> evalExpr functions s arg ) (0, scope) x
+  let
+    (ileft, leftScope)   = evalExpr functions scope left
+    (iright, rightScope) = evalExpr functions leftScope right
+  in (toBinaryFunction op ileft iright, rightScope)
+evalExpr functions scope (Conditional expr true false) =
+  let (int, evalScope) = evalExpr functions scope expr
+  in evalExpr functions evalScope $ if toBool int then true else false
+evalExpr functions scope (Block x) = foldl (\(int, lambdaScope) arg -> evalExpr functions lambdaScope arg) (0, scope) x
 
 eval :: Program -> Integer
 eval (fdlist, expr) =
-    let (i, _) = evalExpr fdlist [] expr
-    in i
+    let (int, _) = evalExpr fdlist [] expr
+    in int
