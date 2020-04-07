@@ -139,10 +139,11 @@ evalExpression (BinaryOperation op e1 e2) = evalExpression e1 &=> \a -> evalExpr
 evalExpression (UnaryOperation op expr)   = evalExpression expr &== \a -> toUnaryFunction op a
 evalExpression (FunctionCall name args)   = evalExpressionsL (flip (:)) [] args &== reverse &=> \values ->
                                             readDefs &=> \fds -> 
-                                            readState &=> \st -> 
-                                            evaluated (fromJust (find (\(fName, _, _) -> fName == name) fds)) &=> \(_, fArgNames,fBody) ->
-                                            evaluated (zip fArgNames values ++ st) &=> \fState ->
-                                            evaluated $ fst $ runEval (evalExpression fBody) fds fState
+                                            readState &== \st -> 
+                                            let (_, fArgNames, fBody) = fromJust (find (\(fName, _, _) -> fName == name) fds) in
+                                            let fState = zip fArgNames values ++ st in
+                                            let (result, _) = runEval (evalExpression fBody) fds fState in
+                                            result
 evalExpression (Conditional c e1 e2)      = evalExpression c &=> \b -> evalExpression $ if toBool b then e1 else e2
 evalExpression (Block es)                 = evalExpressionsL (\_ a -> a) 0 es 
 
