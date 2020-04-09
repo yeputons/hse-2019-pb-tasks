@@ -141,7 +141,7 @@ evalExpression (FunctionCall name args)   = evalExpressionsL (flip (:)) [] args 
                                             readDefs &=> \fds ->
                                             readState &== \st ->
                                             let Just (_, fArgNames, fBody) = find (\(fName, _, _) -> fName == name) fds
-                                                (result, _)           = runEval (evalExpression fBody) fds $ zip fArgNames values ++ st
+                                                (result, _)                = runEval (evalExpression fBody) fds $ zip fArgNames values ++ st
                                             in result
 evalExpression (Conditional c e1 e2)      = evalExpression c &=> \b -> evalExpression $ if toBool b then e1 else e2
 evalExpression (Block es)                 = evalExpressionsL (\_ a -> a) 0 es
