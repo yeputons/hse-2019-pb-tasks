@@ -50,7 +50,6 @@ showUnop Neg = "-"
 showUnop Not = "!"
 
 -- Верните текстовое представление программы (см. условие).
-
 showExpression :: Expression -> String
 showExpression (Number num)                      = show num
 showExpression (Reference name)                  = name
@@ -101,69 +100,57 @@ toUnaryFunction Not = fromBool . not . toBool
 
 {- -- Удалите эту строчку, если решаете бонусное задание.
 newtype Eval a = Eval ([FunctionDefinition] -> State -> (a, State))  -- Как data, только эффективнее в случае одного конструктора.
-
 runEval :: Eval a -> [FunctionDefinition] -> State -> (a, State)
 runEval (Eval f) = f
-
 evaluated :: a -> Eval a  -- Возвращает значение без изменения состояния.
 evaluated = undefined
-
 readState :: Eval State  -- Возвращает состояние.
 readState = undefined
-
 addToState :: String -> Integer -> a -> Eval a  -- Добавляет/изменяет значение переменной на новое и возвращает константу.
 addToState = undefined
-
 readDefs :: Eval [FunctionDefinition]  -- Возвращает все определения функций.
 readDefs = undefined
-
 andThen :: Eval a -> (a -> Eval b) -> Eval b  -- Выполняет сначала первое вычисление, а потом второе.
 andThen = undefined
-
 andEvaluated :: Eval a -> (a -> b) -> Eval b  -- Выполняет вычисление, а потом преобразует результат чистой функцией.
 andEvaluated = undefined
-
 evalExpressionsL :: (a -> Integer -> a) -> a -> [Expression] -> Eval a  -- Вычисляет список выражений от первого к последнему.
 evalExpressionsL = undefined
-
 evalExpression :: Expression -> Eval Integer  -- Вычисляет выражение.
 evalExpression = undefined
 -} -- Удалите эту строчку, если решаете бонусное задание.
 
 -- Реализуйте eval: запускает программу и возвращает её значение.
-
 parseArgs :: State -> [FunctionDefinition] -> FunctionDefinition -> [Expression] -> (State, State)
-
 parseArgs state funcs (_, fNames, _) args = (intoFunc ++ newState, newState)
                                               where (newState, intoFunc) = foldl (\(state, intoFunc) (name, arg) ->
                                                                                   let (resState, resValue) = evalExpression state funcs arg
                                                                                   in (resState, (name, resValue):intoFunc)) (state, []) (zip fNames args)
 
 evalExpression :: State -> [FunctionDefinition] -> Expression -> (State, Integer)
-evalExpression state funcs (Number num)                      = (state, num)
+evalExpression state _     (Number num)                      = (state, num)
 
-evalExpression state _     (Reference name)                  = (state, resValue)
-                                                                 where (Just resValue) = lookup name state
+evalExpression state _     (Reference name)                  = let (Just resValue) = lookup name state
+                                                               in (state, resValue)
 
-evalExpression state funcs (Assign name expr)                = ((name, resValue):resState, resValue) 
-                                                                 where (resState, resValue) = evalExpression state funcs expr
+evalExpression state funcs (Assign name expr)                = let (resState, resValue) = evalExpression state funcs expr
+                                                               in ((name, resValue):resState, resValue) 
 
-evalExpression state funcs (BinaryOperation op left right)   = (rightResState, toBinaryFunction op leftResValue rightResValue)
-                                                                 where (leftResState, leftResValue)  = evalExpression state funcs left
-                                                                       (rightResState, rightResValue) = evalExpression leftResState funcs right 
+evalExpression state funcs (BinaryOperation op left right)   = let (leftResState, leftResValue)   = evalExpression state funcs left
+                                                                   (rightResState, rightResValue) = evalExpression leftResState funcs right 
+                                                               in (rightResState, toBinaryFunction op leftResValue rightResValue)
 
-evalExpression state funcs (UnaryOperation op expr)          = (resState, toUnaryFunction op resValue)
-                                                                 where (resState, resValue) = evalExpression state funcs expr
+evalExpression state funcs (UnaryOperation op expr)          = let (resState, resValue) = evalExpression state funcs expr
+                                                               in (resState, toUnaryFunction op resValue)
 
-evalExpression state funcs (FunctionCall name args)          = (newState, resValue)
-                                                                 where (Just func)              = find (\(fName, _, _) -> fName == name) funcs 
-                                                                       (newFuncState, newState) = parseArgs state funcs func args
-                                                                       (_, resValue)            = evalExpression newFuncState funcs funcExpr
-                                                                       (_, _, funcExpr)         = func
+evalExpression state funcs (FunctionCall name args)          = let (Just func)              = find (\(fName, _, _) -> fName == name) funcs 
+                                                                   (newFuncState, newState) = parseArgs state funcs func args
+                                                                   (_, resValue)            = evalExpression newFuncState funcs funcExpr
+                                                                   (_, _, funcExpr)         = func
+                                                               in (newState, resValue)
 
-evalExpression state funcs (Conditional cond ifTrue ifFalse) = evalExpression resState funcs resExpr
-                                                                 where resExpr = if toBool resValue then ifTrue else ifFalse
-                                                                       (resState, resValue) = evalExpression state funcs cond
+evalExpression state funcs (Conditional cond ifTrue ifFalse) = let (resState, resValue) = evalExpression state funcs cond
+                                                               in evalExpression resState funcs (if toBool resValue then ifTrue else ifFalse)
 
 evalExpression state funcs (Block exprs)                     = foldl (\(curState, _) expr -> evalExpression curState funcs expr) (state, 0) exprs 
 
