@@ -157,16 +157,14 @@ evalExpression = undefined
 setValue state key value = (key, value):state
 
 getValue state key = case find ((== key) . fst) state of Just (key, value) -> value
-
--- getFunction []                             _                               = undefined
--- getFunction ((name, args, body):functions) targetName | name == targetName = (name, args, body)
---                                                       | otherwise          = getFunction functions targetName
+                                                         _                 -> undefined
 
 getFunctionName (name, _,    _   ) = name
 getFunctionArgs (_,    args, _   ) = args
 getFunctionBody (_,    _,    body) = body
 
 getFunction functions targetName = case find ((== targetName) . getFunctionName) functions of Just func -> func
+                                                                                              _         -> undefined
 
 evalFuncCall   state funcs name (expr:exprs) []             params = undefined
 evalFuncCall   state funcs name []           (pName:pNames) params = undefined
@@ -205,7 +203,7 @@ evalExpression state funcs (Conditional exprCond exprTrue exprFalse) | toBool co
 evalExpression state funcs (Block [])                                 = (state, 0)
 evalExpression state funcs (Block [expr])                             = evalExpression state funcs expr
 evalExpression state funcs (Block (expr:exprs))                       = othersRes
-                                                                        where (exprState, exprRes) = evalExpression state     funcs expr
+                                                                        where (exprState, _)       = evalExpression state     funcs expr
                                                                               othersRes            = evalExpression exprState funcs (Block exprs)
 
 eval :: Program -> Integer
