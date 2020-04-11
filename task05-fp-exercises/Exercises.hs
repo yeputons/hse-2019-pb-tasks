@@ -55,9 +55,6 @@ hash'' :: Int -> String -> Int
 hash'' ini ""     = ini
 hash'' ini (x:xs) = ord x + p * hash'' ini xs
 
--- hashIterative ini "" it = ini
--- hashIterative ini xs it = hashIterative (ini + ord (head xs) * p ^ it) (tail xs) (it + 1)
-
 -- Выделите общую логику предыдущих функций и реализуйте функцию высшего порядка foldr',
 -- не используя никаких стандартных функций.
 foldr' :: (a -> b -> b) -> b -> [a] -> b
@@ -67,7 +64,6 @@ foldr' f ini (x:xs) = f x (foldr' f ini xs)
 -- Реализуйте функцию map' (которая делает то же самое, что обычный map)
 -- через функцию foldr', не используя стандартных функций.
 map' :: (a -> b) -> [a] -> [b]
-
 map' f  = foldr' (\x ys -> f x:ys) []
 
 -- 2) Maybe
@@ -179,7 +175,6 @@ thirdElementOfSecondList' xs = Just xs ~~> tryTail ~~> tryHead ~~> tryTail ~~> t
 -- "abcd"
 -- nubBy' (\x y -> x == y || x + y == 10) [2, 3, 5, 7, 8, 2]
 -- [2,3,5]
-
 nubBy' :: (a -> a -> Bool) -> [a] -> [a]
 nubBy' eq = foldr' (\x xs -> x:filter (not . eq x) xs) []
 
@@ -200,10 +195,9 @@ nubBy' eq = foldr' (\x xs -> x:filter (not . eq x) xs) []
 -- [1,2,2,3]
 -- >>> quickSort' "babca"
 -- "aabbc"
-
 quickSort' :: Ord a => [a] -> [a]
 quickSort' []     = []
-quickSort' (x:xs) = quickSort' (filter ( < x) xs) ++ x:filter ( == x) xs ++ quickSort' (filter ( > x) xs)
+quickSort' (x:xs) = quickSort' (filter (< x) xs) ++ x:filter (== x) xs ++ quickSort' (filter (> x) xs)
 
 -- Найдите суммарную длину списков, в которых чётное количество элементов
 -- имеют квадрат больше 100. Реализация должна быть без использования
@@ -265,7 +259,6 @@ isSubstringOf n s = pack n `isInfixOf` pack s
 -- ["b"]
 -- >>> grepSubstringNoFilename "c" [("a.txt", ["a", "a"]), ("b.txt", ["b", "bab", "c"]), ("c.txt", ["c", "ccccc"])]
 -- ["c", "c", "ccccc"]
-
 grepSubstringNoFilename :: String -> [File] -> [String]
 grepSubstringNoFilename needle = grep' (curry snd) (isSubstringOf needle)
  
