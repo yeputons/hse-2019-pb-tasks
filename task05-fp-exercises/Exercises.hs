@@ -132,7 +132,8 @@ secondElement xs = case tryTail xs of
 -- Just "d"
 
 thirdElementOfSecondList :: [[a]] -> Maybe a
-thirdElementOfSecondList _ Just [a, b, c] _ = Just c
+thirdElementOfSecondList (_ : [a, b, c] : _) = Just c
+thirdElementOfSecondList _                   = Nothing
 -- thirdElementOfSecondList _  _               _ = Nothing
 -- thirdElementOfSecondList xs = case secondElement xs of
 --                                 Just [a, b, c]    -> Just c
