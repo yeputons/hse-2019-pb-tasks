@@ -53,7 +53,7 @@ hash' = hash'' 0
 
 hash'' :: Int -> String -> Int
 hash'' ini ""     = ini
-hash'' ini (x:xs) = p * hash'' ini xs + ord x
+hash'' ini (x:xs) = ord x + p * hash'' ini xs
 
 -- hashIterative ini "" it = ini
 -- hashIterative ini xs it = hashIterative (ini + ord (head xs) * p ^ it) (tail xs) (it + 1)
@@ -63,7 +63,6 @@ hash'' ini (x:xs) = p * hash'' ini xs + ord x
 foldr' :: (a -> b -> b) -> b -> [a] -> b
 foldr' f ini []     = ini
 foldr' f ini (x:xs) = f x (foldr' f ini xs)
-
 
 -- Реализуйте функцию map' (которая делает то же самое, что обычный map)
 -- через функцию foldr', не используя стандартных функций.
@@ -133,10 +132,11 @@ secondElement xs = case tryTail xs of
 -- Just "d"
 
 thirdElementOfSecondList :: [[a]] -> Maybe a
-thirdElementOfSecondList xs = case secondElement xs of
-                                Just [a, b, c]    -> Just c
-                                _                 -> Nothing
-
+thirdElementOfSecondList _ Just [a, b, c] _ = Just c
+-- thirdElementOfSecondList _  _               _ = Nothing
+-- thirdElementOfSecondList xs = case secondElement xs of
+--                                 Just [a, b, c]    -> Just c
+--                                 _                 -> Nothing
 
 -- Функцию fifthElement, которая возвращает пятый элемент списка или Nothing,
 -- если пятого элемента в списке нет.
