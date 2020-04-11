@@ -58,7 +58,7 @@ showExpression (BinaryOperation op left right)   = concat ["(", showExpression l
 showExpression (UnaryOperation op expr)          = showUnop op ++ showExpression expr
 showExpression (FunctionCall name args)          = concat [name, "(", intercalate ", " $ map showExpression args, ")"]
 showExpression (Conditional expr ifTrue ifFalse) = concat ["if ", showExpression expr, " then ", showExpression ifTrue, " else ", showExpression ifFalse, " fi"]
-showExpression (Block exprs)                     = concat ["{\n", concatMap (("\t" ++) . (++ "\n")) (lines $ intercalate ";\n" (map showExpression exprs)), "}"]
+showExpression (Block exprs)                     = concat ["{\n", concatMap (("\t" ++) . (++ "\n")) $ lines $ intercalate ";\n" (map showExpr exprs), "}"]
 
 
 showFunction :: FunctionDefinition -> String
@@ -100,22 +100,31 @@ toUnaryFunction Not = fromBool . not . toBool
 
 {- -- Удалите эту строчку, если решаете бонусное задание.
 newtype Eval a = Eval ([FunctionDefinition] -> State -> (a, State))  -- Как data, только эффективнее в случае одного конструктора.
+
 runEval :: Eval a -> [FunctionDefinition] -> State -> (a, State)
 runEval (Eval f) = f
+
 evaluated :: a -> Eval a  -- Возвращает значение без изменения состояния.
 evaluated = undefined
+
 readState :: Eval State  -- Возвращает состояние.
 readState = undefined
+
 addToState :: String -> Integer -> a -> Eval a  -- Добавляет/изменяет значение переменной на новое и возвращает константу.
 addToState = undefined
+
 readDefs :: Eval [FunctionDefinition]  -- Возвращает все определения функций.
 readDefs = undefined
+
 andThen :: Eval a -> (a -> Eval b) -> Eval b  -- Выполняет сначала первое вычисление, а потом второе.
 andThen = undefined
+
 andEvaluated :: Eval a -> (a -> b) -> Eval b  -- Выполняет вычисление, а потом преобразует результат чистой функцией.
 andEvaluated = undefined
+
 evalExpressionsL :: (a -> Integer -> a) -> a -> [Expression] -> Eval a  -- Вычисляет список выражений от первого к последнему.
 evalExpressionsL = undefined
+
 evalExpression :: Expression -> Eval Integer  -- Вычисляет выражение.
 evalExpression = undefined
 -} -- Удалите эту строчку, если решаете бонусное задание.
