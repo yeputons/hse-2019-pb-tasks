@@ -127,8 +127,7 @@ secondElement xs = case tryTail xs of
 -- >>> thirdElementOfSecondList [["a"], ["b", "c", "d"]]
 -- Just "d"
 thirdElementOfSecondList :: [[a]] -> Maybe a
-thirdElementOfSecondList (_ : [a, b, c] : _) = Just c
-thirdElementOfSecondList _                   = Nothing
+thirdElementOfSecondList xs = tryTail xs ~~> tryHead ~~> tryTail ~~> tryTail ~~> tryHead
 
 -- Функцию fifthElement, которая возвращает пятый элемент списка или Nothing,
 -- если пятого элемента в списке нет.
