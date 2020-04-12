@@ -141,8 +141,7 @@ fifthElement :: [a] -> Maybe a
 fifthElement xs = case tryTail xs of
                     Just a  -> case tryTail a of
                                  Just a  -> case tryTail a of
-                                              Just a 
-                                               -> secondElement a
+                                              Just a  -> secondElement a
                                               _       -> Nothing
                                  _       -> Nothing
                     _       -> Nothing
