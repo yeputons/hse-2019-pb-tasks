@@ -126,14 +126,9 @@ secondElement xs = case tryTail xs of
 -- Nothing
 -- >>> thirdElementOfSecondList [["a"], ["b", "c", "d"]]
 -- Just "d"
-
 thirdElementOfSecondList :: [[a]] -> Maybe a
 thirdElementOfSecondList (_ : [a, b, c] : _) = Just c
 thirdElementOfSecondList _                   = Nothing
--- thirdElementOfSecondList _  _               _ = Nothing
--- thirdElementOfSecondList xs = case secondElement xs of
---                                 Just [a, b, c]    -> Just c
---                                 _                 -> Nothing
 
 -- Функцию fifthElement, которая возвращает пятый элемент списка или Nothing,
 -- если пятого элемента в списке нет.
@@ -144,15 +139,16 @@ thirdElementOfSecondList _                   = Nothing
 -- >>> fifthElement [1, 2, 3, 4, 5]
 -- Just 5
 fifthElement :: [a] -> Maybe a
-fifthElement xs = case secondElement xs of
-                    Just a -> thirdElement $ tail $ tail xs
-                    _      -> Nothing
-                    where thirdElement xs = case tryTail xs of
-                                              Just a -> secondElement a
-                                              _      -> Nothing
+fifthElement xs = case tryTail xs of
+                    Just a  -> case tryTail a of
+                                 Just a  -> case tryTail a of
+                                              Just a 
+                                               -> secondElement a
+                                              _       -> Nothing
+                                 _       -> Nothing
+                    _       -> Nothing
 
 -- Выделите общую логику в оператор ~~>.
-
 (~~>) (Just ma) f = f ma
 (~~>) _         f = Nothing
 
